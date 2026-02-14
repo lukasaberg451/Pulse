@@ -9,10 +9,12 @@ import SwiftUI
 
 struct LoginView: View {
     @ObservedObject var authViewModel: AuthViewModel
+    @Binding var showingSignIn: Bool
     @State private var email = ""
     @State private var password = ""
-    @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showError = false
+    @State private var showingForgotPassword = false
     
     func isValidEmail(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
@@ -21,67 +23,99 @@ struct LoginView: View {
     }
     
     var body: some View {
-        NavigationStack{
-            ZStack{
-                Color.appBackground
-                    .ignoresSafeArea()
-                VStack{
-                    Image(systemName: "dumbbell.fill")
-                        .foregroundStyle(Color.appText)
-                        .font(.system(size: 60))
-                }
-                .frame(maxHeight: .infinity, alignment: .top)
-                .padding(.top, 50)
-                VStack(alignment: .leading){
-                    Text("Email")
-                        .foregroundStyle(Color.appText)
-                        .font(.headline)
-                        .bold()
-                        .padding(.leading, 40)
-                        .padding(.bottom, 0)
-                    TextField("", text: $email)
-                        .textFieldStyle(.roundedBorder)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.emailAddress)
-                        .cornerRadius(5)
-                        .padding(.leading, 40)
-                        .padding(.trailing, 40)
-                        .padding(.bottom, 10)
-                    Text("Password")
-                        .foregroundStyle(Color.appText)
-                        .font(.headline)
-                        .bold()
-                        .padding(.leading, 40)
-                    SecureField("", text: $password)
-                        .textFieldStyle(.roundedBorder)
-                        .cornerRadius(5)
-                        .padding(.leading, 40)
-                        .padding(.trailing, 40)
-                        .foregroundStyle(Color.black)
-                    HStack{
-                        NavigationLink("Forgot Password?", destination: ForgotPasswordView())
-                            .foregroundStyle(Color.appText)
-                            .font(.headline)
+        NavigationStack {
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    // Logo section
+                    VStack {
+                        Image(systemName: "dumbbell.fill")
+                            .foregroundStyle(Color.appAccent)
+                            .font(.system(size: 60))
                     }
-                    .padding(.leading, 40)
-                    .padding(.top, 10)
-                    HStack{
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 50)
+                    
+                    // Form section
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Error message
+                        VStack {
+                            if showError {
+                                Text(errorMessage)
+                                    .foregroundColor(.red)
+                                    .font(.caption)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            } else {
+                                Text(" ")
+                                    .font(.caption)
+                            }
+                        }
+                        .frame(minHeight: 20)
+                        
+                        // Email field
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Email")
+                                .foregroundStyle(Color.appText)
+                                .font(.headline)
+                                .bold()
+                            
+                            TextField("", text: $email)
+                                .textInputAutocapitalization(.never)
+                                .keyboardType(.emailAddress)
+                                .padding()
+                                .background(Color.appSurface)
+                                .foregroundColor(.appText)
+                                .cornerRadius(8)
+                                .onChange(of: email) {
+                                    showError = false
+                                }
+                        }
+                        
+                        // Password field
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Password")
+                                .foregroundStyle(Color.appText)
+                                .font(.headline)
+                                .bold()
+                            
+                            SecureField("", text: $password)
+                                .padding()
+                                .background(Color.appSurface)
+                                .foregroundColor(.appText)
+                                .cornerRadius(8)
+                                .onChange(of: password) {
+                                    showError = false
+                                }
+                        }
+                        
+                        // Forgot password
+                        HStack {
+                            Spacer()
+                            Button("Forgot Password?") {
+                                showingForgotPassword = true
+                            }
+                            .font(.caption)
+                            .foregroundColor(.appAccent)
+                        }
+                        
+                        // Sign in button
                         Button(action: {
                             if email.trimmingCharacters(in: .whitespaces).isEmpty {
-                                errorMessage = "Email and password is required"
+                                errorMessage = "Email is required"
                                 showError = true
                             } else if !isValidEmail(email) {
                                 errorMessage = "Please enter a valid email address"
                                 showError = true
                             } else if password.isEmpty {
-                                errorMessage = "Email and password is required"
+                                errorMessage = "Password is required"
                                 showError = true
                             } else {
                                 showError = false
                                 errorMessage = ""
-                            Task {
-                                await authViewModel.signIn(email: email, password: password)
-                            }
+                                Task {
+                                    await authViewModel.signIn(email: email, password: password)
+                                }
                             }
                         }) {
                             HStack {
@@ -89,31 +123,20 @@ struct LoginView: View {
                                 Text("Sign In")
                                 Spacer()
                             }
-                            .padding()
                             .font(.headline)
+                            .padding()
                             .background(Color.appAccent)
-                            .foregroundStyle(Color.appText)
-                            .cornerRadius(5)
+                            .foregroundStyle(Color.white)
+                            .cornerRadius(8)
                         }
+                        .padding(.top, 10)
                     }
-                    .frame(alignment: .center)
-                    .padding(.top, 10)
-                    .padding(.leading, 40)
-                    .padding(.trailing, 40)
-                    VStack{
-                        if showError {
-                            Text(errorMessage)
-                                .foregroundStyle(Color.red)
-                                .font(.caption)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                        } else {
-                            Text(" ")
-                                .font(.caption)
-                        }
-                    }
-                    .frame(height: 20)
-                    .padding(.top, 20)
+                    .padding(.horizontal, 40)
+                    
+                    Spacer()
                 }
+                
+                // Fullscreen loading overlay
                 if authViewModel.isLoading {
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
@@ -124,17 +147,216 @@ struct LoginView: View {
                             .scaleEffect(1.5)
                         
                         Text("Signing in...")
-                            .foregroundStyle(Color.white)
+                            .foregroundColor(.white)
                             .font(.headline)
                     }
                     .transition(.opacity)
                 }
             }
             .animation(.easeInOut, value: authViewModel.isLoading)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showingSignIn = false
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                        .foregroundColor(.appText)
+                    }
+                }
+            }
+            .sheet(isPresented: $showingForgotPassword) {
+                ForgotPasswordView()
+            }
         }
     }
 }
 
-//#Preview {
-  //  LoginView()
-//}
+import SwiftUI
+
+struct ForgotPasswordView: View {
+    @Environment(\.dismiss) var dismiss
+    @State private var email = ""
+    @State private var isLoading = false
+    @State private var resetSuccess = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
+    func isValidEmail(_ email: String) -> Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: email)
+    }
+    
+    var body: some View {
+        ZStack {
+            Color.appBackground.ignoresSafeArea()
+            
+            if resetSuccess {
+                // Success View
+                VStack(spacing: 24) {
+                    Image(systemName: "envelope.circle.fill")
+                        .font(.system(size: 80))
+                        .foregroundColor(.green)
+                    
+                    Text("Check Your Email")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.appText)
+                    
+                    Text("We've sent a password reset link to")
+                        .foregroundColor(.appText.opacity(0.7))
+                    
+                    Text(email)
+                        .foregroundColor(.appAccent)
+                        .fontWeight(.semibold)
+                    
+                    Text("Please check your email and follow the instructions to reset your password")
+                        .foregroundColor(.appText.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                    
+                    Button(action: {
+                        resetSuccess = false
+                        dismiss()
+                    }) {
+                        Text("Back to Login")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.appAccent)
+                            .cornerRadius(8)
+                    }
+                    .padding(.horizontal, 40)
+                    .padding(.top, 20)
+                }
+            } else {
+                // Reset Password Form
+                VStack(spacing: 0) {
+                    // Logo section
+                    VStack {
+                        Image(systemName: "dumbbell.fill")
+                            .foregroundStyle(Color.appAccent)
+                            .font(.system(size: 60))
+                    }
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 100)
+                    
+                    // Form section
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Title
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Reset Password")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.appText)
+                            
+                            Text("Enter your email to receive a reset link")
+                                .font(.subheadline)
+                                .foregroundColor(.appText.opacity(0.7))
+                        }
+                        .padding(.bottom, 10)
+                        
+                        // Error message
+                        VStack {
+                            if showError {
+                                Text(errorMessage)
+                                    .foregroundColor(.red)
+                                    .font(.caption)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .lineLimit(3)
+                            } else {
+                                Text(" ")
+                                    .font(.caption)
+                            }
+                        }
+                        .frame(minHeight: 40)
+                        
+                        // Email field
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Email")
+                                .foregroundStyle(Color.appText)
+                                .font(.headline)
+                                .bold()
+                            
+                            TextField("", text: $email)
+                                .textInputAutocapitalization(.never)
+                                .keyboardType(.emailAddress)
+                                .padding()
+                                .background(Color.appSurface)
+                                .foregroundColor(.appText)
+                                .cornerRadius(8)
+                                .onChange(of: email) {
+                                    showError = false
+                                }
+                        }
+                        
+                        // Reset button
+                        Button(action: {
+                            if email.trimmingCharacters(in: .whitespaces).isEmpty {
+                                errorMessage = "Email is required"
+                                showError = true
+                            } else if !isValidEmail(email) {
+                                errorMessage = "Please enter a valid email address"
+                                showError = true
+                            } else {
+                                showError = false
+                                errorMessage = ""
+                                Task {
+                                    isLoading = true
+                                    do {
+                                        try await sendPasswordReset(email: email)
+                                        resetSuccess = true
+                                    } catch {
+                                        errorMessage = "Failed to send reset email. Please try again."
+                                        showError = true
+                                    }
+                                    isLoading = false
+                                }
+                            }
+                        }) {
+                            HStack {
+                                Spacer()
+                                Text("Reset Password")
+                                Spacer()
+                            }
+                            .font(.headline)
+                            .padding()
+                            .background(Color.appAccent)
+                            .foregroundStyle(Color.white)
+                            .cornerRadius(8)
+                        }
+                        .padding(.top, 10)
+                    }
+                    .padding(.horizontal, 40)
+                    
+                    Spacer()
+                }
+            }
+            
+            // Fullscreen loading overlay
+            if isLoading {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1.5)
+                    
+                    Text("Sending reset link...")
+                        .foregroundColor(.white)
+                        .font(.headline)
+                }
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut, value: isLoading)
+        .animation(.easeInOut, value: resetSuccess)
+    }
+}

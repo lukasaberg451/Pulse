@@ -223,6 +223,7 @@ struct RoutineDetailView: View {
         }
         .task {
             await viewModel.loadRoutineExercises()
+            await viewModel.loadExercises()
         }
     }
 }
@@ -321,6 +322,9 @@ struct ExerciseConfigSheet: View {
     
     @State private var sets = 3
     @State private var repsTarget = "10"
+    @State private var targetWeight = "0"  // Add this
+    @State private var durationMinutes = 5
+    @State private var durationSeconds = 0
     @State private var restSeconds = 60
     
     var body: some View {
@@ -329,22 +333,79 @@ struct ExerciseConfigSheet: View {
                 Color.appBackground.ignoresSafeArea()
                 
                 Form {
-                    Section(header: Text("Exercise").foregroundStyle(Color.appText)) {
+                    Section(header: Text("Exercise").foregroundColor(.appText)) {
                         Text(exercise.name)
-                            .foregroundStyle(Color.appText)
+                            .foregroundColor(.appText)
+                        Text(exercise.exerciseType.capitalized)
+                            .font(.caption)
+                            .foregroundColor(.appAccent)
                     }
                     .listRowBackground(Color.appSurface)
                     
-                    Section(header: Text("Configuration").foregroundStyle(Color.appText)) {
+                    Section(header: Text("Configuration").foregroundColor(.appText)) {
                         Stepper("Sets: \(sets)", value: $sets, in: 1...10)
-                            .foregroundStyle(Color.appText)
+                            .foregroundColor(.appText)
                         
-                        TextField("Reps", text: $repsTarget)
-                            .foregroundStyle(Color.appText)
-                            .keyboardType(.numberPad)
+                        if exercise.exerciseType == "strength" {
+                            // Reps
+                            HStack {
+                                Text("Reps")
+                                    .foregroundColor(.appText)
+                                Spacer()
+                                TextField("", text: $repsTarget)
+                                    .foregroundColor(.appText)
+                                    .keyboardType(.numberPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .frame(width: 60)
+                                    .padding(8)
+                                    .background(Color.appBackground)
+                                    .cornerRadius(6)
+                            }
+                            
+                            // Weight
+                            HStack {
+                                Text("Weight (kg)")
+                                    .foregroundColor(.appText)
+                                Spacer()
+                                TextField("0", text: $targetWeight)
+                                    .foregroundColor(.appText)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .frame(width: 80)
+                                    .padding(8)
+                                    .background(Color.appBackground)
+                                    .cornerRadius(6)
+                            }
+                        } else {
+                            // Cardio: Duration picker
+                            HStack {
+                                Text("Duration")
+                                    .foregroundColor(.appText)
+                                Spacer()
+                                Picker("Minutes", selection: $durationMinutes) {
+                                    ForEach(0..<61) { mins in
+                                        Text("\(mins)").tag(mins)
+                                    }
+                                }
+                                .pickerStyle(.wheel)
+                                .frame(width: 60)
+                                Text("min")
+                                    .foregroundColor(.appText)
+                                
+                                Picker("Seconds", selection: $durationSeconds) {
+                                    ForEach(0..<60) { secs in
+                                        Text("\(secs)").tag(secs)
+                                    }
+                                }
+                                .pickerStyle(.wheel)
+                                .frame(width: 60)
+                                Text("sec")
+                                    .foregroundColor(.appText)
+                            }
+                        }
                         
                         Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
-                            .foregroundStyle(Color.appText)
+                            .foregroundColor(.appText)
                     }
                     .listRowBackground(Color.appSurface)
                 }
@@ -359,22 +420,37 @@ struct ExerciseConfigSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundStyle(Color.appText)
+                    .foregroundColor(.appText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
                         Task {
-                            await viewModel.addExercise(
-                                exerciseId: exercise.id,
-                                sets: sets,
-                                repsTarget: repsTarget,
-                                restSeconds: restSeconds
-                            )
+                            if exercise.exerciseType == "strength" {
+                                let weight = Double(targetWeight) ?? 0
+                                await viewModel.addExercise(
+                                    exerciseId: exercise.id,
+                                    sets: sets,
+                                    repsTarget: repsTarget,
+                                    targetWeight: weight,
+                                    durationSeconds: nil,
+                                    restSeconds: restSeconds
+                                )
+                            } else {
+                                let totalSeconds = (durationMinutes * 60) + durationSeconds
+                                await viewModel.addExercise(
+                                    exerciseId: exercise.id,
+                                    sets: sets,
+                                    repsTarget: nil,
+                                    targetWeight: nil,
+                                    durationSeconds: totalSeconds,
+                                    restSeconds: restSeconds
+                                )
+                            }
                             dismiss()
                         }
                     }
-                    .foregroundStyle(Color.appAccent)
+                    .foregroundColor(.appAccent)
                 }
             }
         }

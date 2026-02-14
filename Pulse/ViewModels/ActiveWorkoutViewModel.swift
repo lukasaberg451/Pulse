@@ -117,12 +117,13 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
     }
     
-    func updateSet(id: UUID, reps: Int?, weight: Double?, completed: Bool) async {
+    func updateSet(id: UUID, reps: Int?, weight: Double?, durationSeconds: Int?, completed: Bool) async {
         do {
             try await repository.updateSet(
                 id: id,
                 reps: reps,
                 weight: weight,
+                durationSeconds: durationSeconds,
                 completed: completed
             )
             
@@ -135,6 +136,7 @@ class ActiveWorkoutViewModel: ObservableObject {
                     setNumber: sets[index].setNumber,
                     reps: reps,
                     weight: weight,
+                    durationSeconds: durationSeconds,
                     completed: completed,
                     notes: sets[index].notes,
                     createdAt: sets[index].createdAt

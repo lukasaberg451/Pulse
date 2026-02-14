@@ -82,6 +82,10 @@ struct ActiveWorkoutView: View {
                                             Text("\(routineExercise.sets) sets × \(reps) reps • \(routineExercise.restSeconds)s rest")
                                                 .font(.caption)
                                                 .foregroundColor(.appText.opacity(0.6))
+                                        } else if let duration = routineExercise.durationSeconds {
+                                            Text("\(routineExercise.sets) sets × \(duration)s • \(routineExercise.restSeconds)s rest")
+                                                .font(.caption)
+                                                .foregroundColor(.appText.opacity(0.6))
                                         }
                                     }
                                     .textCase(nil)
@@ -105,6 +109,7 @@ struct ActiveWorkoutView: View {
                     }
                     .foregroundColor(.appText)
                 }
+                
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Finish") {
                         alertType = .finish
@@ -114,34 +119,34 @@ struct ActiveWorkoutView: View {
                 }
             }
             .alert(alertType == .cancel ? "Cancel Workout?" : "Finish Workout?",
-        isPresented: Binding(
-            get: { alertType != nil },
-            set: { if !$0 { alertType = nil } }
-        )) {
-            if alertType == .cancel {
-                Button("Continue Workout", role: .cancel) { }
-                Button("Discard", role: .destructive) {
-                    Task {
-                        await viewModel.cancelWorkout()
-                        dismiss()
+                   isPresented: Binding(
+                       get: { alertType != nil },
+                       set: { if !$0 { alertType = nil } }
+                   )) {
+                if alertType == .cancel {
+                    Button("Continue Workout", role: .cancel) { }
+                    Button("Discard", role: .destructive) {
+                        Task {
+                            await viewModel.cancelWorkout()
+                            dismiss()
+                        }
+                    }
+                } else {
+                    Button("Cancel", role: .cancel) { }
+                    Button("Finish") {
+                        Task {
+                            await viewModel.finishWorkout()
+                            dismiss()
+                        }
                     }
                 }
-            } else {
-                Button("Cancel", role: .cancel) { }
-                Button("Finish") {
-                    Task {
-                        await viewModel.finishWorkout()
-                        dismiss()
-                    }
+            } message: {
+                if alertType == .cancel {
+                    Text("This workout will not be saved.")
+                } else {
+                    Text("Are you sure you want to finish this workout?")
                 }
             }
-        } message: {
-            if alertType == .cancel {
-                Text("This workout will not be saved.")
-            } else {
-                Text("Are you sure you want to finish this workout?")
-            }
-        }
             .task {
                 await viewModel.startWorkout()
             }
@@ -201,21 +206,53 @@ struct ExerciseSetSection: View {
     
     var body: some View {
         ForEach(sets) { set in
-            HStack {
-                Text("Set \(set.setNumber)")
-                    .frame(width: 50, alignment: .leading)
-                    .foregroundColor(.appText)
-                
-                // Weight input
+            ExerciseSetRow(
+                viewModel: viewModel,
+                set: set,
+                exercise: exercise,
+                routineExercise: routineExercise
+            )
+        }
+        
+        // Add set button
+        Button {
+            Task {
+                await viewModel.addSet(exerciseId: exercise.id, targetSets: routineExercise.sets)
+            }
+        } label: {
+            Label("Add Set", systemImage: "plus.circle")
+                .font(.caption)
+                .foregroundColor(.appAccent)
+        }
+    }
+}
+
+// ExerciseSetRow comes after this...
+
+struct ExerciseSetRow: View {
+    @ObservedObject var viewModel: ActiveWorkoutViewModel
+    let set: WorkoutSet
+    let exercise: Exercise
+    let routineExercise: RoutineExercise
+    
+    var body: some View {
+        HStack {
+            Text("Set \(set.setNumber)")
+                .frame(width: 50, alignment: .leading)
+                .foregroundColor(.appText)
+            
+            if exercise.exerciseType == "strength" {
+                // Weight and reps for strength
                 HStack {
                     TextField("Weight", value: Binding(
-                        get: { set.weight ?? 0 },
+                        get: { set.weight ?? routineExercise.targetWeight ?? 0 },  // Use target weight if no weight set yet
                         set: { newValue in
                             Task {
                                 await viewModel.updateSet(
                                     id: set.id,
                                     reps: set.reps,
                                     weight: newValue,
+                                    durationSeconds: nil,
                                     completed: set.completed
                                 )
                             }
@@ -229,7 +266,6 @@ struct ExerciseSetSection: View {
                         .foregroundColor(.appText.opacity(0.6))
                 }
                 
-                // Reps input
                 HStack {
                     TextField("Reps", value: Binding(
                         get: { set.reps ?? 0 },
@@ -239,6 +275,7 @@ struct ExerciseSetSection: View {
                                     id: set.id,
                                     reps: newValue,
                                     weight: set.weight,
+                                    durationSeconds: nil,
                                     completed: set.completed
                                 )
                             }
@@ -248,37 +285,51 @@ struct ExerciseSetSection: View {
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 60)
                 }
-                
-                Spacer()
-                
-                // Checkmark button
-                Button {
-                    Task {
-                        await viewModel.updateSet(
-                            id: set.id,
-                            reps: set.reps,
-                            weight: set.weight,
-                            completed: !set.completed
-                        )
-                    }
-                } label: {
-                    Image(systemName: set.completed ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(set.completed ? .green : .gray)
-                        .font(.title2)
+            } else {
+                // Duration for cardio
+                HStack {
+                    TextField("Duration", value: Binding(
+                        get: { set.durationSeconds ?? routineExercise.durationSeconds ?? 0 },
+                        set: { newValue in
+                            Task {
+                                await viewModel.updateSet(
+                                    id: set.id,
+                                    reps: nil,
+                                    weight: nil,
+                                    durationSeconds: newValue,
+                                    completed: set.completed
+                                )
+                            }
+                        }
+                    ), format: .number)
+                    .keyboardType(.numberPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 80)
+                    
+                    Text("sec")
+                        .foregroundColor(.appText.opacity(0.6))
                 }
             }
-            .opacity(set.completed ? 0.6 : 1.0)
-        }
-        
-        // Add set button
-        Button {
-            Task {
-                await viewModel.addSet(exerciseId: exercise.id, targetSets: routineExercise.sets)
+            
+            Spacer()
+            
+            // Checkmark button
+            Button {
+                Task {
+                    await viewModel.updateSet(
+                        id: set.id,
+                        reps: set.reps,
+                        weight: set.weight,
+                        durationSeconds: set.durationSeconds,
+                        completed: !set.completed
+                    )
+                }
+            } label: {
+                Image(systemName: set.completed ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(set.completed ? .green : .gray)
+                    .font(.title2)
             }
-        } label: {
-            Label("Add Set", systemImage: "plus.circle")
-                .font(.caption)
-                .foregroundColor(.appAccent)
         }
+        .opacity(set.completed ? 0.6 : 1.0)
     }
 }

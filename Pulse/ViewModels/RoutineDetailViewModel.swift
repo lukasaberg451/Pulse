@@ -40,18 +40,19 @@ class RoutineDetailViewModel: ObservableObject {
         isLoading = false
     }
     
-    func addExercise(exerciseId: UUID, sets: Int, repsTarget: String, restSeconds: Int) async {
+    func addExercise(exerciseId: UUID, sets: Int, repsTarget: String?, targetWeight: Double?, durationSeconds: Int?, restSeconds: Int) async {
         do {
-            let orderIndex = routineExercises.count
-            let newRoutineExercise = try await routineRepository.addExerciseToRoutine(
+            let newExercise = try await routineRepository.addExerciseToRoutine(
                 routineId: routine.id,
                 exerciseId: exerciseId,
-                orderIndex: orderIndex,
                 sets: sets,
                 repsTarget: repsTarget,
-                restSeconds: restSeconds
+                targetWeight: targetWeight,
+                durationSeconds: durationSeconds,
+                restSeconds: restSeconds,
+                orderIndex: routineExercises.count
             )
-            routineExercises.append(newRoutineExercise)
+            routineExercises.append(newExercise)
         } catch {
             errorMessage = "Failed to add exercise: \(error.localizedDescription)"
         }
@@ -78,7 +79,7 @@ class RoutineDetailViewModel: ObservableObject {
     
     func deleteExercise(_ routineExercise: RoutineExercise) async {
         do {
-            try await routineRepository.deleteRoutine(id: routineExercise.id)
+            try await routineRepository.deleteRoutineExercise(id: routineExercise.id)
             routineExercises.removeAll { $0.id == routineExercise.id }
         } catch {
             errorMessage = "Failed to delete exercise: \(error.localizedDescription)"
@@ -94,6 +95,14 @@ class RoutineDetailViewModel: ObservableObject {
             )
         } catch {
             errorMessage = "Failed to update routine: \(error.localizedDescription)"
+        }
+    }
+    
+    func loadExercises() async {
+        do {
+            exercises = try await exerciseRepository.fetchExercises()
+        } catch {
+            errorMessage = "Failed to load exercises: \(error.localizedDescription)"
         }
     }
 }

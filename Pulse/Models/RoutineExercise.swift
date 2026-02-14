@@ -11,20 +11,24 @@ struct RoutineExercise: Codable, Identifiable {
     let id: UUID
     let routineId: UUID
     let exerciseId: UUID
-    let orderIndex: Int
     let sets: Int
     let repsTarget: String?
+    let targetWeight: Double?  // Add this
+    let durationSeconds: Int?
     let restSeconds: Int
-    let notes: String?
+    let orderIndex: Int
+    let createdAt: Date
     
     enum CodingKeys: String, CodingKey {
         case id
         case routineId = "routine_id"
         case exerciseId = "exercise_id"
-        case orderIndex = "order_index"
         case sets
         case repsTarget = "reps_target"
+        case targetWeight = "target_weight"  // Add this
+        case durationSeconds = "duration_seconds"
         case restSeconds = "rest_seconds"
-        case notes
+        case orderIndex = "order_index"
+        case createdAt = "created_at"
     }
 }

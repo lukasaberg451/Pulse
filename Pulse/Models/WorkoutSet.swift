@@ -12,8 +12,9 @@ struct WorkoutSet: Codable, Identifiable {
     let sessionId: UUID
     let exerciseId: UUID
     let setNumber: Int
-    let reps: Int?
-    let weight: Double?
+    let reps: Int?  // For strength exercises
+    let weight: Double?  // For strength exercises
+    let durationSeconds: Int?  // For cardio exercises
     let completed: Bool
     let notes: String?
     let createdAt: Date
@@ -25,6 +26,7 @@ struct WorkoutSet: Codable, Identifiable {
         case setNumber = "set_number"
         case reps
         case weight
+        case durationSeconds = "duration_seconds"
         case completed
         case notes
         case createdAt = "created_at"

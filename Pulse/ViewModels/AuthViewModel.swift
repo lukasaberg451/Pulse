@@ -69,6 +69,7 @@ class AuthViewModel: ObservableObject{
         }
         isLoading = false
     }
+    
     func signOut() async{
         do{
             try await supabase.auth.signOut()
@@ -78,6 +79,7 @@ class AuthViewModel: ObservableObject{
             print("Sign-out failed: \(error.localizedDescription)")
         }
     }
+    
     func fetchUserProfile()async {
         guard let userId = session?.user.id else { return }
         do{

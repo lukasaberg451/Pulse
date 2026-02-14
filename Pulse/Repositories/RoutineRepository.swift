@@ -52,39 +52,45 @@ class RoutineRepository {
     func addExerciseToRoutine(
         routineId: UUID,
         exerciseId: UUID,
-        orderIndex: Int,
         sets: Int,
-        repsTarget: String,
-        restSeconds: Int
+        repsTarget: String?,
+        targetWeight: Double?,
+        durationSeconds: Int?,
+        restSeconds: Int,
+        orderIndex: Int
     ) async throws -> RoutineExercise {
-            struct InsertData: Encodable {
-                let routine_id: String
-                let exercise_id: String
-                let order_index: Int
-                let sets: Int
-                let reps_target: String
-                let rest_seconds: Int
-            }
-            
-            let data = InsertData(
-                routine_id: routineId.uuidString,
-                exercise_id: exerciseId.uuidString,
-                order_index: orderIndex,
-                sets: sets,
-                reps_target: repsTarget,
-                rest_seconds: restSeconds
-            )
-            
-            let routineExercise: RoutineExercise = try await supabase
-                .from("routine_exercises")
-                .insert(data)
-                .select()
-                .single()
-                .execute()
-                .value
-            
-            return routineExercise
+        struct NewRoutineExercise: Encodable {
+            let routine_id: String
+            let exercise_id: String
+            let sets: Int
+            let reps_target: String?
+            let target_weight: Double?
+            let duration_seconds: Int?
+            let rest_seconds: Int
+            let order_index: Int
         }
+        
+        let newExercise = NewRoutineExercise(
+            routine_id: routineId.uuidString,
+            exercise_id: exerciseId.uuidString,
+            sets: sets,
+            reps_target: repsTarget,
+            target_weight: targetWeight,
+            duration_seconds: durationSeconds,
+            rest_seconds: restSeconds,
+            order_index: orderIndex
+        )
+        
+        let response: RoutineExercise = try await supabase
+            .from("routine_exercises")
+            .insert(newExercise)
+            .select()
+            .single()
+            .execute()
+            .value
+        
+        return response
+    }
     
     func deleteRoutine(id: UUID) async throws {
         try await supabase

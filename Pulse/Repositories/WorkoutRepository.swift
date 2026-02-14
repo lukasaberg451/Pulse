@@ -90,14 +90,26 @@ class WorkoutRepository {
     }
     
     // Update a set
-    func updateSet(id: UUID, reps: Int?, weight: Double?, completed: Bool) async throws {
+    func updateSet(
+        id: UUID,
+        reps: Int?,
+        weight: Double?,
+        durationSeconds: Int?,
+        completed: Bool
+    ) async throws {
         struct UpdateData: Encodable {
             let reps: Int?
             let weight: Double?
+            let duration_seconds: Int?
             let completed: Bool
         }
         
-        let data = UpdateData(reps: reps, weight: weight, completed: completed)
+        let data = UpdateData(
+            reps: reps,
+            weight: weight,
+            duration_seconds: durationSeconds,
+            completed: completed
+        )
         
         try await supabase
             .from("workout_sets")

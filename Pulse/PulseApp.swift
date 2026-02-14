@@ -9,6 +9,9 @@ import SwiftUI
 
 @main
 struct PulseApp: App {
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @StateObject private var authViewModel = AuthViewModel()
+    
     init() {
             // Tab bar appearance
             let tabBarAppearance = UITabBarAppearance()
@@ -44,7 +47,21 @@ struct PulseApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if !hasSeenOnboarding {
+                    OnboardingView(authViewModel: authViewModel)
+                        .onDisappear {
+                            hasSeenOnboarding = true
+                        }
+                } else if authViewModel.isAuthenticated {
+                    HomeView(authViewModel: authViewModel)
+                        .environmentObject(authViewModel)
+                } else {
+                    AuthSelectionView(authViewModel: authViewModel)
+                        .environmentObject(authViewModel)
+                }
+            }
+            .id(authViewModel.isAuthenticated)
         }
     }
 }
