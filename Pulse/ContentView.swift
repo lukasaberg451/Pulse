@@ -2,22 +2,27 @@
 //  ContentView.swift
 //  Pulse
 //
-//  Created by user291690 on 2/5/26.
+//  Created by lukasaberg on 2/5/26.
 //
 
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var authViewModel = AuthViewModel()
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group{
+            if authViewModel.isAuthenticated {
+                HomeView(authViewModel: authViewModel)
+            } else {
+                LandingView(authViewModel: authViewModel)
+            }
         }
-        .padding()
+        .task {
+            await authViewModel.getInitialSession()
+        }
     }
 }
+
 
 #Preview {
     ContentView()
