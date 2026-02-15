@@ -82,8 +82,12 @@ struct ActiveWorkoutView: View {
                                             Text("\(routineExercise.sets) sets × \(reps) reps • \(routineExercise.restSeconds)s rest")
                                                 .font(.caption)
                                                 .foregroundColor(.appText.opacity(0.6))
-                                        } else if let duration = routineExercise.durationSeconds {
-                                            Text("\(routineExercise.sets) sets × \(duration)s • \(routineExercise.restSeconds)s rest")
+                                        } else if let durationSeconds = routineExercise.durationSeconds {
+                                            // Format duration in minutes and seconds
+                                            let minutes = durationSeconds / 60
+                                            let seconds = durationSeconds % 60
+                                            let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
+                                            Text("\(routineExercise.sets) sets × \(durationText) • \(routineExercise.restSeconds)s rest")
                                                 .font(.caption)
                                                 .foregroundColor(.appText.opacity(0.6))
                                         }
@@ -240,12 +244,11 @@ struct ExerciseSetRow: View {
             Text("Set \(set.setNumber)")
                 .frame(width: 50, alignment: .leading)
                 .foregroundColor(.appText)
-            
             if exercise.exerciseType == "strength" {
                 // Weight and reps for strength
                 HStack {
                     TextField("Weight", value: Binding(
-                        get: { set.weight ?? routineExercise.targetWeight ?? 0 },  // Use target weight if no weight set yet
+                        get: { set.weight ?? 0 },
                         set: { newValue in
                             Task {
                                 await viewModel.updateSet(
@@ -286,17 +289,23 @@ struct ExerciseSetRow: View {
                     .frame(width: 60)
                 }
             } else {
-                // Duration for cardio
-                HStack {
-                    TextField("Duration", value: Binding(
-                        get: { set.durationSeconds ?? routineExercise.durationSeconds ?? 0 },
-                        set: { newValue in
+                // Duration for cardio - split into minutes and seconds
+                HStack(spacing: 8) {
+                    // Minutes
+                    TextField("Min", value: Binding(
+                        get: {
+                            let totalSeconds = set.durationSeconds ?? routineExercise.durationSeconds ?? 0
+                            return totalSeconds / 60
+                        },
+                        set: { newMinutes in
+                            let currentSeconds = (set.durationSeconds ?? routineExercise.durationSeconds ?? 0) % 60
+                            let totalSeconds = (newMinutes * 60) + currentSeconds
                             Task {
                                 await viewModel.updateSet(
                                     id: set.id,
                                     reps: nil,
                                     weight: nil,
-                                    durationSeconds: newValue,
+                                    durationSeconds: totalSeconds,
                                     completed: set.completed
                                 )
                             }
@@ -304,9 +313,36 @@ struct ExerciseSetRow: View {
                     ), format: .number)
                     .keyboardType(.numberPad)
                     .textFieldStyle(.roundedBorder)
-                    .frame(width: 80)
+                    .frame(width: 50)
                     
-                    Text("sec")
+                    Text("m")
+                        .foregroundColor(.appText.opacity(0.6))
+                    
+                    // Seconds
+                    TextField("Sec", value: Binding(
+                        get: {
+                            let totalSeconds = set.durationSeconds ?? routineExercise.durationSeconds ?? 0
+                            return totalSeconds % 60
+                        },
+                        set: { newSeconds in
+                            let currentMinutes = (set.durationSeconds ?? routineExercise.durationSeconds ?? 0) / 60
+                            let totalSeconds = (currentMinutes * 60) + newSeconds
+                            Task {
+                                await viewModel.updateSet(
+                                    id: set.id,
+                                    reps: nil,
+                                    weight: nil,
+                                    durationSeconds: totalSeconds,
+                                    completed: set.completed
+                                )
+                            }
+                        }
+                    ), format: .number)
+                    .keyboardType(.numberPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 50)
+                    
+                    Text("s")
                         .foregroundColor(.appText.opacity(0.6))
                 }
             }
