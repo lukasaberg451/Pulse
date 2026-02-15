@@ -103,18 +103,24 @@ class RoutineRepository {
     func updateRoutineExercise(
         id: UUID,
         sets: Int,
-        repsTarget: String,
+        repsTarget: String?,
+        targetWeight: Double?,
+        durationSeconds: Int?,
         restSeconds: Int
     ) async throws {
         struct UpdateData: Encodable {
             let sets: Int
-            let reps_target: String
+            let reps_target: String?
+            let target_weight: Double?
+            let duration_seconds: Int?
             let rest_seconds: Int
         }
         
         let data = UpdateData(
             sets: sets,
             reps_target: repsTarget,
+            target_weight: targetWeight,
+            duration_seconds: durationSeconds,
             rest_seconds: restSeconds
         )
         
@@ -152,11 +158,24 @@ class RoutineRepository {
             .execute()
     }
 
-    // Delete a routine exercise
     func deleteRoutineExercise(id: UUID) async throws {
         try await supabase
             .from("routine_exercises")
             .delete()
+            .eq("id", value: id.uuidString)
+            .execute()
+    }
+    
+    func updateExerciseOrder(id: UUID, orderIndex: Int) async throws {
+        struct UpdateOrder: Encodable {
+            let order_index: Int
+        }
+        
+        let data = UpdateOrder(order_index: orderIndex)
+        
+        try await supabase
+            .from("routine_exercises")
+            .update(data)
             .eq("id", value: id.uuidString)
             .execute()
     }

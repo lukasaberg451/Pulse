@@ -19,10 +19,10 @@ struct HomeView: View {
                 WorkoutView()
             }
             Tab(Constants.progressString, systemImage: Constants.progressIconString){
-                NutritionView()
+                ProgressTabView()
             }
             Tab(Constants.profileString, systemImage: Constants.profileIconString){
-                ProfileView(authViewModel: authViewModel)
+                ProfileView()
             }
         }
     

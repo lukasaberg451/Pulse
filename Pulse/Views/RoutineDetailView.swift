@@ -13,7 +13,7 @@ struct RoutineDetailView: View {
     @State private var showingExercisePicker = false
     @State private var showingActiveWorkout = false
     @State private var showingEditSheet = false
-    @State private var isEditMode = false
+    @State private var editingExercise: RoutineExercise?
     
     init(routine: Routine) {
         self.routine = routine
@@ -24,195 +24,181 @@ struct RoutineDetailView: View {
         ZStack {
             Color.appBackground.ignoresSafeArea()
             
-            Group {
-                if viewModel.isLoading {
-                    ProgressView("Loading routine...")
-                        .foregroundColor(.appText)
-                } else if let error = viewModel.errorMessage {
-                    VStack {
-                        Text("Error")
-                            .font(.headline)
-                            .foregroundColor(.appText)
-                        Text(error)
-                            .foregroundColor(.appText.opacity(0.7))
-                            .multilineTextAlignment(.center)
-                        Button("Retry") {
-                            Task { await viewModel.loadRoutineExercises() }
+            if viewModel.isLoading {
+                ProgressView()
+            } else if let error = viewModel.errorMessage {
+                VStack {
+                    Text("Error")
+                        .font(.headline)
+                    Text(error)
+                        .font(.caption)
+                    Button("Retry") {
+                        Task {
+                            await viewModel.loadRoutineExercises()
+                            await viewModel.loadExercises()
                         }
-                        .foregroundColor(.appAccent)
+                    }
+                }
+            } else {
+                VStack(spacing: 0) {
+                    // Fixed header
+                    VStack(spacing: 16) {
+                        Text(routine.name)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.appText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        // Action buttons
+                        HStack(spacing: 12) {
+                            // Start Workout
+                            Button {
+                                showingActiveWorkout = true
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Image(systemName: "play.fill")
+                                        .font(.title2)
+                                    Text("Start")
+                                        .font(.caption)
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.appAccent)
+                                .cornerRadius(8)
+                            }
+                            
+                            // Edit Routine
+                            Button {
+                                showingEditSheet = true
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Image(systemName: "pencil")
+                                        .font(.title2)
+                                    Text("Edit")
+                                        .font(.caption)
+                                }
+                                .foregroundColor(.appText)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.appSurface)
+                                .cornerRadius(8)
+                            }
+                            
+                            // Add Exercise
+                            Button {
+                                showingExercisePicker = true
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Image(systemName: "plus")
+                                        .font(.title2)
+                                    Text("Add")
+                                        .font(.caption)
+                                }
+                                .foregroundColor(.appText)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.appSurface)
+                                .cornerRadius(8)
+                            }
+                        }
                     }
                     .padding()
-                } else if viewModel.routineExercises.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "dumbbell")
-                            .font(.system(size: 60))
-                            .foregroundColor(.appText.opacity(0.6))
-                        Text("No Exercises Yet")
-                            .font(.headline)
-                            .foregroundColor(.appText)
-                        Text("Add exercises to build your routine")
-                            .foregroundColor(.appText.opacity(0.7))
-                        Button("Add Exercise") {
-                            showingExercisePicker = true
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .background(Color.appAccent)
-                        .cornerRadius(10)
-                    }
-                } else {
-                    VStack(spacing: 0) {
-                        // Edit button header
-                        HStack {
-                            Spacer()
-                            Button {
-                                withAnimation {
-                                    isEditMode.toggle()
-                                }
-                            } label: {
-                                Text(isEditMode ? "Done" : "Edit")
-                                    .foregroundColor(.appAccent)
-                                    .font(.subheadline)
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 12)
-                        .padding(.bottom, 12)
-                        
-                        List {
-                            ForEach(viewModel.routineExercises) { routineExercise in
-                                if let exercise = viewModel.getExercise(for: routineExercise) {
-                                    HStack(spacing: 12) {
-                                        // Delete button in edit mode
-                                        if isEditMode {
-                                            Button {
-                                                Task {
-                                                    await viewModel.deleteExercise(routineExercise)
-                                                    
-                                                    // Exit edit mode if no exercises remain
-                                                    if viewModel.routineExercises.isEmpty {
-                                                        withAnimation {
-                                                            isEditMode = false
-                                                        }
-                                                    }
-                                                }
-                                            } label: {
-                                                Image(systemName: "minus.circle.fill")
-                                                    .font(.title2)
-                                                    .foregroundColor(.red)
-                                            }
-                                            .transition(.scale.combined(with: .opacity))
+                    .background(Color.appBackground)
+                    
+                    // Exercises list
+                    List {
+                        ForEach(viewModel.routineExercises) { routineExercise in
+                            if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
+                                HStack(spacing: 12) {
+                                    // Drag handle
+                                    Image(systemName: "line.3.horizontal")
+                                        .foregroundColor(.appText.opacity(0.3))
+                                        .font(.title3)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(exercise.name)
+                                            .font(.headline)
+                                            .foregroundColor(.appText)
+                                        
+                                        if let reps = routineExercise.repsTarget {
+                                            Text("\(routineExercise.sets) sets × \(reps) reps")
+                                                .font(.caption)
+                                                .foregroundColor(.appText.opacity(0.6))
+                                        } else if let durationSeconds = routineExercise.durationSeconds {
+                                            let minutes = durationSeconds / 60
+                                            let seconds = durationSeconds % 60
+                                            let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
+                                            Text("\(routineExercise.sets) sets × \(durationText)")
+                                                .font(.caption)
+                                                .foregroundColor(.appText.opacity(0.6))
                                         }
                                         
-                                        if isEditMode {
-                                            // Non-tappable view in edit mode
-                                            VStack(alignment: .leading, spacing: 8) {
-                                                Text(exercise.name)
-                                                    .font(.headline)
-                                                    .foregroundColor(.appText)
-                                                
-                                                HStack(spacing: 16) {
-                                                    Label("\(routineExercise.sets) sets", systemImage: "repeat")
-                                                        .font(.caption)
-                                                        .foregroundColor(.appText.opacity(0.6))
-                                                    
-                                                    if let reps = routineExercise.repsTarget {
-                                                        Label("\(reps) reps", systemImage: "number")
-                                                            .font(.caption)
-                                                            .foregroundColor(.appText.opacity(0.6))
-                                                    }
-                                                    
-                                                    Label("\(routineExercise.restSeconds)s rest", systemImage: "timer")
-                                                        .font(.caption)
-                                                        .foregroundColor(.appText.opacity(0.6))
-                                                }
-                                            }
-                                            .padding(.vertical, 4)
-                                        } else {
-                                            // NavigationLink in normal mode
-                                            NavigationLink {
-                                                EditRoutineExerciseView(
-                                                    viewModel: viewModel,
-                                                    routineExercise: routineExercise,
-                                                    exercise: exercise
-                                                )
-                                            } label: {
-                                                VStack(alignment: .leading, spacing: 8) {
-                                                    Text(exercise.name)
-                                                        .font(.headline)
-                                                        .foregroundColor(.appText)
-                                                    
-                                                    HStack(spacing: 16) {
-                                                        Label("\(routineExercise.sets) sets", systemImage: "repeat")
-                                                            .font(.caption)
-                                                            .foregroundColor(.appText.opacity(0.6))
-                                                        
-                                                        if let reps = routineExercise.repsTarget {
-                                                            Label("\(reps) reps", systemImage: "number")
-                                                                .font(.caption)
-                                                                .foregroundColor(.appText.opacity(0.6))
-                                                        }
-                                                        
-                                                        Label("\(routineExercise.restSeconds)s rest", systemImage: "timer")
-                                                            .font(.caption)
-                                                            .foregroundColor(.appText.opacity(0.6))
-                                                    }
-                                                }
-                                                .padding(.vertical, 4)
-                                            }
-                                        }
+                                        Text("\(routineExercise.restSeconds)s rest")
+                                            .font(.caption)
+                                            .foregroundColor(.appText.opacity(0.6))
                                     }
-                                    .listRowBackground(Color.appSurface)
-                                    .animation(.spring(response: 0.3), value: isEditMode)
+                                    
+                                    Spacer()
+                                    
+                                    // Three-dot menu
+                                    Menu {
+                                        Button {
+                                            editingExercise = routineExercise
+                                        } label: {
+                                            Label("Edit Exercise", systemImage: "pencil")
+                                        }
+                                        
+                                        Button(role: .destructive) {
+                                            Task {
+                                                await viewModel.deleteExercise(routineExercise)
+                                            }
+                                        } label: {
+                                            Label("Delete Exercise", systemImage: "trash")
+                                        }
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .font(.title3)
+                                            .foregroundColor(.appText.opacity(0.6))
+                                            .frame(width: 44, height: 44)
+                                    }
                                 }
+                                .padding()
+                                .background(Color.appSurface)
+                                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets())
+                                .listRowSeparator(.hidden)
                             }
                         }
-                        .scrollContentBackground(.hidden)
-                        .listStyle(.plain)
+                        .onMove { source, destination in
+                            Task {
+                                await viewModel.moveExercise(from: source, to: destination)
+                            }
+                        }
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .background(Color.appBackground)
                 }
             }
         }
-        .navigationTitle(routine.name)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Color.appBackground, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    showingActiveWorkout = true
-                } label: {
-                    Label("Start Workout", systemImage: "play.fill")
-                        .foregroundColor(.appAccent)
-                }
-                .disabled(viewModel.routineExercises.isEmpty)
-            }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button {
-                        showingEditSheet = true
-                    } label: {
-                        Label("Edit Routine", systemImage: "pencil")
-                    }
-                    
-                    Button {
-                        showingExercisePicker = true
-                    } label: {
-                        Label("Add Exercise", systemImage: "plus")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .foregroundColor(.appAccent)
-                }
-            }
-        }
+        .navigationTitle("")
         .sheet(isPresented: $showingExercisePicker) {
-            ExercisePickerSheet(routineViewModel : viewModel)
+            ExercisePickerSheet(routineViewModel: viewModel)
         }
         .sheet(isPresented: $showingEditSheet) {
             EditRoutineSheet(viewModel: viewModel)
+        }
+        .sheet(item: $editingExercise) { routineExercise in
+            if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
+                EditExerciseSheet(
+                    routineExercise: routineExercise,
+                    exercise: exercise,
+                    viewModel: viewModel
+                )
+            }
         }
         .fullScreenCover(isPresented: $showingActiveWorkout) {
             ActiveWorkoutView(
@@ -457,76 +443,6 @@ struct ExerciseConfigSheet: View {
     }
 }
 
-struct EditRoutineExerciseView: View {
-    @Environment(\.dismiss) var dismiss
-    @ObservedObject var viewModel: RoutineDetailViewModel
-    
-    let routineExercise: RoutineExercise
-    let exercise: Exercise
-    
-    @State private var sets: Int
-    @State private var repsTarget: String
-    @State private var restSeconds: Int
-    
-    init(viewModel: RoutineDetailViewModel, routineExercise: RoutineExercise, exercise: Exercise) {
-        self.viewModel = viewModel
-        self.routineExercise = routineExercise
-        self.exercise = exercise
-        
-        // Initialize state from existing values
-        _sets = State(initialValue: routineExercise.sets)
-        _repsTarget = State(initialValue: routineExercise.repsTarget ?? "")
-        _restSeconds = State(initialValue: routineExercise.restSeconds)
-    }
-    
-    var body: some View {
-        Form {
-            Section("Exercise") {
-                Text(exercise.name)
-                    .font(.headline)
-                Text(exercise.muscleGroup)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            Section("Configuration") {
-                Stepper("Sets: \(sets)", value: $sets, in: 1...10)
-                
-                TextField("Reps (e.g., 10 or 8-12)", text: $repsTarget)
-                
-                Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
-            }
-            
-            Section {
-                Button("Delete Exercise", role: .destructive) {
-                    Task {
-                        await viewModel.deleteExercise(routineExercise)
-                        dismiss()
-                    }
-                }
-            }
-        }
-        .navigationTitle("Edit Exercise")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    Task {
-                        await viewModel.updateExercise(
-                            routineExercise: routineExercise,
-                            sets: sets,
-                            repsTarget: repsTarget,
-                            restSeconds: restSeconds
-                        )
-                        dismiss()
-                    }
-                }
-                .disabled(repsTarget.isEmpty)
-            }
-        }
-    }
-}
-
 struct EditRoutineSheet: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: RoutineDetailViewModel
@@ -602,3 +518,158 @@ struct EditRoutineSheet: View {
             }
         }
     }
+
+struct EditExerciseSheet: View {
+    @Environment(\.dismiss) var dismiss
+    let routineExercise: RoutineExercise
+    let exercise: Exercise
+    @ObservedObject var viewModel: RoutineDetailViewModel
+    
+    @State private var sets: Int
+    @State private var repsTarget: String
+    @State private var targetWeight: String
+    @State private var durationMinutes: Int
+    @State private var durationSeconds: Int
+    @State private var restSeconds: Int
+    
+    init(routineExercise: RoutineExercise, exercise: Exercise, viewModel: RoutineDetailViewModel) {
+        self.routineExercise = routineExercise
+        self.exercise = exercise
+        self.viewModel = viewModel
+        
+        _sets = State(initialValue: routineExercise.sets)
+        _repsTarget = State(initialValue: routineExercise.repsTarget ?? "")
+        _targetWeight = State(initialValue: String(routineExercise.targetWeight ?? 0))
+        _restSeconds = State(initialValue: routineExercise.restSeconds)
+        
+        let totalSeconds = routineExercise.durationSeconds ?? 0
+        _durationMinutes = State(initialValue: totalSeconds / 60)
+        _durationSeconds = State(initialValue: totalSeconds % 60)
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+                
+                Form {
+                    Section(header: Text("Exercise").foregroundColor(.appText)) {
+                        Text(exercise.name)
+                            .foregroundColor(.appText)
+                        Text(exercise.exerciseType.capitalized)
+                            .font(.caption)
+                            .foregroundColor(.appAccent)
+                    }
+                    .listRowBackground(Color.appSurface)
+                    
+                    Section(header: Text("Configuration").foregroundColor(.appText)) {
+                        Stepper("Sets: \(sets)", value: $sets, in: 1...10)
+                            .foregroundColor(.appText)
+                        
+                        if exercise.exerciseType == "strength" {
+                            HStack {
+                                Text("Reps")
+                                    .foregroundColor(.appText)
+                                Spacer()
+                                TextField("", text: $repsTarget)
+                                    .foregroundColor(.appText)
+                                    .keyboardType(.numberPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .frame(width: 60)
+                                    .padding(8)
+                                    .background(Color.appBackground)
+                                    .cornerRadius(6)
+                            }
+                            
+                            HStack {
+                                Text("Weight (kg)")
+                                    .foregroundColor(.appText)
+                                Spacer()
+                                TextField("0", text: $targetWeight)
+                                    .foregroundColor(.appText)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .frame(width: 80)
+                                    .padding(8)
+                                    .background(Color.appBackground)
+                                    .cornerRadius(6)
+                            }
+                        } else {
+                            HStack {
+                                Text("Duration")
+                                    .foregroundColor(.appText)
+                                Spacer()
+                                Picker("Minutes", selection: $durationMinutes) {
+                                    ForEach(0..<61) { mins in
+                                        Text("\(mins)").tag(mins)
+                                    }
+                                }
+                                .pickerStyle(.wheel)
+                                .frame(width: 60)
+                                Text("min")
+                                    .foregroundColor(.appText)
+                                
+                                Picker("Seconds", selection: $durationSeconds) {
+                                    ForEach(0..<60) { secs in
+                                        Text("\(secs)").tag(secs)
+                                    }
+                                }
+                                .pickerStyle(.wheel)
+                                .frame(width: 60)
+                                Text("sec")
+                                    .foregroundColor(.appText)
+                            }
+                        }
+                        
+                        Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
+                            .foregroundColor(.appText)
+                    }
+                    .listRowBackground(Color.appSurface)
+                }
+                .scrollContentBackground(.hidden)
+            }
+            .navigationTitle("Edit Exercise")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.appText)
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        Task {
+                            if exercise.exerciseType == "strength" {
+                                let weight = Double(targetWeight) ?? 0
+                                await viewModel.updateExercise(
+                                    id: routineExercise.id,
+                                    sets: sets,
+                                    repsTarget: repsTarget,
+                                    targetWeight: weight,
+                                    durationSeconds: nil,
+                                    restSeconds: restSeconds
+                                )
+                            } else {
+                                let totalSeconds = (durationMinutes * 60) + durationSeconds
+                                await viewModel.updateExercise(
+                                    id: routineExercise.id,
+                                    sets: sets,
+                                    repsTarget: nil,
+                                    targetWeight: nil,
+                                    durationSeconds: totalSeconds,
+                                    restSeconds: restSeconds
+                                )
+                            }
+                            dismiss()
+                        }
+                    }
+                    .foregroundColor(.appAccent)
+                }
+            }
+        }
+    }
+}

@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import SwiftUI
 
 @MainActor
 class RoutineDetailViewModel: ObservableObject {
@@ -63,14 +64,18 @@ class RoutineDetailViewModel: ObservableObject {
         exercises.first { $0.id == routineExercise.exerciseId }
     }
     
-    func updateExercise(routineExercise: RoutineExercise, sets: Int, repsTarget: String, restSeconds: Int) async {
+    func updateExercise(id: UUID, sets: Int, repsTarget: String?, targetWeight: Double?, durationSeconds: Int?, restSeconds: Int) async {
         do {
             try await routineRepository.updateRoutineExercise(
-                id: routineExercise.id,
+                id: id,
                 sets: sets,
                 repsTarget: repsTarget,
+                targetWeight: targetWeight,
+                durationSeconds: durationSeconds,
                 restSeconds: restSeconds
             )
+            
+            // Reload exercises
             await loadRoutineExercises()
         } catch {
             errorMessage = "Failed to update exercise: \(error.localizedDescription)"
@@ -103,6 +108,26 @@ class RoutineDetailViewModel: ObservableObject {
             exercises = try await exerciseRepository.fetchExercises()
         } catch {
             errorMessage = "Failed to load exercises: \(error.localizedDescription)"
+        }
+    }
+    
+    func moveExercise(from source: IndexSet, to destination: Int) async {
+        var exercises = routineExercises
+        exercises.move(fromOffsets: source, toOffset: destination)
+        
+        // Update order_index for all exercises
+        do {
+            for (index, exercise) in exercises.enumerated() {
+                try await routineRepository.updateExerciseOrder(
+                    id: exercise.id,
+                    orderIndex: index
+                )
+            }
+            
+            // Reload to reflect new order
+            await loadRoutineExercises()
+        } catch {
+            errorMessage = "Failed to reorder exercises: \(error.localizedDescription)"
         }
     }
 }

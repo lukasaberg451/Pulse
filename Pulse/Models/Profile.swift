@@ -12,7 +12,7 @@ struct Profile: Codable, Identifiable {
     let email: String?
     let firstName: String?
     let lastName: String?
-    let weeklyGoalMinutes: Int?  // Add this
+    let weeklyGoalMinutes: Int?
     let createdAt: Date
     
     enum CodingKeys: String, CodingKey {
@@ -20,7 +20,7 @@ struct Profile: Codable, Identifiable {
         case email
         case firstName = "first_name"
         case lastName = "last_name"
-        case weeklyGoalMinutes = "weekly_goal_minutes"  // Add this
+        case weeklyGoalMinutes = "weekly_goal_minutes"
         case createdAt = "created_at"
     }
 }
