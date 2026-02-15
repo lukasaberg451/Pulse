@@ -1,5 +1,5 @@
 //
-//  HomeProgressView.swift
+//  DashboardView.swift
 //  Pulse
 //
 //  Created by lukasaberg on 2/5/26.
@@ -7,8 +7,10 @@
 
 import SwiftUI
 
-struct HomeProgressView: View {
-    @StateObject private var viewModel = ProgressViewModel()
+struct DashboardView: View {
+    @StateObject private var viewModel = DashboardViewModel()
+    @StateObject var authViewModel : AuthViewModel
+    @State private var showingGoalSettings = false
     
     var body: some View {
         NavigationStack {
@@ -17,8 +19,8 @@ struct HomeProgressView: View {
                 ScrollView {
                     VStack {
                         VStack {
-                            Text(Date.now, style: .date)
-                                .foregroundStyle(Color.appText)
+                            Text("Welcome \(authViewModel.firstName)!")
+                                .foregroundStyle(Color.appAccent)
                                 .font(.title2)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -28,8 +30,22 @@ struct HomeProgressView: View {
                             DayGreetingView()
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    
                         .padding(.leading, 15)
+                        
+                        
+                        VStack {
+                            WeeklyGoalCard(
+                                completedMinutes: viewModel.weeklyWorkoutMinutes,
+                                goalMinutes: viewModel.weeklyGoalMinutes,
+                                onEditGoal: {
+                                    showingGoalSettings = true
+                                }
+                            )
+                            .padding(.horizontal)
+                        }
+                        
+                        
+                        
                     }
                     VStack(spacing: 20) {
                         // Today's Workouts Section
@@ -83,9 +99,14 @@ struct HomeProgressView: View {
             }
             .task {
                 await viewModel.loadData()
+                await viewModel.loadWeeklyProgress()
             }
             .refreshable {
                 await viewModel.loadData()
+                await viewModel.loadWeeklyProgress()
+            }
+            .sheet(isPresented: $showingGoalSettings) {
+                WeeklyGoalSheet(viewModel: viewModel)
             }
         }
     }
@@ -195,7 +216,7 @@ struct EmptyTodayCard: View {
 
 struct RecentWorkoutCard: View {
     let session: WorkoutSession
-    @ObservedObject var viewModel: ProgressViewModel
+    @ObservedObject var viewModel: DashboardViewModel
     
     var body: some View {
         NavigationLink(destination: Text("Workout Detail - TODO")) {

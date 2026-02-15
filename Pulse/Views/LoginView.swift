@@ -66,7 +66,7 @@ struct LoginView: View {
                                 .padding()
                                 .background(Color.appSurface)
                                 .foregroundColor(.appText)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                                 .onChange(of: email) {
                                     showError = false
                                 }
@@ -83,7 +83,7 @@ struct LoginView: View {
                                 .padding()
                                 .background(Color.appSurface)
                                 .foregroundColor(.appText)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                                 .onChange(of: password) {
                                     showError = false
                                 }
@@ -127,7 +127,7 @@ struct LoginView: View {
                             .padding()
                             .background(Color.appAccent)
                             .foregroundStyle(Color.white)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                         }
                         .padding(.top, 10)
                     }
@@ -229,7 +229,7 @@ struct ForgotPasswordView: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.appAccent)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                     }
                     .padding(.horizontal, 40)
                     .padding(.top, 20)
@@ -290,7 +290,7 @@ struct ForgotPasswordView: View {
                                 .padding()
                                 .background(Color.appSurface)
                                 .foregroundColor(.appText)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                                 .onChange(of: email) {
                                     showError = false
                                 }
@@ -329,7 +329,7 @@ struct ForgotPasswordView: View {
                             .padding()
                             .background(Color.appAccent)
                             .foregroundStyle(Color.white)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                         }
                         .padding(.top, 10)
                     }

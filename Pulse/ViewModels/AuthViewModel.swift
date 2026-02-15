@@ -95,6 +95,11 @@ class AuthViewModel: ObservableObject{
             print("Failed to fetch profile: \(error.localizedDescription)")
         }
     }
+    var firstName: String {
+        guard let fullName = userProfile?.fullName else { return "" }
+        return fullName.components(separatedBy: " ").first ?? ""
+    }
+    
 }
 
 struct UserProfile : Codable {

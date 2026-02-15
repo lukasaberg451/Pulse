@@ -359,7 +359,7 @@ struct ExerciseConfigSheet: View {
                                     .frame(width: 60)
                                     .padding(8)
                                     .background(Color.appBackground)
-                                    .cornerRadius(6)
+                                    .cornerRadius(10)
                             }
                             
                             // Weight
@@ -374,7 +374,7 @@ struct ExerciseConfigSheet: View {
                                     .frame(width: 80)
                                     .padding(8)
                                     .background(Color.appBackground)
-                                    .cornerRadius(6)
+                                    .cornerRadius(10)
                             }
                         } else {
                             // Cardio: Duration picker
@@ -555,7 +555,7 @@ struct EditRoutineSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                     }
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Description")
@@ -566,7 +566,7 @@ struct EditRoutineSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                             .lineLimit(3...6)
                     }
                     Spacer()

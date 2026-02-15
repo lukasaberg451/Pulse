@@ -112,7 +112,7 @@ struct CreateRoutineSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                     }
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Description")
@@ -123,7 +123,7 @@ struct CreateRoutineSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                             .lineLimit(3...6)
                     }
                     Spacer()

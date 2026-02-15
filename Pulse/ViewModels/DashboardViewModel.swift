@@ -1,5 +1,5 @@
 //
-//  ProgressViewModel.swift
+//  DashboardViewModel.swift
 //  Pulse
 //
 //  Created by lukasaberg on 2/10/26.
@@ -7,9 +7,10 @@
 
 import Foundation
 import Combine
+import Supabase
 
 @MainActor
-class ProgressViewModel: ObservableObject {
+class DashboardViewModel: ObservableObject {
     @Published var todaysWorkouts: [ScheduledWorkout] = []
     @Published var recentSessions: [WorkoutSession] = []
     @Published var routines: [Routine] = []
@@ -18,6 +19,9 @@ class ProgressViewModel: ObservableObject {
     @Published var routineExercisesMap: [UUID: [RoutineExercise]] = [:]
     @Published var routineExerciseCounts: [UUID: Int] = [:]
     @Published var exercises: [Exercise] = []
+    @Published var weeklyWorkoutMinutes: Int = 0
+    @Published var weeklyGoalMinutes: Int = 150
+    @Published var userProfile: Profile?
     
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
@@ -28,6 +32,7 @@ class ProgressViewModel: ObservableObject {
         errorMessage = nil
         
         do {
+            await fetchUserProfile()
             //Load exercises first
             exercises = try await exerciseRepository.fetchExercises()
             
@@ -96,6 +101,86 @@ class ProgressViewModel: ObservableObject {
             return String(format: "%dm %ds", minutes, secs)
         } else {
             return String(format: "%ds", secs)
+        }
+    }
+    
+    func fetchUserProfile() async {
+        let supabase = SupabaseManager.shared.client
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        
+        do {
+            let profile: Profile = try await supabase
+                .from("profiles")
+                .select()
+                .eq("id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+            
+            userProfile = profile
+        } catch {
+            print("Failed to fetch user profile: \(error)")
+        }
+    }
+    
+    func loadWeeklyProgress() async {
+        // Get start of current week (Monday)
+        let calendar = Calendar.current
+        let now = Date()
+        guard let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)),
+              let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else {
+            return
+        }
+        
+        do {
+            let supabase = SupabaseManager.shared.client  // Add this line
+            
+            // Fetch all completed sessions from this week
+            let sessions: [WorkoutSession] = try await supabase
+                .from("workout_sessions")
+                .select()
+                .eq("user_id", value: supabase.auth.currentUser?.id.uuidString ?? "")
+                .gte("started_at", value: ISO8601DateFormatter().string(from: weekStart))
+                .lt("started_at", value: ISO8601DateFormatter().string(from: weekEnd))
+                .not("completed_at", operator: .is, value: "null")
+                .execute()
+                .value
+            
+            // Sum up the duration
+            weeklyWorkoutMinutes = sessions.reduce(0) { total, session in
+                total + ((session.durationSeconds ?? 0) / 60)
+            }
+            
+            // Get user's weekly goal
+            if let profile = userProfile {
+                weeklyGoalMinutes = profile.weeklyGoalMinutes ?? 150
+            }
+        } catch {
+            print("Failed to load weekly progress: \(error)")
+        }
+    }
+
+    func updateWeeklyGoal(minutes: Int) async {
+        let supabase = SupabaseManager.shared.client  // Add this line
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        
+        do {
+            struct UpdateGoal: Encodable {
+                let weekly_goal_minutes: Int
+            }
+            
+            try await supabase
+                .from("profiles")
+                .update(UpdateGoal(weekly_goal_minutes: minutes))
+                .eq("id", value: userId.uuidString)
+                .execute()
+            
+            weeklyGoalMinutes = minutes
+            
+            // Reload profile
+            await fetchUserProfile()
+        } catch {
+            print("Failed to update weekly goal: \(error)")
         }
     }
 }

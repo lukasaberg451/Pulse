@@ -8,14 +8,14 @@
 import Foundation
 
 struct Constants {
-    static let progressString = "Progress"
+    static let dashboardString = "Dashboard"
     static let workoutString = "Workout"
-    static let nutritionString = "Nutrition"
+    static let progressString = "Progress"
     static let profileString = "Profile"
     
-    static let progressIconString = "chart.line.uptrend.xyaxis"
+    static let dashboardIconString = "chart.bar.fill"
     static let workoutIconString = "dumbbell.fill"
-    static let nutritionIconString = "fork.knife"
+    static let progressIconString = "chart.line.uptrend.xyaxis"
     static let profileIconString = "person.circle.fill"
     
     static let todaysWorkout = "Today's Workout"

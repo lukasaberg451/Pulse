@@ -254,13 +254,13 @@ struct ScheduledWorkoutCard: View {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                             .background(Color.appAccent)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                     }
                 }
             }
             .padding()
             .background(Color.appSurface)
-            .cornerRadius(8)
+            .cornerRadius(10)
         }
         .animation(.spring(response: 0.3), value: isEditMode)
         .fullScreenCover(isPresented: $showingActiveWorkout) {
@@ -340,7 +340,7 @@ struct RoutinePickerRow: View {
             }
             .padding()
             .background(Color.appSurface)
-            .cornerRadius(8)
+            .cornerRadius(10)
         }
         .buttonStyle(PlainButtonStyle())
         .listRowBackground(Color.clear)
@@ -512,7 +512,7 @@ struct RoutineCard: View {
         }
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(8)
+        .cornerRadius(10)
     }
 }
 
@@ -573,10 +573,10 @@ struct CalendarDayView: View {
     var body: some View {
         ZStack {
             if isSelected {
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: 10)
                     .fill(Color.appAccent)
             } else if isToday {
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: 10)
                     .stroke(Color.appAccent, lineWidth: 2)
             }
             

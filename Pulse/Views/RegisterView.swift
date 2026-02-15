@@ -62,7 +62,7 @@ struct RegisterView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                         }
                         .padding(.horizontal, 40)
                         .padding(.top, 20)
@@ -107,7 +107,7 @@ struct RegisterView: View {
                                     .padding()
                                     .background(Color.appSurface)
                                     .foregroundColor(.appText)
-                                    .cornerRadius(8)
+                                    .cornerRadius(10)
                             }
                             
                             // Last Name
@@ -122,7 +122,7 @@ struct RegisterView: View {
                                     .padding()
                                     .background(Color.appSurface)
                                     .foregroundColor(.appText)
-                                    .cornerRadius(8)
+                                    .cornerRadius(10)
                             }
                             
                             // Email
@@ -138,7 +138,7 @@ struct RegisterView: View {
                                     .padding()
                                     .background(Color.appSurface)
                                     .foregroundColor(.appText)
-                                    .cornerRadius(8)
+                                    .cornerRadius(10)
                             }
                             
                             // Password
@@ -152,7 +152,7 @@ struct RegisterView: View {
                                     .padding()
                                     .background(Color.appSurface)
                                     .foregroundColor(.appText)
-                                    .cornerRadius(8)
+                                    .cornerRadius(10)
                             }
                             
                             // Sign up button
@@ -180,7 +180,7 @@ struct RegisterView: View {
                                 .padding()
                                 .background(Color.appAccent)
                                 .foregroundStyle(Color.white)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                             }
                             .padding(.top, 10)
                         }
