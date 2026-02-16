@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3149B7262F435C1000A61B9F /* PulseWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3149B71C2F435C0F00A61B9F /* PulseWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		701BC8CB2F34C8E10085608F /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 701BC8CA2F34C8E10085608F /* Auth */; };
 		701BC8CD2F34C8E10085608F /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 701BC8CC2F34C8E10085608F /* Functions */; };
 		701BC8CF2F34C8E10085608F /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 701BC8CE2F34C8E10085608F /* PostgREST */; };
@@ -15,11 +16,54 @@
 		701BC8D52F34C8E10085608F /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 701BC8D42F34C8E10085608F /* Supabase */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		3149B7242F435C1000A61B9F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 701BC8B32F34C7F00085608F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3149B71B2F435C0F00A61B9F;
+			remoteInfo = "PulseWatch Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3149B72A2F435C1000A61B9F /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				3149B7262F435C1000A61B9F /* PulseWatch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		3149B71C2F435C0F00A61B9F /* PulseWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PulseWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		701BC8BB2F34C7F00085608F /* Pulse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pulse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3149B7322F435D5800A61B9F /* Exceptions for "Pulse" folder in "PulseWatch Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Managers/WorkoutSyncManager.swift,
+				Models/Exercise.swift,
+				Models/Routine.swift,
+				Models/RoutineExercise.swift,
+				Models/WorkoutSet.swift,
+			);
+			target = 3149B71B2F435C0F00A61B9F /* PulseWatch Watch App */;
+		};
+		3149B7432F4369F100A61B9F /* Exceptions for "PulseWatch Watch App" folder in "Pulse" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Views/WatchWorkoutView.swift,
+			);
+			target = 701BC8BA2F34C7F00085608F /* Pulse */;
+		};
 		70F3AB3E2F378D220069C486 /* Exceptions for "Pulse" folder in "Pulse" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -30,10 +74,19 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		3149B71D2F435C0F00A61B9F /* PulseWatch Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3149B7432F4369F100A61B9F /* Exceptions for "PulseWatch Watch App" folder in "Pulse" target */,
+			);
+			path = "PulseWatch Watch App";
+			sourceTree = "<group>";
+		};
 		701BC8BD2F34C7F00085608F /* Pulse */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				70F3AB3E2F378D220069C486 /* Exceptions for "Pulse" folder in "Pulse" target */,
+				3149B7322F435D5800A61B9F /* Exceptions for "Pulse" folder in "PulseWatch Watch App" target */,
 			);
 			path = Pulse;
 			sourceTree = "<group>";
@@ -41,6 +94,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		3149B7192F435C0F00A61B9F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		701BC8B82F34C7F00085608F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -61,6 +121,7 @@
 			isa = PBXGroup;
 			children = (
 				701BC8BD2F34C7F00085608F /* Pulse */,
+				3149B71D2F435C0F00A61B9F /* PulseWatch Watch App */,
 				701BC8BC2F34C7F00085608F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -69,6 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				701BC8BB2F34C7F00085608F /* Pulse.app */,
+				3149B71C2F435C0F00A61B9F /* PulseWatch Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -76,6 +138,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3149B71B2F435C0F00A61B9F /* PulseWatch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3149B7272F435C1000A61B9F /* Build configuration list for PBXNativeTarget "PulseWatch Watch App" */;
+			buildPhases = (
+				3149B7182F435C0F00A61B9F /* Sources */,
+				3149B7192F435C0F00A61B9F /* Frameworks */,
+				3149B71A2F435C0F00A61B9F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3149B71D2F435C0F00A61B9F /* PulseWatch Watch App */,
+			);
+			name = "PulseWatch Watch App";
+			packageProductDependencies = (
+			);
+			productName = "PulseWatch Watch App";
+			productReference = 3149B71C2F435C0F00A61B9F /* PulseWatch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
 		701BC8BA2F34C7F00085608F /* Pulse */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 701BC8C62F34C7F00085608F /* Build configuration list for PBXNativeTarget "Pulse" */;
@@ -83,10 +167,12 @@
 				701BC8B72F34C7F00085608F /* Sources */,
 				701BC8B82F34C7F00085608F /* Frameworks */,
 				701BC8B92F34C7F00085608F /* Resources */,
+				3149B72A2F435C1000A61B9F /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3149B7252F435C1000A61B9F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				701BC8BD2F34C7F00085608F /* Pulse */,
@@ -114,6 +200,9 @@
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					3149B71B2F435C0F00A61B9F = {
+						CreatedOnToolsVersion = 26.2;
+					};
 					701BC8BA2F34C7F00085608F = {
 						CreatedOnToolsVersion = 26.2;
 					};
@@ -137,11 +226,19 @@
 			projectRoot = "";
 			targets = (
 				701BC8BA2F34C7F00085608F /* Pulse */,
+				3149B71B2F435C0F00A61B9F /* PulseWatch Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		3149B71A2F435C0F00A61B9F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		701BC8B92F34C7F00085608F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -152,6 +249,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3149B7182F435C0F00A61B9F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		701BC8B72F34C7F00085608F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -161,7 +265,84 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		3149B7252F435C1000A61B9F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3149B71B2F435C0F00A61B9F /* PulseWatch Watch App */;
+			targetProxy = 3149B7242F435C1000A61B9F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		3149B7282F435C1000A61B9F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = V6H588482S;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "PulseWatch-Watch-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = PulseWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.fyrafemett.Pulse;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fyrafemett.Pulse.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.2;
+			};
+			name = Debug;
+		};
+		3149B7292F435C1000A61B9F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = V6H588482S;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "PulseWatch-Watch-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = PulseWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.fyrafemett.Pulse;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fyrafemett.Pulse.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 26.2;
+			};
+			name = Release;
+		};
 		701BC8C42F34C7F00085608F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -367,6 +548,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3149B7272F435C1000A61B9F /* Build configuration list for PBXNativeTarget "PulseWatch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3149B7282F435C1000A61B9F /* Debug */,
+				3149B7292F435C1000A61B9F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		701BC8B62F34C7F00085608F /* Build configuration list for PBXProject "Pulse" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

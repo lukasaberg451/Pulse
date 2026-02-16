@@ -16,5 +16,7 @@
 		</dict>
 		<dict/>
 	</array>
+	<key>WCSupportsAlwaysOnDisplay</key>
+	<true/>
 </dict>
 </plist>

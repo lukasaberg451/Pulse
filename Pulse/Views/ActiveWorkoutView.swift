@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WatchConnectivity
 
 enum WorkoutAlertType {
     case cancel, finish
@@ -29,7 +30,8 @@ struct ActiveWorkoutView: View {
         _viewModel = StateObject(wrappedValue: ActiveWorkoutViewModel(
             routine: routine,
             routineExercises: routineExercises,
-            scheduledWorkoutId: scheduledWorkoutId
+            scheduledWorkoutId: scheduledWorkoutId,
+            exercises: exercises
         ))
     }
     
@@ -156,6 +158,19 @@ struct ActiveWorkoutView: View {
             }
             .task {
                 await viewModel.startWorkout()
+            }
+            .onAppear {
+                print("=== WATCH CONNECTIVITY DEBUG ===")
+                print("Watch reachable: \(WorkoutSyncManager.shared.isReachable)")
+                print("WCSession supported: \(WCSession.isSupported())")
+                if let session = WCSession.default as WCSession? {
+                    print("WCSession state: \(session.activationState.rawValue)")
+                    #if os(iOS)
+                    print("WCSession isPaired: \(session.isPaired)")
+                    print("WCSession isWatchAppInstalled: \(session.isWatchAppInstalled)")
+                    #endif
+                }
+                print("===============================")
             }
         }
     }

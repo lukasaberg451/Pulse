@@ -19,6 +19,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     @Published var restTimeRemaining: Int = 0
     
     private let scheduledWorkoutId: UUID?
+    private let exercises: [Exercise]
     
     let routine: Routine
     let routineExercises: [RoutineExercise]
@@ -29,13 +30,15 @@ class ActiveWorkoutViewModel: ObservableObject {
     private var restTimer: Timer?
     private let repository = WorkoutRepository()
     
-    init(routine: Routine, routineExercises: [RoutineExercise], scheduledWorkoutId: UUID? = nil) {
+    init(routine: Routine, routineExercises: [RoutineExercise], scheduledWorkoutId: UUID? = nil, exercises: [Exercise]) {
         self.routine = routine
         self.routineExercises = routineExercises
         self.scheduledWorkoutId = scheduledWorkoutId
+        self.exercises = exercises
     }
     
     func startWorkout() async {
+        print("📱 Starting workout...")
         isLoading = true
         startTime = Date()
         
@@ -63,6 +66,11 @@ class ActiveWorkoutViewModel: ObservableObject {
                     sets.append(set)
                 }
             }
+            WorkoutSyncManager.shared.sendWorkoutToWatch(
+                    routine: routine,
+                    routineExercises: routineExercises,
+                    exercises: exercises
+                    )
         } catch {
             errorMessage = "Failed to start workout: \(error.localizedDescription)"
         }

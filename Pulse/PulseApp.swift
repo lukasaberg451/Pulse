@@ -14,6 +14,9 @@ struct PulseApp: App {
     @StateObject private var authViewModel = AuthViewModel()
     
     init() {
+            // Initialize WatchConnectivity
+                _ = WorkoutSyncManager.shared
+        
             // Tab bar appearance
             let tabBarAppearance = UITabBarAppearance()
             tabBarAppearance.configureWithOpaqueBackground()
