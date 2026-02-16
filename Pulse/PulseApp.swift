@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct PulseApp: App {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @AppStorage("hasSeenWelcomeTour") private var hasSeenWelcomeTour = false
     @StateObject private var authViewModel = AuthViewModel()
     
     init() {
@@ -56,6 +57,16 @@ struct PulseApp: App {
                 } else if authViewModel.isAuthenticated {
                     HomeView(authViewModel: authViewModel)
                         .environmentObject(authViewModel)
+                        .fullScreenCover(isPresented: Binding(
+                            get: { !hasSeenWelcomeTour },
+                            set: { hasSeenWelcomeTour = !$0}
+                        )) {
+                            WelcomeTourView()
+                                .onDisappear {
+                                    hasSeenWelcomeTour = true
+                                }
+                        }
+                    
                 } else {
                     AuthSelectionView(authViewModel: authViewModel)
                         .environmentObject(authViewModel)
