@@ -267,7 +267,8 @@ struct ScheduledWorkoutCard: View {
             ActiveWorkoutView(
                 routine: routine,
                 routineExercises: viewModel.routineExercises(for: routine.id),
-                exercises: viewModel.exercises
+                exercises: viewModel.exercises,
+                scheduledWorkoutId: scheduled.id
             )
         }
     }

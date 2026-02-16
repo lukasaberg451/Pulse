@@ -177,7 +177,8 @@ struct TodayWorkoutCard: View {
             ActiveWorkoutView(
                 routine: routine,
                 routineExercises: routineExercises,
-                exercises: exercises
+                exercises: exercises,
+                scheduledWorkoutId: scheduled.id
             )
         }
     }

@@ -15,18 +15,21 @@ struct ActiveWorkoutView: View {
     let routine: Routine
     let routineExercises: [RoutineExercise]
     let exercises: [Exercise]
+    let scheduledWorkoutId: UUID?
     
     @StateObject private var viewModel: ActiveWorkoutViewModel
     @Environment(\.dismiss) var dismiss
     @State private var alertType: WorkoutAlertType?
     
-    init(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise]) {
+    init(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise], scheduledWorkoutId: UUID? = nil) {
         self.routine = routine
         self.routineExercises = routineExercises
         self.exercises = exercises
+        self.scheduledWorkoutId = scheduledWorkoutId
         _viewModel = StateObject(wrappedValue: ActiveWorkoutViewModel(
             routine: routine,
-            routineExercises: routineExercises
+            routineExercises: routineExercises,
+            scheduledWorkoutId: scheduledWorkoutId
         ))
     }
     

@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import Supabase
 
 @MainActor
 class ActiveWorkoutViewModel: ObservableObject {
@@ -17,6 +18,8 @@ class ActiveWorkoutViewModel: ObservableObject {
     @Published var isRestTimerActive = false
     @Published var restTimeRemaining: Int = 0
     
+    private let scheduledWorkoutId: UUID?
+    
     let routine: Routine
     let routineExercises: [RoutineExercise]
     
@@ -26,9 +29,10 @@ class ActiveWorkoutViewModel: ObservableObject {
     private var restTimer: Timer?
     private let repository = WorkoutRepository()
     
-    init(routine: Routine, routineExercises: [RoutineExercise]) {
+    init(routine: Routine, routineExercises: [RoutineExercise], scheduledWorkoutId: UUID? = nil) {
         self.routine = routine
         self.routineExercises = routineExercises
+        self.scheduledWorkoutId = scheduledWorkoutId
     }
     
     func startWorkout() async {
@@ -186,9 +190,28 @@ class ActiveWorkoutViewModel: ObservableObject {
                 id: sessionId,
                 durationSeconds: durationSeconds
             )
+            
+            if let scheduledWorkoutId = scheduledWorkoutId {
+                try await markScheduledWorkoutComplete(id: scheduledWorkoutId)
+            }
+            
         } catch {
             errorMessage = "Failed to finish workout: \(error.localizedDescription)"
         }
+    }
+    
+    private func markScheduledWorkoutComplete(id: UUID) async throws {
+        let supabase = SupabaseManager.shared.client
+        
+        struct UpdateCompleted: Encodable {
+            let completed: Bool
+        }
+        
+        try await supabase
+            .from("scheduled_workouts")
+            .update(UpdateCompleted(completed: true))
+            .eq("id", value: id.uuidString)
+            .execute()
     }
     
     func cancelWorkout() async {
