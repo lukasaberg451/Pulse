@@ -56,14 +56,9 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             "exerciseType": firstExercise.exerciseType
         ]
         
-        print("📱 Sending via updateApplicationContext...")
-        
-        do {
-            try session.updateApplicationContext(workoutData)
-            print("📱 Context updated successfully")
-        } catch {
-            print("📱 Error updating context: \(error.localizedDescription)")
-        }
+        print("📱 Sending via transferUserInfo...")
+        let transfer = session.transferUserInfo(workoutData)
+        print("📱 Transfer created, isTransferring: \(transfer.isTransferring)")
     }
     
     func sendRestTimerUpdate(timeRemaining: Int) {
@@ -136,6 +131,23 @@ extension WorkoutSyncManager: WCSessionDelegate {
                 userInfo: applicationContext
             )
             print("⌚ Posted notification from context")
+            #endif
+        }
+    }
+    
+    func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any] = [:]) {
+        DispatchQueue.main.async {
+            print("📩 Received userInfo: \(userInfo)")
+            
+            #if os(watchOS)
+            print("⌚ Processing userInfo on Watch...")
+            self.currentWorkoutData = userInfo
+            NotificationCenter.default.post(
+                name: NSNotification.Name("WorkoutDataReceived"),
+                object: nil,
+                userInfo: userInfo
+            )
+            print("⌚ Posted notification from userInfo")
             #endif
         }
     }

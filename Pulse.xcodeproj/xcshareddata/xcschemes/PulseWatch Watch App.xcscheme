@@ -58,21 +58,12 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "701BC8BA2F34C7F00085608F"
-            BuildableName = "Pulse.app"
-            BlueprintName = "Pulse"
-            ReferencedContainer = "container:Pulse.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
             BlueprintIdentifier = "3149B71B2F435C0F00A61B9F"
             BuildableName = "PulseWatch Watch App.app"
             BlueprintName = "PulseWatch Watch App"
             ReferencedContainer = "container:Pulse.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

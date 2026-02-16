@@ -18,6 +18,11 @@ struct WatchWorkoutView: View {
     
     var body: some View {
         VStack(spacing: 8) {
+            // Show reachability status at top for debugging
+            Text(syncManager.isReachable ? "🟢 Connected" : "🔴 Disconnected")
+                .font(.caption2)
+                .foregroundColor(syncManager.isReachable ? .green : .red)
+            
             if syncManager.isReachable {
                 // Connected - show workout
                 VStack(spacing: 4) {
@@ -55,6 +60,16 @@ struct WatchWorkoutView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.orange)
+                    Button("Check Context") {
+                        let context = WCSession.default.applicationContext
+                        print("⌚ Manual context check: \(context)")
+                        if !context.isEmpty {
+                            updateWorkoutData(context)
+                        } else {
+                            print("⌚ Context is empty")
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
             } else {
                 // Not connected
@@ -77,17 +92,34 @@ struct WatchWorkoutView: View {
         .onAppear {
             print("⌚ Watch view appeared")
             print("⌚ isReachable: \(syncManager.isReachable)")
+            print("⌚ Current exercise: \(currentExerciseName)")
             
-            if let workoutData = syncManager.currentWorkoutData {
-                    print("⌚ Found existing workout data on appear")
-                    updateWorkoutData(workoutData)
+            // Check for existing context
+            let context = WCSession.default.applicationContext
+            if !context.isEmpty {
+                print("⌚ Found existing context: \(context)")
+                updateWorkoutData(context)
+            }
+        }
+        .onChange(of: syncManager.isReachable) { oldValue, newValue in
+            print("⌚ Reachability changed to: \(newValue)")
+            
+            // When connected, check for existing context
+            if newValue {
+                let context = WCSession.default.applicationContext
+                if !context.isEmpty {
+                    print("⌚ Loading existing context after connection: \(context)")
+                    updateWorkoutData(context)
                 }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("WorkoutDataReceived"))) { notification in
-            if let userInfo = notification.userInfo as? [String: Any] {
-                // Update your view state here
-                print("⌚ Watch view received workout data")
-                updateWorkoutData(userInfo)
+            print("⌚ Notification received!")
+            if let data = notification.userInfo as? [String: Any] {
+                print("⌚ Data: \(data)")
+                updateWorkoutData(data)
+            } else {
+                print("⌚ No data in notification")
             }
         }
     }
