@@ -115,11 +115,11 @@ struct CreateRoutineSheet: View {
                             .cornerRadius(10)
                     }
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Description")
+                        Text("Notes (Optional)")
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         
-                        TextField("Optional", text: $description, axis: .vertical)
+                        TextField("", text: $description, axis: .vertical)
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)

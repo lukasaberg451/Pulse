@@ -43,11 +43,21 @@ struct RoutineDetailView: View {
                 VStack(spacing: 0) {
                     // Fixed header
                     VStack(spacing: 16) {
-                        Text(routine.name)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.appText)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(routine.name)
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.appText)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            // Description,  if exists
+                            if let description = routine.description, !description.isEmpty {
+                                Text(description)
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appText.opacity(0.7))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
                         
                         // Action buttons
                         HStack(spacing: 12) {
@@ -474,11 +484,11 @@ struct EditRoutineSheet: View {
                             .cornerRadius(10)
                     }
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Description")
+                        Text("Notes (Optional)")
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         
-                        TextField("Optional", text: $description, axis: .vertical)
+                        TextField("", text: $description, axis: .vertical)
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
