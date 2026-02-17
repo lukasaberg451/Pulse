@@ -73,7 +73,7 @@ class ProfileViewModel: ObservableObject {
         }
     }
     
-    func submitFeedback(type: String, title: String, description: String) async -> Bool {
+    func submitFeedback(type: String, title: String, description: String, isChecked: Bool) async -> Bool {
         isSubmitting = true
         errorMessage = nil
         
@@ -89,13 +89,15 @@ class ProfileViewModel: ObservableObject {
                 let type: String
                 let title: String
                 let description: String
+                let isChecked: Bool
             }
             
             let feedback = Feedback(
                 user_id: userId.uuidString,
                 type: type,
                 title: title,
-                description: description
+                description: description,
+                isChecked: isChecked
             )
             
             try await supabase

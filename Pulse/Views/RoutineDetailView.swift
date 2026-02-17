@@ -30,8 +30,10 @@ struct RoutineDetailView: View {
                 VStack {
                     Text("Error")
                         .font(.headline)
+                        .foregroundStyle(Color.appText)
                     Text(error)
                         .font(.caption)
+                        .foregroundStyle(Color.appText)
                     Button("Retry") {
                         Task {
                             await viewModel.loadRoutineExercises()
@@ -225,54 +227,227 @@ struct RoutineDetailView: View {
 }
 
 struct ExercisePickerSheet: View {
+    @ObservedObject var routineViewModel: RoutineDetailViewModel
+    @StateObject private var viewModel = ExerciseListViewModel()
     @Environment(\.dismiss) var dismiss
-    let routineViewModel: RoutineDetailViewModel
-    @StateObject private var exerciseViewModel = ExerciseListViewModel()
-    @State private var selectedExercises: Exercise?
-    @State private var showingConfigSheet = false
+    
     @State private var searchText = ""
+    @State private var selectedEquipment: String? = nil
+    @State private var selectedMuscle: String? = nil
+    @State private var showingConfigSheet = false
+    @State private var selectedExercise: Exercise?
+    
+    // Search debounce
+    @State private var searchTask: Task<Void, Never>?
+    
+    let equipmentOptions = [
+        ("Barbell", "Barbell"),
+        ("EZ Bar", "EZ Bar"),
+        ("Dumbbell", "Dumbbell"),
+        ("Machine", "Machine"),
+        ("Cable", "Cable"),
+        ("Bodyweight", "Bodyweight"),
+        ("Bench", "Bench"),
+        ("Bar", "Bar"),
+        ("Box", "Box"),
+        ("Battle Rope", "Battle Rope"),
+        ("Sled", "Sled"),
+        ("Medicine Ball", "Medicine Ball"),
+        ("Kettlebell", "Kettlebell"),
+        ("Treadmill", "Treadmill"),
+        ("Rowing Machine", "Rowing Machine"),
+        ("Air Bike", "Air Bike"),
+        ("Bike", "Bike"),
+        ("Stairmill", "Stairmill"),
+        ("Elliptical", "Elliptical"),
+        ("SkiErg", "SkiErg")
+    ]
+    
+    let muscleOptions = [
+        ("Quads", "Quads"),
+        ("Hamstrings", "Hamstrings"),
+        ("Glutes", "Glutes"),
+        ("Back", "Back"),
+        ("Upper Back", "Upper Back"),
+        ("Lower Back", "Lower Back"),
+        ("Calves", "Calves"),
+        ("Chest", "Chest"),
+        ("Triceps", "Triceps"),
+        ("Shoulders", "Shoulders"),
+        ("Biceps", "Biceps"),
+        ("Traps", "Traps"),
+        ("Forearms", "Forearms"),
+        ("Core", "Core"),
+        ("Adductors", "Adductors"),
+        ("Obliques", "Obliques"),
+        ("Full Body", "Full Body"),
+        ("Cardio", "Cardio")
+    ]
     
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.appBackground.ignoresSafeArea()
                 
-                Group {
-                    if routineViewModel.isLoading {
-                        ProgressView("Loading exercises...")
-                            .foregroundStyle(Color.appText)
-                    } else if let error = routineViewModel.errorMessage {
-                        VStack {
-                            Text("Error")
-                                .font(.headline)
-                                .foregroundStyle(Color.appText)
-                            Text(error)
-                                .foregroundStyle(Color.appText.opacity(0.7))
-                            Button("Retry") {
-                                Task { await routineViewModel.loadRoutineExercises() }
+                VStack(spacing: 0) {
+                    // Search bar
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.appText.opacity(0.5))
+                        TextField("Search exercises...", text: $searchText)
+                            .foregroundColor(.appText)
+                            .onChange(of: searchText) { _, newValue in
+                                // Debounce search
+                                searchTask?.cancel()
+                                searchTask = Task {
+                                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s delay
+                                    if !Task.isCancelled {
+                                        await viewModel.resetAndLoad(
+                                            equipment: selectedEquipment,
+                                            muscle: selectedMuscle,
+                                            search: newValue
+                                        )
+                                    }
+                                }
                             }
-                            .foregroundStyle(Color.appAccent)
-                        }
-                    } else {
-                        List(filteredExercises) { exercise in
+                        
+                        if !searchText.isEmpty {
                             Button {
-                                selectedExercises = exercise
+                                searchText = ""
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.appText.opacity(0.5))
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color.appSurface)
+                    .cornerRadius(8)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    
+                    // Equipment filter
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            FilterChip(title: "All", isSelected: selectedEquipment == nil) {
+                                selectedEquipment = nil
+                                Task { await viewModel.resetAndLoad(equipment: nil, muscle: selectedMuscle, search: searchText) }
+                            }
+
+                            ForEach(equipmentOptions, id: \.0) { value, label in
+                                FilterChip(title: label, isSelected: selectedEquipment == value) {
+                                    selectedEquipment = selectedEquipment == value ? nil : value
+                                    let newEquipment = selectedEquipment  // Capture AFTER update
+                                    Task { await viewModel.resetAndLoad(equipment: newEquipment, muscle: selectedMuscle, search: searchText) }
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                    }
+                    
+                    // Muscle filter
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            FilterChip(title: "All Muscles", isSelected: selectedMuscle == nil) {
+                                selectedMuscle = nil
+                                Task { await viewModel.resetAndLoad(equipment: selectedEquipment, muscle: nil, search: searchText) }
+                            }
+
+                            ForEach(muscleOptions, id: \.0) { value, label in
+                                FilterChip(title: value.capitalized, isSelected: selectedMuscle == value) {
+                                    selectedMuscle = selectedMuscle == value ? nil : value
+                                    let newMuscle = selectedMuscle  // Capture AFTER update
+                                    Task { await viewModel.resetAndLoad(equipment: selectedEquipment, muscle: newMuscle, search: searchText) }
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                    }
+                    
+                    // Results count
+                    HStack {
+                        Text("\(viewModel.exercises.count) exercises")
+                            .font(.caption)
+                            .foregroundColor(.appText.opacity(0.6))
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 4)
+                    
+                    // Exercise list
+                    List {
+                        ForEach(viewModel.exercises) { exercise in
+                            Button {
+                                selectedExercise = exercise
                                 showingConfigSheet = true
                             } label: {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(exercise.name)
-                                        .font(.headline)
-                                        .foregroundStyle(Color.appText)
-                                    Text(exercise.muscleGroup)
-                                        .font(.caption)
-                                        .foregroundStyle(Color.appText.opacity(0.6))
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(exercise.name)
+                                            .font(.headline)
+                                            .foregroundColor(.appText)
+                                        
+                                        HStack(spacing: 8) {
+                                            if let equipment = exercise.equipment {
+                                                Text(equipment.capitalized)
+                                                    .font(.caption)
+                                                    .padding(.horizontal, 8)
+                                                    .padding(.vertical, 2)
+                                                    .background(Color.appAccent.opacity(0.2))
+                                                    .foregroundColor(.appAccent)
+                                                    .cornerRadius(4)
+                                            }
+                                            
+                                            if let muscle = exercise.muscleGroup {
+                                                Text(muscle.capitalized)
+                                                    .font(.caption)
+                                                    .padding(.horizontal, 8)
+                                                    .padding(.vertical, 2)
+                                                    .background(Color.appSurface)
+                                                    .foregroundColor(.appText.opacity(0.6))
+                                                    .cornerRadius(4)
+                                            }
+                                        }
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "plus.circle")
+                                        .foregroundColor(.appAccent)
                                 }
                             }
                             .listRowBackground(Color.appSurface)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                            .listRowSeparator(.hidden)
+                            .task {
+                                // Load more when reaching end of list
+                                await viewModel.loadMoreIfNeeded(currentExercise: exercise)
+                            }
                         }
-                        .searchable(text: $searchText, prompt: "Search exercises")
-                        .scrollContentBackground(.hidden)
+                        
+                        // Loading more indicator
+                        if viewModel.isLoadingMore {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
+                                Spacer()
+                            }
+                            .listRowBackground(Color.clear)
+                        }
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                }
+                
+                // Loading overlay
+                if viewModel.isLoading {
+                    Color.appBackground.opacity(0.8)
+                        .ignoresSafeArea()
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
                 }
             }
             .navigationTitle("Add Exercise")
@@ -284,29 +459,39 @@ struct ExercisePickerSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundStyle(Color.appText)
+                    .foregroundColor(.appText)
                 }
             }
-            .sheet(item: $selectedExercises) { exercise in
-                ExerciseConfigSheet(
-                    exercise: exercise,
-                    viewModel: routineViewModel
-                )
+            .sheet(isPresented: $showingConfigSheet) {
+                if let exercise = selectedExercise {
+                    ExerciseConfigSheet(
+                        exercise: exercise,
+                        viewModel: routineViewModel
+                    )
+                }
             }
             .task {
-                await exerciseViewModel.loadExercises()
+                await viewModel.resetAndLoad()
             }
         }
     }
+}
+
+// MARK: - Filter Chip
+struct FilterChip: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
     
-    var filteredExercises: [Exercise] {
-        if searchText.isEmpty {
-            return exerciseViewModel.excercises
-        } else {
-            return exerciseViewModel.excercises.filter { exercise in
-                exercise.name.localizedCaseInsensitiveContains(searchText) ||
-                exercise.muscleGroup.localizedCaseInsensitiveContains(searchText)
-            }
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(isSelected ? Color.appAccent : Color.appSurface)
+                .foregroundColor(isSelected ? .white : .appText)
+                .cornerRadius(20)
         }
     }
 }
@@ -332,9 +517,11 @@ struct ExerciseConfigSheet: View {
                     Section(header: Text("Exercise").foregroundColor(.appText)) {
                         Text(exercise.name)
                             .foregroundColor(.appText)
-                        Text(exercise.exerciseType.capitalized)
-                            .font(.caption)
-                            .foregroundColor(.appAccent)
+                        if let muscle = exercise.exerciseType {
+                            Text(muscle)
+                                .font(.caption)
+                                .foregroundStyle(Color.appAccent)
+                        }
                     }
                     .listRowBackground(Color.appSurface)
                     
@@ -566,9 +753,11 @@ struct EditExerciseSheet: View {
                     Section(header: Text("Exercise").foregroundColor(.appText)) {
                         Text(exercise.name)
                             .foregroundColor(.appText)
-                        Text(exercise.exerciseType.capitalized)
-                            .font(.caption)
-                            .foregroundColor(.appAccent)
+                        if let muscle = exercise.exerciseType {
+                            Text(muscle)
+                                .font(.caption)
+                                .foregroundStyle(Color.appAccent)
+                        }
                     }
                     .listRowBackground(Color.appSurface)
                     

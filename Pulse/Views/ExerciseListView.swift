@@ -19,7 +19,7 @@ struct ExerciseListView: View {
                         Text("Error")
                             .font(.headline)
                         Text(error)
-                            .foregroundStyle(Color.secondary)
+                            .foregroundStyle(Color.appText)
                             .multilineTextAlignment(.center)
                         Button("Retry") {
                             Task {
@@ -28,14 +28,16 @@ struct ExerciseListView: View {
                     }
                     .padding()
                 } else {
-                    List(viewModel.excercises) { exercise in
+                    List(viewModel.exercises) { exercise in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(exercise.name)
                                 .font(.headline)
                             HStack{
-                                Text(exercise.muscleGroup)
-                                    .font(.caption)
-                                    .foregroundStyle(Color.secondary)
+                                if let muscle = exercise.muscleGroup {
+                                    Text(muscle)
+                                        .font(.caption)
+                                        .foregroundStyle(Color.secondary)
+                                }
                                 if let equipment = exercise.equipment {
                                     Text(".")
                                         .foregroundStyle(Color.secondary)

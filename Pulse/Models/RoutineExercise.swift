@@ -13,7 +13,7 @@ struct RoutineExercise: Codable, Identifiable {
     let exerciseId: UUID
     let sets: Int
     let repsTarget: String?
-    let targetWeight: Double?  // Add this
+    let targetWeight: Double?
     let durationSeconds: Int?
     let restSeconds: Int
     let orderIndex: Int
@@ -25,7 +25,7 @@ struct RoutineExercise: Codable, Identifiable {
         case exerciseId = "exercise_id"
         case sets
         case repsTarget = "reps_target"
-        case targetWeight = "target_weight"  // Add this
+        case targetWeight = "target_weight"
         case durationSeconds = "duration_seconds"
         case restSeconds = "rest_seconds"
         case orderIndex = "order_index"

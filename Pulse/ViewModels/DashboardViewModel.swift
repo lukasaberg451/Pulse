@@ -25,7 +25,7 @@ class DashboardViewModel: ObservableObject {
     
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
-    private let exerciseRepository = ExcerciseRepository()
+    private let exerciseRepository = ExerciseRepository()
     
     func loadData() async {
         isLoading = true

@@ -18,7 +18,7 @@ class RoutineDetailViewModel: ObservableObject {
     
     let routine: Routine
     private let routineRepository = RoutineRepository()
-    private let exerciseRepository = ExcerciseRepository()
+    private let exerciseRepository = ExerciseRepository()
     
     init(routine: Routine) {
         self.routine = routine
@@ -105,7 +105,7 @@ class RoutineDetailViewModel: ObservableObject {
     
     func loadExercises() async {
         do {
-            exercises = try await exerciseRepository.fetchExercises()
+            exercises = try await exerciseRepository.fetchAllExercises()
         } catch {
             errorMessage = "Failed to load exercises: \(error.localizedDescription)"
         }

@@ -19,7 +19,7 @@ class ScheduleViewModel: ObservableObject {
     @Published var routineExerciseMap: [UUID: [RoutineExercise]] = [:]
     @Published var exercises: [Exercise] = []
     
-    private let exerciseRepository = ExcerciseRepository()
+    private let exerciseRepository = ExerciseRepository()
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
     

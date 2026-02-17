@@ -337,6 +337,7 @@ struct FeedbackSheet: View {
     @State private var feedbackType: FeedbackType = .feature
     @State private var title = ""
     @State private var description = ""
+    @State private var isChecked = false
     
     enum FeedbackType: String, CaseIterable {
         case feature = "Feature Request"
@@ -410,6 +411,12 @@ struct FeedbackSheet: View {
                     }
                     .padding(.horizontal)
                     
+                    VStack {
+                        Toggle("I would like to receive updates on my feedback", isOn: $isChecked)
+                            .foregroundStyle(Color.appText)
+                    }
+                    .padding(.horizontal)
+                    
                     Spacer()
                 }
                 .padding(.top, 20)
@@ -449,7 +456,8 @@ struct FeedbackSheet: View {
                             let success = await viewModel.submitFeedback(
                                 type: feedbackType.rawValue,
                                 title: title,
-                                description: description
+                                description: description,
+                                isChecked: isChecked
                             )
                             if success {
                                 dismiss()

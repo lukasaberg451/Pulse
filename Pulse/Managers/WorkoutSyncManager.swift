@@ -53,7 +53,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             "reps": firstRoutineExercise.repsTarget ?? "",
             "weight": firstRoutineExercise.targetWeight ?? 0,
             "rest": firstRoutineExercise.restSeconds,
-            "exerciseType": firstExercise.exerciseType
+            "exerciseType": firstExercise.exerciseType ?? ""
         ]
         
         print("📱 Sending via transferUserInfo...")
