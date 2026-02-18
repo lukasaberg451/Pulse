@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Routine: Codable, Identifiable {
+struct Routine: Codable, Identifiable, Hashable {
     let id: UUID
     let userId: UUID
     let name: String
@@ -21,4 +21,12 @@ struct Routine: Codable, Identifiable {
         case description
         case createdAt = "created_at"
     }
+    
+    func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
+        
+        static func == (lhs: Routine, rhs: Routine) -> Bool {
+            lhs.id == rhs.id
+        }
 }

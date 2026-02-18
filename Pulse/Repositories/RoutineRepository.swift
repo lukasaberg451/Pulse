@@ -179,6 +179,20 @@ class RoutineRepository {
             .eq("id", value: id.uuidString)
             .execute()
     }
+    
+    func fetchRoutine(id: UUID) async throws -> Routine {
+        let supabase = SupabaseManager.shared.client
+        
+        let routine: Routine = try await supabase
+            .from("routines")
+            .select()
+            .eq("id", value: id.uuidString)
+            .single()
+            .execute()
+            .value
+        
+        return routine
+    }
 }
     
    

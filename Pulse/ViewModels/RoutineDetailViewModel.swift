@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import SwiftUI
+import Supabase
 
 @MainActor
 class RoutineDetailViewModel: ObservableObject {
@@ -15,8 +16,8 @@ class RoutineDetailViewModel: ObservableObject {
     @Published var exercises: [Exercise] = [] // For looking up exercise details
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var routine: Routine
     
-    let routine: Routine
     private let routineRepository = RoutineRepository()
     private let exerciseRepository = ExerciseRepository()
     
@@ -90,14 +91,15 @@ class RoutineDetailViewModel: ObservableObject {
             errorMessage = "Failed to delete exercise: \(error.localizedDescription)"
         }
     }
-    
-    func updateRoutineName(name: String, description: String?) async {
+
+    func updateRoutine(name: String, description: String) async {
         do {
-            try await routineRepository.updateRoutine(
-                id: routine.id,
-                name: name,
-                description: description
-            )
+            try await routineRepository.updateRoutine(id: routine.id, name: name, description: description)
+            
+            // Reload the routine to get fresh data
+            let updatedRoutine = try await routineRepository.fetchRoutine(id: routine.id)
+            self.routine = updatedRoutine
+            
         } catch {
             errorMessage = "Failed to update routine: \(error.localizedDescription)"
         }

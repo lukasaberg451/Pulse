@@ -355,6 +355,7 @@ struct RoutineContentView: View {
     @StateObject private var viewModel = RoutineListViewModel()
     @State private var showingCreateSheet = false
     @State private var isEditMode = false
+    @State private var newlyCreatedRoutine: Routine?
     
     var body: some View {
         ZStack {
@@ -419,48 +420,48 @@ struct RoutineContentView: View {
                             LazyVStack(spacing: 12) {
                                 ForEach(viewModel.routines) { routine in
                                     HStack(spacing: 12) {
-                                            // Delete button in edit mode
-                                            if isEditMode {
-                                                Button {
-                                                    Task {
-                                                        await viewModel.deleteRoutine(routine)
-                                                        
-                                                        // Exit edit mode if no routines remain
-                                                        if viewModel.routines.isEmpty {
-                                                            withAnimation {
-                                                                isEditMode = false
-                                                            }
+                                        // Delete button in edit mode
+                                        if isEditMode {
+                                            Button {
+                                                Task {
+                                                    await viewModel.deleteRoutine(routine)
+                                                    
+                                                    // Exit edit mode if no routines remain
+                                                    if viewModel.routines.isEmpty {
+                                                        withAnimation {
+                                                            isEditMode = false
                                                         }
                                                     }
-                                                } label: {
-                                                    Image(systemName: "minus.circle.fill")
-                                                        .font(.title2)
-                                                        .foregroundColor(.red)
                                                 }
-                                                .transition(.scale.combined(with: .opacity))
+                                            } label: {
+                                                Image(systemName: "minus.circle.fill")
+                                                    .font(.title2)
+                                                    .foregroundColor(.red)
                                             }
-                                            
-                                            // Show as plain card in edit mode, NavigationLink otherwise
-                                            if isEditMode {
+                                            .transition(.scale.combined(with: .opacity))
+                                        }
+                                        
+                                        // Show as plain card in edit mode, NavigationLink otherwise
+                                        if isEditMode {
+                                            RoutineCard(
+                                                routine: routine,
+                                                exerciseCount: viewModel.exerciseCount(for: routine.id)
+                                            )
+                                        } else {
+                                            NavigationLink(destination: RoutineDetailView(routine: routine)) {
                                                 RoutineCard(
                                                     routine: routine,
                                                     exerciseCount: viewModel.exerciseCount(for: routine.id)
                                                 )
-                                            } else {
-                                                NavigationLink(destination: RoutineDetailView(routine: routine)) {
-                                                    RoutineCard(
-                                                        routine: routine,
-                                                        exerciseCount: viewModel.exerciseCount(for: routine.id)
-                                                    )
-                                                }
-                                                .buttonStyle(PlainButtonStyle())
                                             }
+                                            .buttonStyle(PlainButtonStyle())
                                         }
-                                        .animation(.spring(response: 0.3), value: isEditMode)
                                     }
+                                    .animation(.spring(response: 0.3), value: isEditMode)
                                 }
                             }
-                            .padding(16)
+                        }
+                        .padding(16)
                     }
                 }
             }
@@ -475,11 +476,88 @@ struct RoutineContentView: View {
                 }
             }
         }
+        .navigationDestination(item: $newlyCreatedRoutine) { routine in
+            RoutineDetailView(routine: routine)
+        }
         .sheet(isPresented: $showingCreateSheet) {
-            CreateRoutineSheet(viewModel: viewModel)
+            CreateRoutineSheet(
+                viewModel: viewModel,
+                onRoutineCreated: { routine in
+                    newlyCreatedRoutine = routine
+                }
+            )
         }
         .task {
             await viewModel.loadRoutines()
+        }
+    }
+}
+
+struct CreateRoutineSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject var viewModel: RoutineListViewModel
+    let onRoutineCreated: (Routine) -> Void
+    @State private var name = ""
+    @State private var description = ""
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+                
+                VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Routine Name")
+                            .font(.headline)
+                            .foregroundStyle(Color.appText)
+                        
+                        TextField("", text: $name)
+                            .padding()
+                            .background(Color.appSurface)
+                            .foregroundStyle(Color.appText)
+                            .cornerRadius(10)
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Notes (Optional)")
+                            .font(.headline)
+                            .foregroundStyle(Color.appText)
+                        
+                        TextField("", text: $description, axis: .vertical)
+                            .padding()
+                            .background(Color.appSurface)
+                            .foregroundStyle(Color.appText)
+                            .cornerRadius(10)
+                            .lineLimit(3...6)
+                    }
+                    Spacer()
+                }
+                .padding()
+            }
+            .navigationTitle("Create Routine")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundStyle(Color.appText)
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create") {
+                        Task {
+                            if let newRoutine = await viewModel.createRoutine(name: name, description: description) {
+                                onRoutineCreated(newRoutine)
+                                    dismiss()
+                            }
+                        }
+                    }
+                    .foregroundStyle(Color(name.isEmpty ? Color.appText.opacity(0.3) : Color.appAccent))
+                    .disabled(name.isEmpty)
+                }
+            }
         }
     }
 }

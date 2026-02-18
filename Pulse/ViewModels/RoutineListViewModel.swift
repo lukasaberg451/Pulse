@@ -41,12 +41,14 @@ class RoutineListViewModel: ObservableObject {
         routineExerciseCounts[routineId] ?? 0
     }
     
-    func createRoutine(name: String, descritpion: String?) async {
+    func createRoutine(name: String, description: String) async -> Routine? {
         do {
-            let newRoutine = try await repository.createRoutine(name: name, description: descritpion)
-            routines.insert(newRoutine, at: 0)
+            let newRoutine = try await routineRepository.createRoutine(name: name, description: description)
+            routines.append(newRoutine)
+            return newRoutine
         } catch {
             errorMessage = "Failed to create routine: \(error.localizedDescription)"
+            return nil
         }
     }
     

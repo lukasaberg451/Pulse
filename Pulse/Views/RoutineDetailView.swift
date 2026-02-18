@@ -46,14 +46,14 @@ struct RoutineDetailView: View {
                     // Fixed header
                     VStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(routine.name)
+                            Text(viewModel.routine.name)
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
                                 .foregroundColor(.appText)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            
+
                             // Description,  if exists
-                            if let description = routine.description, !description.isEmpty {
+                            if let description = viewModel.routine.description, !description.isEmpty {
                                 Text(description)
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appText.opacity(0.7))
@@ -73,12 +73,13 @@ struct RoutineDetailView: View {
                                     Text("Start")
                                         .font(.caption)
                                 }
-                                .foregroundColor(.white)
+                                .foregroundColor(viewModel.routineExercises.isEmpty ? .appText.opacity(0.7) : .appText)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
-                                .background(Color.appAccent)
+                                .background(viewModel.routineExercises.isEmpty ? Color.appAccent.opacity(0.5) : Color.appAccent)
                                 .cornerRadius(8)
                             }
+                            .disabled(viewModel.routineExercises.isEmpty)
                             
                             // Edit Routine
                             Button {
@@ -90,7 +91,7 @@ struct RoutineDetailView: View {
                                     Text("Edit")
                                         .font(.caption)
                                 }
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(Color.appSurface)
@@ -107,7 +108,7 @@ struct RoutineDetailView: View {
                                     Text("Add")
                                         .font(.caption)
                                 }
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(Color.appSurface)
@@ -201,7 +202,8 @@ struct RoutineDetailView: View {
             ExercisePickerSheet(routineViewModel: viewModel)
         }
         .sheet(isPresented: $showingEditSheet) {
-            EditRoutineSheet(viewModel: viewModel)
+            EditRoutineSheet(viewModel: viewModel, onSaved: {
+            })
         }
         .sheet(item: $editingExercise) { routineExercise in
             if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
@@ -214,7 +216,7 @@ struct RoutineDetailView: View {
         }
         .fullScreenCover(isPresented: $showingActiveWorkout) {
             ActiveWorkoutView(
-                routine: routine,
+                routine: viewModel.routine,
                 routineExercises: viewModel.routineExercises,
                 exercises: viewModel.exercises
             )
@@ -643,15 +645,16 @@ struct ExerciseConfigSheet: View {
 struct EditRoutineSheet: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: RoutineDetailViewModel
-        
     @State private var name: String
     @State private var description: String
+    let onSaved: () -> Void
         
-    init(viewModel: RoutineDetailViewModel) {
-        self.viewModel = viewModel
-        _name = State(initialValue: viewModel.routine.name)
-        _description = State(initialValue: viewModel.routine.description ?? "")
-    }
+    init(viewModel: RoutineDetailViewModel, onSaved: @escaping () -> Void) {
+            self.viewModel = viewModel
+            self.onSaved = onSaved
+            _name = State(initialValue: viewModel.routine.name)
+            _description = State(initialValue: viewModel.routine.description ?? "")
+        }
         
     var body: some View {
         NavigationStack {
@@ -701,20 +704,19 @@ struct EditRoutineSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         Task {
-                            await viewModel.updateRoutineName(
-                                name: name,
-                                description: description.isEmpty ? nil : description
-                            )
+                            await viewModel.updateRoutine(name: name, description: description)
+                            onSaved()
                             dismiss()
+                            }
                         }
-                    }
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
                     .disabled(name.isEmpty)
                     }
                 }
             }
         }
     }
+    
 
 struct EditExerciseSheet: View {
     @Environment(\.dismiss) var dismiss
