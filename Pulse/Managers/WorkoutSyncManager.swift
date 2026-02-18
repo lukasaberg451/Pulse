@@ -49,8 +49,10 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         let workoutData: [String: Any] = [
             "workoutStarted": true,  // Add this flag
             "routineName": routine.name,
+            "exerciseId": firstExercise.id.uuidString,
             "currentExercise": firstExercise.name,
             "sets": firstRoutineExercise.sets,
+            "currentSet": 1,
             "reps": firstRoutineExercise.repsTarget ?? "",
             "weight": firstRoutineExercise.targetWeight ?? 0,
             "rest": firstRoutineExercise.restSeconds,
@@ -131,6 +133,19 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             try session.updateApplicationContext(exerciseData)
         } catch {
             print("📱 Error sending current exercise: \(error.localizedDescription)")
+        }
+    }
+    
+    func sendWorkoutEnded() {
+        guard let session = session else { return }
+        
+        let endData: [String: Any] = ["workoutEnded": true]
+        
+        do {
+            try session.updateApplicationContext(endData)
+            print("📱 Sent workout ended to Watch")
+        } catch {
+            print("📱 Error sending workout ended: \(error.localizedDescription)")
         }
     }
 }

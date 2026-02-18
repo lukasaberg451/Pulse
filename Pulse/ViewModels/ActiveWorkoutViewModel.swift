@@ -285,6 +285,8 @@ class ActiveWorkoutViewModel: ObservableObject {
         } catch {
             errorMessage = "Failed to finish workout: \(error.localizedDescription)"
         }
+        
+        WorkoutSyncManager.shared.sendWorkoutEnded()
     }
     
     private func markScheduledWorkoutComplete(id: UUID) async throws {
@@ -326,7 +328,6 @@ class ActiveWorkoutViewModel: ObservableObject {
               let currentExercise = exercises.first(where: { $0.id == currentRoutineExercise.exerciseId }) else {
             return
         }
-        
         WorkoutSyncManager.shared.sendCurrentExercise(
             exercise: currentExercise,
             routineExercise: currentRoutineExercise

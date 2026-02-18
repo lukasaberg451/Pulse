@@ -7,46 +7,77 @@
 
 import SwiftUI
 import WatchConnectivity
+import HealthKit
 
 struct WatchWorkoutView: View {
     @StateObject private var syncManager = WorkoutSyncManager.shared
     @State private var currentExerciseName: String = "No active workout"
-    @State private var currentSets: String = ""
-    @State private var currentReps: String = ""
+    @State private var currentSet: Int = 1
+    @State private var totalSets: Int = 0
+    @State private var targetReps: String = ""
+    @State private var targetWeight: Double = 0
     @State private var restTimeRemaining: Int = 0
     @State private var isResting: Bool = false
+    @State private var workoutSession: HKWorkoutSession?
     
     var body: some View {
         VStack(spacing: 8) {
-            // Show reachability status at top for debugging
+            // Show connection status at top for debugging
             Text(syncManager.isReachable ? "🟢 Connected" : "🔴 Disconnected")
                 .font(.caption2)
                 .foregroundColor(syncManager.isReachable ? .green : .red)
             
-            if syncManager.isReachable {
-                // Connected - show workout
-                VStack(spacing: 4) {
+            if syncManager.isReachable && totalSets > 0 {
+                // Connected and workout active
+                VStack(spacing: 12) {
+                    // Exercise name
                     Text(currentExerciseName)
                         .font(.headline)
                         .foregroundColor(.orange)
+                        .multilineTextAlignment(.center)
                     
-                    if !currentSets.isEmpty {
-                        Text("\(currentSets) sets × \(currentReps) reps")
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                    // Current set progress
+                    Text("Set \(currentSet)/\(totalSets)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    // Target weight and reps
+                    HStack(spacing: 16) {
+                        VStack {
+                            Text("\(targetWeight, specifier: "%.0f")kg")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                            Text("Weight")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                        }
+                        
+                        if !targetReps.isEmpty {
+                            VStack {
+                                Text("\(targetReps)")
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                                Text("Reps")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                            }
+                        }
                     }
+                    .foregroundColor(.white)
                 }
                 
                 Spacer()
                 
-                // Rest timer
+                // Rest timer or log button
                 if isResting {
                     Text("Rest")
                         .font(.caption)
                         .foregroundColor(.gray)
                     
                     Text("\(restTimeRemaining)s")
-                        .font(.title)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                         .foregroundColor(.orange)
                     
                     Button("Skip Rest") {
@@ -62,13 +93,13 @@ struct WatchWorkoutView: View {
                     .tint(.orange)
                 }
             } else {
-                // Not connected
+                // Not connected or no workout
                 VStack {
                     Image(systemName: "applewatch.slash")
                         .font(.largeTitle)
                         .foregroundColor(.gray)
                     
-                    Text("Not Connected")
+                    Text("No Active Workout")
                         .font(.headline)
                     
                     Text("Start a workout on iPhone")
@@ -82,7 +113,6 @@ struct WatchWorkoutView: View {
         .onAppear {
             print("⌚ Watch view appeared")
             print("⌚ isReachable: \(syncManager.isReachable)")
-            print("⌚ Current exercise: \(currentExerciseName)")
             
             // Check for existing context
             let context = WCSession.default.applicationContext
@@ -90,6 +120,11 @@ struct WatchWorkoutView: View {
                 print("⌚ Found existing context: \(context)")
                 updateWorkoutData(context)
             }
+            
+            startWorkoutSession()
+        }
+        .onDisappear {
+            endWorkoutSession()
         }
         .onChange(of: syncManager.isReachable) { oldValue, newValue in
             print("⌚ Reachability changed to: \(newValue)")
@@ -115,16 +150,42 @@ struct WatchWorkoutView: View {
     }
     
     func updateWorkoutData(_ data: [String: Any]) {
-        print("⌚ Received workout data: \(data)")
+        print("⌚ updateWorkoutData called with: \(data)")
+        
+        // Check if workout ended
+        if data["workoutEnded"] as? Bool == true {
+            currentExerciseName = "No active workout"
+            totalSets = 0
+            targetReps = ""
+            targetWeight = 0
+            currentSet = 1
+            return
+        }
         
         if let exerciseName = data["currentExercise"] as? String {
+            print("⌚ Setting exercise name to: \(exerciseName)")
             currentExerciseName = exerciseName
         }
         
-        if let sets = data["sets"] as? Int,
-           let reps = data["reps"] as? String {
-            currentSets = "\(sets)"
-            currentReps = reps
+        if let sets = data["sets"] as? Int {
+            print("⌚ Setting total sets: \(sets)")
+            totalSets = sets
+        }
+        
+        if let reps = data["reps"] as? String {
+            print("⌚ Setting target reps: \(reps)")
+            targetReps = reps
+        }
+        
+        if let weight = data["weight"] as? Double {
+            print("⌚ Setting target weight: \(weight)")
+            targetWeight = weight
+        }
+        
+        if let setNumber = data["currentSet"] as? Int {
+            currentSet = setNumber
+        } else {
+            currentSet = 1
         }
     }
     
@@ -134,15 +195,28 @@ struct WatchWorkoutView: View {
             return
         }
         
+        guard let workoutData = WorkoutSyncManager.shared.currentWorkoutData,
+              let exerciseIdString = workoutData["exerciseId"] as? String else {
+            print("⌚ No exercise ID available")
+            return
+        }
+        
         let message: [String: Any] = [
-            "completedSet_exerciseId": "test-id",
-            "completedSet_setNumber": 1,
-            "completedSet_reps": 10,
-            "completedSet_weight": 50.0
+            "completedSet_exerciseId": exerciseIdString,
+            "completedSet_setNumber": currentSet,
+            "completedSet_reps": Int(targetReps) ?? 10,
+            "completedSet_weight": targetWeight
         ]
+        
+        print("⌚ Sending completed set: \(message)")
         
         session.sendMessage(message, replyHandler: nil) { error in
             print("⌚ Error sending set: \(error.localizedDescription)")
+        }
+        
+        // Increment set locally
+        if currentSet < totalSets {
+            currentSet += 1
         }
     }
     
@@ -151,5 +225,22 @@ struct WatchWorkoutView: View {
         
         let message = ["skipRest": true]
         session.sendMessage(message, replyHandler: nil)
+    }
+    
+    func startWorkoutSession() {
+        let configuration = HKWorkoutConfiguration()
+        configuration.activityType = .traditionalStrengthTraining
+        configuration.locationType = .indoor
+        
+        do {
+            workoutSession = try HKWorkoutSession(healthStore: HKHealthStore(), configuration: configuration)
+            workoutSession?.startActivity(with: Date())
+        } catch {
+            print("⌚ Failed to start workout session: \(error)")
+        }
+    }
+    
+    func endWorkoutSession() {
+        workoutSession?.end()
     }
 }
