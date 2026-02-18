@@ -11,20 +11,18 @@ struct HomeView: View {
     @ObservedObject var authViewModel : AuthViewModel
     var body: some View {
         TabView{
-            Tab(Constants.dashboardString, systemImage: Constants.dashboardIconString){
+            Tab("Dashboard", systemImage: "chart.bar.fill"){
                 DashboardView(authViewModel: authViewModel)
-                
-                }
-            Tab(Constants.workoutString, systemImage: Constants.workoutIconString){
+            }
+            Tab("Workout", systemImage: "dumbbell.fill"){
                 WorkoutView()
             }
-            Tab(Constants.progressString, systemImage: Constants.progressIconString){
+            Tab("Progress", systemImage: "chart.line.uptrend.xyaxis"){
                 ProgressTabView()
             }
-            Tab(Constants.profileString, systemImage: Constants.profileIconString){
+            Tab("Profile", systemImage: "person.circle.fill"){
                 ProfileView()
             }
         }
-    
     }
 }

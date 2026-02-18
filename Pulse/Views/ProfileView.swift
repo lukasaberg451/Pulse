@@ -13,6 +13,7 @@ struct ProfileView: View {
     @State private var showingEditSheet = false
     @State private var showingSignOutAlert = false
     @State private var showingFeedbackSheet = false
+    @State private var showingLanguageSheet = false
     
     var body: some View {
             ZStack {
@@ -24,33 +25,6 @@ struct ProfileView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 16) {
-                            // Profile Header
-                            VStack(spacing: 12) {
-                                // Avatar
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.appSurface)
-                                        .frame(width: 100, height: 100)
-                                    
-                                    Text(viewModel.initials)
-                                        .font(.system(size: 40, weight: .bold))
-                                        .foregroundColor(.appAccent)
-                                }
-                                
-                                // Name
-                                if let profile = viewModel.profile {
-                                    Text("\(profile.firstName ?? "") \(profile.lastName ?? "")")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.appText)
-                                    
-                                    Text(profile.email ?? "")
-                                        .font(.subheadline)
-                                        .foregroundColor(.appText.opacity(0.6))
-                                }
-                            }
-                            .padding(.top, 20)
-                            
                             // Account Details Section
                             VStack(alignment: .leading, spacing: 16) {
                                 Text("Account Details")
@@ -103,6 +77,33 @@ struct ProfileView: View {
                                     .foregroundColor(.white)
                                     .cornerRadius(10)
                                 }
+                                .padding(.horizontal)
+                                // Language Row
+                                        Button {
+                                            showingLanguageSheet = true
+                                        } label: {
+                                            HStack(spacing: 16) {
+                                                Image(systemName: "globe")
+                                                    .font(.system(size: 20))
+                                                    .foregroundColor(.appAccent)
+                                                    .frame(width: 24)
+                                                
+                                                Text("Language")
+                                                    .font(.body)
+                                                    .foregroundColor(.appText)
+                                                
+                                                Spacer()
+                                                
+                                                Text(LanguageManager.shared.getCurrentLanguageName())
+                                                    .font(.body)
+                                                    .foregroundColor(.appText.opacity(0.6))
+                                                
+                                                Image(systemName: "chevron.right")
+                                                    .font(.caption)
+                                                    .foregroundColor(.appText.opacity(0.3))
+                                            }
+                                            .padding()
+                                        }
                                 .padding(.horizontal)
                             }
                             VStack(spacing: 0) {
@@ -174,6 +175,7 @@ struct ProfileView: View {
                             .padding(.horizontal)
                             .padding(.top, 20)
                         }
+                        .padding(.top, 20)
                         .padding(.bottom, 40)
                     }
                 }
@@ -194,6 +196,9 @@ struct ProfileView: View {
                 }
             .sheet(isPresented: $showingFeedbackSheet) {
                 FeedbackSheet(viewModel: viewModel)
+            }
+            .sheet(isPresented: $showingLanguageSheet) {
+                LanguageSelectionSheet()
             }
             .task {
                 await viewModel.loadProfile()
@@ -467,6 +472,109 @@ struct FeedbackSheet: View {
                     .foregroundColor(title.isEmpty || description.isEmpty ? .appText.opacity(0.3) : .appAccent)
                     .disabled(title.isEmpty || description.isEmpty)
                 }
+            }
+        }
+    }
+}
+
+struct LanguageSelectionSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @StateObject private var languageManager = LanguageManager.shared
+    @State private var selectedLanguage: String
+    @State private var showingRestartAlert = false
+    
+    init() {
+        _selectedLanguage = State(initialValue: LanguageManager.shared.currentLanguage)
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    // Info banner
+                    HStack(spacing: 12) {
+                        Image(systemName: "info.circle.fill")
+                            .foregroundColor(.blue)
+                        
+                        Text("App will restart to apply language change")
+                            .font(.caption)
+                            .foregroundColor(.appText.opacity(0.8))
+                        
+                        Spacer()
+                    }
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(8)
+                    .padding()
+                    
+                    // Language options
+                    List {
+                        ForEach(languageManager.supportedLanguages, id: \.0) { code, name, icon in
+                            Button {
+                                selectedLanguage = code
+                            } label: {
+                                HStack(spacing: 16) {
+                                    Image(systemName: icon)
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.appAccent)
+                                        .frame(width: 32)
+                                    
+                                    Text(name)
+                                        .font(.body)
+                                        .foregroundColor(.appText)
+                                    
+                                    Spacer()
+                                    
+                                    if selectedLanguage == code {
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(.appAccent)
+                                            .fontWeight(.bold)
+                                    }
+                                }
+                                .padding(.vertical, 8)
+                            }
+                            .listRowBackground(Color.appSurface)
+                        }
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                }
+            }
+            .navigationTitle("Language")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.appText)
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        if selectedLanguage != languageManager.currentLanguage {
+                            languageManager.setLanguage(selectedLanguage)
+                            showingRestartAlert = true
+                        } else {
+                            dismiss()
+                        }
+                    }
+                    .foregroundColor(.appAccent)
+                    .fontWeight(.semibold)
+                }
+            }
+            .alert("Restart Required", isPresented: $showingRestartAlert) {
+                Button("OK") {
+                    dismiss()
+                    // Force restart
+                    exit(0)
+                }
+            } message: {
+                Text("The app will now restart to apply the language change.")
             }
         }
     }
