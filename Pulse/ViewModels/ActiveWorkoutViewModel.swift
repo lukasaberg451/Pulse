@@ -22,7 +22,7 @@ class ActiveWorkoutViewModel: ObservableObject {
     private let exercises: [Exercise]
     
     let routine: Routine
-    let routineExercises: [RoutineExercise]
+    var routineExercises: [RoutineExercise]
     
     private var sessionId: UUID?
     private var startTime: Date?
@@ -31,10 +31,69 @@ class ActiveWorkoutViewModel: ObservableObject {
     private let repository = WorkoutRepository()
     
     init(routine: Routine, routineExercises: [RoutineExercise], scheduledWorkoutId: UUID? = nil, exercises: [Exercise]) {
-        self.routine = routine
-        self.routineExercises = routineExercises
-        self.scheduledWorkoutId = scheduledWorkoutId
-        self.exercises = exercises
+            self.routine = routine
+            self.routineExercises = routineExercises
+            self.scheduledWorkoutId = scheduledWorkoutId
+            self.exercises = exercises
+            
+
+            NotificationCenter.default.addObserver(
+                forName: .setCompletedFromWatch,
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                guard let self = self,
+                      let userInfo = notification.userInfo,
+                      let exerciseIdString = userInfo["exerciseId"] as? String,
+                      let exerciseId = UUID(uuidString: exerciseIdString),
+                      let setNumber = userInfo["setNumber"] as? Int,
+                      let reps = userInfo["reps"] as? Int,
+                      let weight = userInfo["weight"] as? Double else { return }
+                
+                Task { @MainActor in
+                    await self.handleWatchSetCompleted(exerciseId: exerciseId, setNumber: setNumber, reps: reps, weight: weight)
+                }
+            }
+            
+        NotificationCenter.default.addObserver(
+            forName: .skipRestFromWatch,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.stopRestTimer()
+            }
+        }
+    }
+    
+    private func handleWatchSetCompleted(exerciseId: UUID, setNumber: Int, reps: Int, weight: Double) async {
+        // Find the current exercise and set
+        guard let currentRoutineExercise = routineExercises.first,
+              currentRoutineExercise.exerciseId == exerciseId else {
+            print("📱 Exercise mismatch from Watch")
+            return
+        }
+        
+        // Find the set to complete - match by exerciseId and setNumber
+        if let setIndex = sets.firstIndex(where: {
+            $0.exerciseId == exerciseId &&  // Changed to exerciseId
+            $0.setNumber == setNumber &&
+            !$0.completed
+        }) {
+            let set = sets[setIndex]
+            
+            // Update the set with Watch data
+            await updateSet(
+                id: set.id,
+                reps: reps,
+                weight: weight,
+                durationSeconds: nil,
+                completed: true
+            )
+            
+            print("📱 Set logged from Watch: \(reps) reps @ \(weight)kg")
+        }
     }
     
     func startWorkout() async {
@@ -130,6 +189,22 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
     
     func updateSet(id: UUID, reps: Int?, weight: Double?, durationSeconds: Int?, completed: Bool) async {
+        guard let index = sets.firstIndex(where: { $0.id == id }) else { return }
+        
+        let updatedSet = WorkoutSet(
+            id: sets[index].id,  // Changed to 'sets'
+            sessionId: sets[index].sessionId,
+            exerciseId: sets[index].exerciseId,
+            setNumber: sets[index].setNumber,
+            reps: reps,
+            weight: weight,
+            durationSeconds: durationSeconds,
+            completed: completed,
+            createdAt: sets[index].createdAt
+        )
+        
+        sets[index] = updatedSet  // Changed to 'sets'
+        
         do {
             try await repository.updateSet(
                 id: id,
@@ -139,29 +214,33 @@ class ActiveWorkoutViewModel: ObservableObject {
                 completed: completed
             )
             
-            // Update local state
-            if let index = sets.firstIndex(where: { $0.id == id }) {
-                sets[index] = WorkoutSet(
-                    id: sets[index].id,
-                    sessionId: sets[index].sessionId,
-                    exerciseId: sets[index].exerciseId,
-                    setNumber: sets[index].setNumber,
-                    reps: reps,
-                    weight: weight,
-                    durationSeconds: durationSeconds,
-                    completed: completed,
-                    notes: sets[index].notes,
-                    createdAt: sets[index].createdAt
-                )
+            if completed {
+                // Check if this was the last set of current exercise
+                let currentRoutineExercise = routineExercises.first
+                let setsForCurrentExercise = sets.filter { $0.exerciseId == currentRoutineExercise?.exerciseId }  // Changed to exerciseId
+                let allSetsCompleted = setsForCurrentExercise.allSatisfy { $0.completed }
                 
-                // Start rest timer if set was completed
-                if completed, let routineExercise = routineExercises.first(where: { $0.exerciseId == sets[index].exerciseId }) {
-                    startRestTimer(seconds: routineExercise.restSeconds)
+                if allSetsCompleted {
+                    // Move to next exercise
+                    moveToNextExercise()
+                } else {
+                    // Start rest timer
+                    startRestTimer(seconds: currentRoutineExercise?.restSeconds ?? 60)
                 }
             }
         } catch {
             errorMessage = "Failed to update set: \(error.localizedDescription)"
         }
+    }
+
+    private func moveToNextExercise() {
+        // Remove first exercise (completed)
+        if !routineExercises.isEmpty {
+            routineExercises.removeFirst()
+        }
+        
+        // Send new current exercise to Watch
+        sendCurrentExerciseToWatch()
     }
     
     func addSet(exerciseId: UUID, targetSets: Int) async {
@@ -240,5 +319,17 @@ class ActiveWorkoutViewModel: ObservableObject {
     deinit {
         workoutTimer?.invalidate()
         restTimer?.invalidate()
+    }
+    
+    private func sendCurrentExerciseToWatch() {
+        guard let currentRoutineExercise = routineExercises.first,
+              let currentExercise = exercises.first(where: { $0.id == currentRoutineExercise.exerciseId }) else {
+            return
+        }
+        
+        WorkoutSyncManager.shared.sendCurrentExercise(
+            exercise: currentExercise,
+            routineExercise: currentRoutineExercise
+        )
     }
 }

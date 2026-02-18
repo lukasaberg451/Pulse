@@ -21,6 +21,27 @@ class AuthViewModel: ObservableObject{
     
     private let supabase = SupabaseManager.shared.client
     
+    init() {
+            // Restore session on init
+            Task {
+                await restoreSession()
+            }
+        }
+    
+    private func restoreSession() async {
+            do {
+                // Try to get existing session
+                let session = try await supabase.auth.session
+                self.session = session
+                self.isAuthenticated = true
+                await fetchUserProfile()
+                print("✅ Session restored for user: \(session.user.email ?? "unknown")")
+            } catch {
+                print("❌ No existing session: \(error.localizedDescription)")
+                self.isAuthenticated = false
+            }
+        }
+    
     func getInitialSession() async {
         do{
             let current = try await supabase.auth.session

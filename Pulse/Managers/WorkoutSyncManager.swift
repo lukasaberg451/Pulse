@@ -47,18 +47,28 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         }
         
         let workoutData: [String: Any] = [
+            "workoutStarted": true,  // Add this flag
             "routineName": routine.name,
             "currentExercise": firstExercise.name,
             "sets": firstRoutineExercise.sets,
             "reps": firstRoutineExercise.repsTarget ?? "",
             "weight": firstRoutineExercise.targetWeight ?? 0,
             "rest": firstRoutineExercise.restSeconds,
-            "exerciseType": firstExercise.exerciseType ?? ""
+            "exerciseType": (firstExercise.exerciseType ?? "strength") as Any
         ]
         
         print("📱 Sending via transferUserInfo...")
-        let transfer = session.transferUserInfo(workoutData)
-        print("📱 Transfer created, isTransferring: \(transfer.isTransferring)")
+        
+        // Use transferUserInfo with high priority - this will wake the Watch app
+        session.transferUserInfo(workoutData)
+        
+        // Also try updateApplicationContext for immediate availability
+        do {
+            try session.updateApplicationContext(workoutData)
+            print("📱 Context updated successfully")
+        } catch {
+            print("📱 Error updating context: \(error.localizedDescription)")
+        }
     }
     
     func sendRestTimerUpdate(timeRemaining: Int) {
@@ -101,6 +111,27 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     func handleSkipRest() {
         // This will be called on iPhone when Watch skips rest
         NotificationCenter.default.post(name: .skipRestFromWatch, object: nil)
+    }
+    
+    func sendCurrentExercise(exercise: Exercise, routineExercise: RoutineExercise) {
+        guard let session = session else { return }
+        
+        let exerciseData: [String: Any] = [
+            "currentExercise": exercise.name,
+            "sets": routineExercise.sets,
+            "reps": routineExercise.repsTarget ?? "",
+            "weight": routineExercise.targetWeight ?? 0,
+            "rest": routineExercise.restSeconds,
+            "exerciseType": (exercise.exerciseType ?? "strength") as Any
+        ]
+        
+        print("📱 Sending current exercise to Watch: \(exercise.name)")
+        
+        do {
+            try session.updateApplicationContext(exerciseData)
+        } catch {
+            print("📱 Error sending current exercise: \(error.localizedDescription)")
+        }
     }
 }
 

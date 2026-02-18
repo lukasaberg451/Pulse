@@ -13,7 +13,6 @@ struct PulseWatchAppApp: App {
     init() {
         // Initialize WatchConnectivity
         _ = WorkoutSyncManager.shared
-        print("⌚ Watch app initializing...")
     }
     
     var body: some Scene {

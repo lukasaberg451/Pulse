@@ -55,21 +55,11 @@ struct WatchWorkoutView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.orange)
                 } else {
-                    Button("Complete Set") {
+                    Button("Log Set") {
                         sendSetCompleted()
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.orange)
-                    Button("Check Context") {
-                        let context = WCSession.default.applicationContext
-                        print("⌚ Manual context check: \(context)")
-                        if !context.isEmpty {
-                            updateWorkoutData(context)
-                        } else {
-                            print("⌚ Context is empty")
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
                 }
             } else {
                 // Not connected

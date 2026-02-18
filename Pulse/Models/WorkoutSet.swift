@@ -16,7 +16,6 @@ struct WorkoutSet: Codable, Identifiable {
     let weight: Double?  // For strength exercises
     let durationSeconds: Int?  // For cardio exercises
     let completed: Bool
-    let notes: String?
     let createdAt: Date
     
     enum CodingKeys: String, CodingKey {
@@ -28,7 +27,6 @@ struct WorkoutSet: Codable, Identifiable {
         case weight
         case durationSeconds = "duration_seconds"
         case completed
-        case notes
         case createdAt = "created_at"
     }
 }
