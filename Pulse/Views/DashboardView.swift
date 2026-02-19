@@ -199,7 +199,7 @@ struct EmptyTodayCard: View {
                 Text("Schedule a workout")
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(Color.appText)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
                     .background(Color.appAccent)

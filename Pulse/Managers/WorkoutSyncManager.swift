@@ -14,15 +14,15 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     
     @Published var isReachable = false
     @Published var currentWorkoutData: [String: Any]?
+    static let restTimerUpdate = Notification.Name("restTimerUpdate")
+    static let restTimerStopped = Notification.Name("restTimerStopped")
     
     private let session: WCSession? = WCSession.isSupported() ? WCSession.default : nil
     
     private override init() {
         super.init()
-        print("WorkoutSyncManager initializing...")
         
         guard let session = session else {
-            print("WCSession not supported")
             return
         }
         
@@ -34,15 +34,11 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     
     func sendWorkoutToWatch(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise]) {
         guard let session = session else {
-            print("📱 No session available")
             return
         }
         
-        print("📱 Sending workout to watch: \(routine.name)")
-        
         guard let firstRoutineExercise = routineExercises.first,
               let firstExercise = exercises.first(where: { $0.id == firstRoutineExercise.exerciseId }) else {
-            print("📱 No exercises to send")
             return
         }
         
@@ -59,15 +55,12 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             "exerciseType": (firstExercise.exerciseType ?? "strength") as Any
         ]
         
-        print("📱 Sending via transferUserInfo...")
-        
         // Use transferUserInfo with high priority - this will wake the Watch app
         session.transferUserInfo(workoutData)
         
         // Also try updateApplicationContext for immediate availability
         do {
             try session.updateApplicationContext(workoutData)
-            print("📱 Context updated successfully")
         } catch {
             print("📱 Error updating context: \(error.localizedDescription)")
         }
@@ -119,15 +112,15 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         guard let session = session else { return }
         
         let exerciseData: [String: Any] = [
+            "exerciseId": exercise.id.uuidString,
             "currentExercise": exercise.name,
             "sets": routineExercise.sets,
+            "currentSet": 1,
             "reps": routineExercise.repsTarget ?? "",
             "weight": routineExercise.targetWeight ?? 0,
             "rest": routineExercise.restSeconds,
             "exerciseType": (exercise.exerciseType ?? "strength") as Any
         ]
-        
-        print("📱 Sending current exercise to Watch: \(exercise.name)")
         
         do {
             try session.updateApplicationContext(exerciseData)
@@ -143,7 +136,6 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         
         do {
             try session.updateApplicationContext(endData)
-            print("📱 Sent workout ended to Watch")
         } catch {
             print("📱 Error sending workout ended: \(error.localizedDescription)")
         }

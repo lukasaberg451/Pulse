@@ -30,7 +30,6 @@ struct WorkoutView: View {
             .navigationTitle("Workout")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }
 }
@@ -122,7 +121,7 @@ struct ScheduleContentView: View {
                                 showingRoutinePicker = true
                             } label: {
                                 Text("Add Workout")
-                                    .foregroundStyle(Color.white)
+                                    .foregroundStyle(Color.appText)
                                     .padding(.horizontal, 24)
                                     .padding(.vertical, 12)
                                     .background(Color.appAccent)
@@ -250,7 +249,7 @@ struct ScheduledWorkoutCard: View {
                         Text("Start")
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(Color.appText)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                             .background(Color.appAccent)
@@ -301,7 +300,6 @@ struct RoutinePickerSheet: View {
             .navigationTitle("Select Routine")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -311,6 +309,7 @@ struct RoutinePickerSheet: View {
                 }
             }
         }
+        .presentationBackground(Color.appBackground)
     }
 }
 
@@ -392,7 +391,7 @@ struct RoutineContentView: View {
                         Button("Create Routine") {
                             showingCreateSheet = true
                         }
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(Color.appText)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
                         .background(Color.appAccent)
@@ -536,7 +535,6 @@ struct CreateRoutineSheet: View {
             .navigationTitle("Create Routine")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -559,6 +557,7 @@ struct CreateRoutineSheet: View {
                 }
             }
         }
+        .presentationBackground(Color.appBackground)
     }
 }
 
@@ -662,7 +661,7 @@ struct CalendarDayView: View {
             VStack(spacing: 2) {
                 Text("\(Calendar.current.component(.day, from: date))")
                     .font(.system(size: 16, weight: isToday ? .bold : .regular))
-                    .foregroundStyle(isSelected ? Color.white : Color.appText)
+                    .foregroundStyle(isSelected ? Color.appText : Color.appText)
                 
                 if hasWorkout {
                     Circle()

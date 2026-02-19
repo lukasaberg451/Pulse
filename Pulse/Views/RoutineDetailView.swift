@@ -198,6 +198,7 @@ struct RoutineDetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("")
+        .toolbarBackground(Color.appBackground, for: .navigationBar)
         .sheet(isPresented: $showingExercisePicker) {
             ExercisePickerSheet(routineViewModel: viewModel)
         }
@@ -455,7 +456,6 @@ struct ExercisePickerSheet: View {
             .navigationTitle("Add Exercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -476,6 +476,7 @@ struct ExercisePickerSheet: View {
                 await viewModel.resetAndLoad()
             }
         }
+        .presentationBackground(Color.appBackground)
     }
 }
 
@@ -492,7 +493,7 @@ struct FilterChip: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(isSelected ? Color.appAccent : Color.appSurface)
-                .foregroundStyle(isSelected ? Color.white : Color.appText)
+                .foregroundStyle(isSelected ? Color.appText : Color.appText)
                 .cornerRadius(10)
         }
     }
@@ -599,7 +600,6 @@ struct ExerciseConfigSheet: View {
             .navigationTitle("Configure Exercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -639,6 +639,7 @@ struct ExerciseConfigSheet: View {
                 }
             }
         }
+        .presentationBackground(Color.appBackground)
     }
 }
 
@@ -692,7 +693,6 @@ struct EditRoutineSheet: View {
             .navigationTitle("Edit Routine")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -714,6 +714,7 @@ struct EditRoutineSheet: View {
                     }
                 }
             }
+        .presentationBackground(Color.appBackground)
         }
     }
     
@@ -832,7 +833,6 @@ struct EditExerciseSheet: View {
             .navigationTitle("Edit Exercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -871,6 +871,7 @@ struct EditExerciseSheet: View {
                     .foregroundStyle(Color.appAccent)
                 }
             }
+            .presentationBackground(Color.appBackground)
         }
     }
 }

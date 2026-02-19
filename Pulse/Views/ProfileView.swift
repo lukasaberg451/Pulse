@@ -14,6 +14,7 @@ struct ProfileView: View {
     @State private var showingSignOutAlert = false
     @State private var showingFeedbackSheet = false
     @State private var showingLanguageSheet = false
+    @State private var showingChangeEmailSheet = false
     
     var body: some View {
             ZStack {
@@ -53,11 +54,32 @@ struct ProfileView: View {
                                         .background(Color.appText.opacity(0.1))
                                         .padding(.leading, 56)
                                     
-                                    ProfileRow(
-                                        icon: "envelope.fill",
-                                        title: "Email",
-                                        value: viewModel.profile?.email ?? "Not set"
-                                    )
+                                    // Make email tappable to change
+                                    Button {
+                                        showingChangeEmailSheet = true
+                                        } label: {
+                                            HStack(spacing: 16) {
+                                                Image(systemName: "envelope")
+                                                    .font(.system(size: 20))
+                                                    .foregroundStyle(Color.appAccent)
+                                                    .frame(width: 24)
+                                                            
+                                                Text("Email")
+                                                    .font(.body)
+                                                    .foregroundStyle(Color.appText)
+                                                            
+                                                Spacer()
+                                                            
+                                                Text(viewModel.profile?.email ?? "")
+                                                    .font(.body)
+                                                    .foregroundStyle(Color.appText.opacity(0.6))
+                                                            
+                                                Image(systemName: "chevron.right")
+                                                    .font(.caption)
+                                                    .foregroundStyle(Color.appText.opacity(0.3))
+                                        }
+                                        .padding()
+                                    }
                                 }
                                 .background(Color.appSurface)
                                 .cornerRadius(10)
@@ -74,7 +96,7 @@ struct ProfileView: View {
                                     }
                                     .padding()
                                     .background(Color.appAccent)
-                                    .foregroundStyle(Color.white)
+                                    .foregroundStyle(Color.appText)
                                     .cornerRadius(10)
                                 }
                                 .padding(.horizontal)
@@ -200,6 +222,9 @@ struct ProfileView: View {
             .sheet(isPresented: $showingLanguageSheet) {
                 LanguageSelectionSheet()
             }
+            .sheet(isPresented: $showingChangeEmailSheet) {
+                ChangeEmailSheet(authViewModel: authViewModel)
+            }
             .task {
                 await viewModel.loadProfile()
             }
@@ -303,7 +328,6 @@ struct EditProfileSheet: View {
             .navigationTitle("Edit Profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -332,6 +356,7 @@ struct EditProfileSheet: View {
                 }
             }
         }
+        .presentationBackground(Color.appBackground)
     }
 }
 
@@ -437,7 +462,7 @@ struct FeedbackSheet: View {
                             .scaleEffect(1.5)
                         
                         Text("Submitting feedback...")
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(Color.appText)
                             .font(.headline)
                     }
                     .transition(.opacity)
@@ -446,7 +471,6 @@ struct FeedbackSheet: View {
             .navigationTitle("Send Feedback")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -474,9 +498,10 @@ struct FeedbackSheet: View {
                 }
             }
         }
+        .presentationBackground(Color.appBackground)
     }
 }
-
+// MARK: - Language
 struct LanguageSelectionSheet: View {
     @Environment(\.dismiss) var dismiss
     @StateObject private var languageManager = LanguageManager.shared
@@ -545,7 +570,6 @@ struct LanguageSelectionSheet: View {
             .navigationTitle("Language")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -576,6 +600,169 @@ struct LanguageSelectionSheet: View {
             } message: {
                 Text("The app will now restart to apply the language change.")
             }
+        }
+        .presentationBackground(Color.appBackground)
+    }
+}
+
+// MARK: - Change Email Sheet
+struct ChangeEmailSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject var authViewModel: AuthViewModel
+    
+    @State private var newEmail = ""
+    @State private var password = ""
+    @State private var isLoading = false
+    @State private var showSuccess = false
+    @State private var errorMessage: String?
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+                
+                if showSuccess {
+                    // Success view
+                    VStack(spacing: 24) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 80))
+                            .foregroundStyle(Color.green)
+                        
+                        Text("Verification Email Sent")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.appText)
+                        
+                        Text("We've sent a confirmation email to:")
+                            .font(.body)
+                            .foregroundStyle(Color.appText.opacity(0.7))
+                        
+                        Text(newEmail)
+                            .font(.headline)
+                            .foregroundStyle(Color.appAccent)
+                        
+                        Text("Check your inbox and click the link to confirm your new email address.")
+                            .font(.body)
+                            .foregroundStyle(Color.appText.opacity(0.7))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        
+                        Button("Done") {
+                            dismiss()
+                        }
+                        .foregroundStyle(Color.appText)
+                        .padding(.horizontal, 40)
+                        .padding(.vertical, 12)
+                        .background(Color.appAccent)
+                        .cornerRadius(10)
+                        .padding(.top, 20)
+                    }
+                    .padding()
+                } else {
+                    // Form view
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text("Change Email Address")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.appText)
+                        
+                        Text("Enter your new email address and current password to confirm the change.")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appText.opacity(0.7))
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("New Email")
+                                .font(.caption)
+                                .foregroundStyle(Color.appText.opacity(0.7))
+                            
+                            TextField("email@example.com", text: $newEmail)
+                                .textFieldStyle(.plain)
+                                .textInputAutocapitalization(.never)
+                                .keyboardType(.emailAddress)
+                                .autocorrectionDisabled()
+                                .padding()
+                                .background(Color.appSurface)
+                                .cornerRadius(8)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Current Password")
+                                .font(.caption)
+                                .foregroundStyle(Color.appText.opacity(0.7))
+                            
+                            SecureField("Enter password", text: $password)
+                                .textFieldStyle(.plain)
+                                .padding()
+                                .background(Color.appSurface)
+                                .cornerRadius(8)
+                        }
+                        
+                        if let error = errorMessage {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundStyle(Color.red)
+                        }
+                        
+                        Button {
+                            Task {
+                                await changeEmail()
+                            }
+                        } label: {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                Text("Change Email")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.appText)
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                        .padding()
+                        .background(isValidForm ? Color.appAccent : Color.appAccent.opacity(0.5))
+                        .cornerRadius(10)
+                        .disabled(!isValidForm || isLoading)
+                        
+                        Spacer()
+                    }
+                    .padding()
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    if !showSuccess {
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                        .foregroundStyle(Color.appText)
+                    }
+                }
+            }
+        }
+        .presentationBackground(Color.appBackground)
+    }
+    
+    var isValidForm: Bool {
+        !newEmail.isEmpty &&
+        newEmail.contains("@") &&
+        !password.isEmpty &&
+        password.count >= 6
+    }
+    
+    func changeEmail() async {
+        isLoading = true
+        errorMessage = nil
+        
+        let success = await authViewModel.changeEmail(newEmail: newEmail, password: password)
+        
+        isLoading = false
+        
+        if success {
+            showSuccess = true
+        } else {
+            errorMessage = authViewModel.errorMessage ?? "Failed to change email"
         }
     }
 }

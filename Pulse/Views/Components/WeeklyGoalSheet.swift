@@ -70,7 +70,6 @@ struct WeeklyGoalSheet: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -91,6 +90,7 @@ struct WeeklyGoalSheet: View {
                 }
             }
         }
+        .presentationBackground(Color.appBackground)
     }
 }
 
@@ -110,7 +110,7 @@ struct GoalButton: View {
                 Text(label)
                     .font(.caption)
             }
-            .foregroundStyle(currentGoal == minutes ? Color.white : Color.appText)
+            .foregroundStyle(currentGoal == minutes ? Color.appText : Color.appText)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .background(currentGoal == minutes ? Color.appAccent : Color.appSurface)

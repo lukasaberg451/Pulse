@@ -58,7 +58,7 @@ struct RegisterView: View {
                         }) {
                             Text("Back to Login")
                                 .font(.headline)
-                                .foregroundStyle(Color.white)
+                                .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)
@@ -179,7 +179,7 @@ struct RegisterView: View {
                                 .font(.headline)
                                 .padding()
                                 .background(Color.appAccent)
-                                .foregroundStyle(Color.white)
+                                .foregroundStyle(Color.appText)
                                 .cornerRadius(10)
                             }
                             .padding(.top, 10)
@@ -197,11 +197,11 @@ struct RegisterView: View {
                     
                     VStack(spacing: 20) {
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .progressViewStyle(CircularProgressViewStyle(tint: .appText))
                             .scaleEffect(1.5)
                         
                         Text("Creating account...")
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(Color.appText)
                             .font(.headline)
                     }
                     .transition(.opacity)
@@ -223,6 +223,7 @@ struct RegisterView: View {
                     }
                 }
             }
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
         }
     }
 }

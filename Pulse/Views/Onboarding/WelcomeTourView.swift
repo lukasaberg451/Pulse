@@ -67,7 +67,7 @@ struct WelcomeTourView: View {
                         } label: {
                             Text("Get Started")
                                 .font(.headline)
-                                .foregroundStyle(Color.white)
+                                .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)
@@ -83,7 +83,7 @@ struct WelcomeTourView: View {
                         } label: {
                             Text("Next")
                                 .font(.headline)
-                                .foregroundStyle(Color.white)
+                                .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)

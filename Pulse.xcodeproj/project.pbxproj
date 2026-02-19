@@ -49,6 +49,7 @@
 		3149B7322F435D5800A61B9F /* Exceptions for "Pulse" folder in "PulseWatch Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Extensions/ColorExtensions.swift,
 				Managers/WorkoutSyncManager.swift,
 				Models/Exercise.swift,
 				Models/Routine.swift,
@@ -289,6 +290,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "PulseWatch-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = PulseWatch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Pulse uses HealthKit to track your workouts and sync them with Apple Health.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Pulse saves your workout sessions to Apple Health to keep all your fitness data in one place.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.fyrafemett.Pulse;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -323,6 +326,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "PulseWatch-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = PulseWatch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Pulse uses HealthKit to track your workouts and sync them with Apple Health.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Pulse saves your workout sessions to Apple Health to keep all your fitness data in one place.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.fyrafemett.Pulse;
 				LD_RUNPATH_SEARCH_PATHS = (

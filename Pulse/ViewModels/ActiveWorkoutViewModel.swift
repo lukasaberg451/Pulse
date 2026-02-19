@@ -71,7 +71,6 @@ class ActiveWorkoutViewModel: ObservableObject {
         // Find the current exercise and set
         guard let currentRoutineExercise = routineExercises.first,
               currentRoutineExercise.exerciseId == exerciseId else {
-            print("📱 Exercise mismatch from Watch")
             return
         }
         
@@ -91,13 +90,10 @@ class ActiveWorkoutViewModel: ObservableObject {
                 durationSeconds: nil,
                 completed: true
             )
-            
-            print("📱 Set logged from Watch: \(reps) reps @ \(weight)kg")
         }
     }
     
     func startWorkout() async {
-        print("📱 Starting workout...")
         isLoading = true
         startTime = Date()
         
@@ -313,6 +309,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         // Delete the session and all its sets
         do {
             try await repository.deleteSession(id: sessionId)
+            WorkoutSyncManager.shared.sendWorkoutEnded()
         } catch {
             errorMessage = "Failed to cancel workout: \(error.localizedDescription)"
         }
@@ -326,8 +323,11 @@ class ActiveWorkoutViewModel: ObservableObject {
     private func sendCurrentExerciseToWatch() {
         guard let currentRoutineExercise = routineExercises.first,
               let currentExercise = exercises.first(where: { $0.id == currentRoutineExercise.exerciseId }) else {
+            // No more exercises - send workout ended
+            WorkoutSyncManager.shared.sendWorkoutEnded()
             return
         }
+        
         WorkoutSyncManager.shared.sendCurrentExercise(
             exercise: currentExercise,
             routineExercise: currentRoutineExercise

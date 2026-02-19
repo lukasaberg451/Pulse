@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Supabase
 
 struct LoginView: View {
     @ObservedObject var authViewModel: AuthViewModel
@@ -126,7 +127,7 @@ struct LoginView: View {
                             .font(.headline)
                             .padding()
                             .background(Color.appAccent)
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(Color.appText)
                             .cornerRadius(10)
                         }
                         .padding(.top, 10)
@@ -147,7 +148,7 @@ struct LoginView: View {
                             .scaleEffect(1.5)
                         
                         Text("Signing in...")
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(Color.appText)
                             .font(.headline)
                     }
                     .transition(.opacity)
@@ -168,14 +169,13 @@ struct LoginView: View {
                     }
                 }
             }
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
             .sheet(isPresented: $showingForgotPassword) {
                 ForgotPasswordView()
             }
         }
     }
 }
-
-import SwiftUI
 
 struct ForgotPasswordView: View {
     @Environment(\.dismiss) var dismiss
@@ -185,10 +185,16 @@ struct ForgotPasswordView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     
+    private let supabase = SupabaseManager.shared.client
+    
     func isValidEmail(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
+    }
+    
+    func sendPasswordReset(email: String) async throws {
+        try await supabase.auth.resetPasswordForEmail(email)
     }
     
     var body: some View {
@@ -214,7 +220,7 @@ struct ForgotPasswordView: View {
                         .foregroundStyle(Color.appAccent)
                         .fontWeight(.semibold)
                     
-                    Text("Please check your email and follow the instructions to reset your password")
+                    Text("Click the link in the email to reset your password, then return here to sign in.")
                         .foregroundStyle(Color.appText.opacity(0.7))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
@@ -225,7 +231,7 @@ struct ForgotPasswordView: View {
                     }) {
                         Text("Back to Login")
                             .font(.headline)
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(Color.appText)
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.appAccent)
@@ -328,7 +334,7 @@ struct ForgotPasswordView: View {
                             .font(.headline)
                             .padding()
                             .background(Color.appAccent)
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(Color.appText)
                             .cornerRadius(10)
                         }
                         .padding(.top, 10)
@@ -350,7 +356,7 @@ struct ForgotPasswordView: View {
                         .scaleEffect(1.5)
                     
                     Text("Sending reset link...")
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(Color.appText)
                         .font(.headline)
                 }
                 .transition(.opacity)

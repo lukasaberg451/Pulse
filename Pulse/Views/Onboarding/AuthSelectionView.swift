@@ -48,7 +48,7 @@ struct AuthSelectionView: View {
                         } label: {
                             Text("Let's Get Started")
                                 .font(.headline)
-                                .foregroundStyle(Color.white)
+                                .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)

@@ -35,7 +35,6 @@ class AuthViewModel: ObservableObject{
                 self.session = session
                 self.isAuthenticated = true
                 await fetchUserProfile()
-                print("✅ Session restored for user: \(session.user.email ?? "unknown")")
             } catch {
                 print("❌ No existing session: \(error.localizedDescription)")
                 self.isAuthenticated = false
@@ -121,6 +120,28 @@ class AuthViewModel: ObservableObject{
         return fullName.components(separatedBy: " ").first ?? ""
     }
     
+    func changeEmail(newEmail: String, password: String) async -> Bool {
+        do {
+            try await supabase.auth.update(
+                user: UserAttributes(email: newEmail)
+            )
+            
+            return true
+        } catch {
+            errorMessage = "Failed to change email: \(error.localizedDescription)"
+            return false
+        }
+    }
+    
+    func resetPassword(email: String) async -> Bool {
+        do {
+            try await supabase.auth.resetPasswordForEmail(email)
+            return true
+        } catch {
+            errorMessage = "Failed to send reset email: \(error.localizedDescription)"
+            return false
+        }
+    }
 }
 
 struct UserProfile : Codable {

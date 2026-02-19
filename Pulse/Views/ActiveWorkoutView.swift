@@ -21,6 +21,7 @@ struct ActiveWorkoutView: View {
     @StateObject private var viewModel: ActiveWorkoutViewModel
     @Environment(\.dismiss) var dismiss
     @State private var alertType: WorkoutAlertType?
+    @AppStorage("hasSeenWatchTip") private var hasSeenWatchTip = false
     
     init(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise], scheduledWorkoutId: UUID? = nil) {
         self.routine = routine
@@ -106,11 +107,36 @@ struct ActiveWorkoutView: View {
                     .scrollContentBackground(.hidden)
                     .listStyle(.plain)
                 }
+                if !hasSeenWatchTip {
+                    VStack {
+                        HStack {
+                            Image(systemName: "applewatch")
+                                .foregroundStyle(Color.appAccent)
+                            Text("Open Pulse on your Apple Watch to track along")
+                                .font(.caption)
+                                .foregroundStyle(Color.appText)
+                            
+                            Spacer()
+                            
+                            Button {
+                                hasSeenWatchTip = true
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .foregroundStyle(Color.appText)
+                            }
+                        }
+                        .padding()
+                        .background(Color.black.opacity(0.8))
+                        .cornerRadius(12)
+                        .padding()
+                        
+                        Spacer()
+                    }
+                }
             }
             .navigationTitle(routine.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -158,19 +184,6 @@ struct ActiveWorkoutView: View {
             }
             .task {
                 await viewModel.startWorkout()
-            }
-            .onAppear {
-                print("=== WATCH CONNECTIVITY DEBUG ===")
-                print("Watch reachable: \(WorkoutSyncManager.shared.isReachable)")
-                print("WCSession supported: \(WCSession.isSupported())")
-                if let session = WCSession.default as WCSession? {
-                    print("WCSession state: \(session.activationState.rawValue)")
-                    #if os(iOS)
-                    print("WCSession isPaired: \(session.isPaired)")
-                    print("WCSession isWatchAppInstalled: \(session.isWatchAppInstalled)")
-                    #endif
-                }
-                print("===============================")
             }
         }
     }
