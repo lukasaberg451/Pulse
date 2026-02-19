@@ -60,7 +60,7 @@ struct ProfileView: View {
                                     )
                                 }
                                 .background(Color.appSurface)
-                                .cornerRadius(12)
+                                .cornerRadius(10)
                                 .padding(.horizontal)
                                 
                                 Button {
@@ -277,7 +277,7 @@ struct EditProfileSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundColor(.appText)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                     }
                     .padding(.horizontal)
                     
@@ -292,7 +292,7 @@ struct EditProfileSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundColor(.appText)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                     }
                     .padding(.horizontal)
                     
@@ -379,7 +379,7 @@ struct FeedbackSheet: View {
                             }
                             .padding()
                             .background(Color.appSurface)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                         }
                     }
                     .padding(.horizontal)
@@ -394,7 +394,7 @@ struct FeedbackSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundColor(.appText)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
                     }
                     .padding(.horizontal)
                     
@@ -410,7 +410,7 @@ struct FeedbackSheet: View {
                                 .padding(8)
                                 .background(Color.appSurface)
                                 .foregroundColor(.appText)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                                 .scrollContentBackground(.hidden)
                         }
                     }
@@ -506,7 +506,7 @@ struct LanguageSelectionSheet: View {
                     }
                     .padding()
                     .background(Color.blue.opacity(0.1))
-                    .cornerRadius(8)
+                    .cornerRadius(10)
                     .padding()
                     
                     // Language options

@@ -113,7 +113,7 @@ struct WeeklyGoalCard: View {
         }
         .padding(20)
         .background(Color.appSurface)
-        .cornerRadius(16)
+        .cornerRadius(10)
         .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
     }
 }

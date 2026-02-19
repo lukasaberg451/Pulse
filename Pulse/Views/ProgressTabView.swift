@@ -130,7 +130,7 @@ struct ProgressTabView: View {
                             }
                             .padding()
                             .background(Color.appSurface)
-                            .cornerRadius(12)
+                            .cornerRadius(10)
                             .padding(.horizontal)
                         }
                         
@@ -153,7 +153,7 @@ struct ProgressTabView: View {
                             }
                             .padding()
                             .background(Color.appSurface)
-                            .cornerRadius(12)
+                            .cornerRadius(10)
                             .padding(.horizontal)
                         }
                         
@@ -238,7 +238,7 @@ struct StatCard: View {
         .frame(width: 140, height: 160)
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(16)
+        .cornerRadius(10)
     }
 }
 
@@ -270,7 +270,7 @@ struct PRCard: View {
         }
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(12)
+        .cornerRadius(10)
         .padding(.horizontal)
     }
 }
@@ -294,7 +294,7 @@ struct EmptyPRCard: View {
         .frame(maxWidth: .infinity)
         .padding(32)
         .background(Color.appSurface)
-        .cornerRadius(12)
+        .cornerRadius(10)
         .padding(.horizontal)
     }
 }
@@ -366,12 +366,12 @@ struct MuscleGroupRow: View {
                     Rectangle()
                         .fill(Color.appBackground)
                         .frame(height: 8)
-                        .cornerRadius(4)
+                        .cornerRadius(10)
                     
                     Rectangle()
                         .fill(Color.appAccent)
                         .frame(width: geometry.size.width * percentage, height: 8)
-                        .cornerRadius(4)
+                        .cornerRadius(10)
                 }
             }
             .frame(height: 8)
@@ -404,7 +404,7 @@ struct LifetimeStatCard: View {
         .frame(maxWidth: .infinity)
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(12)
+        .cornerRadius(10)
     }
 }
 

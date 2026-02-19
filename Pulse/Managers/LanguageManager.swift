@@ -20,7 +20,9 @@ class LanguageManager: ObservableObject {
     
     let supportedLanguages = [
         ("en", "English", "flag.fill"),
-        ("sv", "Svenska", "flag.fill")
+        ("sv", "Svenska", "flag.fill"),
+        ("de", "Deutch", "flag.fill"),
+        ("es", "Español", "flag.fill")
     ]
     
     private init() {

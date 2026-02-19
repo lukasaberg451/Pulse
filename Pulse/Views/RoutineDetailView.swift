@@ -77,7 +77,7 @@ struct RoutineDetailView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(viewModel.routineExercises.isEmpty ? Color.appAccent.opacity(0.5) : Color.appAccent)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                             }
                             .disabled(viewModel.routineExercises.isEmpty)
                             
@@ -95,7 +95,7 @@ struct RoutineDetailView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(Color.appSurface)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                             }
                             
                             // Add Exercise
@@ -112,7 +112,7 @@ struct RoutineDetailView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(Color.appSurface)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                             }
                         }
                     }
@@ -324,7 +324,7 @@ struct ExercisePickerSheet: View {
                     }
                     .padding()
                     .background(Color.appSurface)
-                    .cornerRadius(8)
+                    .cornerRadius(10)
                     .padding(.horizontal)
                     .padding(.top, 8)
                     
@@ -399,7 +399,7 @@ struct ExercisePickerSheet: View {
                                                     .padding(.vertical, 2)
                                                     .background(Color.appAccent.opacity(0.2))
                                                     .foregroundColor(.appAccent)
-                                                    .cornerRadius(4)
+                                                    .cornerRadius(10)
                                             }
                                             
                                             if let muscle = exercise.muscleGroup {
@@ -409,7 +409,7 @@ struct ExercisePickerSheet: View {
                                                     .padding(.vertical, 2)
                                                     .background(Color.appSurface)
                                                     .foregroundColor(.appText.opacity(0.6))
-                                                    .cornerRadius(4)
+                                                    .cornerRadius(10)
                                             }
                                         }
                                     }
@@ -493,7 +493,7 @@ struct FilterChip: View {
                 .padding(.vertical, 6)
                 .background(isSelected ? Color.appAccent : Color.appSurface)
                 .foregroundColor(isSelected ? .white : .appText)
-                .cornerRadius(20)
+                .cornerRadius(10)
         }
     }
 }
@@ -779,7 +779,7 @@ struct EditExerciseSheet: View {
                                     .frame(width: 60)
                                     .padding(8)
                                     .background(Color.appBackground)
-                                    .cornerRadius(6)
+                                    .cornerRadius(10)
                             }
                             
                             HStack {
@@ -793,7 +793,7 @@ struct EditExerciseSheet: View {
                                     .frame(width: 80)
                                     .padding(8)
                                     .background(Color.appBackground)
-                                    .cornerRadius(6)
+                                    .cornerRadius(10)
                             }
                         } else {
                             HStack {
