@@ -68,14 +68,14 @@ struct ProgressTabView: View {
                                 Text("Personal Records")
                                     .font(.title2)
                                     .fontWeight(.bold)
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                 
                                 Spacer()
                                 
                                 NavigationLink(destination: AllPRsView()) {
                                     Text("See All")
                                         .font(.subheadline)
-                                        .foregroundColor(.appAccent)
+                                        .foregroundStyle(Color.appAccent)
                                 }
                             }
                             .padding(.horizontal)
@@ -94,7 +94,7 @@ struct ProgressTabView: View {
                             Text("This Month")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .padding(.horizontal)
                             
                             VStack(spacing: 16) {
@@ -139,7 +139,7 @@ struct ProgressTabView: View {
                             Text("Most Trained")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .padding(.horizontal)
                             
                             VStack(spacing: 8) {
@@ -162,7 +162,7 @@ struct ProgressTabView: View {
                             Text("Lifetime Stats")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .padding(.horizontal)
                             
                             LazyVGrid(columns: [
@@ -220,19 +220,19 @@ struct StatCard: View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 32))
-                .foregroundColor(color)
+                .foregroundStyle(color)
             
             Text(value)
                 .font(.system(size: 32, weight: .bold))
-                .foregroundColor(.appText)
+                .foregroundStyle(Color.appText)
             
             Text(unit)
                 .font(.caption)
-                .foregroundColor(.appText.opacity(0.6))
+                .foregroundStyle(Color.appText.opacity(0.6))
             
             Text(title)
                 .font(.caption)
-                .foregroundColor(.appText.opacity(0.8))
+                .foregroundStyle(Color.appText.opacity(0.8))
                 .multilineTextAlignment(.center)
         }
         .frame(width: 140, height: 160)
@@ -251,22 +251,22 @@ struct PRCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(pr.exerciseName)
                     .font(.headline)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 
                 Text("\(pr.weight, specifier: "%.1f")kg × \(pr.reps) reps")
                     .font(.subheadline)
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
                 
                 Text(pr.date, style: .date)
                     .font(.caption)
-                    .foregroundColor(.appText.opacity(0.6))
+                    .foregroundStyle(Color.appText.opacity(0.6))
             }
             
             Spacer()
             
             Image(systemName: "trophy.fill")
                 .font(.title)
-                .foregroundColor(.yellow)
+                .foregroundStyle(Color.yellow)
         }
         .padding()
         .background(Color.appSurface)
@@ -280,15 +280,15 @@ struct EmptyPRCard: View {
         VStack(spacing: 12) {
             Image(systemName: "trophy")
                 .font(.system(size: 48))
-                .foregroundColor(.appText.opacity(0.3))
+                .foregroundStyle(Color.appText.opacity(0.3))
             
             Text("No PRs Yet")
                 .font(.headline)
-                .foregroundColor(.appText)
+                .foregroundStyle(Color.appText)
             
             Text("Complete workouts to set your first personal record!")
                 .font(.caption)
-                .foregroundColor(.appText.opacity(0.6))
+                .foregroundStyle(Color.appText.opacity(0.6))
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -318,14 +318,14 @@ struct ComparisonRow: View {
     var body: some View {
         HStack {
             Text(title)
-                .foregroundColor(.appText)
+                .foregroundStyle(Color.appText)
             
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
                 Text("\(current) \(unit)")
                     .font(.headline)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 
                 if change != 0 {
                     HStack(spacing: 4) {
@@ -334,7 +334,7 @@ struct ComparisonRow: View {
                         Text("\(abs(change)) (\(abs(changePercentage), specifier: "%.0f")%)")
                             .font(.caption)
                     }
-                    .foregroundColor(change > 0 ? .green : .red)
+                    .foregroundStyle(change > 0 ? Color.green : Color.red)
                 }
             }
         }
@@ -352,13 +352,13 @@ struct MuscleGroupRow: View {
             HStack {
                 Text(name)
                     .font(.subheadline)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 
                 Spacer()
                 
                 Text("\(sets) sets")
                     .font(.caption)
-                    .foregroundColor(.appText.opacity(0.6))
+                    .foregroundStyle(Color.appText.opacity(0.6))
             }
             
             GeometryReader { geometry in
@@ -389,16 +389,16 @@ struct LifetimeStatCard: View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 28))
-                .foregroundColor(.appAccent)
+                .foregroundStyle(Color.appAccent)
             
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.appText)
+                .foregroundStyle(Color.appText)
             
             Text(title)
                 .font(.caption)
-                .foregroundColor(.appText.opacity(0.7))
+                .foregroundStyle(Color.appText.opacity(0.7))
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -417,16 +417,16 @@ struct AllPRsView: View {
             VStack(spacing: 16) {
                 Image(systemName: "trophy")
                     .font(.system(size: 60))
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
                 
                 Text("All Personal Records")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 
                 Text("Coming Soon")
                     .font(.subheadline)
-                    .foregroundColor(.appText.opacity(0.6))
+                    .foregroundStyle(Color.appText.opacity(0.6))
             }
         }
         .navigationTitle("Personal Records")

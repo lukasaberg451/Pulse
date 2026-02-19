@@ -25,7 +25,7 @@ struct WatchWorkoutView: View {
             // Show connection status at top for debugging
             Text(syncManager.isReachable ? "🟢 Connected" : "🔴 Disconnected")
                 .font(.caption2)
-                .foregroundColor(syncManager.isReachable ? .green : .red)
+                .foregroundStyle(syncManager.isReachable ? Color.green : Color.red)
             
             if syncManager.isReachable && totalSets > 0 {
                 // Connected and workout active
@@ -33,14 +33,14 @@ struct WatchWorkoutView: View {
                     // Exercise name
                     Text(currentExerciseName)
                         .font(.headline)
-                        .foregroundColor(.orange)
+                        .foregroundStyle(Color.orange)
                         .multilineTextAlignment(.center)
                     
                     // Current set progress
                     Text("Set \(currentSet)/\(totalSets)")
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(.white)
+                        .foregroundStyle(Color.white)
                     
                     // Target weight and reps
                     HStack(spacing: 16) {
@@ -50,7 +50,7 @@ struct WatchWorkoutView: View {
                                 .fontWeight(.semibold)
                             Text("Weight")
                                 .font(.caption2)
-                                .foregroundColor(.gray)
+                                .foregroundStyle(Color.gray)
                         }
                         
                         if !targetReps.isEmpty {
@@ -60,11 +60,11 @@ struct WatchWorkoutView: View {
                                     .fontWeight(.semibold)
                                 Text("Reps")
                                     .font(.caption2)
-                                    .foregroundColor(.gray)
+                                    .foregroundStyle(Color.gray)
                             }
                         }
                     }
-                    .foregroundColor(.white)
+                    .foregroundStyle(Color.white)
                 }
                 
                 Spacer()
@@ -73,12 +73,12 @@ struct WatchWorkoutView: View {
                 if isResting {
                     Text("Rest")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundStyle(Color.gray)
                     
                     Text("\(restTimeRemaining)s")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .foregroundColor(.orange)
+                        .foregroundStyle(Color.orange)
                     
                     Button("Skip Rest") {
                         sendSkipRest()
@@ -97,27 +97,25 @@ struct WatchWorkoutView: View {
                 VStack {
                     Image(systemName: "applewatch.slash")
                         .font(.largeTitle)
-                        .foregroundColor(.gray)
+                        .foregroundStyle(Color.gray)
                     
                     Text("No Active Workout")
                         .font(.headline)
                     
                     Text("Start a workout on iPhone")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundStyle(Color.gray)
                         .multilineTextAlignment(.center)
                 }
             }
         }
         .padding()
         .onAppear {
-            print("⌚ Watch view appeared")
-            print("⌚ isReachable: \(syncManager.isReachable)")
-            
+
             // Check for existing context
             let context = WCSession.default.applicationContext
             if !context.isEmpty {
-                print("⌚ Found existing context: \(context)")
+
                 updateWorkoutData(context)
             }
             
@@ -127,19 +125,18 @@ struct WatchWorkoutView: View {
             endWorkoutSession()
         }
         .onChange(of: syncManager.isReachable) { oldValue, newValue in
-            print("⌚ Reachability changed to: \(newValue)")
             
             // When connected, check for existing context
             if newValue {
                 let context = WCSession.default.applicationContext
                 if !context.isEmpty {
-                    print("⌚ Loading existing context after connection: \(context)")
+
                     updateWorkoutData(context)
                 }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("WorkoutDataReceived"))) { notification in
-            print("⌚ Notification received!")
+
             if let data = notification.userInfo as? [String: Any] {
                 print("⌚ Data: \(data)")
                 updateWorkoutData(data)
@@ -150,7 +147,6 @@ struct WatchWorkoutView: View {
     }
     
     func updateWorkoutData(_ data: [String: Any]) {
-        print("⌚ updateWorkoutData called with: \(data)")
         
         // Check if workout ended
         if data["workoutEnded"] as? Bool == true {
@@ -163,22 +159,18 @@ struct WatchWorkoutView: View {
         }
         
         if let exerciseName = data["currentExercise"] as? String {
-            print("⌚ Setting exercise name to: \(exerciseName)")
             currentExerciseName = exerciseName
         }
         
         if let sets = data["sets"] as? Int {
-            print("⌚ Setting total sets: \(sets)")
             totalSets = sets
         }
         
         if let reps = data["reps"] as? String {
-            print("⌚ Setting target reps: \(reps)")
             targetReps = reps
         }
         
         if let weight = data["weight"] as? Double {
-            print("⌚ Setting target weight: \(weight)")
             targetWeight = weight
         }
         
@@ -191,13 +183,11 @@ struct WatchWorkoutView: View {
     
     func sendSetCompleted() {
         guard let session = WCSession.default as WCSession?, session.isReachable else {
-            print("⌚ Cannot send - not reachable")
             return
         }
         
         guard let workoutData = WorkoutSyncManager.shared.currentWorkoutData,
               let exerciseIdString = workoutData["exerciseId"] as? String else {
-            print("⌚ No exercise ID available")
             return
         }
         
@@ -208,10 +198,7 @@ struct WatchWorkoutView: View {
             "completedSet_weight": targetWeight
         ]
         
-        print("⌚ Sending completed set: \(message)")
-        
         session.sendMessage(message, replyHandler: nil) { error in
-            print("⌚ Error sending set: \(error.localizedDescription)")
         }
         
         // Increment set locally

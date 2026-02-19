@@ -28,15 +28,15 @@ struct AuthSelectionView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "dumbbell.fill")
                             .font(.system(size: 80))
-                            .foregroundColor(.appAccent)
+                            .foregroundStyle(Color.appAccent)
                         
                         Text("Pulse")
                             .font(.system(size: 48, weight: .bold))
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         
                         Text("Your Fitness Journey Starts Here")
                             .font(.subheadline)
-                            .foregroundColor(.appText.opacity(0.7))
+                            .foregroundStyle(Color.appText.opacity(0.7))
                     }
                     
                     Spacer()
@@ -48,7 +48,7 @@ struct AuthSelectionView: View {
                         } label: {
                             Text("Let's Get Started")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundStyle(Color.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)
@@ -60,7 +60,7 @@ struct AuthSelectionView: View {
                         } label: {
                             Text("Already Have an Account")
                                 .font(.headline)
-                                .foregroundColor(.appAccent)
+                                .foregroundStyle(Color.appAccent)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appSurface)

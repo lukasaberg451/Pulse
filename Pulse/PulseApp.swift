@@ -37,7 +37,7 @@ struct PulseApp: App {
             UITabBar.appearance().standardAppearance = tabBarAppearance
             UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
             
-            // Navigation bar appearance (if you have this already)
+            // Navigation bar appearance
             let appearance = UINavigationBarAppearance()
             appearance.configureWithOpaqueBackground()
             appearance.backgroundColor = UIColor(Color.appBackground)

@@ -45,7 +45,7 @@ struct WelcomeTourView: View {
                     Button("Skip") {
                         dismiss()
                     }
-                    .foregroundColor(.appText.opacity(0.6))
+                    .foregroundStyle(Color.appText.opacity(0.6))
                     .padding()
                 }
                 
@@ -67,7 +67,7 @@ struct WelcomeTourView: View {
                         } label: {
                             Text("Get Started")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundStyle(Color.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)
@@ -83,7 +83,7 @@ struct WelcomeTourView: View {
                         } label: {
                             Text("Next")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundStyle(Color.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)
@@ -116,17 +116,17 @@ struct TourPageView: View {
             
             Image(systemName: page.icon)
                 .font(.system(size: 100))
-                .foregroundColor(.appAccent)
+                .foregroundStyle(Color.appAccent)
             
             VStack(spacing: 16) {
                 Text(page.title)
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                     .multilineTextAlignment(.center)
                 
                 Text(page.description)
                     .font(.body)
-                    .foregroundColor(.appText.opacity(0.7))
+                    .foregroundStyle(Color.appText.opacity(0.7))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
             }

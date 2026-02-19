@@ -133,7 +133,7 @@ class DashboardViewModel: ObservableObject {
         }
         
         do {
-            let supabase = SupabaseManager.shared.client  // Add this line
+            let supabase = SupabaseManager.shared.client
             
             // Fetch all completed sessions from this week
             let sessions: [WorkoutSession] = try await supabase
@@ -161,7 +161,7 @@ class DashboardViewModel: ObservableObject {
     }
 
     func updateWeeklyGoal(minutes: Int) async {
-        let supabase = SupabaseManager.shared.client  // Add this line
+        let supabase = SupabaseManager.shared.client
         guard let userId = supabase.auth.currentUser?.id else { return }
         
         do {

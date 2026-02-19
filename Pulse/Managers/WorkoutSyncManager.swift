@@ -47,7 +47,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         }
         
         let workoutData: [String: Any] = [
-            "workoutStarted": true,  // Add this flag
+            "workoutStarted": true,
             "routineName": routine.name,
             "exerciseId": firstExercise.id.uuidString,
             "currentExercise": firstExercise.name,

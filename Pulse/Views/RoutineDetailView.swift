@@ -49,7 +49,7 @@ struct RoutineDetailView: View {
                             Text(viewModel.routine.name)
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                             // Description,  if exists
@@ -73,7 +73,7 @@ struct RoutineDetailView: View {
                                     Text("Start")
                                         .font(.caption)
                                 }
-                                .foregroundColor(viewModel.routineExercises.isEmpty ? .appText.opacity(0.7) : .appText)
+                                .foregroundStyle(viewModel.routineExercises.isEmpty ? Color.appText.opacity(0.7) : Color.appText)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(viewModel.routineExercises.isEmpty ? Color.appAccent.opacity(0.5) : Color.appAccent)
@@ -126,30 +126,30 @@ struct RoutineDetailView: View {
                                 HStack(spacing: 12) {
                                     // Drag handle
                                     Image(systemName: "line.3.horizontal")
-                                        .foregroundColor(.appText.opacity(0.3))
+                                        .foregroundStyle(Color.appText.opacity(0.3))
                                         .font(.title3)
                                     
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(exercise.name)
                                             .font(.headline)
-                                            .foregroundColor(.appText)
+                                            .foregroundStyle(Color.appText)
                                         
                                         if let reps = routineExercise.repsTarget {
                                             Text("\(routineExercise.sets) sets × \(reps) reps")
                                                 .font(.caption)
-                                                .foregroundColor(.appText.opacity(0.6))
+                                                .foregroundStyle(Color.appText.opacity(0.6))
                                         } else if let durationSeconds = routineExercise.durationSeconds {
                                             let minutes = durationSeconds / 60
                                             let seconds = durationSeconds % 60
                                             let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
                                             Text("\(routineExercise.sets) sets × \(durationText)")
                                                 .font(.caption)
-                                                .foregroundColor(.appText.opacity(0.6))
+                                                .foregroundStyle(Color.appText.opacity(0.6))
                                         }
                                         
                                         Text("\(routineExercise.restSeconds)s rest")
                                             .font(.caption)
-                                            .foregroundColor(.appText.opacity(0.6))
+                                            .foregroundStyle(Color.appText.opacity(0.6))
                                     }
                                     
                                     Spacer()
@@ -172,7 +172,7 @@ struct RoutineDetailView: View {
                                     } label: {
                                         Image(systemName: "ellipsis")
                                             .font(.title3)
-                                            .foregroundColor(.appText.opacity(0.6))
+                                            .foregroundStyle(Color.appText.opacity(0.6))
                                             .frame(width: 44, height: 44)
                                     }
                                 }
@@ -295,9 +295,9 @@ struct ExercisePickerSheet: View {
                     // Search bar
                     HStack {
                         Image(systemName: "magnifyingglass")
-                            .foregroundColor(.appText.opacity(0.5))
+                            .foregroundStyle(Color.appText.opacity(0.5))
                         TextField("Search exercises...", text: $searchText)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                             .onChange(of: searchText) { _, newValue in
                                 // Debounce search
                                 searchTask?.cancel()
@@ -318,7 +318,7 @@ struct ExercisePickerSheet: View {
                                 searchText = ""
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.appText.opacity(0.5))
+                                    .foregroundStyle(Color.appText.opacity(0.5))
                             }
                         }
                     }
@@ -372,7 +372,7 @@ struct ExercisePickerSheet: View {
                     HStack {
                         Text("\(viewModel.exercises.count) exercises")
                             .font(.caption)
-                            .foregroundColor(.appText.opacity(0.6))
+                            .foregroundStyle(Color.appText.opacity(0.6))
                         Spacer()
                     }
                     .padding(.horizontal)
@@ -389,7 +389,7 @@ struct ExercisePickerSheet: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(exercise.name)
                                             .font(.headline)
-                                            .foregroundColor(.appText)
+                                            .foregroundStyle(Color.appText)
                                         
                                         HStack(spacing: 8) {
                                             if let equipment = exercise.equipment {
@@ -398,7 +398,7 @@ struct ExercisePickerSheet: View {
                                                     .padding(.horizontal, 8)
                                                     .padding(.vertical, 2)
                                                     .background(Color.appAccent.opacity(0.2))
-                                                    .foregroundColor(.appAccent)
+                                                    .foregroundStyle(Color.appAccent)
                                                     .cornerRadius(10)
                                             }
                                             
@@ -408,7 +408,7 @@ struct ExercisePickerSheet: View {
                                                     .padding(.horizontal, 8)
                                                     .padding(.vertical, 2)
                                                     .background(Color.appSurface)
-                                                    .foregroundColor(.appText.opacity(0.6))
+                                                    .foregroundStyle(Color.appText.opacity(0.6))
                                                     .cornerRadius(10)
                                             }
                                         }
@@ -417,7 +417,7 @@ struct ExercisePickerSheet: View {
                                     Spacer()
                                     
                                     Image(systemName: "plus.circle")
-                                        .foregroundColor(.appAccent)
+                                        .foregroundStyle(Color.appAccent)
                                 }
                             }
                             .listRowBackground(Color.appSurface)
@@ -461,7 +461,7 @@ struct ExercisePickerSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 }
             }
             .sheet(isPresented: $showingConfigSheet) {
@@ -492,7 +492,7 @@ struct FilterChip: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(isSelected ? Color.appAccent : Color.appSurface)
-                .foregroundColor(isSelected ? .white : .appText)
+                .foregroundStyle(isSelected ? Color.white : Color.appText)
                 .cornerRadius(10)
         }
     }
@@ -505,7 +505,7 @@ struct ExerciseConfigSheet: View {
     
     @State private var sets = 3
     @State private var repsTarget = "10"
-    @State private var targetWeight = "0"  // Add this
+    @State private var targetWeight = "0"
     @State private var durationMinutes = 5
     @State private var durationSeconds = 0
     @State private var restSeconds = 60
@@ -516,9 +516,9 @@ struct ExerciseConfigSheet: View {
                 Color.appBackground.ignoresSafeArea()
                 
                 Form {
-                    Section(header: Text("Exercise").foregroundColor(.appText)) {
+                    Section(header: Text("Exercise").foregroundStyle(Color.appText)) {
                         Text(exercise.name)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         if let muscle = exercise.exerciseType {
                             Text(muscle)
                                 .font(.caption)
@@ -527,18 +527,18 @@ struct ExerciseConfigSheet: View {
                     }
                     .listRowBackground(Color.appSurface)
                     
-                    Section(header: Text("Configuration").foregroundColor(.appText)) {
+                    Section(header: Text("Configuration").foregroundStyle(Color.appText)) {
                         Stepper("Sets: \(sets)", value: $sets, in: 1...10)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         
                         if exercise.exerciseType == "strength" {
                             // Reps
                             HStack {
                                 Text("Reps")
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                 Spacer()
                                 TextField("", text: $repsTarget)
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                     .keyboardType(.numberPad)
                                     .multilineTextAlignment(.trailing)
                                     .frame(width: 60)
@@ -550,10 +550,10 @@ struct ExerciseConfigSheet: View {
                             // Weight
                             HStack {
                                 Text("Weight (kg)")
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                 Spacer()
                                 TextField("0", text: $targetWeight)
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                     .keyboardType(.decimalPad)
                                     .multilineTextAlignment(.trailing)
                                     .frame(width: 80)
@@ -565,7 +565,7 @@ struct ExerciseConfigSheet: View {
                             // Cardio: Duration picker
                             HStack {
                                 Text("Duration")
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                 Spacer()
                                 Picker("Minutes", selection: $durationMinutes) {
                                     ForEach(0..<61) { mins in
@@ -575,7 +575,7 @@ struct ExerciseConfigSheet: View {
                                 .pickerStyle(.wheel)
                                 .frame(width: 60)
                                 Text("min")
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                 
                                 Picker("Seconds", selection: $durationSeconds) {
                                     ForEach(0..<60) { secs in
@@ -585,12 +585,12 @@ struct ExerciseConfigSheet: View {
                                 .pickerStyle(.wheel)
                                 .frame(width: 60)
                                 Text("sec")
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                             }
                         }
                         
                         Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                     }
                     .listRowBackground(Color.appSurface)
                 }
@@ -605,7 +605,7 @@ struct ExerciseConfigSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -635,7 +635,7 @@ struct ExerciseConfigSheet: View {
                             dismiss()
                         }
                     }
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
                 }
             }
         }
@@ -698,7 +698,7 @@ struct EditRoutineSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 }
                     
                 ToolbarItem(placement: .confirmationAction) {
@@ -752,9 +752,9 @@ struct EditExerciseSheet: View {
                 Color.appBackground.ignoresSafeArea()
                 
                 Form {
-                    Section(header: Text("Exercise").foregroundColor(.appText)) {
+                    Section(header: Text("Exercise").foregroundStyle(Color.appText)) {
                         Text(exercise.name)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         if let muscle = exercise.exerciseType {
                             Text(muscle)
                                 .font(.caption)
@@ -763,17 +763,17 @@ struct EditExerciseSheet: View {
                     }
                     .listRowBackground(Color.appSurface)
                     
-                    Section(header: Text("Configuration").foregroundColor(.appText)) {
+                    Section(header: Text("Configuration").foregroundStyle(Color.appText)) {
                         Stepper("Sets: \(sets)", value: $sets, in: 1...10)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         
                         if exercise.exerciseType == "strength" {
                             HStack {
                                 Text("Reps")
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                 Spacer()
                                 TextField("", text: $repsTarget)
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                     .keyboardType(.numberPad)
                                     .multilineTextAlignment(.trailing)
                                     .frame(width: 60)
@@ -784,10 +784,10 @@ struct EditExerciseSheet: View {
                             
                             HStack {
                                 Text("Weight (kg)")
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                 Spacer()
                                 TextField("0", text: $targetWeight)
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                     .keyboardType(.decimalPad)
                                     .multilineTextAlignment(.trailing)
                                     .frame(width: 80)
@@ -798,7 +798,7 @@ struct EditExerciseSheet: View {
                         } else {
                             HStack {
                                 Text("Duration")
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                 Spacer()
                                 Picker("Minutes", selection: $durationMinutes) {
                                     ForEach(0..<61) { mins in
@@ -808,7 +808,7 @@ struct EditExerciseSheet: View {
                                 .pickerStyle(.wheel)
                                 .frame(width: 60)
                                 Text("min")
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                 
                                 Picker("Seconds", selection: $durationSeconds) {
                                     ForEach(0..<60) { secs in
@@ -818,12 +818,12 @@ struct EditExerciseSheet: View {
                                 .pickerStyle(.wheel)
                                 .frame(width: 60)
                                 Text("sec")
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                             }
                         }
                         
                         Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                     }
                     .listRowBackground(Color.appSurface)
                 }
@@ -838,7 +838,7 @@ struct EditExerciseSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -868,7 +868,7 @@ struct EditExerciseSheet: View {
                             dismiss()
                         }
                     }
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
                 }
             }
         }

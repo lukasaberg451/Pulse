@@ -48,7 +48,7 @@ struct OnboardingView: View {
                     Button("Skip") {
                         showingAuth = true
                     }
-                    .foregroundColor(.appText.opacity(0.6))
+                    .foregroundStyle(Color.appText.opacity(0.6))
                     .padding()
                 }
                 
@@ -71,7 +71,7 @@ struct OnboardingView: View {
                         } label: {
                             Text("Get Started")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundStyle(Color.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)
@@ -88,7 +88,7 @@ struct OnboardingView: View {
                         } label: {
                             Text("Next")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundStyle(Color.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)
@@ -118,18 +118,18 @@ struct OnboardingPageView: View {
             // Icon
             Image(systemName: page.imageName)
                 .font(.system(size: 120))
-                .foregroundColor(.appAccent)
+                .foregroundStyle(Color.appAccent)
             
             // Content
             VStack(spacing: 16) {
                 Text(page.title)
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                     .multilineTextAlignment(.center)
                 
                 Text(page.description)
                     .font(.body)
-                    .foregroundColor(.appText.opacity(0.7))
+                    .foregroundStyle(Color.appText.opacity(0.7))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
             }

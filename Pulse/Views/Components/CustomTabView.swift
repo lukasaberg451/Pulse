@@ -19,7 +19,7 @@ struct CustomTabView: View {
                 VStack(spacing: 8) {
                     Text(tab)
                         .font(.system(size: 16, weight: selectedTab == index ? .semibold : .regular))
-                        .foregroundColor(selectedTab == index ? .appText : .appText.opacity(0.6))
+                        .foregroundStyle(selectedTab == index ? Color.appText : Color.appText.opacity(0.6))
                         .frame(maxWidth: .infinity)
                         .onTapGesture {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {

@@ -46,10 +46,10 @@ struct ActiveWorkoutView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Workout Time")
                                 .font(.caption)
-                                .foregroundColor(.appText.opacity(0.7))
+                                .foregroundStyle(Color.appText.opacity(0.7))
                             Text(viewModel.formatElapsedTime())
                                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .foregroundColor(.appAccent)
+                                .foregroundStyle(Color.appAccent)
                         }
                         
                         Spacer()
@@ -82,11 +82,11 @@ struct ActiveWorkoutView: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(exercise.name)
                                             .font(.headline)
-                                            .foregroundColor(.appText)
+                                            .foregroundStyle(Color.appText)
                                         if let reps = routineExercise.repsTarget {
                                             Text("\(routineExercise.sets) sets × \(reps) reps • \(routineExercise.restSeconds)s rest")
                                                 .font(.caption)
-                                                .foregroundColor(.appText.opacity(0.6))
+                                                .foregroundStyle(Color.appText.opacity(0.6))
                                         } else if let durationSeconds = routineExercise.durationSeconds {
                                             // Format duration in minutes and seconds
                                             let minutes = durationSeconds / 60
@@ -94,7 +94,7 @@ struct ActiveWorkoutView: View {
                                             let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
                                             Text("\(routineExercise.sets) sets × \(durationText) • \(routineExercise.restSeconds)s rest")
                                                 .font(.caption)
-                                                .foregroundColor(.appText.opacity(0.6))
+                                                .foregroundStyle(Color.appText.opacity(0.6))
                                         }
                                     }
                                     .textCase(nil)
@@ -116,14 +116,14 @@ struct ActiveWorkoutView: View {
                     Button("Cancel") {
                         alertType = .cancel
                     }
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Finish") {
                         alertType = .finish
                     }
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
                     .fontWeight(.semibold)
                 }
             }
@@ -185,10 +185,10 @@ struct RestTimerBanner: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Rest Time")
                     .font(.caption)
-                    .foregroundColor(.appText.opacity(0.7))
+                    .foregroundStyle(Color.appText.opacity(0.7))
                 Text(formatTime(timeRemaining))
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
             }
             
             Spacer()
@@ -198,7 +198,7 @@ struct RestTimerBanner: View {
             }
             .font(.subheadline)
             .fontWeight(.semibold)
-            .foregroundColor(.appAccent)
+            .foregroundStyle(Color.appAccent)
         }
         .padding()
         .background(Color.appSurface.opacity(0.95))
@@ -244,7 +244,7 @@ struct ExerciseSetSection: View {
         } label: {
             Label("Add Set", systemImage: "plus.circle")
                 .font(.caption)
-                .foregroundColor(.appAccent)
+                .foregroundStyle(Color.appAccent)
         }
     }
 }
@@ -261,7 +261,7 @@ struct ExerciseSetRow: View {
         HStack {
             Text("Set \(set.setNumber)")
                 .frame(width: 50, alignment: .leading)
-                .foregroundColor(.appText)
+                .foregroundStyle(Color.appText)
             if exercise.exerciseType == "strength" {
                 // Weight and reps for strength
                 HStack {
@@ -284,7 +284,7 @@ struct ExerciseSetRow: View {
                     .frame(width: 80)
                     
                     Text("kg")
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                 }
                 
                 HStack {
@@ -334,7 +334,7 @@ struct ExerciseSetRow: View {
                     .frame(width: 50)
                     
                     Text("m")
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                     
                     // Seconds
                     TextField("Sec", value: Binding(
@@ -361,7 +361,7 @@ struct ExerciseSetRow: View {
                     .frame(width: 50)
                     
                     Text("s")
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                 }
             }
             
@@ -380,7 +380,7 @@ struct ExerciseSetRow: View {
                 }
             } label: {
                 Image(systemName: set.completed ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(set.completed ? .green : .gray)
+                    .foregroundStyle(set.completed ? Color.green : Color.gray)
                     .font(.title2)
             }
         }

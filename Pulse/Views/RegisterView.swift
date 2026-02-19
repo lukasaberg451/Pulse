@@ -33,22 +33,22 @@ struct RegisterView: View {
                     VStack(spacing: 24) {
                         Image(systemName: "envelope.circle.fill")
                             .font(.system(size: 80))
-                            .foregroundColor(.green)
+                            .foregroundStyle(Color.green)
                         
                         Text("Check Your Email")
                             .font(.title)
                             .fontWeight(.bold)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         
                         Text("We've sent a verification link to")
-                            .foregroundColor(.appText.opacity(0.7))
+                            .foregroundStyle(Color.appText.opacity(0.7))
                         
                         Text(email)
-                            .foregroundColor(.appAccent)
+                            .foregroundStyle(Color.appAccent)
                             .fontWeight(.semibold)
                         
                         Text("Please verify your email before signing in")
-                            .foregroundColor(.appText.opacity(0.7))
+                            .foregroundStyle(Color.appText.opacity(0.7))
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
                         
@@ -58,7 +58,7 @@ struct RegisterView: View {
                         }) {
                             Text("Back to Login")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundStyle(Color.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)
@@ -106,7 +106,7 @@ struct RegisterView: View {
                                     .textInputAutocapitalization(.words)
                                     .padding()
                                     .background(Color.appSurface)
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                     .cornerRadius(10)
                             }
                             
@@ -121,7 +121,7 @@ struct RegisterView: View {
                                     .textInputAutocapitalization(.words)
                                     .padding()
                                     .background(Color.appSurface)
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                     .cornerRadius(10)
                             }
                             
@@ -137,7 +137,7 @@ struct RegisterView: View {
                                     .keyboardType(.emailAddress)
                                     .padding()
                                     .background(Color.appSurface)
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                     .cornerRadius(10)
                             }
                             
@@ -151,7 +151,7 @@ struct RegisterView: View {
                                 SecureField("", text: $password)
                                     .padding()
                                     .background(Color.appSurface)
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                     .cornerRadius(10)
                             }
                             
@@ -201,7 +201,7 @@ struct RegisterView: View {
                             .scaleEffect(1.5)
                         
                         Text("Creating account...")
-                            .foregroundColor(.white)
+                            .foregroundStyle(Color.white)
                             .font(.headline)
                     }
                     .transition(.opacity)
@@ -219,7 +219,7 @@ struct RegisterView: View {
                             Image(systemName: "chevron.left")
                             Text("Back")
                         }
-                        .foregroundColor(.appText)
+                        .foregroundStyle(Color.appText)
                     }
                 }
             }

@@ -54,14 +54,14 @@ struct ScheduleContentView: View {
                         viewModel.previousMonth()
                     } label: {
                         Image(systemName: "chevron.left")
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                     }
                     
                     Spacer()
                     
                     Text(viewModel.currentMonthYear)
                         .font(.headline)
-                        .foregroundColor(.appText)
+                        .foregroundStyle(Color.appText)
                     
                     Spacer()
                     
@@ -69,7 +69,7 @@ struct ScheduleContentView: View {
                         viewModel.nextMonth()
                     } label: {
                         Image(systemName: "chevron.right")
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                     }
                 }
                 .padding()
@@ -91,7 +91,7 @@ struct ScheduleContentView: View {
                     HStack {
                         Text("Scheduled for \(selectedDate, style: .date)")
                             .font(.headline)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         
                         Spacer()
                         
@@ -104,7 +104,7 @@ struct ScheduleContentView: View {
                                 }
                             } label: {
                                 Text(isEditMode ? "Done" : "Edit")
-                                    .foregroundColor(.appAccent)
+                                    .foregroundStyle(Color.appAccent)
                                     .font(.subheadline)
                             }
                         }
@@ -115,14 +115,14 @@ struct ScheduleContentView: View {
                     if viewModel.scheduledWorkouts(for: selectedDate).isEmpty {
                         VStack(spacing: 12) {
                             Text("No workouts scheduled")
-                                .foregroundColor(.appText.opacity(0.6))
+                                .foregroundStyle(Color.appText.opacity(0.6))
                                 .padding(.top, 20)
                             
                             Button {
                                 showingRoutinePicker = true
                             } label: {
                                 Text("Add Workout")
-                                    .foregroundColor(.white)
+                                    .foregroundStyle(Color.white)
                                     .padding(.horizontal, 24)
                                     .padding(.vertical, 12)
                                     .background(Color.appAccent)
@@ -168,7 +168,7 @@ struct ScheduleContentView: View {
                                         Text("Add Workout")
                                             .font(.headline)
                                     }
-                                    .foregroundColor(.appAccent)
+                                    .foregroundStyle(Color.appAccent)
                                     .frame(maxWidth: .infinity)
                                     .padding()
                                     .background(Color.appSurface)
@@ -214,7 +214,7 @@ struct ScheduledWorkoutCard: View {
                 } label: {
                     Image(systemName: "minus.circle.fill")
                         .font(.title2)
-                        .foregroundColor(.red)
+                        .foregroundStyle(Color.red)
                 }
                 .transition(.scale.combined(with: .opacity))
             }
@@ -223,21 +223,21 @@ struct ScheduledWorkoutCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(routine.name)
                         .font(.headline)
-                        .foregroundColor(.appText)
+                        .foregroundStyle(Color.appText)
                     
                     HStack(spacing: 4) {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.system(size: 11))
-                            .foregroundColor(.appAccent)
+                            .foregroundStyle(Color.appAccent)
                         Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
                             .font(.caption)
-                            .foregroundColor(.appText.opacity(0.6))
+                            .foregroundStyle(Color.appText.opacity(0.6))
                     }
                     
                     if scheduled.completed {
                         Label("Completed", systemImage: "checkmark.circle.fill")
                             .font(.caption)
-                            .foregroundColor(.green)
+                            .foregroundStyle(Color.green)
                     }
                 }
                 
@@ -250,7 +250,7 @@ struct ScheduledWorkoutCard: View {
                         Text("Start")
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundColor(.white)
+                            .foregroundStyle(Color.white)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                             .background(Color.appAccent)
@@ -307,7 +307,7 @@ struct RoutinePickerSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 }
             }
         }
@@ -325,15 +325,15 @@ struct RoutinePickerRow: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(routine.name)
                         .font(.headline)
-                        .foregroundColor(.appText)
+                        .foregroundStyle(Color.appText)
                     
                     HStack(spacing: 4) {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.system(size: 11))
-                            .foregroundColor(.appAccent)
+                            .foregroundStyle(Color.appAccent)
                         Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
                             .font(.caption)
-                            .foregroundColor(.appText.opacity(0.6))
+                            .foregroundStyle(Color.appText.opacity(0.6))
                     }
                 }
                 
@@ -364,35 +364,35 @@ struct RoutineContentView: View {
             Group {
                 if viewModel.isLoading {
                     ProgressView("Loading routines...")
-                        .foregroundColor(.appText)
+                        .foregroundStyle(Color.appText)
                 } else if let error = viewModel.errorMessage {
                     VStack {
                         Text("Error")
                             .font(.headline)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         Text(error)
-                            .foregroundColor(.appText.opacity(0.7))
+                            .foregroundStyle(Color.appText.opacity(0.7))
                             .multilineTextAlignment(.center)
                         Button("Retry") {
                             Task { await viewModel.loadRoutines() }
                         }
-                        .foregroundColor(.appAccent)
+                        .foregroundStyle(Color.appAccent)
                     }
                     .padding()
                 } else if viewModel.routines.isEmpty {
                     VStack(spacing: 16) {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.system(size: 60))
-                            .foregroundColor(.appText.opacity(0.6))
+                            .foregroundStyle(Color.appText.opacity(0.6))
                         Text("No Routines Yet")
                             .font(.headline)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         Text("Create your first workout routine")
-                            .foregroundColor(.appText.opacity(0.7))
+                            .foregroundStyle(Color.appText.opacity(0.7))
                         Button("Create Routine") {
                             showingCreateSheet = true
                         }
-                        .foregroundColor(.white)
+                        .foregroundStyle(Color.white)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
                         .background(Color.appAccent)
@@ -409,7 +409,7 @@ struct RoutineContentView: View {
                                 }
                             } label: {
                                 Text(isEditMode ? "Done" : "Edit")
-                                    .foregroundColor(.appAccent)
+                                    .foregroundStyle(Color.appAccent)
                                     .font(.subheadline)
                             }
                         }
@@ -436,7 +436,7 @@ struct RoutineContentView: View {
                                             } label: {
                                                 Image(systemName: "minus.circle.fill")
                                                     .font(.title2)
-                                                    .foregroundColor(.red)
+                                                    .foregroundStyle(Color.red)
                                             }
                                             .transition(.scale.combined(with: .opacity))
                                         }
@@ -472,7 +472,7 @@ struct RoutineContentView: View {
                     showingCreateSheet = true
                 } label: {
                     Image(systemName: "plus")
-                        .foregroundColor(.appAccent)
+                        .foregroundStyle(Color.appAccent)
                 }
             }
         }
@@ -571,22 +571,22 @@ struct RoutineCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(routine.name)
                     .font(.headline)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 
                 HStack(spacing: 4) {
                     Image(systemName: "figure.strengthtraining.traditional")
                         .font(.system(size: 11))
-                        .foregroundColor(.appAccent)
+                        .foregroundStyle(Color.appAccent)
                     Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
                         .font(.caption)
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                 }
             }
             
             Spacer()
             
             Image(systemName: "chevron.right")
-                .foregroundColor(.appText.opacity(0.3))
+                .foregroundStyle(Color.appText.opacity(0.3))
                 .font(.system(size: 14))
         }
         .padding()
@@ -612,7 +612,7 @@ struct CalendarGridView: View {
                 ForEach(daysOfWeek, id: \.self) { day in
                     Text(day)
                         .font(.caption)
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                 }
             }
             
@@ -662,7 +662,7 @@ struct CalendarDayView: View {
             VStack(spacing: 2) {
                 Text("\(Calendar.current.component(.day, from: date))")
                     .font(.system(size: 16, weight: isToday ? .bold : .regular))
-                    .foregroundColor(isSelected ? .white : .appText)
+                    .foregroundStyle(isSelected ? Color.white : Color.appText)
                 
                 if hasWorkout {
                     Circle()

@@ -55,7 +55,7 @@ struct WeeklyGoalCard: View {
                 Text("Weekly Goal")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 
                 Spacer()
                 
@@ -63,7 +63,7 @@ struct WeeklyGoalCard: View {
                     onEditGoal()
                 } label: {
                     Image(systemName: "gear")
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                 }
             }
             
@@ -74,16 +74,16 @@ struct WeeklyGoalCard: View {
                 VStack(spacing: 4) {
                     Text("\(completedMinutes)")
                         .font(.system(size: 48, weight: .bold))
-                        .foregroundColor(.appAccent)
+                        .foregroundStyle(Color.appAccent)
                     
                     Text("of \(goalMinutes) min")
                         .font(.caption)
-                        .foregroundColor(.appText.opacity(0.7))
+                        .foregroundStyle(Color.appText.opacity(0.7))
                     
                     Text("\(Int(progress * 100))%")
                         .font(.title3)
                         .fontWeight(.semibold)
-                        .foregroundColor(.appText)
+                        .foregroundStyle(Color.appText)
                         .padding(.top, 4)
                 }
             }
@@ -92,10 +92,10 @@ struct WeeklyGoalCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("This Week")
                         .font(.caption)
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                     Text("\(completedMinutes) min")
                         .font(.headline)
-                        .foregroundColor(.appText)
+                        .foregroundStyle(Color.appText)
                 }
                 
                 Spacer()
@@ -103,10 +103,10 @@ struct WeeklyGoalCard: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("Remaining")
                         .font(.caption)
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                     Text("\(max(0, goalMinutes - completedMinutes)) min")
                         .font(.headline)
-                        .foregroundColor(.appText)
+                        .foregroundStyle(Color.appText)
                 }
             }
             .padding(.horizontal)

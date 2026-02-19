@@ -29,7 +29,7 @@ struct ProfileView: View {
                             VStack(alignment: .leading, spacing: 16) {
                                 Text("Account Details")
                                     .font(.headline)
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                     .padding(.horizontal)
                                 
                                 VStack(spacing: 0) {
@@ -74,7 +74,7 @@ struct ProfileView: View {
                                     }
                                     .padding()
                                     .background(Color.appAccent)
-                                    .foregroundColor(.white)
+                                    .foregroundStyle(Color.white)
                                     .cornerRadius(10)
                                 }
                                 .padding(.horizontal)
@@ -85,22 +85,22 @@ struct ProfileView: View {
                                             HStack(spacing: 16) {
                                                 Image(systemName: "globe")
                                                     .font(.system(size: 20))
-                                                    .foregroundColor(.appAccent)
+                                                    .foregroundStyle(Color.appAccent)
                                                     .frame(width: 24)
                                                 
                                                 Text("Language")
                                                     .font(.body)
-                                                    .foregroundColor(.appText)
+                                                    .foregroundStyle(Color.appText)
                                                 
                                                 Spacer()
                                                 
                                                 Text(LanguageManager.shared.getCurrentLanguageName())
                                                     .font(.body)
-                                                    .foregroundColor(.appText.opacity(0.6))
+                                                    .foregroundStyle(Color.appText.opacity(0.6))
                                                 
                                                 Image(systemName: "chevron.right")
                                                     .font(.caption)
-                                                    .foregroundColor(.appText.opacity(0.3))
+                                                    .foregroundStyle(Color.appText.opacity(0.3))
                                             }
                                             .padding()
                                         }
@@ -169,7 +169,7 @@ struct ProfileView: View {
                                 }
                                 .padding()
                                 .background(Color.red.opacity(0.1))
-                                .foregroundColor(.red)
+                                .foregroundStyle(Color.red)
                                 .cornerRadius(10)
                             }
                             .padding(.horizontal)
@@ -217,17 +217,17 @@ struct ProfileRow: View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.system(size: 20))
-                .foregroundColor(.appAccent)
+                .foregroundStyle(Color.appAccent)
                 .frame(width: 24)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.caption)
-                    .foregroundColor(.appText.opacity(0.6))
+                    .foregroundStyle(Color.appText.opacity(0.6))
                 
                 Text(value)
                     .font(.body)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
             }
             
             Spacer()
@@ -261,7 +261,7 @@ struct EditProfileSheet: View {
                     // Error message
                     if showError {
                         Text(errorMessage)
-                            .foregroundColor(.red)
+                            .foregroundStyle(Color.red)
                             .font(.caption)
                             .padding(.horizontal)
                     }
@@ -270,13 +270,13 @@ struct EditProfileSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("First Name")
                             .font(.headline)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         
                         TextField("", text: $firstName)
                             .textInputAutocapitalization(.words)
                             .padding()
                             .background(Color.appSurface)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                             .cornerRadius(10)
                     }
                     .padding(.horizontal)
@@ -285,13 +285,13 @@ struct EditProfileSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Last Name")
                             .font(.headline)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         
                         TextField("", text: $lastName)
                             .textInputAutocapitalization(.words)
                             .padding()
                             .background(Color.appSurface)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                             .cornerRadius(10)
                     }
                     .padding(.horizontal)
@@ -309,7 +309,7 @@ struct EditProfileSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -327,7 +327,7 @@ struct EditProfileSheet: View {
                             }
                         }
                     }
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
                     .fontWeight(.semibold)
                 }
             }
@@ -360,7 +360,7 @@ struct FeedbackSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Type")
                             .font(.headline)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         
                         Menu {
                             ForEach(FeedbackType.allCases, id: \.self) { type in
@@ -371,10 +371,10 @@ struct FeedbackSheet: View {
                         } label: {
                             HStack {
                                 Text(feedbackType.rawValue)
-                                    .foregroundColor(.appText)
+                                    .foregroundStyle(Color.appText)
                                 Spacer()
                                 Image(systemName: "chevron.down")
-                                    .foregroundColor(.appText.opacity(0.6))
+                                    .foregroundStyle(Color.appText.opacity(0.6))
                                     .font(.caption)
                             }
                             .padding()
@@ -388,12 +388,12 @@ struct FeedbackSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Title")
                             .font(.headline)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         
                         TextField("", text: $title)
                             .padding()
                             .background(Color.appSurface)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                             .cornerRadius(10)
                     }
                     .padding(.horizontal)
@@ -402,14 +402,14 @@ struct FeedbackSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Description")
                             .font(.headline)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         
                         ZStack(alignment: .topLeading) {
                             TextEditor(text: $description)
                                 .frame(minHeight: 120)
                                 .padding(8)
                                 .background(Color.appSurface)
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .cornerRadius(10)
                                 .scrollContentBackground(.hidden)
                         }
@@ -437,7 +437,7 @@ struct FeedbackSheet: View {
                             .scaleEffect(1.5)
                         
                         Text("Submitting feedback...")
-                            .foregroundColor(.white)
+                            .foregroundStyle(Color.white)
                             .font(.headline)
                     }
                     .transition(.opacity)
@@ -452,7 +452,7 @@ struct FeedbackSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -469,7 +469,7 @@ struct FeedbackSheet: View {
                             }
                         }
                     }
-                    .foregroundColor(title.isEmpty || description.isEmpty ? .appText.opacity(0.3) : .appAccent)
+                    .foregroundStyle(title.isEmpty || description.isEmpty ? Color.appText.opacity(0.3) : Color.appAccent)
                     .disabled(title.isEmpty || description.isEmpty)
                 }
             }
@@ -496,11 +496,11 @@ struct LanguageSelectionSheet: View {
                     // Info banner
                     HStack(spacing: 12) {
                         Image(systemName: "info.circle.fill")
-                            .foregroundColor(.blue)
+                            .foregroundStyle(Color.blue)
                         
                         Text("App will restart to apply language change")
                             .font(.caption)
-                            .foregroundColor(.appText.opacity(0.8))
+                            .foregroundStyle(Color.appText.opacity(0.8))
                         
                         Spacer()
                     }
@@ -518,18 +518,18 @@ struct LanguageSelectionSheet: View {
                                 HStack(spacing: 16) {
                                     Image(systemName: icon)
                                         .font(.system(size: 24))
-                                        .foregroundColor(.appAccent)
+                                        .foregroundStyle(Color.appAccent)
                                         .frame(width: 32)
                                     
                                     Text(name)
                                         .font(.body)
-                                        .foregroundColor(.appText)
+                                        .foregroundStyle(Color.appText)
                                     
                                     Spacer()
                                     
                                     if selectedLanguage == code {
                                         Image(systemName: "checkmark")
-                                            .foregroundColor(.appAccent)
+                                            .foregroundStyle(Color.appAccent)
                                             .fontWeight(.bold)
                                     }
                                 }
@@ -551,7 +551,7 @@ struct LanguageSelectionSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -563,7 +563,7 @@ struct LanguageSelectionSheet: View {
                             dismiss()
                         }
                     }
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
                     .fontWeight(.semibold)
                 }
             }

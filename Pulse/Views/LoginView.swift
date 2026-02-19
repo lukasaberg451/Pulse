@@ -43,7 +43,7 @@ struct LoginView: View {
                         VStack {
                             if showError {
                                 Text(errorMessage)
-                                    .foregroundColor(.red)
+                                    .foregroundStyle(Color.red)
                                     .font(.caption)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             } else {
@@ -65,7 +65,7 @@ struct LoginView: View {
                                 .keyboardType(.emailAddress)
                                 .padding()
                                 .background(Color.appSurface)
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .cornerRadius(10)
                                 .onChange(of: email) {
                                     showError = false
@@ -82,7 +82,7 @@ struct LoginView: View {
                             SecureField("", text: $password)
                                 .padding()
                                 .background(Color.appSurface)
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .cornerRadius(10)
                                 .onChange(of: password) {
                                     showError = false
@@ -96,7 +96,7 @@ struct LoginView: View {
                                 showingForgotPassword = true
                             }
                             .font(.caption)
-                            .foregroundColor(.appAccent)
+                            .foregroundStyle(Color.appAccent)
                         }
                         
                         // Sign in button
@@ -147,7 +147,7 @@ struct LoginView: View {
                             .scaleEffect(1.5)
                         
                         Text("Signing in...")
-                            .foregroundColor(.white)
+                            .foregroundStyle(Color.white)
                             .font(.headline)
                     }
                     .transition(.opacity)
@@ -164,7 +164,7 @@ struct LoginView: View {
                             Image(systemName: "chevron.left")
                             Text("Back")
                         }
-                        .foregroundColor(.appText)
+                        .foregroundStyle(Color.appText)
                     }
                 }
             }
@@ -200,22 +200,22 @@ struct ForgotPasswordView: View {
                 VStack(spacing: 24) {
                     Image(systemName: "envelope.circle.fill")
                         .font(.system(size: 80))
-                        .foregroundColor(.green)
+                        .foregroundStyle(Color.green)
                     
                     Text("Check Your Email")
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(.appText)
+                        .foregroundStyle(Color.appText)
                     
                     Text("We've sent a password reset link to")
-                        .foregroundColor(.appText.opacity(0.7))
+                        .foregroundStyle(Color.appText.opacity(0.7))
                     
                     Text(email)
-                        .foregroundColor(.appAccent)
+                        .foregroundStyle(Color.appAccent)
                         .fontWeight(.semibold)
                     
                     Text("Please check your email and follow the instructions to reset your password")
-                        .foregroundColor(.appText.opacity(0.7))
+                        .foregroundStyle(Color.appText.opacity(0.7))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                     
@@ -225,7 +225,7 @@ struct ForgotPasswordView: View {
                     }) {
                         Text("Back to Login")
                             .font(.headline)
-                            .foregroundColor(.white)
+                            .foregroundStyle(Color.white)
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.appAccent)
@@ -253,11 +253,11 @@ struct ForgotPasswordView: View {
                             Text("Reset Password")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                             
                             Text("Enter your email to receive a reset link")
                                 .font(.subheadline)
-                                .foregroundColor(.appText.opacity(0.7))
+                                .foregroundStyle(Color.appText.opacity(0.7))
                         }
                         .padding(.bottom, 10)
                         
@@ -265,7 +265,7 @@ struct ForgotPasswordView: View {
                         VStack {
                             if showError {
                                 Text(errorMessage)
-                                    .foregroundColor(.red)
+                                    .foregroundStyle(Color.red)
                                     .font(.caption)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -289,7 +289,7 @@ struct ForgotPasswordView: View {
                                 .keyboardType(.emailAddress)
                                 .padding()
                                 .background(Color.appSurface)
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .cornerRadius(10)
                                 .onChange(of: email) {
                                     showError = false
@@ -350,7 +350,7 @@ struct ForgotPasswordView: View {
                         .scaleEffect(1.5)
                     
                     Text("Sending reset link...")
-                        .foregroundColor(.white)
+                        .foregroundStyle(Color.white)
                         .font(.headline)
                 }
                 .transition(.opacity)

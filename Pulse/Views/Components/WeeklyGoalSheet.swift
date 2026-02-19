@@ -27,11 +27,11 @@ struct WeeklyGoalSheet: View {
                         Text("Weekly Workout Goal")
                             .font(.title2)
                             .fontWeight(.bold)
-                            .foregroundColor(.appText)
+                            .foregroundStyle(Color.appText)
                         
                         Text("Set your target workout minutes per week")
                             .font(.subheadline)
-                            .foregroundColor(.appText.opacity(0.7))
+                            .foregroundStyle(Color.appText.opacity(0.7))
                             .multilineTextAlignment(.center)
                     }
                     .padding(.top, 20)
@@ -40,7 +40,7 @@ struct WeeklyGoalSheet: View {
                     VStack(spacing: 16) {
                         Text("\(goalMinutes) minutes")
                             .font(.system(size: 48, weight: .bold))
-                            .foregroundColor(.appAccent)
+                            .foregroundStyle(Color.appAccent)
                         
                         Picker("Goal", selection: $goalMinutes) {
                             ForEach([30, 60, 90, 120, 150, 180, 210, 240, 270, 300], id: \.self) { minutes in
@@ -55,7 +55,7 @@ struct WeeklyGoalSheet: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Suggested Goals")
                             .font(.caption)
-                            .foregroundColor(.appText.opacity(0.6))
+                            .foregroundStyle(Color.appText.opacity(0.6))
                         
                         HStack(spacing: 12) {
                             GoalButton(minutes: 150, currentGoal: $goalMinutes, label: "Recommended")
@@ -76,7 +76,7 @@ struct WeeklyGoalSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -86,7 +86,7 @@ struct WeeklyGoalSheet: View {
                             dismiss()
                         }
                     }
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
                     .fontWeight(.semibold)
                 }
             }
@@ -110,7 +110,7 @@ struct GoalButton: View {
                 Text(label)
                     .font(.caption)
             }
-            .foregroundColor(currentGoal == minutes ? .white : .appText)
+            .foregroundStyle(currentGoal == minutes ? Color.white : Color.appText)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .background(currentGoal == minutes ? Color.appAccent : Color.appSurface)

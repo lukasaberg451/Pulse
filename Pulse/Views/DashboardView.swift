@@ -53,7 +53,7 @@ struct DashboardView: View {
                             Text("Today")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .padding(.horizontal)
                             
                             if viewModel.todaysWorkouts.isEmpty {
@@ -77,7 +77,7 @@ struct DashboardView: View {
                             Text("Recent Workouts")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.appText)
+                                .foregroundStyle(Color.appText)
                                 .padding(.horizontal)
                             
                             if viewModel.recentSessions.isEmpty {
@@ -125,25 +125,25 @@ struct TodayWorkoutCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Image(systemName: "calendar")
-                        .foregroundColor(.appAccent)
+                        .foregroundStyle(Color.appAccent)
                     Text("Scheduled")
                         .font(.caption)
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                 }
                 
                 Text(routine.name)
                     .font(.title3)
                     .fontWeight(.semibold)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 
                 if scheduled.completed {
                     Label("Completed", systemImage: "checkmark.circle.fill")
                         .font(.caption)
-                        .foregroundColor(.green)
+                        .foregroundStyle(Color.green)
                 } else {
                     Text("Not started")
                         .font(.caption)
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                 }
             }
             
@@ -165,7 +165,7 @@ struct TodayWorkoutCard: View {
             } else {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 40))
-                    .foregroundColor(.green)
+                    .foregroundStyle(Color.green)
             }
         }
         .padding(20)
@@ -189,17 +189,17 @@ struct EmptyTodayCard: View {
         VStack(spacing: 12) {
             Image(systemName: "calendar.badge.clock")
                 .font(.system(size: 50))
-                .foregroundColor(.appText.opacity(0.4))
+                .foregroundStyle(Color.appText.opacity(0.4))
             
             Text("No workouts scheduled today")
                 .font(.subheadline)
-                .foregroundColor(.appText.opacity(0.6))
+                .foregroundStyle(Color.appText.opacity(0.6))
             
             NavigationLink(destination: WorkoutView()) {
                 Text("Schedule a workout")
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
                     .background(Color.appAccent)
@@ -225,35 +225,35 @@ struct RecentWorkoutCard: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(session.name)
                         .font(.headline)
-                        .foregroundColor(.appText)
+                        .foregroundStyle(Color.appText)
                     
                     HStack(spacing: 12) {
                         Label(viewModel.formatDate(session.startedAt), systemImage: "calendar")
                             .font(.caption)
-                            .foregroundColor(.appText.opacity(0.6))
+                            .foregroundStyle(Color.appText.opacity(0.6))
                         
                         if session.completedAt != nil {
                             Label(viewModel.formatDuration(session.durationSeconds), systemImage: "clock")
                                 .font(.caption)
-                                .foregroundColor(.appText.opacity(0.6))
+                                .foregroundStyle(Color.appText.opacity(0.6))
                         }
                     }
                     
                     if session.completedAt != nil {
                         Label("Completed", systemImage: "checkmark.circle.fill")
                             .font(.caption)
-                            .foregroundColor(.green)
+                            .foregroundStyle(Color.green)
                     } else {
                         Label("In Progress", systemImage: "circle.dotted")
                             .font(.caption)
-                            .foregroundColor(.orange)
+                            .foregroundStyle(Color.orange)
                     }
                 }
                 
                 Spacer()
                 
                 Image(systemName: "chevron.right")
-                    .foregroundColor(.appText.opacity(0.3))
+                    .foregroundStyle(Color.appText.opacity(0.3))
                     .font(.system(size: 14))
             }
             .padding(16)
@@ -270,15 +270,15 @@ struct EmptyRecentCard: View {
         VStack(spacing: 12) {
             Image(systemName: "clock.arrow.circlepath")
                 .font(.system(size: 50))
-                .foregroundColor(.appText.opacity(0.4))
+                .foregroundStyle(Color.appText.opacity(0.4))
             
             Text("No workout history yet")
                 .font(.subheadline)
-                .foregroundColor(.appText.opacity(0.6))
+                .foregroundStyle(Color.appText.opacity(0.6))
             
             Text("Complete your first workout to see it here")
                 .font(.caption)
-                .foregroundColor(.appText.opacity(0.5))
+                .foregroundStyle(Color.appText.opacity(0.5))
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
