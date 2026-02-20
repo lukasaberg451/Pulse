@@ -18,6 +18,7 @@ class AuthViewModel: ObservableObject{
     @Published var isRegistering = false
     @Published var registrationSuccess = false
     @Published var errorMessage: String?
+    @Published var showRecoveryPrompt = false
     
     private let supabase = SupabaseManager.shared.client
     
@@ -25,8 +26,18 @@ class AuthViewModel: ObservableObject{
             // Restore session on init
             Task {
                 await restoreSession()
-            }
-        }
+                
+                if UserDefaults.standard.bool(forKey: "pendingPasswordReset") {
+                            UserDefaults.standard.removeObject(forKey: "pendingPasswordReset")
+                            DispatchQueue.main.async {
+                                self.showRecoveryPrompt = true
+                            }
+                        }
+                    }
+                }
+    
+    
+    
     
     private func restoreSession() async {
             do {

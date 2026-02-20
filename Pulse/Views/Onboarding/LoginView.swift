@@ -172,6 +172,7 @@ struct LoginView: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .sheet(isPresented: $showingForgotPassword) {
                 ForgotPasswordView()
+                    .environmentObject(authViewModel)
             }
         }
     }
@@ -184,6 +185,8 @@ struct ForgotPasswordView: View {
     @State private var resetSuccess = false
     @State private var showError = false
     @State private var errorMessage = ""
+    @Environment(\.dismissAllSheets) var dismissAllSheets
+    @EnvironmentObject var authViewModel: AuthViewModel
     
     private let supabase = SupabaseManager.shared.client
     
@@ -191,10 +194,6 @@ struct ForgotPasswordView: View {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
-    }
-    
-    func sendPasswordReset(email: String) async throws {
-        try await supabase.auth.resetPasswordForEmail(email)
     }
     
     var body: some View {
@@ -302,7 +301,7 @@ struct ForgotPasswordView: View {
                                 }
                         }
                         
-                        // Reset button
+                        // Reset Button
                         Button(action: {
                             if email.trimmingCharacters(in: .whitespaces).isEmpty {
                                 errorMessage = "Email is required"

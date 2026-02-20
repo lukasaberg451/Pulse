@@ -11,16 +11,16 @@ struct HomeView: View {
     @ObservedObject var authViewModel : AuthViewModel
     var body: some View {
         TabView{
-            Tab("Dashboard", systemImage: "chart.bar.fill"){
+            Tab("Dashboard", systemImage: "chart.bar.fill") {
                 DashboardView(authViewModel: authViewModel)
             }
-            Tab("Workout", systemImage: "dumbbell.fill"){
+            Tab("Workout", systemImage: "dumbbell.fill") {
                 WorkoutView()
             }
-            Tab("Progress", systemImage: "chart.line.uptrend.xyaxis"){
+            Tab("Progress", systemImage: "chart.line.uptrend.xyaxis") {
                 ProgressTabView()
             }
-            Tab("Profile", systemImage: "person.circle.fill"){
+            Tab("Profile", systemImage: "person.circle.fill") {
                 ProfileView()
             }
         }

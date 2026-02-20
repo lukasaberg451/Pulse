@@ -223,8 +223,15 @@ struct ProfileView: View {
                 LanguageSelectionSheet()
             }
             .sheet(isPresented: $showingChangeEmailSheet) {
-                ChangeEmailSheet(authViewModel: authViewModel)
-            }
+                ChangeEmailSheet(
+                        authViewModel: authViewModel,
+                        onEmailChanged: {
+                            Task {
+                                await viewModel.loadProfile()
+                            }
+                        }
+                    )
+                }
             .task {
                 await viewModel.loadProfile()
             }
@@ -615,6 +622,7 @@ struct ChangeEmailSheet: View {
     @State private var isLoading = false
     @State private var showSuccess = false
     @State private var errorMessage: String?
+    let onEmailChanged: () -> Void
     
     var body: some View {
         NavigationStack {
@@ -673,28 +681,30 @@ struct ChangeEmailSheet: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("New Email")
                                 .font(.caption)
-                                .foregroundStyle(Color.appText.opacity(0.7))
+                                .foregroundStyle(Color.appText)
                             
-                            TextField("email@example.com", text: $newEmail)
+                            TextField("", text: $newEmail)
                                 .textFieldStyle(.plain)
                                 .textInputAutocapitalization(.never)
+                                .foregroundStyle(Color.appText)
                                 .keyboardType(.emailAddress)
                                 .autocorrectionDisabled()
                                 .padding()
                                 .background(Color.appSurface)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Current Password")
                                 .font(.caption)
-                                .foregroundStyle(Color.appText.opacity(0.7))
+                                .foregroundStyle(Color.appText)
                             
-                            SecureField("Enter password", text: $password)
+                            SecureField("", text: $password)
                                 .textFieldStyle(.plain)
+                                .foregroundStyle(Color.appText)
                                 .padding()
                                 .background(Color.appSurface)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                         }
                         
                         if let error = errorMessage {
@@ -720,7 +730,7 @@ struct ChangeEmailSheet: View {
                             }
                         }
                         .padding()
-                        .background(isValidForm ? Color.appAccent : Color.appAccent.opacity(0.5))
+                        .background(isValidForm ? Color.appAccent : Color.appAccent)
                         .cornerRadius(10)
                         .disabled(!isValidForm || isLoading)
                         
@@ -730,6 +740,7 @@ struct ChangeEmailSheet: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     if !showSuccess {
@@ -760,6 +771,7 @@ struct ChangeEmailSheet: View {
         isLoading = false
         
         if success {
+            onEmailChanged()
             showSuccess = true
         } else {
             errorMessage = authViewModel.errorMessage ?? "Failed to change email"
