@@ -58,7 +58,7 @@ struct ResetPasswordInAppView: View {
                         Button("Go to Login") {
                             dismiss()
                         }
-                        .foregroundColor(.white)
+                        .foregroundStyle(Color.appText)
                         .padding(.horizontal, 40)
                         .padding(.vertical, 12)
                         .background(Color.appAccent)
@@ -109,7 +109,7 @@ struct ResetPasswordInAppView: View {
                                     .frame(maxWidth: .infinity)
                             }
                         }
-                        .foregroundColor(.white)
+                        .foregroundStyle(Color.appText)
                         .padding()
                         .background(isValid ? Color.appAccent : Color.appAccent.opacity(0.5))
                         .cornerRadius(10)

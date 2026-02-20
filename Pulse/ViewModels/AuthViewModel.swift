@@ -36,9 +36,6 @@ class AuthViewModel: ObservableObject{
                     }
                 }
     
-    
-    
-    
     private func restoreSession() async {
             do {
                 // Try to get existing session
@@ -67,24 +64,61 @@ class AuthViewModel: ObservableObject{
         registrationSuccess = false
         
         do {
-            let result = try await supabase.auth.signUp(email: email, password: password, data: [ "full_name": .string("\(firstName) \(lastName)")])
+            let result = try await supabase.auth.signUp(
+                email: email,
+                password: password,
+                data: [
+                    "full_name": .string("\(firstName) \(lastName)"),
+                    "first_name": .string(firstName),
+                    "last_name": .string(lastName)
+                ]
+            )
+            
             self.session = result.session
+            
+            // Create profile record in database
+            let userId = result.user.id
+            try await createUserProfile(
+                userId: userId,
+                email: email,
+                firstName: firstName,
+                lastName: lastName
+                )
+            
             self.isAuthenticated = self.session != nil
             registrationSuccess = true
+            
         } catch let error as AuthError {
-             if error.localizedDescription.contains("password") ||
-                        error.localizedDescription.contains("compromised") {
+            if error.localizedDescription.contains("password") ||
+               error.localizedDescription.contains("compromised") {
                 errorMessage = "This password has been exposed in a data breach. Please choose a different password."
             } else {
-                errorMessage = "Registration failed:  \(error.localizedDescription)"
+                errorMessage = "Registration failed: \(error.localizedDescription)"
             }
             registrationSuccess = false
         } catch {
             errorMessage = "Registration failed: \(error.localizedDescription)"
             registrationSuccess = false
         }
-        registrationSuccess = true
+        
         isRegistering = false
+    }
+    
+    func createUserProfile(userId: UUID, email: String, firstName: String, lastName: String) async throws {
+        let profile = Profile(
+            id: userId,
+            email: email,
+            firstName: firstName,
+            lastName: lastName,
+            fullName: "\(firstName) \(lastName)",
+            weeklyGoalMinutes: 0,
+            createdAt: Date()
+        )
+        
+        try await supabase
+            .from("profiles")
+            .insert(profile)
+            .execute()
     }
     
     func signIn(email: String, password: String) async{

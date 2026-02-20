@@ -12,6 +12,7 @@ struct Profile: Codable, Identifiable {
     let email: String?
     let firstName: String?
     let lastName: String?
+    let fullName: String?
     let weeklyGoalMinutes: Int?
     let createdAt: Date
     
@@ -20,6 +21,7 @@ struct Profile: Codable, Identifiable {
         case email
         case firstName = "first_name"
         case lastName = "last_name"
+        case fullName = "full_name"
         case weeklyGoalMinutes = "weekly_goal_minutes"
         case createdAt = "created_at"
     }
