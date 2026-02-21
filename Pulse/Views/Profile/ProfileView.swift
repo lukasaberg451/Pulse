@@ -10,6 +10,8 @@ import SwiftUI
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var themeManager: ThemeManager
+    @State private var showingThemeSheet = false
     @State private var showingEditSheet = false
     @State private var showingSignOutAlert = false
     @State private var showingFeedbackSheet = false
@@ -100,6 +102,35 @@ struct ProfileView: View {
                                     .cornerRadius(10)
                                 }
                                 .padding(.horizontal)
+                                
+                                //Theme setting
+                                Button {
+                                    showingThemeSheet = true
+                                } label: {
+                                    HStack(spacing: 16) {
+                                        Image(systemName: "paintbrush.fill")
+                                            .font(.system(size: 20))
+                                            .foregroundStyle(Color.appAccent)
+                                            .frame(width: 24)
+                                        
+                                        Text("Appearance")
+                                            .font(.body)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Spacer()
+                                        
+                                        Text(themeManager.selectedTheme.rawValue)
+                                            .font(.body)
+                                            .foregroundStyle(Color.appText.opacity(0.6))
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appText.opacity(0.3))
+                                    }
+                                    .padding()
+                                }
+                                .padding(.horizontal)
+                                
                                 // Language Row
                                         Button {
                                             showingLanguageSheet = true
@@ -232,6 +263,9 @@ struct ProfileView: View {
                         }
                     )
                 }
+            .sheet(isPresented: $showingThemeSheet) {
+                ThemeSelectionSheet()
+            }
             .task {
                 await viewModel.loadProfile()
             }

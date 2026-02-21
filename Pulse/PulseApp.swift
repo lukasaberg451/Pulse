@@ -28,6 +28,7 @@ struct PulseApp: App {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     @AppStorage("hasSeenWelcomeTour") private var hasSeenWelcomeTour = false
     @StateObject private var authViewModel = AuthViewModel()
+    @StateObject private var themeManager = ThemeManager()
     @State private var showPasswordReset = false
     @State private var recoveryCode: IdentifiableString?
     
@@ -93,6 +94,8 @@ struct PulseApp: App {
                 }
             }
             .id(authViewModel.isAuthenticated)
+            .environmentObject(themeManager)
+            .preferredColorScheme(themeManager.selectedTheme.colorScheme)
             .onOpenURL { url in
                 handleDeepLink(url)
             }
