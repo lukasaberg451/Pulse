@@ -220,7 +220,7 @@ struct RecentWorkoutCard: View {
     @ObservedObject var viewModel: DashboardViewModel
     
     var body: some View {
-        NavigationLink(destination: Text("Workout Detail - TODO")) {
+        NavigationLink(destination: WorkoutDetailView(workoutSession: session)) {
             HStack {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(session.name)
