@@ -31,9 +31,10 @@ struct LoginView: View {
                 VStack(spacing: 0) {
                     // Logo section
                     VStack {
-                        Image(systemName: "dumbbell.fill")
-                            .foregroundStyle(Color.appAccent)
-                            .font(.system(size: 60))
+                        Image(.logo)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 140, height: 80)
                     }
                     .frame(maxHeight: .infinity, alignment: .top)
                     .padding(.top, 50)
@@ -244,9 +245,10 @@ struct ForgotPasswordView: View {
                 VStack(spacing: 0) {
                     // Logo section
                     VStack {
-                        Image(systemName: "dumbbell.fill")
-                            .foregroundStyle(Color.appAccent)
-                            .font(.system(size: 60))
+                        Image(.logo)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 140, height: 80)
                     }
                     .frame(maxHeight: .infinity, alignment: .top)
                     .padding(.top, 100)

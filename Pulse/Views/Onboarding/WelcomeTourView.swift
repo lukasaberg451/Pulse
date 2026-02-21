@@ -13,7 +13,7 @@ struct WelcomeTourView: View {
     
     let pages = [
         TourPage(
-            icon: "dumbbell.fill",
+            iconImage: "Logo",
             title: "Welcome to Pulse",
             description: "Your personal workout companion to track, plan, and crush your fitness goals."
         ),
@@ -103,8 +103,16 @@ struct WelcomeTourView: View {
 struct TourPage: Identifiable {
     let id = UUID()
     let icon: String
+    let iconImage: String?
     let title: String
     let description: String
+    
+    init(icon: String = "", iconImage: String? = nil, title: String, description: String) {
+            self.icon = icon
+            self.iconImage = iconImage
+            self.title = title
+            self.description = description
+    }
 }
 
 struct TourPageView: View {
@@ -114,10 +122,17 @@ struct TourPageView: View {
         VStack(spacing: 40) {
             Spacer()
             
-            Image(systemName: page.icon)
-                .font(.system(size: 100))
-                .foregroundStyle(Color.appAccent)
-            
+            if let iconImage = page.iconImage {
+                Image(iconImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .foregroundColor(.appAccent)
+            } else {
+                Image(systemName: page.icon)
+                    .font(.system(size: 80))
+                    .foregroundColor(.appAccent)
+            }
             VStack(spacing: 16) {
                 Text(page.title)
                     .font(.system(size: 32, weight: .bold))

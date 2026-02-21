@@ -26,13 +26,10 @@ struct AuthSelectionView: View {
                     
                     // App branding
                     VStack(spacing: 16) {
-                        Image(systemName: "dumbbell.fill")
-                            .font(.system(size: 80))
-                            .foregroundStyle(Color.appAccent)
-                        
-                        Text("Pulse")
-                            .font(.system(size: 48, weight: .bold))
-                            .foregroundStyle(Color.appText)
+                        Image(.logo)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 140, height: 80)
                         
                         Text("Your Fitness Journey Starts Here")
                             .font(.subheadline)
