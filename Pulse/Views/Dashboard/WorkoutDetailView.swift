@@ -49,12 +49,12 @@ struct WorkoutDetailView: View {
             // Date
             HStack {
                 Image(systemName: "calendar")
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
                 Text(viewModel.workoutSession.startedAt, style: .date)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                 Spacer()
                 Text(viewModel.workoutSession.startedAt, style: .time)
-                    .foregroundColor(.appText.opacity(0.6))
+                    .foregroundStyle(Color.appText.opacity(0.6))
             }
             .font(.subheadline)
             
@@ -91,16 +91,16 @@ struct WorkoutDetailView: View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundColor(.appAccent)
+                .foregroundStyle(Color.appAccent)
             
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
-                .foregroundColor(.appText)
+                .foregroundStyle(Color.appText)
             
             Text(title)
                 .font(.caption)
-                .foregroundColor(.appText.opacity(0.6))
+                .foregroundStyle(Color.appText.opacity(0.6))
         }
         .frame(maxWidth: .infinity)
     }
@@ -110,7 +110,7 @@ struct WorkoutDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Exercises")
                 .font(.headline)
-                .foregroundColor(.appText)
+                .foregroundStyle(Color.appText)
             
             ForEach(viewModel.groupedSets, id: \.exerciseId) { exercise in
                 exerciseCard(
@@ -126,7 +126,7 @@ struct WorkoutDetailView: View {
             // Exercise name
             Text(name)
                 .font(.headline)
-                .foregroundColor(.appText)
+                .foregroundStyle(Color.appText)
             
             // Sets table
             VStack(spacing: 8) {
@@ -135,30 +135,30 @@ struct WorkoutDetailView: View {
                     Text("SET")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                         .frame(width: 50, alignment: .leading)
                     
                     Text("WEIGHT")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                         .frame(maxWidth: .infinity, alignment: .center)
                     
                     Text("REPS")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundColor(.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.6))
                         .frame(maxWidth: .infinity, alignment: .center)
                     
                     Image(systemName: "checkmark")
                         .font(.caption)
-                        .foregroundColor(.clear)
+                        .foregroundStyle(Color.clear)
                         .frame(width: 30)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(Color.appBackground)
-                .cornerRadius(8)
+                .cornerRadius(10)
                 
                 // Sets
                 ForEach(sets) { set in
@@ -176,19 +176,19 @@ struct WorkoutDetailView: View {
             // Set number
             Text("\(set.setNumber)")
                 .font(.body)
-                .foregroundColor(.appText.opacity(0.8))
+                .foregroundStyle(Color.appText.opacity(0.8))
                 .frame(width: 50, alignment: .leading)
             
             // Weight
             if let weight = set.weight {
                 Text(String(format: "%.1f kg", weight))
                     .font(.body)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                     .frame(maxWidth: .infinity, alignment: .center)
             } else {
                 Text("-")
                     .font(.body)
-                    .foregroundColor(.appText.opacity(0.4))
+                    .foregroundStyle(Color.appText.opacity(0.4))
                     .frame(maxWidth: .infinity, alignment: .center)
             }
             
@@ -196,28 +196,28 @@ struct WorkoutDetailView: View {
             if let reps = set.reps {
                 Text("\(reps)")
                     .font(.body)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                     .frame(maxWidth: .infinity, alignment: .center)
             } else if let duration = set.durationSeconds {
                 Text("\(duration)s")
                     .font(.body)
-                    .foregroundColor(.appText)
+                    .foregroundStyle(Color.appText)
                     .frame(maxWidth: .infinity, alignment: .center)
             } else {
                 Text("-")
                     .font(.body)
-                    .foregroundColor(.appText.opacity(0.4))
+                    .foregroundStyle(Color.appText.opacity(0.4))
                     .frame(maxWidth: .infinity, alignment: .center)
             }
             
             // Checkmark
             if set.completed {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
+                    .foregroundStyle(Color.green)
                     .frame(width: 30)
             } else {
                 Image(systemName: "circle")
-                    .foregroundColor(.appText.opacity(0.3))
+                    .foregroundStyle(Color.appText.opacity(0.3))
                     .frame(width: 30)
             }
         }
