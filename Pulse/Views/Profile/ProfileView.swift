@@ -18,6 +18,12 @@ struct ProfileView: View {
     @State private var showingLanguageSheet = false
     @State private var showingChangeEmailSheet = false
     
+    var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        return "Version \(version) (\(build))"
+    }
+    
     var body: some View {
             ZStack {
                 Color.appBackground.ignoresSafeArea()
@@ -229,6 +235,13 @@ struct ProfileView: View {
                             .padding(.top, 20)
                         }
                         .padding(.top, 20)
+                        .padding(.bottom, 40)
+                        VStack(spacing: 8) {
+                            Text(appVersion)
+                                .font(.caption)
+                                .foregroundStyle(Color.appText.opacity(0.5))
+                        }
+                        .frame(maxWidth: .infinity)
                         .padding(.bottom, 40)
                     }
                 }
