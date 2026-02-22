@@ -156,19 +156,8 @@ struct LoginView: View {
                 }
             }
             .animation(.easeInOut, value: authViewModel.isLoading)
-            .navigationBarBackButtonHidden(true)
+            .navigationBarBackButtonHidden(false)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        showingSignIn = false
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                            Text("Back")
-                        }
-                        .foregroundStyle(Color.appText)
-                    }
-                }
             }
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .sheet(isPresented: $showingForgotPassword) {

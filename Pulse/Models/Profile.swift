@@ -15,6 +15,7 @@ struct Profile: Codable, Identifiable {
     let fullName: String?
     let weeklyGoalMinutes: Int?
     let createdAt: Date
+    let termsAcceptedAt: Date?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -24,5 +25,6 @@ struct Profile: Codable, Identifiable {
         case fullName = "full_name"
         case weeklyGoalMinutes = "weekly_goal_minutes"
         case createdAt = "created_at"
+        case termsAcceptedAt = "terms_accepted_at"
     }
 }

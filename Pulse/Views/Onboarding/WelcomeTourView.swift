@@ -127,11 +127,11 @@ struct TourPageView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 100, height: 100)
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
             } else {
                 Image(systemName: page.icon)
                     .font(.system(size: 80))
-                    .foregroundColor(.appAccent)
+                    .foregroundStyle(Color.appAccent)
             }
             VStack(spacing: 16) {
                 Text(page.title)

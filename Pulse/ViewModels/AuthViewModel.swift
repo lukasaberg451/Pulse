@@ -60,10 +60,12 @@ class AuthViewModel: ObservableObject{
     }
     
     func signUp(email: String, password: String, firstName: String, lastName: String) async {
+        
         isRegistering = true
         registrationSuccess = false
         
         do {
+            
             let result = try await supabase.auth.signUp(
                 email: email,
                 password: password,
@@ -75,50 +77,19 @@ class AuthViewModel: ObservableObject{
             )
             
             self.session = result.session
-            
-            // Create profile record in database
-            let userId = result.user.id
-            try await createUserProfile(
-                userId: userId,
-                email: email,
-                firstName: firstName,
-                lastName: lastName
-                )
-            
-            self.isAuthenticated = self.session != nil
             registrationSuccess = true
             
         } catch let error as AuthError {
-            if error.localizedDescription.contains("password") ||
-               error.localizedDescription.contains("compromised") {
-                errorMessage = "This password has been exposed in a data breach. Please choose a different password."
-            } else {
-                errorMessage = "Registration failed: \(error.localizedDescription)"
-            }
+            
+            errorMessage = error.localizedDescription
             registrationSuccess = false
         } catch {
+    
             errorMessage = "Registration failed: \(error.localizedDescription)"
             registrationSuccess = false
         }
         
         isRegistering = false
-    }
-    
-    func createUserProfile(userId: UUID, email: String, firstName: String, lastName: String) async throws {
-        let profile = Profile(
-            id: userId,
-            email: email,
-            firstName: firstName,
-            lastName: lastName,
-            fullName: "\(firstName) \(lastName)",
-            weeklyGoalMinutes: 0,
-            createdAt: Date()
-        )
-        
-        try await supabase
-            .from("profiles")
-            .insert(profile)
-            .execute()
     }
     
     func signIn(email: String, password: String) async{

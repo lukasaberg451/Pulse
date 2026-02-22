@@ -16,11 +16,22 @@ struct RegisterView: View {
     @State private var password = ""
     @State private var errorMessage = ""
     @State private var showError = false
+    @State private var agreedToTerms = false
+    @State private var showingTerms = false
+    @State private var showingPrivacy = false
     
     func isValidEmail(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
+    }
+    
+    var isValid: Bool {
+        !firstName.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !lastName.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !email.trimmingCharacters(in: .whitespaces).isEmpty &&
+        isValidEmail(email) &&
+        password.count >= 6
     }
     
     var body: some View {
@@ -156,6 +167,50 @@ struct RegisterView: View {
                                     .cornerRadius(10)
                             }
                             
+                            HStack(alignment: .top, spacing: 8) {
+                                Button(action: {
+                                    agreedToTerms.toggle()
+                                }) {
+                                    Image(systemName: agreedToTerms ? "checkmark.square.fill" : "square")
+                                        .foregroundStyle(agreedToTerms ? Color.appAccent : Color.appText.opacity(0.3))
+                                        .font(.title3)
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack(spacing: 4) {
+                                        Text("I agree to the")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appText.opacity(0.7))
+                                        
+                                        Button(action: {
+                                            showingTerms = true
+                                        }) {
+                                            Text("Terms & Conditions")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appAccent)
+                                                .underline()
+                                        }
+                                    }
+                                    
+                                    HStack(spacing: 4) {
+                                        Text("and")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appText.opacity(0.7))
+                                        
+                                        Button(action: {
+                                            showingPrivacy = true
+                                        }) {
+                                            Text("Privacy Policy")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appAccent)
+                                                .underline()
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 40)
+                            .padding(.top, 10)
+    
                             // Sign up button
                             Button(action: {
                                 if firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty {
@@ -179,10 +234,11 @@ struct RegisterView: View {
                                 }
                                 .font(.headline)
                                 .padding()
-                                .background(Color.appAccent)
+                                .background(isValid && agreedToTerms ? Color.appAccent : Color.appAccent.opacity(0.5))
                                 .foregroundStyle(Color.appText)
                                 .cornerRadius(10)
                             }
+                            .disabled(!isValid || !agreedToTerms)
                             .padding(.top, 10)
                         }
                         .padding(.horizontal, 40)
@@ -208,21 +264,16 @@ struct RegisterView: View {
                     .transition(.opacity)
                 }
             }
+            .sheet(isPresented: $showingTerms) {
+                TermsAndConditionsView()
+            }
+            .sheet(isPresented: $showingPrivacy) {
+                PrivacyPolicyView()
+            }
             .animation(.easeInOut, value: authViewModel.isRegistering)
             .animation(.easeInOut, value: authViewModel.registrationSuccess)
-            .navigationBarBackButtonHidden(true)
+            .navigationBarBackButtonHidden(false)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        showingSignUp = false
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                            Text("Back")
-                        }
-                        .foregroundStyle(Color.appText)
-                    }
-                }
             }
             .toolbarBackground(Color.appBackground, for: .navigationBar)
         }
