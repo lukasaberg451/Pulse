@@ -8,6 +8,7 @@
 import SwiftUI
 import WatchConnectivity
 import HealthKit
+import WatchKit
 
 struct WatchWorkoutView: View {
     @StateObject private var syncManager = WorkoutSyncManager.shared
@@ -21,6 +22,8 @@ struct WatchWorkoutView: View {
     @State private var isResting: Bool = false
     @State private var restTimer: Timer?
     @State private var workoutSession: HKWorkoutSession?
+    @State private var workoutDuration: Int = 0
+    @State private var durationTimer: Timer?
     
     var body: some View {
         VStack(spacing: 8) {
@@ -59,9 +62,14 @@ struct WatchWorkoutView: View {
                     VStack(spacing: 12) {
                         // Exercise name
                         Text(currentExerciseName)
-                            .font(.headline)
+                            .font(.caption)
                             .foregroundStyle(Color.appAccent)
                             .multilineTextAlignment(.center)
+                        
+                        // Workout timer
+                        Text(timeString(from: workoutDuration))
+                            .font(.title3)
+                            .foregroundStyle(Color.gray)
                         
                         // Current set progress
                         Text("Set \(currentSet)/\(totalSets)")
@@ -70,10 +78,10 @@ struct WatchWorkoutView: View {
                             .foregroundStyle(Color.appText)
                         
                         // Target weight and reps
-                        HStack(spacing: 16) {
-                            VStack {
+                        HStack(spacing: 12) {
+                            VStack(spacing: 2) {
                                 Text("\(targetWeight, specifier: "%.0f")kg")
-                                    .font(.title3)
+                                    .font(.body)
                                     .fontWeight(.semibold)
                                 Text("Weight")
                                     .font(.caption2)
@@ -83,7 +91,7 @@ struct WatchWorkoutView: View {
                             if !targetReps.isEmpty {
                                 VStack {
                                     Text("\(targetReps)")
-                                        .font(.title3)
+                                        .font(.body)
                                         .fontWeight(.semibold)
                                     Text("Reps")
                                         .font(.caption2)
@@ -125,7 +133,6 @@ struct WatchWorkoutView: View {
         }
         .padding()
         .onAppear {
-            
             let context = WCSession.default.applicationContext
             if !context.isEmpty {
                 print("⌚ Found existing context: \(context)")
@@ -133,9 +140,11 @@ struct WatchWorkoutView: View {
             }
             
             startWorkoutSession()
+            startDurationTimer()
         }
         .onDisappear {
             stopRestTimer()
+            stopDurationTimer()
             endWorkoutSession()
         }
         .onChange(of: syncManager.isReachable) { oldValue, newValue in
@@ -217,16 +226,18 @@ struct WatchWorkoutView: View {
     }
     
     func startRestTimer() {
+        let endTime = Date().addingTimeInterval(TimeInterval(restSeconds))
         restTimeRemaining = restSeconds
         isResting = true
         
-        restTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
-            if restTimeRemaining > 0 {
-                restTimeRemaining -= 1
+        restTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
+            let remaining = Int(endTime.timeIntervalSinceNow)
+            if remaining <= 0 {
+                self.stopRestTimer()
+                self.currentSet += 1
+                WKInterfaceDevice.current().play(.success)
             } else {
-                // Rest complete - move to next set
-                stopRestTimer()
-                currentSet += 1
+                self.restTimeRemaining = remaining
             }
         }
     }
@@ -292,5 +303,23 @@ struct WatchWorkoutView: View {
     
     func endWorkoutSession() {
         workoutSession?.end()
+    }
+    
+    func startDurationTimer() {
+        durationTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            workoutDuration += 1
+        }
+    }
+
+    func stopDurationTimer() {
+        durationTimer?.invalidate()
+        durationTimer = nil
+        workoutDuration = 0
+    }
+
+    func timeString(from seconds: Int) -> String {
+        let minutes = seconds / 60
+        let secs = seconds % 60
+        return String(format: "%d:%02d", minutes, secs)
     }
 }

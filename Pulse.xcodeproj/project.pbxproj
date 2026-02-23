@@ -58,13 +58,6 @@
 			);
 			target = 3149B71B2F435C0F00A61B9F /* PulseWatch Watch App */;
 		};
-		3149B7432F4369F100A61B9F /* Exceptions for "PulseWatch Watch App" folder in "Pulse" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Views/WatchWorkoutView.swift,
-			);
-			target = 701BC8BA2F34C7F00085608F /* Pulse */;
-		};
 		70F3AB3E2F378D220069C486 /* Exceptions for "Pulse" folder in "Pulse" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -77,9 +70,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3149B71D2F435C0F00A61B9F /* PulseWatch Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				3149B7432F4369F100A61B9F /* Exceptions for "PulseWatch Watch App" folder in "Pulse" target */,
-			);
 			path = "PulseWatch Watch App";
 			sourceTree = "<group>";
 		};
