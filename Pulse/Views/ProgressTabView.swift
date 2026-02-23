@@ -196,6 +196,7 @@ struct ProgressTabView: View {
                             .padding(.horizontal)
                         }
                     }
+                    .padding(.top, 30)
                     .padding(.vertical)
                 }
                 .refreshable {

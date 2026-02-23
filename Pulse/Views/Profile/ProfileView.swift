@@ -44,8 +44,8 @@ struct ProfileView: View {
                                 VStack(spacing: 0) {
                                     ProfileRow(
                                         icon: "person.fill",
-                                        title: "First Name",
-                                        value: viewModel.profile?.firstName ?? "Not set"
+                                        title: String(localized: "First Name"),
+                                        value: viewModel.profile?.firstName ?? String(localized: "Not set")
                                     )
                                     
                                     Divider()
@@ -54,8 +54,8 @@ struct ProfileView: View {
                                     
                                     ProfileRow(
                                         icon: "person.fill",
-                                        title: "Last Name",
-                                        value: viewModel.profile?.lastName ?? "Not set"
+                                        title: String(localized: "Last Name"),
+                                        value: viewModel.profile?.lastName ?? String(localized: "Not set")
                                     )
                                     
                                     Divider()
@@ -133,9 +133,9 @@ struct ProfileView: View {
                                             .font(.caption)
                                             .foregroundStyle(Color.appText.opacity(0.3))
                                     }
-                                    .padding()
+                                    .padding(.horizontal)
                                 }
-                                .padding(.horizontal)
+                                .padding(.top, 20)
                                 
                                 // Language Row
                                         Button {
@@ -161,10 +161,12 @@ struct ProfileView: View {
                                                     .font(.caption)
                                                     .foregroundStyle(Color.appText.opacity(0.3))
                                             }
-                                            .padding()
+                                            .padding(.horizontal)
                                         }
-                                .padding(.horizontal)
-                            }
+                                        .padding(.top, 15)
+                                }
+                            
+                            // Send Feedback
                             VStack(spacing: 0) {
                                 Button {
                                     showingFeedbackSheet = true
@@ -185,35 +187,11 @@ struct ProfileView: View {
                                             .font(.caption)
                                             .foregroundStyle(Color.appText.opacity(0.3))
                                     }
-                                    .padding()
+                                    .padding(.horizontal)
                                 }
-                            
-                            // Buy me a coffee
-                                Button {
-                                    if let url = URL(string: "https://www.google.com/") {
-                                        UIApplication.shared.open(url)
-                                    }
-                                } label: {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "cup.and.saucer.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundStyle(Color.appAccent)
-                                            .frame(width: 24)
-                                        
-                                        Text("Buy me a coffee")
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText)
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appText.opacity(0.3))
-                                    }
-                                    .padding()
-                                }
+                                .padding(.top, 15)
                             }
-                            .padding(.horizontal)
+                            
                             
                             // Sign Out Button
                             Button {
@@ -235,7 +213,7 @@ struct ProfileView: View {
                             .padding(.top, 20)
                         }
                         .padding(.top, 20)
-                        .padding(.bottom, 40)
+                        .padding(.bottom, 20)
                         VStack(spacing: 8) {
                             Text(appVersion)
                                 .font(.caption)
