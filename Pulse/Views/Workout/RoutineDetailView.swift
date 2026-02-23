@@ -520,7 +520,7 @@ struct ExerciseConfigSheet: View {
                     Section(header: Text("Exercise").foregroundStyle(Color.appText)) {
                         Text(exercise.name)
                             .foregroundStyle(Color.appText)
-                        if let muscle = exercise.exerciseType {
+                        if let muscle = exercise.muscleGroup {
                             Text(muscle)
                                 .font(.caption)
                                 .foregroundStyle(Color.appAccent)
@@ -756,7 +756,7 @@ struct EditExerciseSheet: View {
                     Section(header: Text("Exercise").foregroundStyle(Color.appText)) {
                         Text(exercise.name)
                             .foregroundStyle(Color.appText)
-                        if let muscle = exercise.exerciseType {
+                        if let muscle = exercise.muscleGroup {
                             Text(muscle)
                                 .font(.caption)
                                 .foregroundStyle(Color.appAccent)

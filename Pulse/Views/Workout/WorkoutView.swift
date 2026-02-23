@@ -282,20 +282,33 @@ struct RoutinePickerSheet: View {
         NavigationStack {
             ZStack {
                 Color.appBackground.ignoresSafeArea()
-                List(viewModel.routines) { routine in
-                    RoutinePickerRow(
-                        routine: routine,
-                        exerciseCount: viewModel.exerciseCount(for: routine.id),
-                        onSelect: {
-                            Task {
-                                await viewModel.scheduleWorkout(routineId: routine.id, date: selectedDate)
-                                dismiss()
+                if viewModel.routines.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "figure.strengthtraining.traditional")
+                            .font(.system(size: 60))
+                            .foregroundStyle(Color.appAccent.opacity(0.6))
+                        Text("No Routines Yet")
+                            .font(.headline)
+                            .foregroundStyle(Color.appText)
+                        Text("Go to Routines tab to create your first routine")
+                            .foregroundStyle(Color.appText.opacity(0.7))
+                    }
+                } else {
+                    List(viewModel.routines) { routine in
+                        RoutinePickerRow(
+                            routine: routine,
+                            exerciseCount: viewModel.exerciseCount(for: routine.id),
+                            onSelect: {
+                                Task {
+                                    await viewModel.scheduleWorkout(routineId: routine.id, date: selectedDate)
+                                    dismiss()
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Select Routine")
             .navigationBarTitleDisplayMode(.inline)
@@ -382,7 +395,7 @@ struct RoutineContentView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.system(size: 60))
-                            .foregroundStyle(Color.appText.opacity(0.6))
+                            .foregroundStyle(Color.appAccent.opacity(0.6))
                         Text("No Routines Yet")
                             .font(.headline)
                             .foregroundStyle(Color.appText)
