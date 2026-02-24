@@ -10,6 +10,7 @@ import SwiftUI
 struct RoutineDetailView: View {
     let routine: Routine
     @StateObject private var viewModel: RoutineDetailViewModel
+    @Environment(\.modelContext) private var modelContext
     @State private var showingExercisePicker = false
     @State private var showingActiveWorkout = false
     @State private var showingEditSheet = false
@@ -219,10 +220,14 @@ struct RoutineDetailView: View {
             ActiveWorkoutView(
                 routine: viewModel.routine,
                 routineExercises: viewModel.routineExercises,
-                exercises: viewModel.exercises
+                exercises: viewModel.exercises,
+                scheduledWorkoutId: nil
             )
         }
         .task {
+            // Inject modelContext for offline support
+            viewModel.modelContext = modelContext
+            
             await viewModel.loadRoutineExercises()
             await viewModel.loadExercises()
         }

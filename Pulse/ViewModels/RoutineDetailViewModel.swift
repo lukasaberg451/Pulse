@@ -9,17 +9,22 @@ import Foundation
 import Combine
 import SwiftUI
 import Supabase
+import SwiftData
 
 @MainActor
 class RoutineDetailViewModel: ObservableObject {
     @Published var routineExercises: [RoutineExercise] = []
-    @Published var exercises: [Exercise] = [] // For looking up exercise details
+    @Published var exercises: [Exercise] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var routine: Routine
     
     private let routineRepository = RoutineRepository()
     private let exerciseRepository = ExerciseRepository()
+    private let syncService = WorkoutSyncService.shared
+    
+    // Optional: Inject model context for offline support
+    var modelContext: ModelContext?
     
     init(routine: Routine) {
         self.routine = routine
@@ -30,11 +35,23 @@ class RoutineDetailViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            // Load all exercises first
-            exercises = try await exerciseRepository.fetchExercises()
-            
-            // Then load routine exercises
-            routineExercises = try await routineRepository.fetchRoutineExercises(routineId: routine.id)
+            // Try to use offline repository if available
+            if let modelContext = modelContext {
+                let offlineRepo = OfflineExerciseRepository(modelContext: modelContext)
+                
+                // Load exercises (from cache)
+                exercises = try offlineRepo.getCachedExercises()
+                
+                // Load routine exercises (from cache or Supabase)
+                routineExercises = try await offlineRepo.getRoutineExercises(
+                    routineId: routine.id,
+                    forceRefresh: syncService.isOnline
+                )
+            } else {
+                // Fallback to direct Supabase queries
+                exercises = try await exerciseRepository.fetchExercises()
+                routineExercises = try await routineRepository.fetchRoutineExercises(routineId: routine.id)
+            }
         } catch {
             errorMessage = "Failed to load exercises: \(error.localizedDescription)"
         }
@@ -107,7 +124,14 @@ class RoutineDetailViewModel: ObservableObject {
     
     func loadExercises() async {
         do {
-            exercises = try await exerciseRepository.fetchAllExercises()
+            // Try to use offline repository if available
+            if let modelContext = modelContext {
+                let offlineRepo = OfflineExerciseRepository(modelContext: modelContext)
+                exercises = try offlineRepo.getCachedExercises()
+            } else {
+                // Fallback to direct Supabase query
+                exercises = try await exerciseRepository.fetchAllExercises()
+            }
         } catch {
             errorMessage = "Failed to load exercises: \(error.localizedDescription)"
         }

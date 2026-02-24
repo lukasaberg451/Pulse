@@ -365,6 +365,7 @@ struct RoutinePickerRow: View {
 // Routines tab content
 struct RoutineContentView: View {
     @StateObject private var viewModel = RoutineListViewModel()
+    @Environment(\.modelContext) private var modelContext
     @State private var showingCreateSheet = false
     @State private var isEditMode = false
     @State private var newlyCreatedRoutine: Routine?

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct IdentifiableString: Identifiable {
     let id = UUID()
@@ -29,10 +30,34 @@ struct PulseApp: App {
     @AppStorage("hasSeenWelcomeTour") private var hasSeenWelcomeTour = false
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var themeManager = ThemeManager()
+    @StateObject private var syncService = WorkoutSyncService.shared
     @State private var showPasswordReset = false
     @State private var recoveryCode: IdentifiableString?
     
+    // SwiftData model container for offline support
+    let modelContainer: ModelContainer
+    
     init() {
+        // Initialize SwiftData model container for offline support
+        // Only store user-created data: workout sessions, sets, routines, and routine exercises
+        // Exercise browsing requires online connectivity
+        do {
+            let schema = Schema([
+                // Workout models - user-created data
+                LocalWorkoutSession.self,
+                LocalWorkoutSet.self,
+                // Routine models - user's routines only
+                LocalRoutine.self,
+                LocalRoutineExercise.self,
+                // Exercise cache - only exercises used in user's routines
+                LocalExercise.self
+            ])
+            let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
+        } catch {
+            fatalError("Could not initialize ModelContainer: \(error)")
+        }
+        
         // Initialize WatchConnectivity
         _ = WorkoutSyncManager.shared
         
@@ -95,6 +120,7 @@ struct PulseApp: App {
             }
             .id(authViewModel.isAuthenticated)
             .environmentObject(themeManager)
+            .environmentObject(syncService)
             .preferredColorScheme(themeManager.selectedTheme.colorScheme)
             .onOpenURL { url in
                 handleDeepLink(url)
@@ -106,6 +132,7 @@ struct PulseApp: App {
                 ResetPasswordInAppView(recoveryCode: nil)
             }
         }
+        .modelContainer(modelContainer)
     }
     
     func handleDeepLink(_ url: URL) {

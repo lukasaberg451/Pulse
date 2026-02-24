@@ -4,4 +4,16 @@
    <FileRef
       location = "self:">
    </FileRef>
+   <FileRef
+      location = "group:OfflineWorkoutIntegrationGuide.swift">
+   </FileRef>
+   <FileRef
+      location = "group:OfflineDataHelper.swift">
+   </FileRef>
+   <FileRef
+      location = "group:INTEGRATION_COMPLETE.swift">
+   </FileRef>
+   <FileRef
+      location = "group:HowToAddOfflineSupportToViewModel.swift">
+   </FileRef>
 </Workspace>

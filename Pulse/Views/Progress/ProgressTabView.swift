@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProgressTabView: View {
     @StateObject private var viewModel = ProgressStatsViewModel()
+    @EnvironmentObject var syncService: WorkoutSyncService
     
     var body: some View {
         NavigationStack {
@@ -17,6 +18,10 @@ struct ProgressTabView: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
+                        // Offline status banner
+                        OfflineStatusBanner()
+                            .animation(.easeInOut, value: syncService.isOnline)
+                        
                         // Swipeable stat cards
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {

@@ -62,4 +62,18 @@ class ExerciseRepository {
         
         return exercises
     }
+    
+    func fetchExercise(id: UUID) async throws -> Exercise {
+        let supabase = SupabaseManager.shared.client
+        
+        let exercise: Exercise = try await supabase
+            .from("exercises")
+            .select()
+            .eq("id", value: id.uuidString)
+            .single()
+            .execute()
+            .value
+        
+        return exercise
+    }
 }

@@ -6,33 +6,56 @@
 //
 
 import SwiftUI
+import SwiftData
 import WatchConnectivity
 
 enum WorkoutAlertType {
     case cancel, finish
 }
 
+// Wrapper to inject modelContext
 struct ActiveWorkoutView: View {
     let routine: Routine
     let routineExercises: [RoutineExercise]
     let exercises: [Exercise]
     let scheduledWorkoutId: UUID?
     
-    @StateObject private var viewModel: ActiveWorkoutViewModel
+    @Environment(\.modelContext) private var modelContext
+    
+    var body: some View {
+        ActiveWorkoutViewContent(
+            routine: routine,
+            routineExercises: routineExercises,
+            exercises: exercises,
+            scheduledWorkoutId: scheduledWorkoutId,
+            modelContext: modelContext
+        )
+    }
+}
+
+struct ActiveWorkoutViewContent: View {
+    let routine: Routine
+    let routineExercises: [RoutineExercise]
+    let exercises: [Exercise]
+    let scheduledWorkoutId: UUID?
+    
+    @StateObject private var viewModel: OfflineActiveWorkoutViewModel
+    @EnvironmentObject var syncService: WorkoutSyncService
     @Environment(\.dismiss) var dismiss
     @State private var alertType: WorkoutAlertType?
     @AppStorage("hasSeenWatchTip") private var hasSeenWatchTip = false
     
-    init(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise], scheduledWorkoutId: UUID? = nil) {
+    init(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise], scheduledWorkoutId: UUID? = nil, modelContext: ModelContext) {
         self.routine = routine
         self.routineExercises = routineExercises
         self.exercises = exercises
         self.scheduledWorkoutId = scheduledWorkoutId
-        _viewModel = StateObject(wrappedValue: ActiveWorkoutViewModel(
+        _viewModel = StateObject(wrappedValue: OfflineActiveWorkoutViewModel(
             routine: routine,
             routineExercises: routineExercises,
             scheduledWorkoutId: scheduledWorkoutId,
-            exercises: exercises
+            exercises: exercises,
+            modelContext: modelContext
         ))
     }
     
@@ -42,6 +65,10 @@ struct ActiveWorkoutView: View {
                 Color.appBackground.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
+                    // Offline Status Banner
+                    OfflineStatusBanner()
+                        .animation(.easeInOut, value: syncService.isOnline)
+                    
                     // Workout Timer Header
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
@@ -54,6 +81,19 @@ struct ActiveWorkoutView: View {
                         }
                         
                         Spacer()
+                        
+                        // Offline indicator
+                        if viewModel.isOfflineMode {
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Image(systemName: "wifi.slash")
+                                    .font(.title3)
+                                    .foregroundStyle(.orange)
+                                
+                                Text("Offline")
+                                    .font(.caption2)
+                                    .foregroundStyle(.orange)
+                            }
+                        }
                     }
                     .padding()
                     .background(Color.appSurface)
@@ -74,7 +114,7 @@ struct ActiveWorkoutView: View {
                         ForEach(routineExercises) { routineExercise in
                             if let exercise = exercises.first(where: { $0.id == routineExercise.exerciseId }) {
                                 Section {
-                                    ExerciseSetSection(
+                                    OfflineExerciseSetSection(
                                         viewModel: viewModel,
                                         routineExercise: routineExercise,
                                         exercise: exercise
@@ -179,7 +219,9 @@ struct ActiveWorkoutView: View {
                 if alertType == .cancel {
                     Text("This workout will not be saved.")
                 } else {
-                    Text("Are you sure you want to finish this workout?")
+                    Text(viewModel.isOfflineMode 
+                        ? "Your workout will be saved locally and synced when you're back online."
+                        : "Are you sure you want to finish this workout?")
                 }
             }
             .task {
@@ -230,6 +272,168 @@ struct RestTimerBanner: View {
     }
 }
 
+struct OfflineExerciseSetSection: View {
+    @ObservedObject var viewModel: OfflineActiveWorkoutViewModel
+    let routineExercise: RoutineExercise
+    let exercise: Exercise
+    
+    var sets: [LocalWorkoutSet] {
+        viewModel.sets.filter { $0.exerciseId == exercise.id }
+    }
+    
+    var body: some View {
+        ForEach(sets) { set in
+            OfflineExerciseSetRow(
+                viewModel: viewModel,
+                set: set,
+                exercise: exercise,
+                routineExercise: routineExercise
+            )
+        }
+        
+        // Add set button
+        Button {
+            Task {
+                await viewModel.addSet(exerciseId: exercise.id, targetSets: routineExercise.sets)
+            }
+        } label: {
+            Label("Add Set", systemImage: "plus.circle")
+                .font(.caption)
+                .foregroundStyle(Color.appAccent)
+        }
+    }
+}
+
+// ExerciseSetRow comes after this...
+
+struct OfflineExerciseSetRow: View {
+    @ObservedObject var viewModel: OfflineActiveWorkoutViewModel
+    let set: LocalWorkoutSet
+    let exercise: Exercise
+    let routineExercise: RoutineExercise
+    
+    var body: some View {
+        HStack {
+            Text("Set \(set.setNumber)")
+                .frame(width: 50, alignment: .leading)
+                .foregroundStyle(Color.appText)
+            if exercise.exerciseType == "strength" {
+                // Weight and reps for strength
+                HStack {
+                    TextField("Weight", value: Binding(
+                        get: { set.weight ?? 0 },
+                        set: { newValue in
+                            viewModel.updateSet(
+                                set: set,
+                                reps: set.reps,
+                                weight: newValue,
+                                durationSeconds: nil,
+                                completed: set.completed
+                            )
+                        }
+                    ), format: .number)
+                    .keyboardType(.decimalPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 80)
+                    
+                    Text("kg")
+                        .foregroundStyle(Color.appText.opacity(0.6))
+                }
+                
+                HStack {
+                    TextField("Reps", value: Binding(
+                        get: { set.reps ?? 0 },
+                        set: { newValue in
+                            viewModel.updateSet(
+                                set: set,
+                                reps: newValue,
+                                weight: set.weight,
+                                durationSeconds: nil,
+                                completed: set.completed
+                            )
+                        }
+                    ), format: .number)
+                    .keyboardType(.numberPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 60)
+                }
+            } else {
+                // Duration for cardio - split into minutes and seconds
+                HStack(spacing: 8) {
+                    // Minutes
+                    TextField("Min", value: Binding(
+                        get: {
+                            let totalSeconds = set.durationSeconds ?? routineExercise.durationSeconds ?? 0
+                            return totalSeconds / 60
+                        },
+                        set: { newMinutes in
+                            let currentSeconds = (set.durationSeconds ?? routineExercise.durationSeconds ?? 0) % 60
+                            let totalSeconds = (newMinutes * 60) + currentSeconds
+                            viewModel.updateSet(
+                                set: set,
+                                reps: nil,
+                                weight: nil,
+                                durationSeconds: totalSeconds,
+                                completed: set.completed
+                            )
+                        }
+                    ), format: .number)
+                    .keyboardType(.numberPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 50)
+                    
+                    Text("m")
+                        .foregroundStyle(Color.appText.opacity(0.6))
+                    
+                    // Seconds
+                    TextField("Sec", value: Binding(
+                        get: {
+                            let totalSeconds = set.durationSeconds ?? routineExercise.durationSeconds ?? 0
+                            return totalSeconds % 60
+                        },
+                        set: { newSeconds in
+                            let currentMinutes = (set.durationSeconds ?? routineExercise.durationSeconds ?? 0) / 60
+                            let totalSeconds = (currentMinutes * 60) + newSeconds
+                            viewModel.updateSet(
+                                set: set,
+                                reps: nil,
+                                weight: nil,
+                                durationSeconds: totalSeconds,
+                                completed: set.completed
+                            )
+                        }
+                    ), format: .number)
+                    .keyboardType(.numberPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 50)
+                    
+                    Text("s")
+                        .foregroundStyle(Color.appText.opacity(0.6))
+                }
+            }
+            
+            Spacer()
+            
+            // Checkmark button
+            Button {
+                viewModel.updateSet(
+                    set: set,
+                    reps: set.reps,
+                    weight: set.weight,
+                    durationSeconds: set.durationSeconds,
+                    completed: !set.completed
+                )
+            } label: {
+                Image(systemName: set.completed ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(set.completed ? Color.green : Color.gray)
+                    .font(.title2)
+            }
+        }
+        .opacity(set.completed ? 0.6 : 1.0)
+    }
+}
+
+// Keep the old versions for backwards compatibility if needed
 struct ExerciseSetSection: View {
     @ObservedObject var viewModel: ActiveWorkoutViewModel
     let routineExercise: RoutineExercise
