@@ -9,6 +9,7 @@ import SwiftUI
 
 struct WorkoutView: View {
     @State private var selectedTab = 0
+    @State private var routineToNavigateTo: Routine?
     
     var body: some View {
         NavigationStack {
@@ -21,7 +22,7 @@ struct WorkoutView: View {
                     ScheduleContentView()
                         .tag(0)
                     
-                    RoutineContentView()
+                    RoutineContentView(routineToNavigateTo: $routineToNavigateTo)
                         .tag(1)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
@@ -30,6 +31,9 @@ struct WorkoutView: View {
             .navigationTitle("Workout")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .navigationDestination(item: $routineToNavigateTo) { routine in
+                RoutineDetailView(routine: routine)
+            }
         }
     }
 }
@@ -368,7 +372,7 @@ struct RoutineContentView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showingCreateSheet = false
     @State private var isEditMode = false
-    @State private var newlyCreatedRoutine: Routine?
+    @Binding var routineToNavigateTo: Routine?
     
     var body: some View {
         ZStack {
@@ -454,14 +458,16 @@ struct RoutineContentView: View {
                                             .transition(.scale.combined(with: .opacity))
                                         }
                                         
-                                        // Show as plain card in edit mode, NavigationLink otherwise
+                                        // Show as plain card in edit mode, tappable card otherwise
                                         if isEditMode {
                                             RoutineCard(
                                                 routine: routine,
                                                 exerciseCount: viewModel.exerciseCount(for: routine.id)
                                             )
                                         } else {
-                                            NavigationLink(destination: RoutineDetailView(routine: routine)) {
+                                            Button {
+                                                routineToNavigateTo = routine
+                                            } label: {
                                                 RoutineCard(
                                                     routine: routine,
                                                     exerciseCount: viewModel.exerciseCount(for: routine.id)
@@ -489,14 +495,11 @@ struct RoutineContentView: View {
                 }
             }
         }
-        .navigationDestination(item: $newlyCreatedRoutine) { routine in
-            RoutineDetailView(routine: routine)
-        }
         .sheet(isPresented: $showingCreateSheet) {
             CreateRoutineSheet(
                 viewModel: viewModel,
                 onRoutineCreated: { routine in
-                    newlyCreatedRoutine = routine
+                    routineToNavigateTo = routine
                 }
             )
         }
@@ -618,6 +621,13 @@ struct CalendarGridView: View {
     let columns = Array(repeating: GridItem(.flexible()), count: 7)
     let daysOfWeek = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
     
+    // Create identifiable calendar items
+    private var calendarItems: [CalendarItem] {
+        viewModel.calendarDays.enumerated().map { index, date in
+            CalendarItem(id: index, date: date)
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 8) {
             // Day headers
@@ -631,8 +641,8 @@ struct CalendarGridView: View {
             
             // Calendar days
             LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(viewModel.calendarDays, id: \.self) { date in
-                    if let date = date {
+                ForEach(calendarItems) { item in
+                    if let date = item.date {
                         CalendarDayView(
                             date: date,
                             isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
@@ -653,6 +663,12 @@ struct CalendarGridView: View {
         }
         .padding()
     }
+}
+
+// Helper struct for calendar items with stable identity
+private struct CalendarItem: Identifiable {
+    let id: Int
+    let date: Date?
 }
 
 struct CalendarDayView: View {
