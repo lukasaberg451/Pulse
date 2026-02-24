@@ -124,7 +124,8 @@ class ActiveWorkoutViewModel: ObservableObject {
             WorkoutSyncManager.shared.sendWorkoutToWatch(
                     routine: routine,
                     routineExercises: routineExercises,
-                    exercises: exercises
+                    exercises: exercises,
+                    startTime: startTime!
                     )
         } catch {
             errorMessage = "Failed to start workout: \(error.localizedDescription)"

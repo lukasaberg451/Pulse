@@ -32,7 +32,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     
     // MARK: - Send Data from iPhone to Watch
     
-    func sendWorkoutToWatch(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise]) {
+    func sendWorkoutToWatch(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise], startTime: Date) {
         guard let session = session else {
             return
         }
@@ -44,6 +44,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         
         let workoutData: [String: Any] = [
             "workoutStarted": true,
+            "workoutStartTime": startTime.timeIntervalSince1970,
             "routineName": routine.name,
             "exerciseId": firstExercise.id.uuidString,
             "currentExercise": firstExercise.name,
@@ -54,6 +55,8 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             "rest": firstRoutineExercise.restSeconds,
             "exerciseType": (firstExercise.exerciseType ?? "strength") as Any
         ]
+        
+        print("📱 Sending workout to Watch with start time: \(startTime)")
         
         // Use transferUserInfo with high priority - this will wake the Watch app
         session.transferUserInfo(workoutData)
@@ -108,19 +111,21 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         NotificationCenter.default.post(name: .skipRestFromWatch, object: nil)
     }
     
-    func sendCurrentExercise(exercise: Exercise, routineExercise: RoutineExercise) {
+    func sendCurrentExercise(exercise: Exercise, routineExercise: RoutineExercise, currentSetNumber: Int = 1) {
         guard let session = session else { return }
         
         let exerciseData: [String: Any] = [
             "exerciseId": exercise.id.uuidString,
             "currentExercise": exercise.name,
             "sets": routineExercise.sets,
-            "currentSet": 1,
+            "currentSet": currentSetNumber,
             "reps": routineExercise.repsTarget ?? "",
             "weight": routineExercise.targetWeight ?? 0,
             "rest": routineExercise.restSeconds,
             "exerciseType": (exercise.exerciseType ?? "strength") as Any
         ]
+        
+        print("📱 Sending current exercise to Watch: \(exercise.name), set \(currentSetNumber)/\(routineExercise.sets)")
         
         do {
             try session.updateApplicationContext(exerciseData)

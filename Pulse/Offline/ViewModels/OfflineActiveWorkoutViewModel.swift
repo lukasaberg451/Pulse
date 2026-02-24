@@ -139,12 +139,15 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             }
         }
         
-        // Send to Watch
-        WorkoutSyncManager.shared.sendWorkoutToWatch(
-            routine: routine,
-            routineExercises: routineExercises,
-            exercises: exercises
-        )
+        // Send to Watch with start time
+        if let startTime = startTime {
+            WorkoutSyncManager.shared.sendWorkoutToWatch(
+                routine: routine,
+                routineExercises: routineExercises,
+                exercises: exercises,
+                startTime: startTime
+            )
+        }
         
         isLoading = false
     }
@@ -229,11 +232,21 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             let setsForCurrentExercise = sets.filter {
                 $0.exerciseId == currentRoutineExercise?.exerciseId
             }
+            let completedSetsCount = setsForCurrentExercise.filter { $0.completed }.count
             let allSetsCompleted = setsForCurrentExercise.allSatisfy { $0.completed }
             
             if allSetsCompleted {
                 moveToNextExercise()
             } else {
+                // Send updated set number to Watch
+                if let currentRoutineExercise = currentRoutineExercise,
+                   let currentExercise = exercises.first(where: { $0.id == currentRoutineExercise.exerciseId }) {
+                    WorkoutSyncManager.shared.sendCurrentExercise(
+                        exercise: currentExercise,
+                        routineExercise: currentRoutineExercise,
+                        currentSetNumber: completedSetsCount + 1
+                    )
+                }
                 startRestTimer(seconds: currentRoutineExercise?.restSeconds ?? 60)
             }
         }
