@@ -20,10 +20,12 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     @Published var isOfflineMode = false
     
     private let scheduledWorkoutId: UUID?
+    private let workoutSessionId: UUID?
     private let exercises: [Exercise]
     
     let routine: Routine
     var routineExercises: [RoutineExercise]
+    private let originalRoutineExercises: [RoutineExercise] // Store original list
     
     private var currentSession: LocalWorkoutSession?
     private var startTime: Date?
@@ -31,20 +33,25 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     private var restTimer: Timer?
     private let offlineRepository: OfflineWorkoutRepository
     private let syncService: WorkoutSyncService
+    private let modelContext: ModelContext
     
     init(
         routine: Routine,
         routineExercises: [RoutineExercise],
         scheduledWorkoutId: UUID? = nil,
+        workoutSessionId: UUID? = nil,
         exercises: [Exercise],
         modelContext: ModelContext
     ) {
         self.routine = routine
         self.routineExercises = routineExercises
+        self.originalRoutineExercises = routineExercises // Store a copy
         self.scheduledWorkoutId = scheduledWorkoutId
+        self.workoutSessionId = workoutSessionId
         self.exercises = exercises
         self.offlineRepository = OfflineWorkoutRepository(modelContext: modelContext)
         self.syncService = WorkoutSyncService.shared
+        self.modelContext = modelContext
         
         // Monitor network status
         self.isOfflineMode = !syncService.isOnline
@@ -118,11 +125,29 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         // Start elapsed time timer
         startWorkoutTimer()
         
-        // Create the workout session locally
-        let session = offlineRepository.createSession(
-            name: routine.name,
-            routineId: routine.id
-        )
+        // Use existing session if provided (from scheduled workout), otherwise create new one
+        let session: LocalWorkoutSession
+        if let existingSessionId = workoutSessionId {
+            // Use the existing session ID from the scheduled workout
+            // The session already exists in Supabase, so we just create a local copy
+            // and mark it as already synced (no need to create it again in Supabase)
+            print("📱 Using existing workout session: \(existingSessionId)")
+            session = LocalWorkoutSession(
+                id: existingSessionId,
+                routineId: routine.id,
+                name: routine.name,
+                needsSync: false  // Session already exists in Supabase from scheduling
+            )
+            modelContext.insert(session)
+            try? modelContext.save()
+        } else {
+            // Create a new session (needs to be synced to Supabase)
+            print("📱 Creating new workout session")
+            session = offlineRepository.createSession(
+                name: routine.name,
+                routineId: routine.id
+            )
+        }
         currentSession = session
         
         // Create placeholder sets for each exercise
@@ -285,13 +310,42 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         let durationSeconds = Int(Date().timeIntervalSince(startTime))
         
         offlineRepository.completeSession(session, durationSeconds: durationSeconds)
+        print("✅ Workout completed locally")
         
-        // Sync if online
-        if syncService.isOnline {
-            await syncService.syncPendingWorkouts()
+        // Mark scheduled workout as completed if this was a scheduled workout
+        if let scheduledWorkoutId = scheduledWorkoutId {
+            do {
+                if syncService.isOnline {
+                    // If online, update on server immediately
+                    try await WorkoutRepository().completeScheduledWorkout(
+                        id: scheduledWorkoutId,
+                        sessionId: session.id
+                    )
+                    print("✅ Marked scheduled workout \(scheduledWorkoutId) as completed")
+                } else {
+                    // If offline, mark it locally to be synced later
+                    print("📱 Offline - will mark scheduled workout as completed when back online")
+                    // TODO: Add offline scheduled workout completion tracking
+                }
+            } catch {
+                print("❌ Failed to mark scheduled workout as completed: \(error)")
+            }
         }
         
-        WorkoutSyncManager.shared.sendWorkoutEnded()
+        // Sync completed workout to Supabase if online
+        if syncService.isOnline {
+            print("🔄 Syncing completed workout to Supabase...")
+            await syncService.syncPendingWorkouts()
+            
+            // Post notification to refresh UI
+            NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
+            print("📢 Posted workoutDataChanged notification")
+        } else {
+            print("📱 Offline - workout will sync when back online")
+        }
+        
+        // Don't send workoutEnded here - let the watch show completion screen
+        // It will be sent when the view is dismissed
     }
     
     func cancelWorkout() async {
@@ -301,7 +355,10 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         workoutTimer?.invalidate()
         stopRestTimer()
         
+        // Delete the session - no need to sync cancelled workouts
         offlineRepository.deleteSession(session)
+        print("🗑️ Cancelled workout - deleted local session without syncing")
+        
         WorkoutSyncManager.shared.sendWorkoutEnded()
     }
     
@@ -315,7 +372,20 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
               let currentExercise = exercises.first(where: {
                   $0.id == currentRoutineExercise.exerciseId
               }) else {
-            WorkoutSyncManager.shared.sendWorkoutEnded()
+            // No more exercises - send completion signal to watch
+            // We'll send the last exercise data but with currentSet > totalSets
+            print("📱 All exercises completed - sending completion signal to watch")
+            
+            // Get the last exercise from the original list
+            if let lastRoutineExercise = originalRoutineExercises.last,
+               let lastExercise = exercises.first(where: { $0.id == lastRoutineExercise.exerciseId }) {
+                // Send with currentSet = totalSets + 1 to trigger completion view
+                WorkoutSyncManager.shared.sendCurrentExercise(
+                    exercise: lastExercise,
+                    routineExercise: lastRoutineExercise,
+                    currentSetNumber: lastRoutineExercise.sets + 1
+                )
+            }
             return
         }
         

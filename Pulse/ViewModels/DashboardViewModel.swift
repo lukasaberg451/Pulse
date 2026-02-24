@@ -26,6 +26,20 @@ class DashboardViewModel: ObservableObject {
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
     private let exerciseRepository = ExerciseRepository()
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        // Listen for workout data changes
+        NotificationCenter.default.publisher(for: .workoutDataChanged)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    print("📢 Received workout data change notification, reloading...")
+                    await self?.loadData()
+                    await self?.loadWeeklyProgress()
+                }
+            }
+            .store(in: &cancellables)
+    }
     
     func loadData() async {
         isLoading = true
@@ -61,7 +75,12 @@ class DashboardViewModel: ObservableObject {
             
             //Load recently completed (last 5)
             let allSessions = try await workoutRepository.fetchSessions()
+            print("📊 Loaded \(allSessions.count) total sessions from server")
             recentSessions = Array(allSessions.filter { $0.completedAt != nil}.prefix(5))
+            print("📊 Filtered to \(recentSessions.count) recent completed sessions")
+            if !recentSessions.isEmpty {
+                print("📊 Recent sessions: \(recentSessions.map { "\($0.name) (ID: \($0.id))" }.joined(separator: ", "))")
+            }
             
         } catch {
             errorMessage = "Failed to load data: \(error.localizedDescription)"

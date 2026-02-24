@@ -19,6 +19,7 @@ struct ActiveWorkoutView: View {
     let routineExercises: [RoutineExercise]
     let exercises: [Exercise]
     let scheduledWorkoutId: UUID?
+    let workoutSessionId: UUID?
     
     @Environment(\.modelContext) private var modelContext
     
@@ -28,6 +29,7 @@ struct ActiveWorkoutView: View {
             routineExercises: routineExercises,
             exercises: exercises,
             scheduledWorkoutId: scheduledWorkoutId,
+            workoutSessionId: workoutSessionId,
             modelContext: modelContext
         )
     }
@@ -45,7 +47,7 @@ struct ActiveWorkoutViewContent: View {
     @State private var alertType: WorkoutAlertType?
     @AppStorage("hasSeenWatchTip") private var hasSeenWatchTip = false
     
-    init(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise], scheduledWorkoutId: UUID? = nil, modelContext: ModelContext) {
+    init(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise], scheduledWorkoutId: UUID? = nil, workoutSessionId: UUID? = nil, modelContext: ModelContext) {
         self.routine = routine
         self.routineExercises = routineExercises
         self.exercises = exercises
@@ -54,6 +56,7 @@ struct ActiveWorkoutViewContent: View {
             routine: routine,
             routineExercises: routineExercises,
             scheduledWorkoutId: scheduledWorkoutId,
+            workoutSessionId: workoutSessionId,
             exercises: exercises,
             modelContext: modelContext
         ))
@@ -313,102 +316,58 @@ struct OfflineExerciseSetRow: View {
     let routineExercise: RoutineExercise
     
     var body: some View {
-        HStack {
-            Text("Set \(set.setNumber)")
-                .frame(width: 50, alignment: .leading)
+        HStack(spacing: 16) {
+            // Set number
+            Text("\(set.setNumber)")
+                .font(.title3)
+                .fontWeight(.semibold)
                 .foregroundStyle(Color.appText)
+                .frame(width: 30)
+            
             if exercise.exerciseType == "strength" {
-                // Weight and reps for strength
-                HStack {
-                    TextField("Weight", value: Binding(
-                        get: { set.weight ?? 0 },
-                        set: { newValue in
-                            viewModel.updateSet(
-                                set: set,
-                                reps: set.reps,
-                                weight: newValue,
-                                durationSeconds: nil,
-                                completed: set.completed
-                            )
-                        }
-                    ), format: .number)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 80)
-                    
+                // Display weight
+                HStack(spacing: 4) {
+                    Text("\(routineExercise.targetWeight ?? 0, specifier: "%.1f")")
+                        .font(.body)
+                        .foregroundStyle(Color.appText)
                     Text("kg")
+                        .font(.caption)
                         .foregroundStyle(Color.appText.opacity(0.6))
                 }
+                .frame(width: 60, alignment: .leading)
                 
-                HStack {
-                    TextField("Reps", value: Binding(
-                        get: { set.reps ?? 0 },
-                        set: { newValue in
-                            viewModel.updateSet(
-                                set: set,
-                                reps: newValue,
-                                weight: set.weight,
-                                durationSeconds: nil,
-                                completed: set.completed
-                            )
-                        }
-                    ), format: .number)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 60)
+                // Display reps
+                HStack(spacing: 4) {
+                    Text(routineExercise.repsTarget ?? "—")
+                        .font(.body)
+                        .foregroundStyle(Color.appText)
+                    Text("reps")
+                        .font(.caption)
+                        .foregroundStyle(Color.appText.opacity(0.6))
                 }
             } else {
-                // Duration for cardio - split into minutes and seconds
-                HStack(spacing: 8) {
-                    // Minutes
-                    TextField("Min", value: Binding(
-                        get: {
-                            let totalSeconds = set.durationSeconds ?? routineExercise.durationSeconds ?? 0
-                            return totalSeconds / 60
-                        },
-                        set: { newMinutes in
-                            let currentSeconds = (set.durationSeconds ?? routineExercise.durationSeconds ?? 0) % 60
-                            let totalSeconds = (newMinutes * 60) + currentSeconds
-                            viewModel.updateSet(
-                                set: set,
-                                reps: nil,
-                                weight: nil,
-                                durationSeconds: totalSeconds,
-                                completed: set.completed
-                            )
-                        }
-                    ), format: .number)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 50)
-                    
-                    Text("m")
-                        .foregroundStyle(Color.appText.opacity(0.6))
-                    
-                    // Seconds
-                    TextField("Sec", value: Binding(
-                        get: {
-                            let totalSeconds = set.durationSeconds ?? routineExercise.durationSeconds ?? 0
-                            return totalSeconds % 60
-                        },
-                        set: { newSeconds in
-                            let currentMinutes = (set.durationSeconds ?? routineExercise.durationSeconds ?? 0) / 60
-                            let totalSeconds = (currentMinutes * 60) + newSeconds
-                            viewModel.updateSet(
-                                set: set,
-                                reps: nil,
-                                weight: nil,
-                                durationSeconds: totalSeconds,
-                                completed: set.completed
-                            )
-                        }
-                    ), format: .number)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 50)
-                    
-                    Text("s")
-                        .foregroundStyle(Color.appText.opacity(0.6))
+                // Display duration for cardio
+                let totalSeconds = routineExercise.durationSeconds ?? 0
+                let minutes = totalSeconds / 60
+                let seconds = totalSeconds % 60
+                
+                HStack(spacing: 4) {
+                    if minutes > 0 {
+                        Text("\(minutes)")
+                            .font(.body)
+                            .foregroundStyle(Color.appText)
+                        Text("m")
+                            .font(.caption)
+                            .foregroundStyle(Color.appText.opacity(0.6))
+                    }
+                    if seconds > 0 {
+                        Text("\(seconds)")
+                            .font(.body)
+                            .foregroundStyle(Color.appText)
+                        Text("s")
+                            .font(.caption)
+                            .foregroundStyle(Color.appText.opacity(0.6))
+                    }
                 }
             }
             
@@ -416,11 +375,16 @@ struct OfflineExerciseSetRow: View {
             
             // Checkmark button
             Button {
+                // Auto-fill with target values when completing
+                let targetReps = routineExercise.repsTarget.flatMap { Int($0) }
+                let targetWeight = routineExercise.targetWeight
+                let targetDuration = routineExercise.durationSeconds
+                
                 viewModel.updateSet(
                     set: set,
-                    reps: set.reps,
-                    weight: set.weight,
-                    durationSeconds: set.durationSeconds,
+                    reps: targetReps,
+                    weight: targetWeight,
+                    durationSeconds: targetDuration,
                     completed: !set.completed
                 )
             } label: {
@@ -429,6 +393,7 @@ struct OfflineExerciseSetRow: View {
                     .font(.title2)
             }
         }
+        .padding(.vertical, 8)
         .opacity(set.completed ? 0.6 : 1.0)
     }
 }

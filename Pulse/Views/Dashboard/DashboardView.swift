@@ -32,7 +32,6 @@ struct DashboardView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.leading, 15)
                         
-                        
                         VStack {
                             WeeklyGoalCard(
                                 completedMinutes: viewModel.weeklyWorkoutMinutes,
@@ -178,7 +177,8 @@ struct TodayWorkoutCard: View {
                 routine: routine,
                 routineExercises: routineExercises,
                 exercises: exercises,
-                scheduledWorkoutId: scheduled.id
+                scheduledWorkoutId: scheduled.id,
+                workoutSessionId: scheduled.workoutSessionId
             )
         }
     }

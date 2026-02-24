@@ -27,12 +27,41 @@ struct WatchWorkoutView: View {
     @State private var durationTimer: Timer?
     
     var body: some View {
+        let showWorkout = !currentExerciseName.isEmpty && currentExerciseName != "No active workout" && totalSets > 0
+        let workoutComplete = currentSet > totalSets && totalSets > 0
+        
         ScrollView {
             VStack(spacing: 8) {
-                if syncManager.isReachable && totalSets > 0 {
+                if workoutComplete {
+                    // WORKOUT COMPLETE VIEW
+                    VStack(spacing: 12) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.green)
+                            .padding(.top, 20)
+                        
+                        Text("Workout Done!")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                        
+                        Text("Finish the workout on iPhone")
+                            .font(.caption)
+                            .foregroundStyle(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        
+                        // Show workout duration
+                        Text(timeString(from: workoutDuration))
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.appAccent)
+                            .padding(.top, 8)
+                    }
+                } else if showWorkout {
                     if isResting {
                         // REST TIMER VIEW
-                        VStack(spacing: 10) {
+                        VStack(spacing: 5) {
                             Text("Rest Time")
                                 .font(.caption2)
                                 .foregroundStyle(Color.appText)
@@ -53,57 +82,57 @@ struct WatchWorkoutView: View {
                                     .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(.borderedProminent)
-                            .tint(.orange)
+                            .tint(.appAccent)
                             .padding(.top, 8)
                         }
                         .padding(.vertical)
                     } else {
                         // WORKOUT VIEW
-                        VStack(spacing: 8) {
+                        VStack(spacing: 4) {
                             // Exercise name
                             Text(currentExerciseName)
-                                .font(.caption)
+                                .font(.caption2)
                                 .foregroundStyle(Color.appAccent)
                                 .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.8)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
                             
                             // Workout timer
                             Text(timeString(from: workoutDuration))
-                                .font(.caption)
+                                .font(.caption2)
                                 .foregroundStyle(Color.gray)
                             
                             // Current set progress
                             Text("Set \(currentSet)/\(totalSets)")
-                                .font(.title2)
+                                .font(.body)
                                 .fontWeight(.bold)
-                                .foregroundStyle(Color.appText)
-                                .padding(.vertical, 4)
+                                .foregroundStyle(.white)
+                                .padding(.top, 2)
                             
                             // Target weight and reps
-                            HStack(spacing: 16) {
-                                VStack(spacing: 2) {
-                                    Text("\(targetWeight, specifier: "%.1f")")
-                                        .font(.title3)
+                            HStack(spacing: 20) {
+                                VStack(spacing: 0) {
+                                    Text("Weight")
+                                        .font(.body)
+                                        .foregroundStyle(.gray)
+                                    Text("\(targetWeight, specifier: "%.1f") kg")
+                                        .font(.body)
                                         .fontWeight(.semibold)
-                                    Text("kg")
-                                        .font(.caption2)
-                                        .foregroundStyle(Color.appText)
+                                        .foregroundStyle(.white)
                                 }
                                 
-                                if !targetReps.isEmpty {
-                                    VStack(spacing: 2) {
-                                        Text("\(targetReps)")
-                                            .font(.title3)
-                                            .fontWeight(.semibold)
-                                        Text("reps")
-                                            .font(.caption2)
-                                            .foregroundStyle(Color.appText)
-                                    }
+                                VStack(spacing: 0) {
+                                    Text("Reps")
+                                        .font(.body)
+                                        .foregroundStyle(.gray)
+                                   
+                                    Text(targetReps.isEmpty ? "—" : "\(targetReps)")
+                                        .font(.body)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.white)
                                 }
                             }
-                            .foregroundStyle(Color.appText)
-                            .padding(.vertical, 4)
+                            .padding(.top, 4)
                             
                             Button {
                                 logSetAndStartRest()
@@ -115,8 +144,9 @@ struct WatchWorkoutView: View {
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(.orange)
-                            .padding(.top, 4)
+                            .padding(.top, 8)
                         }
+                        .padding(.horizontal, 8)
                     }
                 } else {
                     // Not connected or no workout
@@ -184,7 +214,9 @@ struct WatchWorkoutView: View {
     }
     
     func updateWorkoutData(_ data: [String: Any]) {
-        print("⌚ updateWorkoutData called with: \(data)")
+        print("⌚ ========== UPDATE WORKOUT DATA ==========")
+        print("⌚ Received data keys: \(data.keys.sorted())")
+        print("⌚ Full data: \(data)")
         
         // Check if workout ended
         if data["workoutEnded"] as? Bool == true {
@@ -205,32 +237,49 @@ struct WatchWorkoutView: View {
         if let exerciseName = data["currentExercise"] as? String {
             print("⌚ Setting exercise name: \(exerciseName)")
             currentExerciseName = exerciseName
+        } else {
+            print("⌚ WARNING: No currentExercise in data")
         }
         
         if let sets = data["sets"] as? Int {
             print("⌚ Setting total sets: \(sets)")
             totalSets = sets
+        } else {
+            print("⌚ WARNING: No sets in data")
         }
         
         if let reps = data["reps"] as? String {
-            print("⌚ Setting target reps: \(reps)")
+            print("⌚ Setting target reps: '\(reps)'")
             targetReps = reps
+        } else if let repsInt = data["reps"] as? Int {
+            print("⌚ Setting target reps from Int: '\(repsInt)'")
+            targetReps = "\(repsInt)"
+        } else {
+            print("⌚ WARNING: No reps in data or wrong type, value: \(String(describing: data["reps"]))")
         }
         
         if let weight = data["weight"] as? Double {
             print("⌚ Setting target weight: \(weight)")
             targetWeight = weight
+        } else if let weightInt = data["weight"] as? Int {
+            print("⌚ Setting target weight from Int: \(weightInt)")
+            targetWeight = Double(weightInt)
+        } else {
+            print("⌚ WARNING: No weight in data or wrong type, value: \(String(describing: data["weight"]))")
         }
         
         if let rest = data["rest"] as? Int {
             print("⌚ Setting rest seconds: \(rest)")
             restSeconds = rest
+        } else {
+            print("⌚ WARNING: No rest in data")
         }
         
         if let setNumber = data["currentSet"] as? Int {
             print("⌚ Setting current set: \(setNumber)")
             currentSet = setNumber
         } else {
+            print("⌚ WARNING: No currentSet in data, defaulting to 1")
             currentSet = 1
         }
         
@@ -250,19 +299,24 @@ struct WatchWorkoutView: View {
             }
         }
         
-        print("⌚ Data update complete - exercise: \(currentExerciseName), sets: \(currentSet)/\(totalSets), weight: \(targetWeight)kg, reps: \(targetReps)")
+        print("⌚ ========== STATE AFTER UPDATE ==========")
+        print("⌚ Exercise: '\(currentExerciseName)'")
+        print("⌚ Set: \(currentSet)/\(totalSets)")
+        print("⌚ Weight: \(targetWeight) kg")
+        print("⌚ Reps: '\(targetReps)'")
+        print("⌚ Rest: \(restSeconds) seconds")
+        print("⌚ UI should show: \(syncManager.isReachable && totalSets > 0 ? "WORKOUT VIEW" : "NO WORKOUT")")
+        print("⌚ ========================================")
     }
     
     func logSetAndStartRest() {
         // Send completed set to iPhone
         sendSetCompleted()
         
-        // Start rest timer only if not on last set
+        // Don't increment currentSet here - wait for iPhone to send updated set number
+        // Just start rest timer if not on last set
         if currentSet < totalSets {
             startRestTimer()
-        } else {
-            // Last set completed - increment but don't rest
-            currentSet += 1
         }
     }
     
@@ -271,12 +325,11 @@ struct WatchWorkoutView: View {
         restTimeRemaining = restSeconds
         isResting = true
         
-        restTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
-            let remaining = Int(endTime.timeIntervalSinceNow)
+        restTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+            let remaining = Int(ceil(endTime.timeIntervalSinceNow))
             if remaining <= 0 {
                 self.stopRestTimer()
-                self.currentSet += 1
-                WKInterfaceDevice.current().play(.success)
+                // Don't play sound, just stop the timer and continue
             } else {
                 self.restTimeRemaining = remaining
             }
@@ -292,7 +345,7 @@ struct WatchWorkoutView: View {
     
     func skipRest() {
         stopRestTimer()
-        currentSet += 1
+        // Don't increment here - the iPhone will send the updated set number
         sendSkipRest()
     }
     
@@ -351,7 +404,14 @@ struct WatchWorkoutView: View {
         stopDurationTimer()
         
         print("⌚ Starting duration timer")
-        durationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [self] _ in
+        
+        // Update immediately first
+        if let startTime = workoutStartTime {
+            workoutDuration = Date().timeIntervalSince(startTime)
+        }
+        
+        // Then schedule regular updates
+        durationTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [self] _ in
             guard let startTime = self.workoutStartTime else {
                 print("⌚ Warning: No start time available")
                 return

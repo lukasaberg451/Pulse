@@ -221,7 +221,8 @@ struct RoutineDetailView: View {
                 routine: viewModel.routine,
                 routineExercises: viewModel.routineExercises,
                 exercises: viewModel.exercises,
-                scheduledWorkoutId: nil
+                scheduledWorkoutId: nil,
+                workoutSessionId: nil
             )
         }
         .task {

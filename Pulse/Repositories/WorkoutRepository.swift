@@ -7,6 +7,7 @@
 
 import Foundation
 import Supabase
+import SwiftData
 
 class WorkoutRepository {
     private let supabase = SupabaseManager.shared.client
@@ -25,6 +26,28 @@ class WorkoutRepository {
             .value
         
         return session
+    }
+    
+    // Create a session with a specific ID (for syncing local data)
+    func createSessionWithId(id: UUID, name: String, routineId: UUID?, startedAt: Date) async throws {
+        struct InsertData: Encodable {
+            let id: String
+            let name: String
+            let routine_id: String?
+            let started_at: String
+        }
+        
+        let data = InsertData(
+            id: id.uuidString,
+            name: name,
+            routine_id: routineId?.uuidString,
+            started_at: ISO8601DateFormatter().string(from: startedAt)
+        )
+        
+        try await supabase
+            .from("workout_sessions")
+            .insert(data)
+            .execute()
     }
     
     // Fetch all workout sessions
@@ -76,6 +99,47 @@ class WorkoutRepository {
             reps: reps,
             weight: weight,
             completed: false
+        )
+        
+        let workoutSet: WorkoutSet = try await supabase
+            .from("workout_sets")
+            .insert(data)
+            .select()
+            .single()
+            .execute()
+            .value
+        
+        return workoutSet
+    }
+    
+    // Add a set with a specific ID (for syncing local data)
+    func createSetWithId(
+        id: UUID,
+        sessionId: UUID,
+        exerciseId: UUID,
+        setNumber: Int,
+        reps: Int?,
+        weight: Double?,
+        completed: Bool
+    ) async throws -> WorkoutSet {
+        struct InsertData: Encodable {
+            let id: String
+            let session_id: String
+            let exercise_id: String
+            let set_number: Int
+            let reps: Int?
+            let weight: Double?
+            let completed: Bool
+        }
+        
+        let data = InsertData(
+            id: id.uuidString,
+            session_id: sessionId.uuidString,
+            exercise_id: exerciseId.uuidString,
+            set_number: setNumber,
+            reps: reps,
+            weight: weight,
+            completed: completed
         )
         
         let workoutSet: WorkoutSet = try await supabase
@@ -144,6 +208,9 @@ class WorkoutRepository {
             .delete()
             .eq("id", value: id.uuidString)
             .execute()
+        
+        // Also delete from local cache
+        await deleteLocalSession(id: id)
     }
     
     // Schedule a workout
@@ -152,11 +219,44 @@ class WorkoutRepository {
         formatter.dateFormat = "yyyy-MM-dd"
         let dateString = formatter.string(from: date)
         
+        // Fetch the routine to get its name
+        let routine: Routine = try await supabase
+            .from("routines")
+            .select()
+            .eq("id", value: routineId.uuidString)
+            .single()
+            .execute()
+            .value
+        
+        // First, create a workout session for this scheduled workout
+        let sessionId = UUID()
+        
+        struct SessionInsertData: Encodable {
+            let id: String
+            let routine_id: String
+            let started_at: String
+            let name: String
+        }
+        
+        let sessionData = SessionInsertData(
+            id: sessionId.uuidString,
+            routine_id: routineId.uuidString,
+            started_at: ISO8601DateFormatter().string(from: Date()),
+            name: routine.name
+        )
+        
+        try await supabase
+            .from("workout_sessions")
+            .insert(sessionData)
+            .execute()
+        
+        // Then create the scheduled workout linked to the session
         let scheduled: ScheduledWorkout = try await supabase
             .from("scheduled_workouts")
             .insert([
                 "routine_id": routineId.uuidString,
-                "scheduled_date": dateString
+                "scheduled_date": dateString,
+                "workout_session_id": sessionId.uuidString
             ])
             .select()
             .single()
@@ -185,11 +285,60 @@ class WorkoutRepository {
 
     // Delete scheduled workout
     func deleteScheduledWorkout(id: UUID) async throws {
+        // First, fetch the scheduled workout to get the session ID
+        let scheduled: ScheduledWorkout = try await supabase
+            .from("scheduled_workouts")
+            .select()
+            .eq("id", value: id.uuidString)
+            .single()
+            .execute()
+            .value
+        
+        // Delete the scheduled workout
         try await supabase
             .from("scheduled_workouts")
             .delete()
             .eq("id", value: id.uuidString)
             .execute()
+        
+        // If there's a linked workout session, delete it too
+        // (this will also delete from local cache via deleteSession)
+        if let sessionId = scheduled.workoutSessionId {
+            try await deleteSession(id: sessionId)
+        }
+        
+        print("✅ Deleted scheduled workout and associated session")
+    }
+    
+    // Delete local workout session from SwiftData
+    @MainActor
+    private func deleteLocalSession(id: UUID) async {
+        guard let modelContext = WorkoutSyncService.shared.modelContext else {
+            print("⚠️ No model context available to delete local session")
+            return
+        }
+        
+        do {
+            let descriptor = FetchDescriptor<LocalWorkoutSession>(
+                predicate: #Predicate<LocalWorkoutSession> { session in
+                    session.id == id
+                }
+            )
+            
+            let sessions = try modelContext.fetch(descriptor)
+            for session in sessions {
+                print("🗑️ Deleting local session: \(session.name) (ID: \(session.id))")
+                modelContext.delete(session)
+            }
+            
+            try modelContext.save()
+            
+            // Post notification to refresh UI
+            NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
+            print("📢 Posted workoutDataChanged notification")
+        } catch {
+            print("❌ Failed to delete local session: \(error)")
+        }
     }
 
     // Mark scheduled workout as completed

@@ -35,12 +35,8 @@ class OfflineWorkoutRepository {
         do {
             try modelContext.save()
             
-            // Try to sync immediately if online
-            if syncService.isOnline {
-                Task {
-                    await syncService.syncPendingWorkouts()
-                }
-            }
+            // Don't sync immediately - only sync when workout is completed
+            print("📝 Created local session: \(name)")
         } catch {
             print("❌ Failed to save session: \(error)")
         }
@@ -71,12 +67,7 @@ class OfflineWorkoutRepository {
         do {
             try modelContext.save()
             
-            // Try to sync immediately if online
-            if syncService.isOnline {
-                Task {
-                    await syncService.syncPendingWorkouts()
-                }
-            }
+            // Don't sync immediately - only sync when workout is completed
         } catch {
             print("❌ Failed to save set: \(error)")
         }

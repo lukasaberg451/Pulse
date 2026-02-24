@@ -34,11 +34,13 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     
     func sendWorkoutToWatch(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise], startTime: Date) {
         guard let session = session else {
+            print("📱 ERROR: No WCSession available")
             return
         }
         
         guard let firstRoutineExercise = routineExercises.first,
               let firstExercise = exercises.first(where: { $0.id == firstRoutineExercise.exerciseId }) else {
+            print("📱 ERROR: No exercises found to send")
             return
         }
         
@@ -56,17 +58,32 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             "exerciseType": (firstExercise.exerciseType ?? "strength") as Any
         ]
         
-        print("📱 Sending workout to Watch with start time: \(startTime)")
+        print("📱 ========== STARTING WORKOUT ON WATCH ==========")
+        print("📱 Routine: \(routine.name)")
+        print("📱 First Exercise: \(firstExercise.name)")
+        print("📱 Sets: \(firstRoutineExercise.sets)")
+        print("📱 Weight: \(firstRoutineExercise.targetWeight ?? 0) kg")
+        print("📱 Reps: '\(firstRoutineExercise.repsTarget ?? "")'")
+        print("📱 Start time: \(startTime)")
+        print("📱 Full data: \(workoutData)")
+        #if os(iOS)
+        print("📱 Session state - isPaired: \(session.isPaired), isReachable: \(session.isReachable), activationState: \(session.activationState.rawValue)")
+        #else
+        print("📱 Session state - isReachable: \(session.isReachable), activationState: \(session.activationState.rawValue)")
+        #endif
         
         // Use transferUserInfo with high priority - this will wake the Watch app
         session.transferUserInfo(workoutData)
+        print("📱 ✅ Queued userInfo transfer")
         
         // Also try updateApplicationContext for immediate availability
         do {
             try session.updateApplicationContext(workoutData)
+            print("📱 ✅ Updated application context")
         } catch {
-            print("📱 Error updating context: \(error.localizedDescription)")
+            print("📱 ❌ Error updating context: \(error.localizedDescription)")
         }
+        print("📱 ===============================================")
     }
     
     func sendRestTimerUpdate(timeRemaining: Int) {
@@ -112,7 +129,10 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     }
     
     func sendCurrentExercise(exercise: Exercise, routineExercise: RoutineExercise, currentSetNumber: Int = 1) {
-        guard let session = session else { return }
+        guard let session = session else {
+            print("📱 ERROR: No WCSession available")
+            return
+        }
         
         let exerciseData: [String: Any] = [
             "exerciseId": exercise.id.uuidString,
@@ -125,13 +145,25 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             "exerciseType": (exercise.exerciseType ?? "strength") as Any
         ]
         
-        print("📱 Sending current exercise to Watch: \(exercise.name), set \(currentSetNumber)/\(routineExercise.sets)")
+        print("📱 ========== SENDING EXERCISE UPDATE ==========")
+        print("📱 Exercise: \(exercise.name)")
+        print("📱 Current Set: \(currentSetNumber)/\(routineExercise.sets)")
+        print("📱 Weight: \(routineExercise.targetWeight ?? 0) kg")
+        print("📱 Reps: '\(routineExercise.repsTarget ?? "")'")
+        print("📱 Full data: \(exerciseData)")
+        #if os(iOS)
+        print("📱 Session state - isPaired: \(session.isPaired), isReachable: \(session.isReachable), activationState: \(session.activationState.rawValue)")
+        #else
+        print("📱 Session state - isReachable: \(session.isReachable), activationState: \(session.activationState.rawValue)")
+        #endif
         
         do {
             try session.updateApplicationContext(exerciseData)
+            print("📱 ✅ Successfully updated application context")
         } catch {
-            print("📱 Error sending current exercise: \(error.localizedDescription)")
+            print("📱 ❌ Error sending current exercise: \(error.localizedDescription)")
         }
+        print("📱 ============================================")
     }
     
     func sendWorkoutEnded() {
