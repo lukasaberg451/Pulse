@@ -11,6 +11,7 @@ struct ProgressTabView: View {
     @StateObject private var viewModel = ProgressStatsViewModel()
     
     var body: some View {
+        NavigationStack {
             ZStack {
                 Color.appBackground.ignoresSafeArea()
                 
@@ -205,6 +206,7 @@ struct ProgressTabView: View {
             }
             .task {
                 await viewModel.loadStats()
+            }
         }
     }
 }
@@ -411,26 +413,50 @@ struct LifetimeStatCard: View {
 
 // MARK: - All PR Card
 struct AllPRsView: View {
+    @StateObject private var viewModel = ProgressStatsViewModel()
+    
     var body: some View {
         ZStack {
             Color.appBackground.ignoresSafeArea()
             
-            VStack(spacing: 16) {
-                Image(systemName: "trophy")
-                    .font(.system(size: 60))
-                    .foregroundStyle(Color.appAccent)
-                
-                Text("All Personal Records")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.appText)
-                
-                Text("Coming Soon")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.appText.opacity(0.6))
+            ScrollView {
+                VStack(spacing: 16) {
+                    if viewModel.recentPRs.isEmpty {
+                        // Empty state
+                        VStack(spacing: 16) {
+                            Image(systemName: "trophy")
+                                .font(.system(size: 60))
+                                .foregroundStyle(Color.appText.opacity(0.3))
+                            
+                            Text("No Personal Records Yet")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.appText)
+                            
+                            Text("Complete workouts to set your first personal record!")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                        .padding(.top, 100)
+                    } else {
+                        // Show all PRs
+                        ForEach(viewModel.recentPRs) { pr in
+                            PRCard(pr: pr)
+                        }
+                    }
+                }
+                .padding(.vertical)
+            }
+            .refreshable {
+                await viewModel.loadStats()
             }
         }
         .navigationTitle("Personal Records")
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await viewModel.loadStats()
+        }
     }
 }

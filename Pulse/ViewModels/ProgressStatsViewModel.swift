@@ -159,14 +159,177 @@ class ProgressStatsViewModel: ObservableObject {
     }
     
     private func loadRecentPRs() async {
-        // Placeholder - will implement PR tracking later
-        monthlyPRs = 0
-        recentPRs = []
+        do {
+            guard let userId = supabase.auth.currentUser?.id else { return }
+            
+            // Get all completed workout sessions
+            let sessions: [WorkoutSession] = try await supabase
+                .from("workout_sessions")
+                .select()
+                .eq("user_id", value: userId.uuidString)
+                .not("completed_at", operator: .is, value: "null")
+                .execute()
+                .value
+            
+            guard !sessions.isEmpty else {
+                monthlyPRs = 0
+                recentPRs = []
+                return
+            }
+            
+            // Get all sets from all sessions
+            let sets: [WorkoutSet] = try await supabase
+                .from("workout_sets")
+                .select()
+                .in("session_id", values: sessions.map { $0.id.uuidString })
+                .eq("completed", value: true)
+                .not("weight", operator: .is, value: "null")
+                .not("reps", operator: .is, value: "null")
+                .execute()
+                .value
+            
+            // Get all exercises to map exercise IDs to names
+            let exercises: [Exercise] = try await supabase
+                .from("exercises")
+                .select()
+                .execute()
+                .value
+            
+            let exerciseDict = Dictionary(uniqueKeysWithValues: exercises.map { ($0.id, $0.name) })
+            
+            // Group sets by exercise and find PRs
+            let setsByExercise = Dictionary(grouping: sets, by: { $0.exerciseId })
+            var personalRecords: [PersonalRecord] = []
+            
+            for (exerciseId, exerciseSets) in setsByExercise {
+                guard let exerciseName = exerciseDict[exerciseId] else { continue }
+                
+                // Sort by one-rep max (weight * reps as a simple approximation)
+                let sortedSets = exerciseSets.sorted { set1, set2 in
+                    let score1 = (set1.weight ?? 0) * Double(set1.reps ?? 0)
+                    let score2 = (set2.weight ?? 0) * Double(set2.reps ?? 0)
+                    return score1 > score2
+                }
+                
+                // Get the best set for this exercise
+                if let bestSet = sortedSets.first,
+                   let weight = bestSet.weight,
+                   let reps = bestSet.reps,
+                   let session = sessions.first(where: { $0.id == bestSet.sessionId }) {
+                    
+                    personalRecords.append(PersonalRecord(
+                        exerciseName: exerciseName,
+                        weight: weight,
+                        reps: reps,
+                        date: session.completedAt ?? session.startedAt
+                    ))
+                }
+            }
+            
+            // Sort by date to get most recent PRs
+            recentPRs = personalRecords.sorted { $0.date > $1.date }
+            
+            // Calculate PRs from this month
+            let calendar = Calendar.current
+            let now = Date()
+            guard let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) else {
+                monthlyPRs = 0
+                return
+            }
+            
+            monthlyPRs = recentPRs.filter { $0.date >= monthStart }.count
+            
+        } catch {
+            print("Failed to load PRs: \(error)")
+            monthlyPRs = 0
+            recentPRs = []
+        }
     }
     
     private func loadMuscleGroupStats() async {
-        // Placeholder - would aggregate by muscle group
-        topMuscleGroups = []
+        let calendar = Calendar.current
+        let now = Date()
+        guard let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
+              let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart) else {
+            topMuscleGroups = []
+            return
+        }
+        
+        do {
+            guard let userId = supabase.auth.currentUser?.id else { return }
+            
+            // Get completed sessions this month
+            let sessions: [WorkoutSession] = try await supabase
+                .from("workout_sessions")
+                .select()
+                .eq("user_id", value: userId.uuidString)
+                .gte("started_at", value: ISO8601DateFormatter().string(from: monthStart))
+                .lt("started_at", value: ISO8601DateFormatter().string(from: monthEnd))
+                .not("completed_at", operator: .is, value: "null")
+                .execute()
+                .value
+            
+            guard !sessions.isEmpty else {
+                topMuscleGroups = []
+                return
+            }
+            
+            // Get all sets from this month
+            let sets: [WorkoutSet] = try await supabase
+                .from("workout_sets")
+                .select()
+                .in("session_id", values: sessions.map { $0.id.uuidString })
+                .eq("completed", value: true)
+                .execute()
+                .value
+            
+            // Get all exercises to map exercise IDs to muscle groups
+            let exercises: [Exercise] = try await supabase
+                .from("exercises")
+                .select()
+                .execute()
+                .value
+            
+            let exerciseDict = Dictionary(uniqueKeysWithValues: exercises.map { ($0.id, $0) })
+            
+            // Count sets per muscle group
+            var muscleGroupCounts: [String: Int] = [:]
+            
+            for set in sets {
+                if let exercise = exerciseDict[set.exerciseId],
+                   let primaryMuscle = exercise.muscleGroup {
+                    muscleGroupCounts[primaryMuscle, default: 0] += 1
+                    
+                    // Also count secondary muscle groups with half weight
+                    if let secondaryMuscle = exercise.secondaryMuscleGroup {
+                        muscleGroupCounts[secondaryMuscle, default: 0] += 1
+                    }
+                }
+            }
+            
+            let totalSets = muscleGroupCounts.values.reduce(0, +)
+            
+            guard totalSets > 0 else {
+                topMuscleGroups = []
+                return
+            }
+            
+            // Convert to MuscleGroupStat and sort by count
+            let stats = muscleGroupCounts.map { name, sets in
+                MuscleGroupStat(
+                    name: name.capitalized,
+                    sets: sets,
+                    percentage: Double(sets) / Double(totalSets)
+                )
+            }.sorted { $0.sets > $1.sets }
+            
+            // Take top 5
+            topMuscleGroups = Array(stats.prefix(5))
+            
+        } catch {
+            print("Failed to load muscle group stats: \(error)")
+            topMuscleGroups = []
+        }
     }
     
     private func loadLifetimeStats() async {
@@ -207,9 +370,99 @@ class ProgressStatsViewModel: ObservableObject {
     }
     
     private func calculateStreak() async {
-        // Calculate current workout streak
-        // Placeholder implementation
-        currentStreak = 0
-        bestStreak = 0
+        do {
+            guard let userId = supabase.auth.currentUser?.id else { return }
+            
+            // Get all completed workout sessions, sorted by date (newest first)
+            let sessions: [WorkoutSession] = try await supabase
+                .from("workout_sessions")
+                .select()
+                .eq("user_id", value: userId.uuidString)
+                .not("completed_at", operator: .is, value: "null")
+                .order("completed_at", ascending: false)
+                .execute()
+                .value
+            
+            guard !sessions.isEmpty else {
+                currentStreak = 0
+                bestStreak = 0
+                return
+            }
+            
+            let calendar = Calendar.current
+            var workoutDates = Set<Date>()
+            
+            // Extract unique workout dates (ignoring time)
+            for session in sessions {
+                let date = session.completedAt ?? session.startedAt
+                if let dayStart = calendar.startOfDay(for: date) as Date? {
+                    workoutDates.insert(dayStart)
+                }
+            }
+            
+            let sortedDates = workoutDates.sorted(by: >)
+            
+            // Calculate current streak
+            let today = calendar.startOfDay(for: Date())
+            var streak = 0
+            var checkDate = today
+            
+            for date in sortedDates {
+                // Check if this date is the current check date or yesterday
+                if date == checkDate {
+                    streak += 1
+                    checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
+                } else if calendar.dateComponents([.day], from: date, to: checkDate).day == 1 {
+                    // Workout was yesterday, continue streak
+                    streak += 1
+                    checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
+                } else {
+                    // Gap in streak, stop counting
+                    break
+                }
+            }
+            
+            // If today has no workout and yesterday doesn't either, streak is 0
+            if let firstDate = sortedDates.first {
+                let daysDiff = calendar.dateComponents([.day], from: firstDate, to: today).day ?? 0
+                if daysDiff > 1 {
+                    streak = 0
+                }
+            }
+            
+            currentStreak = streak
+            
+            // Calculate best streak ever
+            var maxStreak = 0
+            var tempStreak = 0
+            var previousDate: Date? = nil
+            
+            for date in sortedDates.reversed() {
+                if let prev = previousDate {
+                    let daysDiff = calendar.dateComponents([.day], from: prev, to: date).day ?? 0
+                    
+                    if daysDiff <= 1 {
+                        // Continue streak (same day or next day)
+                        tempStreak += 1
+                    } else {
+                        // Streak broken
+                        maxStreak = max(maxStreak, tempStreak)
+                        tempStreak = 1
+                    }
+                } else {
+                    tempStreak = 1
+                }
+                
+                previousDate = date
+            }
+            
+            maxStreak = max(maxStreak, tempStreak)
+            bestStreak = maxStreak
+            
+        } catch {
+            print("Failed to calculate streak: \(error)")
+            currentStreak = 0
+            bestStreak = 0
+        }
     }
 }
