@@ -42,9 +42,6 @@ struct DashboardView: View {
                             )
                             .padding(.horizontal)
                         }
-                        
-                        
-                        
                     }
                     VStack(spacing: 20) {
                         // Today's Workouts Section

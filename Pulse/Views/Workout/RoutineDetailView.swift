@@ -251,46 +251,38 @@ struct ExercisePickerSheet: View {
     
     let equipmentOptions = [
         ("Barbell", "Barbell"),
-        ("EZ Bar", "EZ Bar"),
-        ("Dumbbell", "Dumbbell"),
-        ("Machine", "Machine"),
-        ("Cable", "Cable"),
-        ("Bodyweight", "Bodyweight"),
-        ("Bench", "Bench"),
-        ("Bar", "Bar"),
-        ("Box", "Box"),
-        ("Battle Rope", "Battle Rope"),
-        ("Sled", "Sled"),
-        ("Medicine Ball", "Medicine Ball"),
-        ("Kettlebell", "Kettlebell"),
-        ("Treadmill", "Treadmill"),
-        ("Rowing Machine", "Rowing Machine"),
-        ("Air Bike", "Air Bike"),
         ("Bike", "Bike"),
-        ("Stairmill", "Stairmill"),
-        ("Elliptical", "Elliptical"),
-        ("SkiErg", "SkiErg")
+        ("Bodyweight", "Bodyweight"),
+        ("Cable", "Cable"),
+        ("Dumbbell", "Dumbbell"),
+        ("Kettlebell", "Kettlebell"),
+        ("Machine", "Machine"),
+        ("Medicine Ball", "Medicine Ball"),
+        ("Resistance Band", " Resistance Band"),
+        ("Sandbag", "Sandbag"),
+        ("Sled", "Sled"),
+        ("Smith Machine", "Smith Machine"),
+        ("Treadmill", "Treadmill"),
+        ("TRX", "TRX")
     ]
     
     let muscleOptions = [
-        ("Quads", "Quads"),
-        ("Hamstrings", "Hamstrings"),
-        ("Glutes", "Glutes"),
         ("Back", "Back"),
+        ("Biceps", "Biceps"),
+        ("Calves", "Calves"),
+        ("Cardio", "Cardio"),
+        ("Chest", "Chest"),
+        ("Core", "Core"),
+        ("Forearms", "Forearms"),
+        ("Full Body", "Full Body"),
+        ("Glutes", "Glutes"),
+        ("Hamstrings", "Hamstrings"),
         ("Upper Back", "Upper Back"),
         ("Lower Back", "Lower Back"),
-        ("Calves", "Calves"),
-        ("Chest", "Chest"),
-        ("Triceps", "Triceps"),
+        ("Quads", "Quads"),
         ("Shoulders", "Shoulders"),
-        ("Biceps", "Biceps"),
         ("Traps", "Traps"),
-        ("Forearms", "Forearms"),
-        ("Core", "Core"),
-        ("Adductors", "Adductors"),
-        ("Obliques", "Obliques"),
-        ("Full Body", "Full Body"),
-        ("Cardio", "Cardio")
+        ("Triceps", "Triceps")
     ]
     
     var body: some View {
@@ -309,7 +301,7 @@ struct ExercisePickerSheet: View {
                                 // Debounce search
                                 searchTask?.cancel()
                                 searchTask = Task {
-                                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s delay
+                                    try? await Task.sleep(nanoseconds: 500_000_000)
                                     if !Task.isCancelled {
                                         await viewModel.resetAndLoad(
                                             equipment: selectedEquipment,
@@ -338,7 +330,7 @@ struct ExercisePickerSheet: View {
                     // Equipment filter
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            FilterChip(title: "All", isSelected: selectedEquipment == nil) {
+                            FilterChip(title: "All Equipment", isSelected: selectedEquipment == nil) {
                                 selectedEquipment = nil
                                 Task { await viewModel.resetAndLoad(equipment: nil, muscle: selectedMuscle, search: searchText) }
                             }
@@ -366,7 +358,7 @@ struct ExercisePickerSheet: View {
                             ForEach(muscleOptions, id: \.0) { value, label in
                                 FilterChip(title: value.capitalized, isSelected: selectedMuscle == value) {
                                     selectedMuscle = selectedMuscle == value ? nil : value
-                                    let newMuscle = selectedMuscle  // Capture AFTER update
+                                    let newMuscle = selectedMuscle
                                     Task { await viewModel.resetAndLoad(equipment: selectedEquipment, muscle: newMuscle, search: searchText) }
                                 }
                             }
