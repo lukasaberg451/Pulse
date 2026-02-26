@@ -31,6 +31,7 @@ struct DashboardView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.leading, 15)
+                        .padding(.bottom, 5)
                         
                         VStack {
                             WeeklyGoalCard(
@@ -186,7 +187,7 @@ struct EmptyTodayCard: View {
         VStack(spacing: 12) {
             Image(systemName: "calendar.badge.clock")
                 .font(.system(size: 50))
-                .foregroundStyle(Color.appText.opacity(0.4))
+                .foregroundStyle(Color.appAccent.opacity(0.4))
             
             Text("No workouts scheduled today")
                 .font(.subheadline)
@@ -267,7 +268,7 @@ struct EmptyRecentCard: View {
         VStack(spacing: 12) {
             Image(systemName: "clock.arrow.circlepath")
                 .font(.system(size: 50))
-                .foregroundStyle(Color.appText.opacity(0.4))
+                .foregroundStyle(Color.appAccent.opacity(0.4))
             
             Text("No workout history yet")
                 .font(.subheadline)
@@ -298,14 +299,14 @@ struct DayGreetingView: View {
         let weekday = Calendar.current.component(.weekday, from: Date())
         
         switch weekday {
-        case 1: return "Reset Sunday!"
-        case 2: return "Mighty Monday!"
-        case 3: return "Tackling Tuesday!"
-        case 4: return "Winning Wednesday!"
-        case 5: return "Thunder Thursday!"
-        case 6: return "Focused Friday!"
-        case 7: return "Sweet Saturday!"
-        default: return "Hello!"
+        case 1: return String(localized: .sundayGreeting)
+        case 2: return String(localized: .mondayGreeting)
+        case 3: return String(localized: .tuesdayGreeting)
+        case 4: return String(localized: .wednesdayGreeting)
+        case 5: return String(localized: .thursdayGreeting)
+        case 6: return String(localized: .fridayGreeting)
+        case 7: return String(localized: .saturdayGreeting)
+        default: return String(localized: .defaultDay)
         }
     }
 }

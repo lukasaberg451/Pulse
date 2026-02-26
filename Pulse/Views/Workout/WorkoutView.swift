@@ -291,7 +291,7 @@ struct RoutinePickerSheet: View {
                     VStack(spacing: 16) {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.system(size: 60))
-                            .foregroundStyle(Color.appAccent.opacity(0.6))
+                            .foregroundStyle(Color.appAccent.opacity(0.4))
                         Text("No Routines Yet")
                             .font(.headline)
                             .foregroundStyle(Color.appText)
@@ -401,7 +401,7 @@ struct RoutineContentView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.system(size: 60))
-                            .foregroundStyle(Color.appAccent.opacity(0.6))
+                            .foregroundStyle(Color.appAccent.opacity(0.4))
                         Text("No Routines Yet")
                             .font(.headline)
                             .foregroundStyle(Color.appText)

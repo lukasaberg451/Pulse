@@ -200,7 +200,11 @@ struct RoutineDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("")
         .toolbarBackground(Color.appBackground, for: .navigationBar)
-        .sheet(isPresented: $showingExercisePicker) {
+        .sheet(isPresented: $showingExercisePicker, onDismiss: {
+            Task {
+                await viewModel.loadRoutineExercises(forceRefresh: true)
+            }
+        }) {
             ExercisePickerSheet(routineViewModel: viewModel)
         }
         .sheet(isPresented: $showingEditSheet) {

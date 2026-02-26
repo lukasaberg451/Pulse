@@ -30,7 +30,7 @@ class RoutineDetailViewModel: ObservableObject {
         self.routine = routine
     }
     
-    func loadRoutineExercises() async {
+    func loadRoutineExercises(forceRefresh: Bool = false) async {
         isLoading = true
         errorMessage = nil
         
@@ -39,14 +39,27 @@ class RoutineDetailViewModel: ObservableObject {
             if let modelContext = modelContext {
                 let offlineRepo = OfflineExerciseRepository(modelContext: modelContext)
                 
-                // Load exercises (from cache)
-                exercises = try offlineRepo.getCachedExercises()
-                
                 // Load routine exercises (from cache or Supabase)
                 routineExercises = try await offlineRepo.getRoutineExercises(
                     routineId: routine.id,
-                    forceRefresh: syncService.isOnline
+                    forceRefresh: forceRefresh || syncService.isOnline
                 )
+                
+                // Load exercises (from cache) - this should now include newly cached exercises
+                exercises = try offlineRepo.getCachedExercises()
+                
+                // Ensure all exercises for the routine exercises are loaded
+                for routineExercise in routineExercises {
+                    if !exercises.contains(where: { $0.id == routineExercise.exerciseId }) {
+                        // Fetch and cache this exercise if it's missing
+                        do {
+                            let exercise = try await offlineRepo.getExercise(id: routineExercise.exerciseId)
+                            exercises.append(exercise)
+                        } catch {
+                            print("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
+                        }
+                    }
+                }
             } else {
                 // Fallback to direct Supabase queries
                 exercises = try await exerciseRepository.fetchExercises()

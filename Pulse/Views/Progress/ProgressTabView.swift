@@ -149,12 +149,16 @@ struct ProgressTabView: View {
                                 .padding(.horizontal)
                             
                             VStack(spacing: 8) {
-                                ForEach(viewModel.topMuscleGroups, id: \.name) { muscle in
-                                    MuscleGroupRow(
-                                        name: muscle.name,
-                                        sets: muscle.sets,
-                                        percentage: muscle.percentage
-                                    )
+                                if viewModel.topMuscleGroups.isEmpty {
+                                    EmptyMuscleGroupRow()
+                                } else {
+                                    ForEach(viewModel.topMuscleGroups, id: \.name) { muscle in
+                                        MuscleGroupRow(
+                                            name: muscle.name,
+                                            sets: muscle.sets,
+                                            percentage: muscle.percentage
+                                        )
+                                    }
                                 }
                             }
                             .padding()
@@ -288,7 +292,7 @@ struct EmptyPRCard: View {
         VStack(spacing: 12) {
             Image(systemName: "trophy")
                 .font(.system(size: 48))
-                .foregroundStyle(Color.appText.opacity(0.3))
+                .foregroundStyle(Color.appAccent.opacity(0.4))
             
             Text("No PRs Yet")
                 .font(.headline)
@@ -349,7 +353,7 @@ struct ComparisonRow: View {
     }
 }
 
-// MARK: - Muscle Group Row
+// MARK: - Muscle Group Row (Most Trained)
 struct MuscleGroupRow: View {
     let name: String
     let sets: Int
@@ -384,6 +388,28 @@ struct MuscleGroupRow: View {
             }
             .frame(height: 8)
         }
+    }
+}
+
+struct EmptyMuscleGroupRow: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "clock.arrow.circlepath")
+                .font(.system(size: 48))
+                .foregroundStyle(Color.appAccent.opacity(0.4))
+            Text("No workout history yet")
+                .font(.headline)
+                .foregroundStyle(Color.appText)
+            Text("Complete your first workout to see the data here")
+                .font(.caption)
+                .foregroundStyle(Color.appText.opacity(0.5))
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(32)
+        .background(Color.appSurface)
+        .cornerRadius(10)
+        .padding(.horizontal)
     }
 }
 
@@ -431,7 +457,7 @@ struct AllPRsView: View {
                         VStack(spacing: 16) {
                             Image(systemName: "trophy")
                                 .font(.system(size: 60))
-                                .foregroundStyle(Color.appText.opacity(0.3))
+                                .foregroundStyle(Color.appAccent.opacity(0.4))
                             
                             Text("No Personal Records Yet")
                                 .font(.title2)
