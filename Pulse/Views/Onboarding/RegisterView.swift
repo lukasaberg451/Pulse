@@ -10,6 +10,7 @@ import SwiftUI
 struct RegisterView: View {
     @ObservedObject var authViewModel: AuthViewModel
     @Binding var showingSignUp: Bool
+    @Binding var showingSignIn: Bool
     @State private var firstName = ""
     @State private var lastName = ""
     @State private var email = ""
@@ -63,11 +64,10 @@ struct RegisterView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
                         
-                        Button(action: {
-                            authViewModel.registrationSuccess = false
-                            showingSignUp = false
-                        }) {
-                            Text("Back to Login")
+                        NavigationLink {
+                            LoginView(authViewModel: authViewModel, showingSignIn: $showingSignIn)
+                        } label: {
+                            Text("Go to Login")
                                 .font(.headline)
                                 .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity)

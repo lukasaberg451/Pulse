@@ -18,7 +18,7 @@ struct AuthSelectionView: View {
                 Color.appBackground.ignoresSafeArea()
             
                 if showingSignUp {
-                    RegisterView(authViewModel: authViewModel, showingSignUp: $showingSignUp)
+                    RegisterView(authViewModel: authViewModel, showingSignUp: $showingSignUp, showingSignIn: $showingSignIn)
                 } else if showingSignIn {
                     LoginView(authViewModel: authViewModel, showingSignIn: $showingSignIn)
                 } else {
@@ -42,7 +42,7 @@ struct AuthSelectionView: View {
                         // Auth buttons
                         VStack(spacing: 16) {
                             NavigationLink {
-                                RegisterView(authViewModel: authViewModel, showingSignUp: $showingSignUp)
+                                RegisterView(authViewModel: authViewModel, showingSignUp: $showingSignUp, showingSignIn: $showingSignIn)
                             } label: {
                                 Text("Let's Get Started")
                                     .font(.headline)
@@ -68,7 +68,7 @@ struct AuthSelectionView: View {
                         .padding(.bottom, 40)
                     }
                     .navigationDestination(isPresented: $showingSignUp) {
-                        RegisterView(authViewModel: authViewModel, showingSignUp: $showingSignUp)
+                        RegisterView(authViewModel: authViewModel, showingSignUp: $showingSignUp, showingSignIn: $showingSignIn)
                     }
                     .navigationDestination(isPresented: $showingSignIn) {
                         LoginView(authViewModel: authViewModel, showingSignIn: $showingSignIn)
