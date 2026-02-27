@@ -273,25 +273,8 @@ struct ExercisePickerSheet: View {
     ]
     
     var filteredExercises: [Exercise] {
-        var exercises = viewModel.exercises
-        
-        // Filter by muscle group
-        if let muscle = selectedMuscle {
-            exercises = exercises.filter { exercise in
-                guard let muscleGroup = exercise.muscleGroup else { return false }
-                return muscleGroup.lowercased().contains(muscle.lowercased())
-            }
-        }
-        
-        // Filter by equipment
-        if let equipment = selectedEquipment {
-            exercises = exercises.filter { exercise in
-                guard let exerciseEquipment = exercise.equipment else { return false }
-                return exerciseEquipment.lowercased() == equipment.lowercased()
-            }
-        }
-        
-        return exercises
+        // Filtering is now handled server-side via resetAndLoad()
+        return viewModel.exercises
     }
     
     var activeFilterCount: Int {
@@ -299,6 +282,51 @@ struct ExercisePickerSheet: View {
         if selectedMuscle != nil { count += 1 }
         if selectedEquipment != nil { count += 1 }
         return count
+    }
+    
+    private func applyFilters() {
+        Task {
+            await viewModel.resetAndLoad(
+                equipment: selectedEquipment,
+                muscle: selectedMuscle,
+                search: searchText
+            )
+        }
+    }
+    
+    private func equipmentIcon(for equipment: String) -> String {
+        switch equipment.lowercased() {
+        case "barbell":
+            return "dumbbell.fill"
+        case "dumbbell":
+            return "dumbbell.fill"
+        case "kettlebell":
+            return "figure.cooldown"
+        case "cable":
+            return "cable.connector"
+        case "machine":
+            return "gearshape.fill"
+        case "bodyweight":
+            return "figure.arms.open"
+        case "resistance band":
+            return "arrow.left.and.right.circle"
+        case "medicine ball":
+            return "sportscourt.fill"
+        case "bike":
+            return "bicycle"
+        case "treadmill":
+            return "figure.run"
+        case "trx":
+            return "triangle.fill"
+        case "smith machine":
+            return "square.stack.3d.up.fill"
+        case "sled":
+            return "arrow.forward.circle.fill"
+        case "sandbag":
+            return "bag.fill"
+        default:
+            return "dumbbell.fill"
+        }
     }
     
     var body: some View {
@@ -320,7 +348,11 @@ struct ExercisePickerSheet: View {
                                     searchTask = Task {
                                         try? await Task.sleep(nanoseconds: 300_000_000)
                                         if !Task.isCancelled {
-                                            await viewModel.resetAndLoad(search: newValue)
+                                            await viewModel.resetAndLoad(
+                                                equipment: selectedEquipment,
+                                                muscle: selectedMuscle,
+                                                search: newValue
+                                            )
                                         }
                                     }
                                 }
@@ -392,7 +424,7 @@ struct ExercisePickerSheet: View {
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
                                         .background(Color.red.opacity(0.1))
-                                        .cornerRadius(16)
+                                        .cornerRadius(10)
                                 }
                             }
                             .padding(.horizontal)
@@ -448,8 +480,8 @@ struct ExercisePickerSheet: View {
                                                             .foregroundStyle(Color.appText.opacity(0.6))
                                                     }
                                                     
-                                                    if let equipment = exercise.equipment, equipment != "Bodyweight" {
-                                                        Label(equipment.capitalized, systemImage: "dumbbell.fill")
+                                                    if let equipment = exercise.equipment {
+                                                        Label(equipment.capitalized, systemImage: equipmentIcon(for: equipment))
                                                             .font(.caption)
                                                             .foregroundStyle(Color.appAccent.opacity(0.8))
                                                     }
@@ -521,6 +553,12 @@ struct ExercisePickerSheet: View {
                     muscleOptions: muscleOptions,
                     equipmentOptions: equipmentOptions
                 )
+            }
+            .onChange(of: selectedMuscle) { _, _ in
+                applyFilters()
+            }
+            .onChange(of: selectedEquipment) { _, _ in
+                applyFilters()
             }
             .task {
                 await viewModel.resetAndLoad()

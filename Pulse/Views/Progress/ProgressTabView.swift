@@ -204,7 +204,7 @@ struct StatCard: View {
                 .foregroundStyle(Color.appText.opacity(0.8))
                 .multilineTextAlignment(.center)
         }
-        .frame(width: 140, height: 160)
+        .frame(maxWidth: .infinity, minHeight: 160)
         .padding()
         .background(Color.appSurface)
         .cornerRadius(10)
@@ -443,6 +443,7 @@ struct AllPRsView: View {
         }
         .navigationTitle("Personal Records")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.appBackground, for: .navigationBar)
         .task {
             await viewModel.loadStats()
         }
@@ -499,34 +500,31 @@ struct HealthMetricsSection: View {
                     
                     // BMI Card
                     if let bmi = profile.bmi, let category = profile.bmiCategory {
-                        VStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            // Icon
                             HStack {
                                 Image(systemName: "heart.text.square.fill")
                                     .font(.title2)
                                     .foregroundStyle(Color.red)
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("BMI")
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.appText.opacity(0.7))
-                                    
-                                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                        Text(String(format: "%.1f", bmi))
-                                            .font(.title)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(Color.appText)
-                                        
-                                        Text("·")
-                                            .foregroundStyle(Color.appText.opacity(0.5))
-                                        
-                                        Text(category)
-                                            .font(.subheadline)
-                                            .foregroundStyle(categoryColor(for: category))
-                                            .fontWeight(.semibold)
-                                    }
-                                }
-                                
                                 Spacer()
+                            }
+                            
+                            // Title
+                            Text("BMI")
+                                .font(.caption)
+                                .foregroundStyle(Color.appText.opacity(0.7))
+                            
+                            // Value and Category
+                            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                                Text(String(format: "%.1f", bmi))
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.appText)
+                                
+                                Text(category)
+                                    .font(.caption)
+                                    .foregroundStyle(categoryColor(for: category))
+                                    .fontWeight(.semibold)
                             }
                             
                             // BMI Category Scale
@@ -583,7 +581,9 @@ struct HealthMetricsSection: View {
                                 }
                                 .foregroundStyle(Color.appText.opacity(0.5))
                             }
+                            .padding(.top, 4)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
                         .background(Color.appSurface)
                         .cornerRadius(10)
@@ -719,30 +719,6 @@ struct EditHealthMetricsSheet: View {
         _heightText = State(initialValue: height > 0 ? String(format: "%.0f", height) : "")
     }
     
-    var currentBMI: Double? {
-        guard let weight = Double(weightText),
-              let height = Double(heightText),
-              weight > 0, height > 0 else { return nil }
-        
-        let heightInMeters = height / 100.0
-        return weight / (heightInMeters * heightInMeters)
-    }
-    
-    var bmiCategory: String? {
-        guard let bmi = currentBMI else { return nil }
-        
-        switch bmi {
-        case ..<18.5:
-            return "Underweight"
-        case 18.5..<25:
-            return "Normal"
-        case 25..<30:
-            return "Overweight"
-        default:
-            return "Obese"
-        }
-    }
-    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -809,48 +785,6 @@ struct EditHealthMetricsSheet: View {
                                 Text("cm")
                                     .font(.title3)
                                     .foregroundStyle(Color.appText.opacity(0.6))
-                            }
-                            .padding()
-                            .background(Color.appSurface)
-                            .cornerRadius(10)
-                        }
-                        
-                        // BMI Preview
-                        if let bmi = currentBMI, let category = bmiCategory {
-                            Divider()
-                                .padding(.vertical, 8)
-                            
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Image(systemName: "heart.text.square.fill")
-                                        .foregroundStyle(Color.red)
-                                    Text("BMI Preview")
-                                        .font(.headline)
-                                        .foregroundStyle(Color.appText)
-                                }
-                                
-                                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                    Text(String(format: "%.1f", bmi))
-                                        .font(.system(size: 48, weight: .bold))
-                                        .foregroundStyle(Color.appText)
-                                    
-                                    VStack(alignment: .leading) {
-                                        Text(category)
-                                            .font(.title3)
-                                            .fontWeight(.semibold)
-                                            .foregroundStyle(categoryColor(for: category))
-                                    }
-                                }
-                                
-                                // BMI Scale
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("BMI Categories")
-                                        .font(.caption)
-                                        .foregroundStyle(Color.appText.opacity(0.6))
-                                    
-                                    BMIScale(currentBMI: bmi)
-                                }
-                                .padding(.top, 8)
                             }
                             .padding()
                             .background(Color.appSurface)
@@ -933,93 +867,6 @@ struct EditHealthMetricsSheet: View {
             errorMessage = viewModel.errorMessage ?? "Failed to save health metrics"
             showError = true
         }
-    }
-    
-    func categoryColor(for category: String) -> Color {
-        switch category {
-        case "Underweight":
-            return .orange
-        case "Normal":
-            return .green
-        case "Overweight":
-            return .orange
-        case "Obese":
-            return .red
-        default:
-            return .gray
-        }
-    }
-}
-
-// MARK: - BMI Scale
-struct BMIScale: View {
-    let currentBMI: Double
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            // Scale indicator
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    // Background gradient
-                    HStack(spacing: 0) {
-                        Rectangle()
-                            .fill(Color.orange.opacity(0.5))
-                            .frame(width: geometry.size.width * 0.25)
-                        
-                        Rectangle()
-                            .fill(Color.green.opacity(0.5))
-                            .frame(width: geometry.size.width * 0.25)
-                        
-                        Rectangle()
-                            .fill(Color.orange.opacity(0.5))
-                            .frame(width: geometry.size.width * 0.25)
-                        
-                        Rectangle()
-                            .fill(Color.red.opacity(0.5))
-                            .frame(width: geometry.size.width * 0.25)
-                    }
-                    .cornerRadius(10)
-                    
-                    // Indicator
-                    let position = bmiToPosition(bmi: currentBMI, width: geometry.size.width)
-                    Circle()
-                        .fill(Color.appText)
-                        .frame(width: 12, height: 12)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.appBackground, lineWidth: 2)
-                        )
-                        .offset(x: position - 6)
-                }
-            }
-            .frame(height: 12)
-            
-            // Labels
-            HStack {
-                Text("< 18.5")
-                    .font(.caption2)
-                Spacer()
-                Text("18.5-25")
-                    .font(.caption2)
-                Spacer()
-                Text("25-30")
-                    .font(.caption2)
-                Spacer()
-                Text("> 30")
-                    .font(.caption2)
-            }
-            .foregroundStyle(Color.appText.opacity(0.6))
-        }
-    }
-    
-    func bmiToPosition(bmi: Double, width: CGFloat) -> CGFloat {
-        // Map BMI value to position on scale (0 to width)
-        // Scale: 15 to 35 BMI range
-        let minBMI = 15.0
-        let maxBMI = 35.0
-        let clampedBMI = max(minBMI, min(maxBMI, bmi))
-        let percentage = (clampedBMI - minBMI) / (maxBMI - minBMI)
-        return CGFloat(percentage) * width
     }
 }
 
