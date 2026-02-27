@@ -553,7 +553,7 @@ struct ActiveFilterChip: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color.appAccent)
-        .cornerRadius(16)
+        .cornerRadius(10)
     }
 }
 
@@ -614,14 +614,14 @@ struct FilterSheet: View {
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 10)
                                             .background(tempMuscle == muscle ? Color.appAccent : Color.appSurface)
-                                            .cornerRadius(20)
+                                            .cornerRadius(10)
                                     }
                                 }
                             }
                         }
                         .padding()
                         .background(Color.appSurface.opacity(0.3))
-                        .cornerRadius(12)
+                        .cornerRadius(10)
                         
                         // Equipment Section
                         VStack(alignment: .leading, spacing: 16) {
@@ -653,14 +653,14 @@ struct FilterSheet: View {
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 10)
                                             .background(tempEquipment == equipment ? Color.appAccent : Color.appSurface)
-                                            .cornerRadius(20)
+                                            .cornerRadius(10)
                                     }
                                 }
                             }
                         }
                         .padding()
                         .background(Color.appSurface.opacity(0.3))
-                        .cornerRadius(12)
+                        .cornerRadius(10)
                     }
                     .padding()
                 }
@@ -761,7 +761,7 @@ struct MusclePill: View {
                 .padding(.vertical, 10)
                 .background(isSelected ? Color.appAccent : Color.appSurface)
                 .foregroundStyle(isSelected ? Color.white : Color.appText)
-                .cornerRadius(20)
+                .cornerRadius(10)
         }
     }
 }

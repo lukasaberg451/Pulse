@@ -44,7 +44,14 @@ struct PostSignInGuideView: View {
             title: "Track Your Progress",
             description: "Watch your stats grow over time. Check your workout history, view personal records, and see how far you've come.",
             actionTitle: "Awesome",
-            highlightTab: "History"
+            highlightTab: "Progress"
+        ),
+        GuideStep(
+            icon: "bubble.left.and.exclamationmark.bubble.right",
+            title: "Anything Missing?",
+            description: "If you have any question or if you feel like something is missing from the app, please use the feedback form on the profile tab",
+            actionTitle: "Sure Thing!",
+            highlightTab: "Profile"
         ),
         GuideStep(
             icon: "checkmark.circle.fill",
@@ -60,7 +67,6 @@ struct PostSignInGuideView: View {
             Color.black.opacity(0.6)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    // Dismiss on background tap (optional)
                 }
             
             // Guide card
@@ -116,7 +122,7 @@ struct PostSignInGuideView: View {
                         .padding(.vertical, 8)
                         .padding(.horizontal, 16)
                         .background(Color.appAccent.opacity(0.15))
-                        .cornerRadius(8)
+                        .cornerRadius(10)
                         .transition(.scale.combined(with: .opacity))
                     }
                 }
@@ -151,7 +157,7 @@ struct PostSignInGuideView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.appAccent)
-                        .cornerRadius(12)
+                        .cornerRadius(10)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
@@ -168,9 +174,9 @@ struct PostSignInGuideView: View {
                     .padding(.bottom, 16)
                 }
             }
-            .frame(maxWidth: 500) // Limit width on larger screens
+            .frame(maxWidth: 500)
             .background(Color.appSurface)
-            .cornerRadius(24)
+            .cornerRadius(10)
             .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: 10)
             .padding(32)
         }

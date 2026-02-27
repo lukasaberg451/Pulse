@@ -551,7 +551,7 @@ struct HealthMetricsSection: View {
                                                 .fill(Color.red.opacity(0.3))
                                                 .frame(width: geometry.size.width * 0.25)
                                         }
-                                        .cornerRadius(4)
+                                        .cornerRadius(10)
                                         
                                         // Indicator
                                         let position = bmiToPosition(bmi: bmi, width: geometry.size.width)
@@ -978,7 +978,7 @@ struct BMIScale: View {
                             .fill(Color.red.opacity(0.5))
                             .frame(width: geometry.size.width * 0.25)
                     }
-                    .cornerRadius(4)
+                    .cornerRadius(10)
                     
                     // Indicator
                     let position = bmiToPosition(bmi: currentBMI, width: geometry.size.width)
