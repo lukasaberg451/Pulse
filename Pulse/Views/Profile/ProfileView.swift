@@ -12,7 +12,7 @@ struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var themeManager: ThemeManager
     @State private var showingThemeSheet = false
-    @State private var showingEditSheet = false
+    @State private var showingEditNameSheet = false
     @State private var showingSignOutAlert = false
     @State private var showingFeedbackSheet = false
     @State private var showingLanguageSheet = false
@@ -34,67 +34,35 @@ struct ProfileView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 16) {
-                            // Account Details Section
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text("Account Details")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.appText)
-                                    .padding(.horizontal)
-                                
-                                VStack(spacing: 0) {
-                                    ProfileRow(
-                                        icon: "person.fill",
-                                        title: String(localized: "First Name"),
-                                        value: viewModel.profile?.firstName ?? String(localized: "Not set")
-                                    )
+                            // Profile Section
+                            VStack(spacing: 16) {
+                                // Profile Picture (Initials)
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.appAccent.opacity(0.2))
+                                        .frame(width: 100, height: 100)
                                     
-                                    Divider()
-                                        .background(Color.appText.opacity(0.1))
-                                        .padding(.leading, 56)
-                                    
-                                    ProfileRow(
-                                        icon: "person.fill",
-                                        title: String(localized: "Last Name"),
-                                        value: viewModel.profile?.lastName ?? String(localized: "Not set")
-                                    )
-                                    
-                                    Divider()
-                                        .background(Color.appText.opacity(0.1))
-                                        .padding(.leading, 56)
-                                    
-                                    // Make email tappable to change
-                                    Button {
-                                        showingChangeEmailSheet = true
-                                        } label: {
-                                            HStack(spacing: 16) {
-                                                Image(systemName: "envelope")
-                                                    .font(.system(size: 20))
-                                                    .foregroundStyle(Color.appAccent)
-                                                    .frame(width: 24)
-                                                            
-                                                Text("Email")
-                                                    .font(.body)
-                                                    .foregroundStyle(Color.appText)
-                                                            
-                                                Spacer()
-                                                            
-                                                Text(viewModel.profile?.email ?? "")
-                                                    .font(.body)
-                                                    .foregroundStyle(Color.appText.opacity(0.6))
-                                                            
-                                                Image(systemName: "chevron.right")
-                                                    .font(.caption)
-                                                    .foregroundStyle(Color.appText.opacity(0.3))
-                                        }
-                                        .padding()
-                                    }
+                                    Text(getUserInitials())
+                                        .font(.system(size: 40))
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(Color.appAccent)
                                 }
-                                .background(Color.appSurface)
-                                .cornerRadius(10)
-                                .padding(.horizontal)
+                                .padding(.top, 30)
                                 
+                                // User Full Name
+                                Text("\(viewModel.profile?.firstName ?? "") \(viewModel.profile?.lastName ?? "")")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(Color.appText)
+                                
+                                // User Email
+                                Text(viewModel.profile?.email ?? "")
+                                    .font(.body)
+                                    .foregroundStyle(Color.appText.opacity(0.6))
+                                
+                                // Edit Profile Button
                                 Button {
-                                    showingEditSheet = true
+                                    showingEditNameSheet = true
                                 } label: {
                                     HStack {
                                         Spacer()
@@ -108,89 +76,107 @@ struct ProfileView: View {
                                     .cornerRadius(10)
                                 }
                                 .padding(.horizontal)
-                                
-                                //Theme setting
-                                Button {
-                                    showingThemeSheet = true
-                                } label: {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "paintbrush.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundStyle(Color.appAccent)
-                                            .frame(width: 24)
-                                        
-                                        Text("Appearance")
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText)
-                                        
-                                        Spacer()
-                                        
-                                        Text(themeManager.selectedTheme.rawValue)
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText.opacity(0.6))
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appText.opacity(0.3))
-                                    }
+                                .padding(.top, 8)
+                            }
+                            
+                            // Settings Section
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Settings")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.appText)
                                     .padding(.horizontal)
-                                }
-                                .padding(.top, 20)
                                 
-                                // Language Row
-                                        Button {
-                                            showingLanguageSheet = true
-                                        } label: {
-                                            HStack(spacing: 16) {
-                                                Image(systemName: "globe")
-                                                    .font(.system(size: 20))
-                                                    .foregroundStyle(Color.appAccent)
-                                                    .frame(width: 24)
-                                                
-                                                Text("Language")
-                                                    .font(.body)
-                                                    .foregroundStyle(Color.appText)
-                                                
-                                                Spacer()
-                                                
-                                                Text(LanguageManager.shared.getCurrentLanguageName())
-                                                    .font(.body)
-                                                    .foregroundStyle(Color.appText.opacity(0.6))
-                                                
-                                                Image(systemName: "chevron.right")
-                                                    .font(.caption)
-                                                    .foregroundStyle(Color.appText.opacity(0.3))
-                                            }
-                                            .padding(.horizontal)
+                                VStack(spacing: 0) {
+                                    //Theme setting
+                                    Button {
+                                        showingThemeSheet = true
+                                    } label: {
+                                        HStack(spacing: 16) {
+                                            Image(systemName: "paintbrush.fill")
+                                                .font(.system(size: 20))
+                                                .foregroundStyle(Color.appAccent)
+                                                .frame(width: 24)
+                                            
+                                            Text("Appearance")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            Text(themeManager.selectedTheme.rawValue)
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                            
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appText.opacity(0.3))
                                         }
-                                        .padding(.top, 15)
+                                        .padding()
+                                    }
+                                    
+                                    Divider()
+                                        .background(Color.appText.opacity(0.1))
+                                        .padding(.leading, 56)
+                                    
+                                    // Language Row
+                                    Button {
+                                        showingLanguageSheet = true
+                                    } label: {
+                                        HStack(spacing: 16) {
+                                            Image(systemName: "globe")
+                                                .font(.system(size: 20))
+                                                .foregroundStyle(Color.appAccent)
+                                                .frame(width: 24)
+                                            
+                                            Text("Language")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            Text(LanguageManager.shared.getCurrentLanguageName())
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                            
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appText.opacity(0.3))
+                                        }
+                                        .padding()
+                                    }
                                 }
+                                .background(Color.appSurface)
+                                .cornerRadius(10)
+                                .padding(.horizontal)
+                            }
+                            .padding(.top, 20)
                             
                             // Send Feedback
-                            VStack(spacing: 0) {
-                                Button {
-                                    showingFeedbackSheet = true
-                                } label: {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "bubble.left.and.exclamationmark.bubble.right")
-                                            .font(.system(size: 20))
-                                            .foregroundStyle(Color.appAccent)
-                                            .frame(width: 24)
-                                        
-                                        Text("Send Feedback")
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText)
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appText.opacity(0.3))
-                                    }
-                                    .padding(.horizontal)
+                            Button {
+                                showingFeedbackSheet = true
+                            } label: {
+                                HStack(spacing: 16) {
+                                    Image(systemName: "bubble.left.and.exclamationmark.bubble.right")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(Color.appAccent)
+                                        .frame(width: 24)
+                                    
+                                    Text("Send Feedback")
+                                        .font(.body)
+                                        .foregroundStyle(Color.appText)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.appText.opacity(0.3))
                                 }
-                                .padding(.top, 15)
+                                .padding()
+                                .background(Color.appSurface)
+                                .cornerRadius(10)
+                                .padding(.horizontal)
                             }
+                            .padding(.top, 20)
                             
                             
                             // Sign Out Button
@@ -224,7 +210,6 @@ struct ProfileView: View {
                     }
                 }
             }
-            .navigationTitle("Profile")
             .alert("Sign Out", isPresented: $showingSignOutAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Sign Out", role: .destructive) {
@@ -235,9 +220,9 @@ struct ProfileView: View {
             } message: {
                 Text("Are you sure you want to sign out?")
             }
-            .sheet(isPresented: $showingEditSheet) {
-                EditProfileSheet(viewModel: viewModel)
-                }
+            .sheet(isPresented: $showingEditNameSheet) {
+                EditNameSheet(viewModel: viewModel)
+            }
             .sheet(isPresented: $showingFeedbackSheet) {
                 FeedbackSheet(viewModel: viewModel)
             }
@@ -261,7 +246,22 @@ struct ProfileView: View {
                 await viewModel.loadProfile()
             }
         }
+    
+    // Helper function to get user initials
+    func getUserInitials() -> String {
+        let firstName = viewModel.profile?.firstName ?? ""
+        let lastName = viewModel.profile?.lastName ?? ""
+        
+        let firstInitial = firstName.first?.uppercased() ?? ""
+        let lastInitial = lastName.first?.uppercased() ?? ""
+        
+        if firstInitial.isEmpty && lastInitial.isEmpty {
+            return "?"
+        }
+        
+        return "\(firstInitial)\(lastInitial)"
     }
+}
 
 
 // MARK: - Profile Row
@@ -293,20 +293,249 @@ struct ProfileRow: View {
     }
 }
 
-// MARK: - Edit Profile Sheet
-struct EditProfileSheet: View {
+// MARK: - Edit Name Sheet
+struct EditNameSheet: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: ProfileViewModel
+    @EnvironmentObject var authViewModel: AuthViewModel
     
     @State private var firstName: String = ""
     @State private var lastName: String = ""
+    @State private var email: String = ""
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showingEditFirstNameSheet = false
+    @State private var showingEditLastNameSheet = false
+    @State private var showingChangeEmailSheet = false
     
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
         _firstName = State(initialValue: viewModel.profile?.firstName ?? "")
         _lastName = State(initialValue: viewModel.profile?.lastName ?? "")
+        _email = State(initialValue: viewModel.profile?.email ?? "")
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // Profile Initials Circle
+                        ZStack {
+                            Circle()
+                                .fill(Color.appAccent.opacity(0.2))
+                                .frame(width: 100, height: 100)
+                            
+                            Text(getUserInitials())
+                                .font(.system(size: 40))
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Color.appAccent)
+                        }
+                        .padding(.top, 20)
+                        
+                        // User Details Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Account Details")
+                                .font(.headline)
+                                .foregroundStyle(Color.appText)
+                                .padding(.horizontal)
+                            
+                            VStack(spacing: 0) {
+                                // First Name Row
+                                HStack(spacing: 16) {
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(Color.appAccent)
+                                        .frame(width: 24)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("First Name")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appText.opacity(0.6))
+                                        
+                                        Text(viewModel.profile?.firstName ?? "Not set")
+                                            .font(.body)
+                                            .foregroundStyle(Color.appText)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Button {
+                                        showingEditFirstNameSheet = true
+                                    } label: {
+                                        Image(systemName: "pencil")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(Color.appAccent)
+                                    }
+                                }
+                                .padding()
+                                
+                                Divider()
+                                    .background(Color.appText.opacity(0.1))
+                                    .padding(.leading, 56)
+                                
+                                // Last Name Row
+                                HStack(spacing: 16) {
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(Color.appAccent)
+                                        .frame(width: 24)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Last Name")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appText.opacity(0.6))
+                                        
+                                        Text(viewModel.profile?.lastName ?? "Not set")
+                                            .font(.body)
+                                            .foregroundStyle(Color.appText)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Button {
+                                        showingEditLastNameSheet = true
+                                    } label: {
+                                        Image(systemName: "pencil")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(Color.appAccent)
+                                    }
+                                }
+                                .padding()
+                                
+                                Divider()
+                                    .background(Color.appText.opacity(0.1))
+                                    .padding(.leading, 56)
+                                
+                                // Email Row
+                                HStack(spacing: 16) {
+                                    Image(systemName: "envelope")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(Color.appAccent)
+                                        .frame(width: 24)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Email")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appText.opacity(0.6))
+                                        
+                                        Text(viewModel.profile?.email ?? "Not set")
+                                            .font(.body)
+                                            .foregroundStyle(Color.appText)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Button {
+                                        showingChangeEmailSheet = true
+                                    } label: {
+                                        Image(systemName: "pencil")
+                                            .font(.system(size: 16))
+                                            .foregroundStyle(Color.appAccent)
+                                    }
+                                }
+                                .padding()
+                            }
+                            .background(Color.appSurface)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                        }
+                        .padding(.top, 20)
+                    }
+                }
+            }
+            .navigationTitle("Edit Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundStyle(Color.appAccent)
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+        .presentationBackground(Color.appBackground)
+        .sheet(isPresented: $showingEditFirstNameSheet) {
+            EditFieldSheet(
+                title: "First Name",
+                value: viewModel.profile?.firstName ?? "",
+                placeholder: "Enter first name",
+                onSave: { newValue in
+                    Task {
+                        await viewModel.updateProfile(
+                            firstName: newValue,
+                            lastName: viewModel.profile?.lastName ?? ""
+                        )
+                    }
+                }
+            )
+        }
+        .sheet(isPresented: $showingEditLastNameSheet) {
+            EditFieldSheet(
+                title: "Last Name",
+                value: viewModel.profile?.lastName ?? "",
+                placeholder: "Enter last name",
+                onSave: { newValue in
+                    Task {
+                        await viewModel.updateProfile(
+                            firstName: viewModel.profile?.firstName ?? "",
+                            lastName: newValue
+                        )
+                    }
+                }
+            )
+        }
+        .sheet(isPresented: $showingChangeEmailSheet) {
+            ChangeEmailSheet(
+                authViewModel: authViewModel,
+                onEmailChanged: {
+                    Task {
+                        await viewModel.loadProfile()
+                    }
+                }
+            )
+        }
+    }
+    
+    func getUserInitials() -> String {
+        let firstName = viewModel.profile?.firstName ?? ""
+        let lastName = viewModel.profile?.lastName ?? ""
+        
+        let firstInitial = firstName.first?.uppercased() ?? ""
+        let lastInitial = lastName.first?.uppercased() ?? ""
+        
+        if firstInitial.isEmpty && lastInitial.isEmpty {
+            return "?"
+        }
+        
+        return "\(firstInitial)\(lastInitial)"
+    }
+}
+
+// MARK: - Edit Field Sheet
+struct EditFieldSheet: View {
+    @Environment(\.dismiss) var dismiss
+    
+    let title: String
+    let value: String
+    let placeholder: String
+    let onSave: (String) -> Void
+    
+    @State private var editedValue: String = ""
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
+    init(title: String, value: String, placeholder: String, onSave: @escaping (String) -> Void) {
+        self.title = title
+        self.value = value
+        self.placeholder = placeholder
+        self.onSave = onSave
+        _editedValue = State(initialValue: value)
     }
     
     var body: some View {
@@ -323,28 +552,13 @@ struct EditProfileSheet: View {
                             .padding(.horizontal)
                     }
                     
-                    // First Name
+                    // Text Field
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("First Name")
+                        Text(title)
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         
-                        TextField("", text: $firstName)
-                            .textInputAutocapitalization(.words)
-                            .padding()
-                            .background(Color.appSurface)
-                            .foregroundStyle(Color.appText)
-                            .cornerRadius(10)
-                    }
-                    .padding(.horizontal)
-                    
-                    // Last Name
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Last Name")
-                            .font(.headline)
-                            .foregroundStyle(Color.appText)
-                        
-                        TextField("", text: $lastName)
+                        TextField(placeholder, text: $editedValue)
                             .textInputAutocapitalization(.words)
                             .padding()
                             .background(Color.appSurface)
@@ -357,7 +571,7 @@ struct EditProfileSheet: View {
                 }
                 .padding(.top, 20)
             }
-            .navigationTitle("Edit Profile")
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -370,17 +584,12 @@ struct EditProfileSheet: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        if firstName.isEmpty || lastName.isEmpty {
-                            errorMessage = "First name and last name are required"
+                        if editedValue.trimmingCharacters(in: .whitespaces).isEmpty {
+                            errorMessage = "\(title) cannot be empty"
                             showError = true
                         } else {
-                            Task {
-                                await viewModel.updateProfile(
-                                    firstName: firstName,
-                                    lastName: lastName
-                                )
-                                dismiss()
-                            }
+                            onSave(editedValue)
+                            dismiss()
                         }
                     }
                     .foregroundStyle(Color.appAccent)
@@ -476,6 +685,7 @@ struct FeedbackSheet: View {
                     VStack {
                         Toggle("I would like to receive updates on my feedback", isOn: $isChecked)
                             .foregroundStyle(Color.appText)
+                            .tint(Color.appAccent)
                     }
                     .padding(.horizontal)
                     
@@ -546,10 +756,10 @@ struct LanguageSelectionSheet: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
+            ZStack(alignment: .topLeading) {
                 Color.appBackground.ignoresSafeArea()
                 
-                VStack(spacing: 0) {
+                VStack(spacing: 16) {
                     // Info banner
                     HStack(spacing: 12) {
                         Image(systemName: "info.circle.fill")
@@ -564,22 +774,20 @@ struct LanguageSelectionSheet: View {
                     .padding()
                     .background(Color.blue.opacity(0.1))
                     .cornerRadius(10)
-                    .padding()
                     
                     // Language options
-                    List {
+                    VStack(spacing: 0) {
                         ForEach(languageManager.supportedLanguages, id: \.0) { code, name, icon in
                             Button {
                                 selectedLanguage = code
                             } label: {
                                 HStack(spacing: 16) {
                                     Image(systemName: icon)
-                                        .font(.system(size: 24))
+                                        .font(.title3)
                                         .foregroundStyle(Color.appAccent)
-                                        .frame(width: 32)
+                                        .frame(width: 24)
                                     
                                     Text(name)
-                                        .font(.body)
                                         .foregroundStyle(Color.appText)
                                     
                                     Spacer()
@@ -587,17 +795,23 @@ struct LanguageSelectionSheet: View {
                                     if selectedLanguage == code {
                                         Image(systemName: "checkmark")
                                             .foregroundStyle(Color.appAccent)
-                                            .fontWeight(.bold)
                                     }
                                 }
-                                .padding(.vertical, 8)
+                                .padding()
                             }
-                            .listRowBackground(Color.appSurface)
+                            
+                            if code != languageManager.supportedLanguages.last?.0 {
+                                Divider()
+                                    .background(Color.appText.opacity(0.1))
+                            }
                         }
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
+                    .background(Color.appSurface)
+                    .cornerRadius(10)
+                    
+                    Spacer()
                 }
+                .padding()
             }
             .navigationTitle("Language")
             .navigationBarTitleDisplayMode(.inline)

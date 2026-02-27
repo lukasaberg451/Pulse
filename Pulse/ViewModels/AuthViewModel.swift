@@ -40,6 +40,16 @@ class AuthViewModel: ObservableObject{
             do {
                 // Try to get existing session
                 let session = try await supabase.auth.session
+                
+                // Check if session is expired
+                if session.isExpired {
+                    print("⚠️ Session is expired, signing out")
+                    self.session = nil
+                    self.isAuthenticated = false
+                    try? await supabase.auth.signOut()
+                    return
+                }
+                
                 self.session = session
                 self.isAuthenticated = true
                 await fetchUserProfile()
@@ -50,12 +60,23 @@ class AuthViewModel: ObservableObject{
         }
     
     func getInitialSession() async {
-        do{
+        do {
             let current = try await supabase.auth.session
+            
+            // Check if session is expired
+            if current.isExpired {
+                print("⚠️ Session is expired")
+                self.session = nil
+                self.isAuthenticated = false
+                return
+            }
+            
             self.session = current
-            self .isAuthenticated = true
-        } catch{
+            self.isAuthenticated = true
+        } catch {
             print("No active session: \(error.localizedDescription)")
+            self.session = nil
+            self.isAuthenticated = false
         }
     }
     
@@ -111,6 +132,7 @@ class AuthViewModel: ObservableObject{
             try await supabase.auth.signOut()
             self.session = nil
             self.isAuthenticated = false
+            self.userProfile = nil
         } catch{
             print("Sign-out failed: \(error.localizedDescription)")
         }

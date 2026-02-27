@@ -18,55 +18,57 @@ struct ProgressTabView: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Offline status banner
-                        OfflineStatusBanner()
-                            .animation(.easeInOut, value: syncService.isOnline)
-                        
-                        // Swipeable stat cards
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) {
-                                StatCard(
-                                    title: "Volume This Month",
-                                    value: "\(viewModel.monthlyVolume)",
-                                    unit: "kg",
-                                    icon: "chart.bar.fill",
-                                    color: .appAccent
-                                )
+                        // Monthly Stats
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("This Month")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.appText)
+                                .padding(.horizontal)
+                            
+                            VStack(spacing: 16) {
+                                HStack(spacing: 16) {
+                                    StatCard(
+                                        title: "Volume",
+                                        value: "\(viewModel.monthlyVolume)",
+                                        unit: "kg",
+                                        icon: "chart.bar.fill",
+                                        color: .appAccent
+                                    )
+                                    
+                                    StatCard(
+                                        title: "Workouts",
+                                        value: "\(viewModel.monthlyWorkouts)",
+                                        unit: "sessions",
+                                        icon: "figure.strengthtraining.traditional",
+                                        color: .green
+                                    )
+                                }
+                                .padding(.horizontal)
                                 
-                                StatCard(
-                                    title: "Workouts",
-                                    value: "\(viewModel.monthlyWorkouts)",
-                                    unit: "sessions",
-                                    icon: "figure.strengthtraining.traditional",
-                                    color: .green
-                                )
-                                
-                                StatCard(
-                                    title: "New PRs",
-                                    value: "\(viewModel.monthlyPRs)",
-                                    unit: "records",
-                                    icon: "trophy.fill",
-                                    color: .yellow
-                                )
-                                
-                                StatCard(
-                                    title: "Avg Duration",
-                                    value: "\(viewModel.avgDuration)",
-                                    unit: "min",
-                                    icon: "timer",
-                                    color: .blue
-                                )
-                                
-                                StatCard(
-                                    title: "Current Streak",
-                                    value: "\(viewModel.currentStreak)",
-                                    unit: "days",
-                                    icon: "flame.fill",
-                                    color: .orange
-                                )
+                                HStack(spacing: 16) {
+                                    StatCard(
+                                        title: "Avg Duration",
+                                        value: "\(viewModel.avgDuration)",
+                                        unit: "min",
+                                        icon: "timer",
+                                        color: .blue
+                                    )
+                                    
+                                    StatCard(
+                                        title: "Current Streak",
+                                        value: "\(viewModel.currentStreak)",
+                                        unit: "days",
+                                        icon: "flame.fill",
+                                        color: .orange
+                                    )
+                                }
+                                .padding(.horizontal)
                             }
-                            .padding(.horizontal)
                         }
+                        
+                        // Health Metrics Section
+                        HealthMetricsSection()
                         
                         // Personal Records
                         VStack(alignment: .leading, spacing: 12) {
@@ -93,51 +95,6 @@ struct ProgressTabView: View {
                                     PRCard(pr: pr)
                                 }
                             }
-                        }
-                        
-                        // This Month Summary
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("This Month")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.appText)
-                                .padding(.horizontal)
-                            
-                            VStack(spacing: 16) {
-                                // Volume comparison
-                                ComparisonRow(
-                                    title: "Total Volume",
-                                    current: viewModel.monthlyVolume,
-                                    previous: viewModel.lastMonthVolume,
-                                    unit: "kg"
-                                )
-                                
-                                Divider()
-                                    .background(Color.appText.opacity(0.2))
-                                
-                                // Workout count comparison
-                                ComparisonRow(
-                                    title: "Workouts",
-                                    current: viewModel.monthlyWorkouts,
-                                    previous: viewModel.lastMonthWorkouts,
-                                    unit: "sessions"
-                                )
-                                
-                                Divider()
-                                    .background(Color.appText.opacity(0.2))
-                                
-                                // Average duration
-                                ComparisonRow(
-                                    title: "Avg Duration",
-                                    current: viewModel.avgDuration,
-                                    previous: viewModel.lastMonthAvgDuration,
-                                    unit: "min"
-                                )
-                            }
-                            .padding()
-                            .background(Color.appSurface)
-                            .cornerRadius(10)
-                            .padding(.horizontal)
                         }
                         
                         // Most Trained Muscles
@@ -207,7 +164,7 @@ struct ProgressTabView: View {
                         }
                     }
                     .padding(.top, 30)
-                    .padding(.vertical)
+                    .padding(.bottom)
                 }
                 .refreshable {
                     await viewModel.loadStats()
@@ -397,10 +354,10 @@ struct EmptyMuscleGroupRow: View {
             Image(systemName: "clock.arrow.circlepath")
                 .font(.system(size: 48))
                 .foregroundStyle(Color.appAccent.opacity(0.4))
-            Text("No workout history yet")
+            Text("No history yet")
                 .font(.headline)
                 .foregroundStyle(Color.appText)
-            Text("Complete your first workout to see the data here")
+            Text("Complete your first workout to see data")
                 .font(.caption)
                 .foregroundStyle(Color.appText.opacity(0.5))
                 .multilineTextAlignment(.center)
@@ -491,3 +448,578 @@ struct AllPRsView: View {
         }
     }
 }
+// MARK: - Health Metrics Section
+struct HealthMetricsSection: View {
+    @StateObject private var viewModel = ProfileViewModel()
+    @State private var showingEditSheet = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Health Metrics")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.appText)
+                
+                Spacer()
+                
+                Button {
+                    showingEditSheet = true
+                } label: {
+                    Image(systemName: "pencil.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(Color.appAccent)
+                }
+            }
+            .padding(.horizontal)
+            
+            if let profile = viewModel.profile {
+                VStack(spacing: 16) {
+                    // Weight and Height Row
+                    HStack(spacing: 16) {
+                        // Weight Card
+                        HealthMetricCard(
+                            icon: "scalemass.fill",
+                            title: "Weight",
+                            value: profile.weightKg != nil ? String(format: "%.1f", profile.weightKg!) : "--",
+                            unit: "kg",
+                            color: .blue
+                        )
+                        
+                        // Height Card
+                        HealthMetricCard(
+                            icon: "ruler.fill",
+                            title: "Height",
+                            value: profile.heightCm != nil ? String(format: "%.0f", profile.heightCm!) : "--",
+                            unit: "cm",
+                            color: .green
+                        )
+                    }
+                    .padding(.horizontal)
+                    
+                    // BMI Card
+                    if let bmi = profile.bmi, let category = profile.bmiCategory {
+                        VStack(spacing: 12) {
+                            HStack {
+                                Image(systemName: "heart.text.square.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(Color.red)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("BMI")
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.appText.opacity(0.7))
+                                    
+                                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                        Text(String(format: "%.1f", bmi))
+                                            .font(.title)
+                                            .fontWeight(.bold)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Text("·")
+                                            .foregroundStyle(Color.appText.opacity(0.5))
+                                        
+                                        Text(category)
+                                            .font(.subheadline)
+                                            .foregroundStyle(categoryColor(for: category))
+                                            .fontWeight(.semibold)
+                                    }
+                                }
+                                
+                                Spacer()
+                            }
+                            
+                            // BMI Category Scale
+                            VStack(spacing: 8) {
+                                GeometryReader { geometry in
+                                    ZStack(alignment: .leading) {
+                                        // Background gradient
+                                        HStack(spacing: 0) {
+                                            Rectangle()
+                                                .fill(Color.orange.opacity(0.3))
+                                                .frame(width: geometry.size.width * 0.25)
+                                            
+                                            Rectangle()
+                                                .fill(Color.green.opacity(0.3))
+                                                .frame(width: geometry.size.width * 0.25)
+                                            
+                                            Rectangle()
+                                                .fill(Color.orange.opacity(0.3))
+                                                .frame(width: geometry.size.width * 0.25)
+                                            
+                                            Rectangle()
+                                                .fill(Color.red.opacity(0.3))
+                                                .frame(width: geometry.size.width * 0.25)
+                                        }
+                                        .cornerRadius(4)
+                                        
+                                        // Indicator
+                                        let position = bmiToPosition(bmi: bmi, width: geometry.size.width)
+                                        Circle()
+                                            .fill(categoryColor(for: category))
+                                            .frame(width: 10, height: 10)
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.appBackground, lineWidth: 2)
+                                            )
+                                            .offset(x: position - 5)
+                                    }
+                                }
+                                .frame(height: 10)
+                                
+                                // Category labels
+                                HStack {
+                                    Text("Underweight")
+                                        .font(.system(size: 9))
+                                    Spacer()
+                                    Text("Normal")
+                                        .font(.system(size: 9))
+                                    Spacer()
+                                    Text("Overweight")
+                                        .font(.system(size: 9))
+                                    Spacer()
+                                    Text("Obese")
+                                        .font(.system(size: 9))
+                                }
+                                .foregroundStyle(Color.appText.opacity(0.5))
+                            }
+                        }
+                        .padding()
+                        .background(Color.appSurface)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    } else if profile.weightKg == nil || profile.heightCm == nil {
+                        // Empty state - prompt to add data
+                        VStack(spacing: 12) {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.system(size: 40))
+                                .foregroundStyle(Color.appAccent.opacity(0.5))
+                            
+                            Text("Add your weight and height to calculate BMI")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .multilineTextAlignment(.center)
+                            
+                            Button {
+                                showingEditSheet = true
+                            } label: {
+                                Text("Add Health Metrics")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.white)
+                                    .padding(.horizontal, 24)
+                                    .padding(.vertical, 12)
+                                    .background(Color.appAccent)
+                                    .cornerRadius(10)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
+                        .padding(.horizontal)
+                        .background(Color.appSurface)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    }
+                }
+            } else {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+            }
+        }
+        .task {
+            await viewModel.loadProfile()
+        }
+        .sheet(isPresented: $showingEditSheet) {
+            EditHealthMetricsSheet(viewModel: viewModel)
+        }
+    }
+    
+    func categoryColor(for category: String) -> Color {
+        switch category {
+        case "Underweight":
+            return .orange
+        case "Normal":
+            return .green
+        case "Overweight":
+            return .orange
+        case "Obese":
+            return .red
+        default:
+            return .gray
+        }
+    }
+    
+    func bmiToPosition(bmi: Double, width: CGFloat) -> CGFloat {
+        // Map BMI value to position on scale (0 to width)
+        // Scale: 15 to 35 BMI range
+        let minBMI = 15.0
+        let maxBMI = 35.0
+        let clampedBMI = max(minBMI, min(maxBMI, bmi))
+        let percentage = (clampedBMI - minBMI) / (maxBMI - minBMI)
+        return CGFloat(percentage) * width
+    }
+}
+
+// MARK: - Health Metric Card
+struct HealthMetricCard: View {
+    let icon: String
+    let title: String
+    let value: String
+    let unit: String
+    let color: Color
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundStyle(color)
+                Spacer()
+            }
+            
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(Color.appText.opacity(0.7))
+            
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(value)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.appText)
+                
+                Text(unit)
+                    .font(.caption)
+                    .foregroundStyle(Color.appText.opacity(0.6))
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 100, alignment: .leading)
+        .padding()
+        .background(Color.appSurface)
+        .cornerRadius(10)
+    }
+}
+
+// MARK: - Edit Health Metrics Sheet
+struct EditHealthMetricsSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject var viewModel: ProfileViewModel
+    
+    @State private var weightText: String
+    @State private var heightText: String
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
+    init(viewModel: ProfileViewModel) {
+        self.viewModel = viewModel
+        
+        let weight = viewModel.profile?.weightKg ?? 0
+        let height = viewModel.profile?.heightCm ?? 0
+        
+        _weightText = State(initialValue: weight > 0 ? String(format: "%.1f", weight) : "")
+        _heightText = State(initialValue: height > 0 ? String(format: "%.0f", height) : "")
+    }
+    
+    var currentBMI: Double? {
+        guard let weight = Double(weightText),
+              let height = Double(heightText),
+              weight > 0, height > 0 else { return nil }
+        
+        let heightInMeters = height / 100.0
+        return weight / (heightInMeters * heightInMeters)
+    }
+    
+    var bmiCategory: String? {
+        guard let bmi = currentBMI else { return nil }
+        
+        switch bmi {
+        case ..<18.5:
+            return "Underweight"
+        case 18.5..<25:
+            return "Normal"
+        case 25..<30:
+            return "Overweight"
+        default:
+            return "Obese"
+        }
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Error message
+                        if showError {
+                            Text(errorMessage)
+                                .foregroundStyle(Color.red)
+                                .font(.caption)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(10)
+                        }
+                        
+                        // Weight Input
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "scalemass.fill")
+                                    .foregroundStyle(Color.blue)
+                                Text("Weight")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.appText)
+                            }
+                            
+                            HStack {
+                                TextField("0.0", text: $weightText)
+                                    .keyboardType(.decimalPad)
+                                    .textFieldStyle(.plain)
+                                    .font(.title2)
+                                    .foregroundStyle(Color.appText)
+                                    .multilineTextAlignment(.leading)
+                                
+                                Text("kg")
+                                    .font(.title3)
+                                    .foregroundStyle(Color.appText.opacity(0.6))
+                            }
+                            .padding()
+                            .background(Color.appSurface)
+                            .cornerRadius(10)
+                        }
+                        
+                        // Height Input
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "ruler.fill")
+                                    .foregroundStyle(Color.green)
+                                Text("Height")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.appText)
+                            }
+                            
+                            HStack {
+                                TextField("0", text: $heightText)
+                                    .keyboardType(.numberPad)
+                                    .textFieldStyle(.plain)
+                                    .font(.title2)
+                                    .foregroundStyle(Color.appText)
+                                    .multilineTextAlignment(.leading)
+                                
+                                Text("cm")
+                                    .font(.title3)
+                                    .foregroundStyle(Color.appText.opacity(0.6))
+                            }
+                            .padding()
+                            .background(Color.appSurface)
+                            .cornerRadius(10)
+                        }
+                        
+                        // BMI Preview
+                        if let bmi = currentBMI, let category = bmiCategory {
+                            Divider()
+                                .padding(.vertical, 8)
+                            
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Image(systemName: "heart.text.square.fill")
+                                        .foregroundStyle(Color.red)
+                                    Text("BMI Preview")
+                                        .font(.headline)
+                                        .foregroundStyle(Color.appText)
+                                }
+                                
+                                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                    Text(String(format: "%.1f", bmi))
+                                        .font(.system(size: 48, weight: .bold))
+                                        .foregroundStyle(Color.appText)
+                                    
+                                    VStack(alignment: .leading) {
+                                        Text(category)
+                                            .font(.title3)
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(categoryColor(for: category))
+                                    }
+                                }
+                                
+                                // BMI Scale
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("BMI Categories")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.appText.opacity(0.6))
+                                    
+                                    BMIScale(currentBMI: bmi)
+                                }
+                                .padding(.top, 8)
+                            }
+                            .padding()
+                            .background(Color.appSurface)
+                            .cornerRadius(10)
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding()
+                }
+                
+                // Loading overlay
+                if viewModel.isSubmitting {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                    
+                    VStack(spacing: 20) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(1.5)
+                        
+                        Text("Saving...")
+                            .foregroundStyle(Color.white)
+                            .font(.headline)
+                    }
+                }
+            }
+            .navigationTitle("Health Metrics")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundStyle(Color.appText)
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        Task {
+                            await saveHealthMetrics()
+                        }
+                    }
+                    .foregroundStyle(Color.appAccent)
+                    .fontWeight(.semibold)
+                    .disabled(viewModel.isSubmitting)
+                }
+            }
+        }
+        .presentationBackground(Color.appBackground)
+    }
+    
+    func saveHealthMetrics() async {
+        showError = false
+        errorMessage = ""
+        
+        // Validate inputs
+        let weight = Double(weightText)
+        let height = Double(heightText)
+        
+        if let weight = weight, weight <= 0 {
+            errorMessage = "Weight must be greater than 0"
+            showError = true
+            return
+        }
+        
+        if let height = height, height <= 0 {
+            errorMessage = "Height must be greater than 0"
+            showError = true
+            return
+        }
+        
+        // Save to database
+        let success = await viewModel.updateHealthMetrics(weightKg: weight, heightCm: height)
+        
+        if success {
+            dismiss()
+        } else {
+            errorMessage = viewModel.errorMessage ?? "Failed to save health metrics"
+            showError = true
+        }
+    }
+    
+    func categoryColor(for category: String) -> Color {
+        switch category {
+        case "Underweight":
+            return .orange
+        case "Normal":
+            return .green
+        case "Overweight":
+            return .orange
+        case "Obese":
+            return .red
+        default:
+            return .gray
+        }
+    }
+}
+
+// MARK: - BMI Scale
+struct BMIScale: View {
+    let currentBMI: Double
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            // Scale indicator
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background gradient
+                    HStack(spacing: 0) {
+                        Rectangle()
+                            .fill(Color.orange.opacity(0.5))
+                            .frame(width: geometry.size.width * 0.25)
+                        
+                        Rectangle()
+                            .fill(Color.green.opacity(0.5))
+                            .frame(width: geometry.size.width * 0.25)
+                        
+                        Rectangle()
+                            .fill(Color.orange.opacity(0.5))
+                            .frame(width: geometry.size.width * 0.25)
+                        
+                        Rectangle()
+                            .fill(Color.red.opacity(0.5))
+                            .frame(width: geometry.size.width * 0.25)
+                    }
+                    .cornerRadius(4)
+                    
+                    // Indicator
+                    let position = bmiToPosition(bmi: currentBMI, width: geometry.size.width)
+                    Circle()
+                        .fill(Color.appText)
+                        .frame(width: 12, height: 12)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.appBackground, lineWidth: 2)
+                        )
+                        .offset(x: position - 6)
+                }
+            }
+            .frame(height: 12)
+            
+            // Labels
+            HStack {
+                Text("< 18.5")
+                    .font(.caption2)
+                Spacer()
+                Text("18.5-25")
+                    .font(.caption2)
+                Spacer()
+                Text("25-30")
+                    .font(.caption2)
+                Spacer()
+                Text("> 30")
+                    .font(.caption2)
+            }
+            .foregroundStyle(Color.appText.opacity(0.6))
+        }
+    }
+    
+    func bmiToPosition(bmi: Double, width: CGFloat) -> CGFloat {
+        // Map BMI value to position on scale (0 to width)
+        // Scale: 15 to 35 BMI range
+        let minBMI = 15.0
+        let maxBMI = 35.0
+        let clampedBMI = max(minBMI, min(maxBMI, bmi))
+        let percentage = (clampedBMI - minBMI) / (maxBMI - minBMI)
+        return CGFloat(percentage) * width
+    }
+}
+

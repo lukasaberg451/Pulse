@@ -113,4 +113,37 @@ class ProfileViewModel: ObservableObject {
             return false
         }
     }
+    
+    func updateHealthMetrics(weightKg: Double?, heightCm: Double?) async -> Bool {
+        isSubmitting = true
+        errorMessage = nil
+        
+        do {
+            guard let userId = supabase.auth.currentUser?.id else {
+                errorMessage = "User not authenticated"
+                isSubmitting = false
+                return false
+            }
+            
+            struct UpdateHealthMetrics: Encodable {
+                let weight_kg: Double?
+                let height_cm: Double?
+            }
+            
+            try await supabase
+                .from("profiles")
+                .update(UpdateHealthMetrics(weight_kg: weightKg, height_cm: heightCm))
+                .eq("id", value: userId.uuidString)
+                .execute()
+            
+            // Reload profile
+            await loadProfile()
+            isSubmitting = false
+            return true
+        } catch {
+            errorMessage = "Failed to update health metrics: \(error.localizedDescription)"
+            isSubmitting = false
+            return false
+        }
+    }
 }

@@ -121,78 +121,84 @@ struct RoutineDetailView: View {
                     .background(Color.appBackground)
                     
                     // Exercises list
-                    List {
-                        ForEach(viewModel.routineExercises) { routineExercise in
-                            if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
-                                HStack(spacing: 12) {
-                                    // Drag handle
-                                    Image(systemName: "line.3.horizontal")
-                                        .foregroundStyle(Color.appText.opacity(0.3))
-                                        .font(.title3)
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(exercise.name)
-                                            .font(.headline)
-                                            .foregroundStyle(Color.appText)
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            ForEach(viewModel.routineExercises) { routineExercise in
+                                if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
+                                    HStack(spacing: 12) {
+                                        // Drag handle
+                                        Image(systemName: "line.3.horizontal")
+                                            .foregroundStyle(Color.appText.opacity(0.3))
+                                            .font(.title3)
                                         
-                                        if let reps = routineExercise.repsTarget {
-                                            Text("\(routineExercise.sets) sets × \(reps) reps")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
-                                        } else if let durationSeconds = routineExercise.durationSeconds {
-                                            let minutes = durationSeconds / 60
-                                            let seconds = durationSeconds % 60
-                                            let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
-                                            Text("\(routineExercise.sets) sets × \(durationText)")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(exercise.name)
+                                                .font(.headline)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            if let reps = routineExercise.repsTarget {
+                                                Text("\(routineExercise.sets) sets × \(reps) reps")
+                                                    .font(.caption)
+                                                    .foregroundStyle(Color.appText.opacity(0.6))
+                                            } else if let durationSeconds = routineExercise.durationSeconds {
+                                                let minutes = durationSeconds / 60
+                                                let seconds = durationSeconds % 60
+                                                let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
+                                                Text("\(routineExercise.sets) sets × \(durationText)")
+                                                    .font(.caption)
+                                                    .foregroundStyle(Color.appText.opacity(0.6))
+                                            }
+                                            
+                                            // Always show rest line to maintain consistent card height
+                                            if routineExercise.restSeconds > 0 {
+                                                Text("\(routineExercise.restSeconds)s rest")
+                                                    .font(.caption)
+                                                    .foregroundStyle(Color.appText.opacity(0.6))
+                                            } else {
+                                                Text(" ")
+                                                    .font(.caption)
+                                                    .foregroundStyle(Color.clear)
+                                            }
                                         }
                                         
-                                        Text("\(routineExercise.restSeconds)s rest")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appText.opacity(0.6))
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    // Three-dot menu
-                                    Menu {
-                                        Button {
-                                            editingExercise = routineExercise
-                                        } label: {
-                                            Label("Edit Exercise", systemImage: "pencil")
-                                        }
+                                        Spacer()
                                         
-                                        Button(role: .destructive) {
-                                            Task {
-                                                await viewModel.deleteExercise(routineExercise)
+                                        // Three-dot menu
+                                        Menu {
+                                            Button {
+                                                editingExercise = routineExercise
+                                            } label: {
+                                                Label("Edit Exercise", systemImage: "pencil")
+                                            }
+                                            
+                                            Button(role: .destructive) {
+                                                Task {
+                                                    await viewModel.deleteExercise(routineExercise)
+                                                }
+                                            } label: {
+                                                Label("Delete Exercise", systemImage: "trash")
                                             }
                                         } label: {
-                                            Label("Delete Exercise", systemImage: "trash")
+                                            Image(systemName: "ellipsis")
+                                                .font(.title3)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                                .frame(width: 44, height: 44)
                                         }
-                                    } label: {
-                                        Image(systemName: "ellipsis")
-                                            .font(.title3)
-                                            .foregroundStyle(Color.appText.opacity(0.6))
-                                            .frame(width: 44, height: 44)
                                     }
+                                    .padding()
+                                    .background(Color.appSurface)
+                                    .cornerRadius(10)
                                 }
-                                .padding()
-                                .background(Color.appSurface)
-                                .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
-                                .listRowBackground(Color.clear)
-                                .listRowInsets(EdgeInsets())
-                                .listRowSeparator(.hidden)
+                            }
+                            .onMove { source, destination in
+                                Task {
+                                    await viewModel.moveExercise(from: source, to: destination)
+                                }
                             }
                         }
-                        .onMove { source, destination in
-                            Task {
-                                await viewModel.moveExercise(from: source, to: destination)
-                            }
-                        }
+                        .padding(.horizontal)
+                        .padding(.vertical)
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
                     .background(Color.appBackground)
                 }
             }
@@ -245,49 +251,55 @@ struct ExercisePickerSheet: View {
     @Environment(\.dismiss) var dismiss
     
     @State private var searchText = ""
-    @State private var selectedEquipment: String? = nil
     @State private var selectedMuscle: String? = nil
+    @State private var selectedEquipment: String? = nil
+    @State private var showingFilterSheet = false
     @State private var showingConfigSheet = false
     @State private var selectedExercise: Exercise?
     
     // Search debounce
     @State private var searchTask: Task<Void, Never>?
     
-    let equipmentOptions = [
-        ("Barbell", "Barbell"),
-        ("Bike", "Bike"),
-        ("Bodyweight", "Bodyweight"),
-        ("Cable", "Cable"),
-        ("Dumbbell", "Dumbbell"),
-        ("Kettlebell", "Kettlebell"),
-        ("Machine", "Machine"),
-        ("Medicine Ball", "Medicine Ball"),
-        ("Resistance Band", " Resistance Band"),
-        ("Sandbag", "Sandbag"),
-        ("Sled", "Sled"),
-        ("Smith Machine", "Smith Machine"),
-        ("Treadmill", "Treadmill"),
-        ("TRX", "TRX")
+    let muscleOptions = [
+        "Back", "Biceps", "Calves", "Cardio", "Chest", "Core",
+        "Forearms", "Full Body", "Glutes", "Hamstrings",
+        "Upper Back", "Lower Back", "Quads", "Shoulders", "Traps", "Triceps"
     ]
     
-    let muscleOptions = [
-        ("Back", "Back"),
-        ("Biceps", "Biceps"),
-        ("Calves", "Calves"),
-        ("Cardio", "Cardio"),
-        ("Chest", "Chest"),
-        ("Core", "Core"),
-        ("Forearms", "Forearms"),
-        ("Full Body", "Full Body"),
-        ("Glutes", "Glutes"),
-        ("Hamstrings", "Hamstrings"),
-        ("Upper Back", "Upper Back"),
-        ("Lower Back", "Lower Back"),
-        ("Quads", "Quads"),
-        ("Shoulders", "Shoulders"),
-        ("Traps", "Traps"),
-        ("Triceps", "Triceps")
+    let equipmentOptions = [
+        "Barbell", "Bike", "Bodyweight", "Cable", "Dumbbell",
+        "Kettlebell", "Machine", "Medicine Ball", "Resistance Band",
+        "Sandbag", "Sled", "Smith Machine", "Treadmill", "TRX"
     ]
+    
+    var filteredExercises: [Exercise] {
+        var exercises = viewModel.exercises
+        
+        // Filter by muscle group
+        if let muscle = selectedMuscle {
+            exercises = exercises.filter { exercise in
+                guard let muscleGroup = exercise.muscleGroup else { return false }
+                return muscleGroup.lowercased().contains(muscle.lowercased())
+            }
+        }
+        
+        // Filter by equipment
+        if let equipment = selectedEquipment {
+            exercises = exercises.filter { exercise in
+                guard let exerciseEquipment = exercise.equipment else { return false }
+                return exerciseEquipment.lowercased() == equipment.lowercased()
+            }
+        }
+        
+        return exercises
+    }
+    
+    var activeFilterCount: Int {
+        var count = 0
+        if selectedMuscle != nil { count += 1 }
+        if selectedEquipment != nil { count += 1 }
+        return count
+    }
     
     var body: some View {
         NavigationStack {
@@ -295,156 +307,184 @@ struct ExercisePickerSheet: View {
                 Color.appBackground.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Search bar
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundStyle(Color.appText.opacity(0.5))
-                        TextField("Search exercises...", text: $searchText)
-                            .foregroundStyle(Color.appText)
-                            .onChange(of: searchText) { _, newValue in
-                                // Debounce search
-                                searchTask?.cancel()
-                                searchTask = Task {
-                                    try? await Task.sleep(nanoseconds: 500_000_000)
-                                    if !Task.isCancelled {
-                                        await viewModel.resetAndLoad(
-                                            equipment: selectedEquipment,
-                                            muscle: selectedMuscle,
-                                            search: newValue
-                                        )
+                    // Search bar with filter button
+                    HStack(spacing: 12) {
+                        // Search field
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundStyle(Color.appText.opacity(0.5))
+                            TextField("Search exercises...", text: $searchText)
+                                .foregroundStyle(Color.appText)
+                                .onChange(of: searchText) { _, newValue in
+                                    searchTask?.cancel()
+                                    searchTask = Task {
+                                        try? await Task.sleep(nanoseconds: 300_000_000)
+                                        if !Task.isCancelled {
+                                            await viewModel.resetAndLoad(search: newValue)
+                                        }
                                     }
                                 }
+                            
+                            if !searchText.isEmpty {
+                                Button {
+                                    searchText = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(Color.appText.opacity(0.5))
+                                }
                             }
+                        }
+                        .padding()
+                        .background(Color.appSurface)
+                        .cornerRadius(10)
                         
-                        if !searchText.isEmpty {
-                            Button {
-                                searchText = ""
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(Color.appText.opacity(0.5))
+                        // Filter button
+                        Button {
+                            showingFilterSheet = true
+                        } label: {
+                            ZStack(alignment: .topTrailing) {
+                                Image(systemName: activeFilterCount > 0 ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                                    .font(.title2)
+                                    .foregroundStyle(activeFilterCount > 0 ? Color.appAccent : Color.appText)
+                                
+                                if activeFilterCount > 0 {
+                                    Circle()
+                                        .fill(Color.red)
+                                        .frame(width: 16, height: 16)
+                                        .overlay(
+                                            Text("\(activeFilterCount)")
+                                                .font(.system(size: 10, weight: .bold))
+                                                .foregroundStyle(Color.white)
+                                        )
+                                        .offset(x: 8, y: -8)
+                                }
                             }
                         }
+                        .frame(width: 44, height: 44)
                     }
-                    .padding()
-                    .background(Color.appSurface)
-                    .cornerRadius(10)
                     .padding(.horizontal)
-                    .padding(.top, 8)
+                    .padding(.vertical, 12)
                     
-                    // Equipment filter
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            FilterChip(title: "All Equipment", isSelected: selectedEquipment == nil) {
-                                selectedEquipment = nil
-                                Task { await viewModel.resetAndLoad(equipment: nil, muscle: selectedMuscle, search: searchText) }
-                            }
-
-                            ForEach(equipmentOptions, id: \.0) { value, label in
-                                FilterChip(title: label, isSelected: selectedEquipment == value) {
-                                    selectedEquipment = selectedEquipment == value ? nil : value
-                                    let newEquipment = selectedEquipment  // Capture AFTER update
-                                    Task { await viewModel.resetAndLoad(equipment: newEquipment, muscle: selectedMuscle, search: searchText) }
+                    // Active filters display
+                    if activeFilterCount > 0 {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                if let muscle = selectedMuscle {
+                                    ActiveFilterChip(title: muscle, icon: "figure.arms.open") {
+                                        selectedMuscle = nil
+                                    }
+                                }
+                                
+                                if let equipment = selectedEquipment {
+                                    ActiveFilterChip(title: equipment, icon: "dumbbell.fill") {
+                                        selectedEquipment = nil
+                                    }
+                                }
+                                
+                                Button {
+                                    selectedMuscle = nil
+                                    selectedEquipment = nil
+                                } label: {
+                                    Text("Clear all")
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(Color.red)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color.red.opacity(0.1))
+                                        .cornerRadius(16)
                                 }
                             }
+                            .padding(.horizontal)
+                            .padding(.bottom, 8)
                         }
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                    }
-                    
-                    // Muscle filter
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            FilterChip(title: "All Muscles", isSelected: selectedMuscle == nil) {
-                                selectedMuscle = nil
-                                Task { await viewModel.resetAndLoad(equipment: selectedEquipment, muscle: nil, search: searchText) }
-                            }
-
-                            ForEach(muscleOptions, id: \.0) { value, label in
-                                FilterChip(title: value.capitalized, isSelected: selectedMuscle == value) {
-                                    selectedMuscle = selectedMuscle == value ? nil : value
-                                    let newMuscle = selectedMuscle
-                                    Task { await viewModel.resetAndLoad(equipment: selectedEquipment, muscle: newMuscle, search: searchText) }
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.bottom, 8)
                     }
                     
                     // Results count
                     HStack {
-                        Text("\(viewModel.exercises.count) exercises")
+                        Text("\(filteredExercises.count) exercises")
                             .font(.caption)
                             .foregroundStyle(Color.appText.opacity(0.6))
                         Spacer()
                     }
                     .padding(.horizontal)
-                    .padding(.bottom, 4)
+                    .padding(.vertical, 8)
                     
                     // Exercise list
-                    List {
-                        ForEach(viewModel.exercises) { exercise in
-                            Button {
-                                selectedExercise = exercise
-                                showingConfigSheet = true
-                            } label: {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(exercise.name)
-                                            .font(.headline)
-                                            .foregroundStyle(Color.appText)
-                                        
-                                        HStack(spacing: 8) {
-                                            if let equipment = exercise.equipment {
-                                                Text(equipment.capitalized)
-                                                    .font(.caption)
-                                                    .padding(.horizontal, 8)
-                                                    .padding(.vertical, 2)
-                                                    .background(Color.appAccent.opacity(0.2))
-                                                    .foregroundStyle(Color.appAccent)
-                                                    .cornerRadius(10)
+                    if filteredExercises.isEmpty {
+                        VStack(spacing: 16) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 48))
+                                .foregroundStyle(Color.appText.opacity(0.3))
+                            
+                            Text("No exercises found")
+                                .font(.headline)
+                                .foregroundStyle(Color.appText)
+                            
+                            Text("Try adjusting your filters")
+                                .font(.caption)
+                                .foregroundStyle(Color.appText.opacity(0.6))
+                        }
+                        .frame(maxHeight: .infinity)
+                        .padding()
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(filteredExercises) { exercise in
+                                    Button {
+                                        selectedExercise = exercise
+                                        showingConfigSheet = true
+                                    } label: {
+                                        HStack(spacing: 12) {
+                                            VStack(alignment: .leading, spacing: 6) {
+                                                Text(exercise.name)
+                                                    .font(.headline)
+                                                    .foregroundStyle(Color.appText)
+                                                
+                                                HStack(spacing: 8) {
+                                                    if let muscle = exercise.muscleGroup {
+                                                        Label(muscle.capitalized, systemImage: "figure.arms.open")
+                                                            .font(.caption)
+                                                            .foregroundStyle(Color.appText.opacity(0.6))
+                                                    }
+                                                    
+                                                    if let equipment = exercise.equipment, equipment != "Bodyweight" {
+                                                        Label(equipment.capitalized, systemImage: "dumbbell.fill")
+                                                            .font(.caption)
+                                                            .foregroundStyle(Color.appAccent.opacity(0.8))
+                                                    }
+                                                }
                                             }
                                             
-                                            if let muscle = exercise.muscleGroup {
-                                                Text(muscle.capitalized)
-                                                    .font(.caption)
-                                                    .padding(.horizontal, 8)
-                                                    .padding(.vertical, 2)
-                                                    .background(Color.appSurface)
-                                                    .foregroundStyle(Color.appText.opacity(0.6))
-                                                    .cornerRadius(10)
-                                            }
+                                            Spacer()
+                                            
+                                            Image(systemName: "plus.circle.fill")
+                                                .font(.title2)
+                                                .foregroundStyle(Color.appAccent)
                                         }
+                                        .padding()
+                                        .background(Color.appSurface)
+                                        .cornerRadius(10)
                                     }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "plus.circle")
-                                        .foregroundStyle(Color.appAccent)
+                                    .task {
+                                        await viewModel.loadMoreIfNeeded(currentExercise: exercise)
+                                    }
+                                }
+                                
+                                if viewModel.isLoadingMore {
+                                    HStack {
+                                        Spacer()
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
+                                        Spacer()
+                                    }
+                                    .padding()
                                 }
                             }
-                            .listRowBackground(Color.appSurface)
-                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                            .listRowSeparator(.hidden)
-                            .task {
-                                // Load more when reaching end of list
-                                await viewModel.loadMoreIfNeeded(currentExercise: exercise)
-                            }
-                        }
-                        
-                        // Loading more indicator
-                        if viewModel.isLoadingMore {
-                            HStack {
-                                Spacer()
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
-                                Spacer()
-                            }
-                            .listRowBackground(Color.clear)
+                            .padding(.horizontal)
+                            .padding(.bottom, 20)
                         }
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
                 }
                 
                 // Loading overlay
@@ -474,6 +514,14 @@ struct ExercisePickerSheet: View {
                     )
                 }
             }
+            .sheet(isPresented: $showingFilterSheet) {
+                FilterSheet(
+                    selectedMuscle: $selectedMuscle,
+                    selectedEquipment: $selectedEquipment,
+                    muscleOptions: muscleOptions,
+                    equipmentOptions: equipmentOptions
+                )
+            }
             .task {
                 await viewModel.resetAndLoad()
             }
@@ -482,7 +530,243 @@ struct ExercisePickerSheet: View {
     }
 }
 
-// MARK: - Filter Chip
+// MARK: - Active Filter Chip
+struct ActiveFilterChip: View {
+    let title: String
+    let icon: String
+    let onRemove: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.caption)
+            Text(title)
+                .font(.caption)
+                .fontWeight(.medium)
+            
+            Button(action: onRemove) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.caption)
+            }
+        }
+        .foregroundStyle(Color.white)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color.appAccent)
+        .cornerRadius(16)
+    }
+}
+
+// MARK: - Filter Sheet
+struct FilterSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @Binding var selectedMuscle: String?
+    @Binding var selectedEquipment: String?
+    let muscleOptions: [String]
+    let equipmentOptions: [String]
+    
+    @State private var tempMuscle: String?
+    @State private var tempEquipment: String?
+    
+    init(selectedMuscle: Binding<String?>, selectedEquipment: Binding<String?>, muscleOptions: [String], equipmentOptions: [String]) {
+        _selectedMuscle = selectedMuscle
+        _selectedEquipment = selectedEquipment
+        self.muscleOptions = muscleOptions
+        self.equipmentOptions = equipmentOptions
+        _tempMuscle = State(initialValue: selectedMuscle.wrappedValue)
+        _tempEquipment = State(initialValue: selectedEquipment.wrappedValue)
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Muscle Group Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Label("Muscle Group", systemImage: "figure.arms.open")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.appText)
+                                
+                                Spacer()
+                                
+                                if tempMuscle != nil {
+                                    Button("Clear") {
+                                        tempMuscle = nil
+                                    }
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appAccent)
+                                }
+                            }
+                            
+                            // Muscle options in flowing layout
+                            FlowLayout(spacing: 8) {
+                                ForEach(muscleOptions, id: \.self) { muscle in
+                                    Button {
+                                        tempMuscle = tempMuscle == muscle ? nil : muscle
+                                    } label: {
+                                        Text(muscle)
+                                            .font(.subheadline)
+                                            .foregroundStyle(tempMuscle == muscle ? Color.white : Color.appText)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 10)
+                                            .background(tempMuscle == muscle ? Color.appAccent : Color.appSurface)
+                                            .cornerRadius(20)
+                                    }
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color.appSurface.opacity(0.3))
+                        .cornerRadius(12)
+                        
+                        // Equipment Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Label("Equipment", systemImage: "dumbbell.fill")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.appText)
+                                
+                                Spacer()
+                                
+                                if tempEquipment != nil {
+                                    Button("Clear") {
+                                        tempEquipment = nil
+                                    }
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appAccent)
+                                }
+                            }
+                            
+                            // Equipment options in flowing layout
+                            FlowLayout(spacing: 8) {
+                                ForEach(equipmentOptions, id: \.self) { equipment in
+                                    Button {
+                                        tempEquipment = tempEquipment == equipment ? nil : equipment
+                                    } label: {
+                                        Text(equipment)
+                                            .font(.subheadline)
+                                            .foregroundStyle(tempEquipment == equipment ? Color.white : Color.appText)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 10)
+                                            .background(tempEquipment == equipment ? Color.appAccent : Color.appSurface)
+                                            .cornerRadius(20)
+                                    }
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color.appSurface.opacity(0.3))
+                        .cornerRadius(12)
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Filters")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundStyle(Color.appText)
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Apply") {
+                        selectedMuscle = tempMuscle
+                        selectedEquipment = tempEquipment
+                        dismiss()
+                    }
+                    .foregroundStyle(Color.appAccent)
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+        .presentationBackground(Color.appBackground)
+        .presentationDetents([.medium, .large])
+    }
+}
+
+// MARK: - Flow Layout
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = FlowResult(
+            in: proposal.replacingUnspecifiedDimensions().width,
+            subviews: subviews,
+            spacing: spacing
+        )
+        return result.size
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = FlowResult(
+            in: bounds.width,
+            subviews: subviews,
+            spacing: spacing
+        )
+        for (index, subview) in subviews.enumerated() {
+            subview.place(at: CGPoint(x: bounds.minX + result.frames[index].minX, y: bounds.minY + result.frames[index].minY), proposal: .unspecified)
+        }
+    }
+    
+    struct FlowResult {
+        var frames: [CGRect] = []
+        var size: CGSize = .zero
+        
+        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
+            var currentX: CGFloat = 0
+            var currentY: CGFloat = 0
+            var lineHeight: CGFloat = 0
+            
+            for subview in subviews {
+                let size = subview.sizeThatFits(.unspecified)
+                
+                if currentX + size.width > maxWidth && currentX > 0 {
+                    // Move to next line
+                    currentX = 0
+                    currentY += lineHeight + spacing
+                    lineHeight = 0
+                }
+                
+                frames.append(CGRect(x: currentX, y: currentY, width: size.width, height: size.height))
+                
+                lineHeight = max(lineHeight, size.height)
+                currentX += size.width + spacing
+            }
+            
+            self.size = CGSize(width: maxWidth, height: currentY + lineHeight)
+        }
+    }
+}
+
+// MARK: - Muscle Pill
+struct MusclePill: View {
+    let muscle: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(muscle)
+                .font(.subheadline)
+                .fontWeight(isSelected ? .semibold : .regular)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(isSelected ? Color.appAccent : Color.appSurface)
+                .foregroundStyle(isSelected ? Color.white : Color.appText)
+                .cornerRadius(20)
+        }
+    }
+}
+
+// MARK: - Filter Chip (Legacy - kept for other parts of app if needed)
 struct FilterChip: View {
     let title: String
     let isSelected: Bool
@@ -495,7 +779,7 @@ struct FilterChip: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(isSelected ? Color.appAccent : Color.appSurface)
-                .foregroundStyle(isSelected ? Color.appText : Color.appText)
+                .foregroundStyle(isSelected ? Color.white : Color.appText)
                 .cornerRadius(10)
         }
     }
@@ -512,6 +796,18 @@ struct ExerciseConfigSheet: View {
     @State private var durationMinutes = 5
     @State private var durationSeconds = 0
     @State private var restSeconds = 60
+    
+    // Cardio-specific
+    @State private var cardioMode: CardioMode = .continuous
+    
+    enum CardioMode: String, CaseIterable {
+        case continuous = "Continuous"
+        case intervals = "Intervals"
+    }
+    
+    var isCardio: Bool {
+        exercise.exerciseType == "cardio"
+    }
     
     var body: some View {
         NavigationStack {
@@ -531,10 +827,58 @@ struct ExerciseConfigSheet: View {
                     .listRowBackground(Color.appSurface)
                     
                     Section(header: Text("Configuration").foregroundStyle(Color.appText)) {
-                        Stepper("Sets: \(sets)", value: $sets, in: 1...10)
-                            .foregroundStyle(Color.appText)
-                        
-                        if exercise.exerciseType == "strength" {
+                        if isCardio {
+                            // Cardio mode picker
+                            Picker("Mode", selection: $cardioMode) {
+                                ForEach(CardioMode.allCases, id: \.self) { mode in
+                                    Text(mode.rawValue).tag(mode)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .listRowBackground(Color.appSurface)
+                            
+                            // Only show intervals count if in interval mode
+                            if cardioMode == .intervals {
+                                Stepper("Intervals: \(sets)", value: $sets, in: 1...20)
+                                    .foregroundStyle(Color.appText)
+                            }
+                            
+                            // Duration picker
+                            HStack {
+                                Text(cardioMode == .intervals ? "Duration (per interval)" : "Duration")
+                                    .foregroundStyle(Color.appText)
+                                Spacer()
+                                Picker("Minutes", selection: $durationMinutes) {
+                                    ForEach(0..<61) { mins in
+                                        Text("\(mins)").tag(mins)
+                                    }
+                                }
+                                .pickerStyle(.wheel)
+                                .frame(width: 60)
+                                Text("min")
+                                    .foregroundStyle(Color.appText)
+                                
+                                Picker("Seconds", selection: $durationSeconds) {
+                                    ForEach(0..<60) { secs in
+                                        Text("\(secs)").tag(secs)
+                                    }
+                                }
+                                .pickerStyle(.wheel)
+                                .frame(width: 60)
+                                Text("sec")
+                                    .foregroundStyle(Color.appText)
+                            }
+                            
+                            // Only show rest for intervals
+                            if cardioMode == .intervals {
+                                Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
+                                    .foregroundStyle(Color.appText)
+                            }
+                        } else {
+                            // Strength training UI
+                            Stepper("Sets: \(sets)", value: $sets, in: 1...10)
+                                .foregroundStyle(Color.appText)
+                            
                             // Reps
                             HStack {
                                 Text("Reps")
@@ -564,36 +908,10 @@ struct ExerciseConfigSheet: View {
                                     .background(Color.appBackground)
                                     .cornerRadius(10)
                             }
-                        } else {
-                            // Cardio: Duration picker
-                            HStack {
-                                Text("Duration")
-                                    .foregroundStyle(Color.appText)
-                                Spacer()
-                                Picker("Minutes", selection: $durationMinutes) {
-                                    ForEach(0..<61) { mins in
-                                        Text("\(mins)").tag(mins)
-                                    }
-                                }
-                                .pickerStyle(.wheel)
-                                .frame(width: 60)
-                                Text("min")
-                                    .foregroundStyle(Color.appText)
-                                
-                                Picker("Seconds", selection: $durationSeconds) {
-                                    ForEach(0..<60) { secs in
-                                        Text("\(secs)").tag(secs)
-                                    }
-                                }
-                                .pickerStyle(.wheel)
-                                .frame(width: 60)
-                                Text("sec")
-                                    .foregroundStyle(Color.appText)
-                            }
+                            
+                            Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
+                                .foregroundStyle(Color.appText)
                         }
-                        
-                        Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
-                            .foregroundStyle(Color.appText)
                     }
                     .listRowBackground(Color.appSurface)
                 }
@@ -613,7 +931,22 @@ struct ExerciseConfigSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
                         Task {
-                            if exercise.exerciseType == "strength" {
+                            if isCardio {
+                                let totalSeconds = (durationMinutes * 60) + durationSeconds
+                                // For continuous mode, use 1 set; for intervals, use the selected count
+                                let actualSets = cardioMode == .continuous ? 1 : sets
+                                // For continuous mode, no rest between sets
+                                let actualRest = cardioMode == .continuous ? 0 : restSeconds
+                                
+                                await viewModel.addExercise(
+                                    exerciseId: exercise.id,
+                                    sets: actualSets,
+                                    repsTarget: nil,
+                                    targetWeight: nil,
+                                    durationSeconds: totalSeconds,
+                                    restSeconds: actualRest
+                                )
+                            } else {
                                 let weight = Double(targetWeight) ?? 0
                                 await viewModel.addExercise(
                                     exerciseId: exercise.id,
@@ -621,16 +954,6 @@ struct ExerciseConfigSheet: View {
                                     repsTarget: repsTarget,
                                     targetWeight: weight,
                                     durationSeconds: nil,
-                                    restSeconds: restSeconds
-                                )
-                            } else {
-                                let totalSeconds = (durationMinutes * 60) + durationSeconds
-                                await viewModel.addExercise(
-                                    exerciseId: exercise.id,
-                                    sets: sets,
-                                    repsTarget: nil,
-                                    targetWeight: nil,
-                                    durationSeconds: totalSeconds,
                                     restSeconds: restSeconds
                                 )
                             }
@@ -734,6 +1057,18 @@ struct EditExerciseSheet: View {
     @State private var durationSeconds: Int
     @State private var restSeconds: Int
     
+    // Cardio-specific
+    @State private var cardioMode: CardioMode
+    
+    enum CardioMode: String, CaseIterable {
+        case continuous = "Continuous"
+        case intervals = "Intervals"
+    }
+    
+    var isCardio: Bool {
+        exercise.exerciseType == "cardio"
+    }
+    
     init(routineExercise: RoutineExercise, exercise: Exercise, viewModel: RoutineDetailViewModel) {
         self.routineExercise = routineExercise
         self.exercise = exercise
@@ -747,6 +1082,11 @@ struct EditExerciseSheet: View {
         let totalSeconds = routineExercise.durationSeconds ?? 0
         _durationMinutes = State(initialValue: totalSeconds / 60)
         _durationSeconds = State(initialValue: totalSeconds % 60)
+        
+        // Determine cardio mode based on sets count
+        // If it's cardio and has only 1 set, it's continuous
+        let mode: CardioMode = (exercise.exerciseType == "cardio" && routineExercise.sets == 1) ? .continuous : .intervals
+        _cardioMode = State(initialValue: mode)
     }
     
     var body: some View {
@@ -767,10 +1107,58 @@ struct EditExerciseSheet: View {
                     .listRowBackground(Color.appSurface)
                     
                     Section(header: Text("Configuration").foregroundStyle(Color.appText)) {
-                        Stepper("Sets: \(sets)", value: $sets, in: 1...10)
-                            .foregroundStyle(Color.appText)
-                        
-                        if exercise.exerciseType == "strength" {
+                        if isCardio {
+                            // Cardio mode picker
+                            Picker("Mode", selection: $cardioMode) {
+                                ForEach(CardioMode.allCases, id: \.self) { mode in
+                                    Text(mode.rawValue).tag(mode)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .listRowBackground(Color.appSurface)
+                            
+                            // Only show intervals count if in interval mode
+                            if cardioMode == .intervals {
+                                Stepper("Intervals: \(sets)", value: $sets, in: 1...20)
+                                    .foregroundStyle(Color.appText)
+                            }
+                            
+                            // Duration picker
+                            HStack {
+                                Text(cardioMode == .intervals ? "Duration (per interval)" : "Duration")
+                                    .foregroundStyle(Color.appText)
+                                Spacer()
+                                Picker("Minutes", selection: $durationMinutes) {
+                                    ForEach(0..<61) { mins in
+                                        Text("\(mins)").tag(mins)
+                                    }
+                                }
+                                .pickerStyle(.wheel)
+                                .frame(width: 60)
+                                Text("min")
+                                    .foregroundStyle(Color.appText)
+                                
+                                Picker("Seconds", selection: $durationSeconds) {
+                                    ForEach(0..<60) { secs in
+                                        Text("\(secs)").tag(secs)
+                                    }
+                                }
+                                .pickerStyle(.wheel)
+                                .frame(width: 60)
+                                Text("sec")
+                                    .foregroundStyle(Color.appText)
+                            }
+                            
+                            // Only show rest for intervals
+                            if cardioMode == .intervals {
+                                Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
+                                    .foregroundStyle(Color.appText)
+                            }
+                        } else {
+                            // Strength training UI
+                            Stepper("Sets: \(sets)", value: $sets, in: 1...10)
+                                .foregroundStyle(Color.appText)
+                            
                             HStack {
                                 Text("Reps")
                                     .foregroundStyle(Color.appText)
@@ -798,35 +1186,10 @@ struct EditExerciseSheet: View {
                                     .background(Color.appBackground)
                                     .cornerRadius(10)
                             }
-                        } else {
-                            HStack {
-                                Text("Duration")
-                                    .foregroundStyle(Color.appText)
-                                Spacer()
-                                Picker("Minutes", selection: $durationMinutes) {
-                                    ForEach(0..<61) { mins in
-                                        Text("\(mins)").tag(mins)
-                                    }
-                                }
-                                .pickerStyle(.wheel)
-                                .frame(width: 60)
-                                Text("min")
-                                    .foregroundStyle(Color.appText)
-                                
-                                Picker("Seconds", selection: $durationSeconds) {
-                                    ForEach(0..<60) { secs in
-                                        Text("\(secs)").tag(secs)
-                                    }
-                                }
-                                .pickerStyle(.wheel)
-                                .frame(width: 60)
-                                Text("sec")
-                                    .foregroundStyle(Color.appText)
-                            }
+                            
+                            Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
+                                .foregroundStyle(Color.appText)
                         }
-                        
-                        Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
-                            .foregroundStyle(Color.appText)
                     }
                     .listRowBackground(Color.appSurface)
                 }
@@ -846,7 +1209,22 @@ struct EditExerciseSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         Task {
-                            if exercise.exerciseType == "strength" {
+                            if isCardio {
+                                let totalSeconds = (durationMinutes * 60) + durationSeconds
+                                // For continuous mode, use 1 set; for intervals, use the selected count
+                                let actualSets = cardioMode == .continuous ? 1 : sets
+                                // For continuous mode, no rest between sets
+                                let actualRest = cardioMode == .continuous ? 0 : restSeconds
+                                
+                                await viewModel.updateExercise(
+                                    id: routineExercise.id,
+                                    sets: actualSets,
+                                    repsTarget: nil,
+                                    targetWeight: nil,
+                                    durationSeconds: totalSeconds,
+                                    restSeconds: actualRest
+                                )
+                            } else {
                                 let weight = Double(targetWeight) ?? 0
                                 await viewModel.updateExercise(
                                     id: routineExercise.id,
@@ -854,16 +1232,6 @@ struct EditExerciseSheet: View {
                                     repsTarget: repsTarget,
                                     targetWeight: weight,
                                     durationSeconds: nil,
-                                    restSeconds: restSeconds
-                                )
-                            } else {
-                                let totalSeconds = (durationMinutes * 60) + durationSeconds
-                                await viewModel.updateExercise(
-                                    id: routineExercise.id,
-                                    sets: sets,
-                                    repsTarget: nil,
-                                    targetWeight: nil,
-                                    durationSeconds: totalSeconds,
                                     restSeconds: restSeconds
                                 )
                             }

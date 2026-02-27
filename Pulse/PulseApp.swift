@@ -27,12 +27,13 @@ extension EnvironmentValues {
 @main
 struct PulseApp: App {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
-    @AppStorage("hasSeenWelcomeTour") private var hasSeenWelcomeTour = false
+    @AppStorage("isFirstAppLaunch") private var isFirstAppLaunch = true
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var themeManager = ThemeManager()
     @StateObject private var syncService = WorkoutSyncService.shared
     @State private var showPasswordReset = false
     @State private var recoveryCode: IdentifiableString?
+    @State private var showPostSignInGuide = false
     
     // SwiftData model container for offline support
     let modelContainer: ModelContainer
@@ -101,17 +102,30 @@ struct PulseApp: App {
                         .onDisappear {
                             hasSeenOnboarding = true
                         }
-                } else if authViewModel.isAuthenticated {
-                    HomeView(authViewModel: authViewModel)
-                        .environmentObject(authViewModel)
                         .fullScreenCover(isPresented: Binding(
-                            get: { !hasSeenWelcomeTour },
-                            set: { hasSeenWelcomeTour = !$0}
+                            get: { isFirstAppLaunch && !hasSeenOnboarding },
+                            set: { if !$0 { isFirstAppLaunch = false } }
                         )) {
                             WelcomeTourView()
                                 .onDisappear {
-                                    hasSeenWelcomeTour = true
+                                    isFirstAppLaunch = false
                                 }
+                        }
+                } else if authViewModel.isAuthenticated {
+                    HomeView(authViewModel: authViewModel)
+                        .environmentObject(authViewModel)
+                        .overlay {
+                            if showPostSignInGuide {
+                                PostSignInGuideView(isPresented: $showPostSignInGuide)
+                            }
+                        }
+                        .onChange(of: authViewModel.isAuthenticated) { _, newValue in
+                            // Show guide when user signs in
+                            if newValue {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    showPostSignInGuide = true
+                                }
+                            }
                         }
                 } else {
                     AuthSelectionView(authViewModel: authViewModel)

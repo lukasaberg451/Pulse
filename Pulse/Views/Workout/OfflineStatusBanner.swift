@@ -71,7 +71,7 @@ struct SyncStatusIndicator: View {
             if !syncService.isOnline {
                 Image(systemName: "wifi.slash")
                     .font(.caption)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.appAccent)
                 
                 Text("Offline")
                     .font(.caption)
@@ -96,6 +96,6 @@ struct SyncStatusIndicator: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color.appSurface)
-        .cornerRadius(20)
+        .cornerRadius(10)
     }
 }

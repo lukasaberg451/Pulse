@@ -13,7 +13,7 @@ struct ThemeSelectionSheet: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
+            ZStack(alignment: .topLeading) {
                 Color.appBackground.ignoresSafeArea()
                 
                 VStack(spacing: 0) {

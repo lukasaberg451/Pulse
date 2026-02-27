@@ -16,6 +16,8 @@ struct Profile: Codable, Identifiable {
     let weeklyGoalMinutes: Int?
     let createdAt: Date
     let termsAcceptedAt: Date?
+    let weightKg: Double?
+    let heightCm: Double?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -26,5 +28,32 @@ struct Profile: Codable, Identifiable {
         case weeklyGoalMinutes = "weekly_goal_minutes"
         case createdAt = "created_at"
         case termsAcceptedAt = "terms_accepted_at"
+        case weightKg = "weight_kg"
+        case heightCm = "height_cm"
+    }
+    
+    // Computed property for BMI
+    var bmi: Double? {
+        guard let weight = weightKg,
+              let height = heightCm,
+              height > 0 else { return nil }
+        
+        let heightInMeters = height / 100.0
+        return weight / (heightInMeters * heightInMeters)
+    }
+    
+    var bmiCategory: String? {
+        guard let bmi = bmi else { return nil }
+        
+        switch bmi {
+        case ..<18.5:
+            return "Underweight"
+        case 18.5..<25:
+            return "Normal"
+        case 25..<30:
+            return "Overweight"
+        default:
+            return "Obese"
+        }
     }
 }

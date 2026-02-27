@@ -16,6 +16,7 @@ struct WorkoutView: View {
             VStack(spacing: 0) {
                 // Custom tab slider
                 CustomTabView(selectedTab: $selectedTab, tabs: ["Schedule", "Routines"])
+                    .padding(.top, 30)
                 
                 // Content based on selection
                 TabView(selection: $selectedTab) {
@@ -28,8 +29,6 @@ struct WorkoutView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
             }
             .background(Color.appBackground)
-            .navigationTitle("Workout")
-            .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .navigationDestination(item: $routineToNavigateTo) { routine in
                 RoutineDetailView(routine: routine)
@@ -75,7 +74,9 @@ struct ScheduleContentView: View {
                             .foregroundStyle(Color.appText)
                     }
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top, 30)
+                .padding(.bottom, 16)
                 
                 // Calendar Grid
                 CalendarGridView(
@@ -418,9 +419,23 @@ struct RoutineContentView: View {
                     }
                 } else {
                     VStack(spacing: 0) {
-                        // Edit button header
+                        // Header with edit and new routine buttons
                         HStack {
+                            Button {
+                                showingCreateSheet = true
+                            } label: {
+                                Text("New Routine")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(Color.appText)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(Color.appAccent)
+                                    .cornerRadius(10)
+                            }
+                            
                             Spacer()
+                            
                             Button {
                                 withAnimation {
                                     isEditMode.toggle()
@@ -432,7 +447,8 @@ struct RoutineContentView: View {
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.top, 8)
+                        .padding(.top, 30)
+                        .padding(.bottom, 12)
                         
                         ScrollView {
                             LazyVStack(spacing: 12) {
@@ -483,16 +499,6 @@ struct RoutineContentView: View {
                         }
                         .padding(16)
                     }
-                }
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showingCreateSheet = true
-                } label: {
-                    Image(systemName: "plus")
-                        .foregroundStyle(Color.appAccent)
                 }
             }
         }
