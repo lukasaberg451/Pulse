@@ -113,17 +113,40 @@ class AuthViewModel: ObservableObject{
         isRegistering = false
     }
     
-    func signIn(email: String, password: String) async{
+    func signIn(email: String, password: String) async {
         isLoading = true
-        do{
+        errorMessage = nil
+        
+        do {
             let result = try await supabase.auth.signIn(email: email, password: password)
+            
+            // Check if email is verified
+            guard result.user.emailConfirmedAt != nil else {
+                self.session = nil
+                self.isAuthenticated = false
+                self.errorMessage = "Please verify your email before signing in. Check your inbox for the verification link."
+                try? await supabase.auth.signOut()
+                isLoading = false
+                return
+            }
+            
             self.session = result
-            self.isAuthenticated = self.session != nil
+            self.isAuthenticated = true
             
             await fetchUserProfile()
-        } catch{
-            print("Sign Up failed: \(error.localizedDescription)")
+        } catch let error as AuthError {
+            // Generic error message to prevent email enumeration
+            self.errorMessage = "Invalid email or password. Please try again."
+            self.session = nil
+            self.isAuthenticated = false
+            print("Sign in failed: \(error.localizedDescription)")
+        } catch {
+            self.errorMessage = "An error occurred. Please try again."
+            self.session = nil
+            self.isAuthenticated = false
+            print("Sign in failed: \(error.localizedDescription)")
         }
+        
         isLoading = false
     }
     

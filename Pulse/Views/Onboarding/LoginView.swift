@@ -117,6 +117,12 @@ struct LoginView: View {
                                 errorMessage = ""
                                 Task {
                                     await authViewModel.signIn(email: email, password: password)
+                                    
+                                    // Check for auth errors after sign in attempt
+                                    if let authError = authViewModel.errorMessage {
+                                        errorMessage = authError
+                                        showError = true
+                                    }
                                 }
                             }
                         }) {
@@ -163,6 +169,7 @@ struct LoginView: View {
             .sheet(isPresented: $showingForgotPassword) {
                 ForgotPasswordView()
                     .environmentObject(authViewModel)
+                    .presentationDragIndicator(.visible)
             }
         }
     }

@@ -15,10 +15,27 @@ struct RoutineDetailView: View {
     @State private var showingActiveWorkout = false
     @State private var showingEditSheet = false
     @State private var editingExercise: RoutineExercise?
+    @State private var editMode: EditMode = .inactive
+    @State private var reorderedExercises: [RoutineExercise] = []
     
     init(routine: Routine) {
         self.routine = routine
         _viewModel = StateObject(wrappedValue: RoutineDetailViewModel(routine: routine))
+    }
+    
+    // Helper function to cancel edit mode
+    private func cancelEditMode() {
+        if editMode == .active {
+            withAnimation {
+                editMode = .inactive
+                reorderedExercises = []
+            }
+        }
+    }
+    
+    // Helper function to handle moving items
+    private func moveItems(from source: IndexSet, to destination: Int) {
+        reorderedExercises.move(fromOffsets: source, toOffset: destination)
     }
     
     var body: some View {
@@ -66,6 +83,7 @@ struct RoutineDetailView: View {
                         HStack(spacing: 12) {
                             // Start Workout
                             Button {
+                                cancelEditMode()
                                 showingActiveWorkout = true
                             } label: {
                                 VStack(spacing: 4) {
@@ -84,6 +102,7 @@ struct RoutineDetailView: View {
                             
                             // Edit Routine
                             Button {
+                                cancelEditMode()
                                 showingEditSheet = true
                             } label: {
                                 VStack(spacing: 4) {
@@ -101,6 +120,7 @@ struct RoutineDetailView: View {
                             
                             // Add Exercise
                             Button {
+                                cancelEditMode()
                                 showingExercisePicker = true
                             } label: {
                                 VStack(spacing: 4) {
@@ -120,50 +140,87 @@ struct RoutineDetailView: View {
                     .padding()
                     .background(Color.appBackground)
                     
+                    // Edit Order button (only show if there are exercises)
+                    if !viewModel.routineExercises.isEmpty {
+                        HStack {
+                            Spacer()
+                            Button {
+                                if editMode == .active {
+                                    // Save the reordered exercises when done
+                                    Task {
+                                        await viewModel.saveExerciseOrder(reorderedExercises)
+                                        // Exit edit mode after save completes
+                                        withAnimation {
+                                            editMode = .inactive
+                                            reorderedExercises = []
+                                        }
+                                    }
+                                } else {
+                                    // Initialize reordered exercises when entering edit mode
+                                    withAnimation {
+                                        reorderedExercises = viewModel.routineExercises
+                                        editMode = .active
+                                    }
+                                }
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: editMode == .active ? "checkmark.circle.fill" : "arrow.up.arrow.down.circle")
+                                        .font(.subheadline)
+                                    Text(editMode == .active ? "Done" : "Reorder Exercises")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                }
+                                .foregroundStyle(editMode == .active ? Color.green : Color.appAccent)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(editMode == .active ? Color.green.opacity(0.1) : Color.appAccent.opacity(0.1))
+                                .cornerRadius(8)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                        .background(Color.appBackground)
+                    }
+                    
                     // Exercises list
-                    ScrollView {
-                        VStack(spacing: 12) {
-                            ForEach(viewModel.routineExercises) { routineExercise in
-                                if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
-                                    HStack(spacing: 12) {
-                                        // Drag handle
-                                        Image(systemName: "line.3.horizontal")
-                                            .foregroundStyle(Color.appText.opacity(0.3))
-                                            .font(.title3)
+                    List {
+                        ForEach(editMode == .active ? reorderedExercises : viewModel.routineExercises) { routineExercise in
+                            if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(exercise.name)
+                                            .font(.headline)
+                                            .foregroundStyle(Color.appText)
                                         
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(exercise.name)
-                                                .font(.headline)
-                                                .foregroundStyle(Color.appText)
-                                            
-                                            if let reps = routineExercise.repsTarget {
-                                                Text("\(routineExercise.sets) sets × \(reps) reps")
-                                                    .font(.caption)
-                                                    .foregroundStyle(Color.appText.opacity(0.6))
-                                            } else if let durationSeconds = routineExercise.durationSeconds {
-                                                let minutes = durationSeconds / 60
-                                                let seconds = durationSeconds % 60
-                                                let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
-                                                Text("\(routineExercise.sets) sets × \(durationText)")
-                                                    .font(.caption)
-                                                    .foregroundStyle(Color.appText.opacity(0.6))
-                                            }
-                                            
-                                            // Always show rest line to maintain consistent card height
-                                            if routineExercise.restSeconds > 0 {
-                                                Text("\(routineExercise.restSeconds)s rest")
-                                                    .font(.caption)
-                                                    .foregroundStyle(Color.appText.opacity(0.6))
-                                            } else {
-                                                Text(" ")
-                                                    .font(.caption)
-                                                    .foregroundStyle(Color.clear)
-                                            }
+                                        if let reps = routineExercise.repsTarget {
+                                            Text("\(routineExercise.sets) sets × \(reps) reps")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                        } else if let durationSeconds = routineExercise.durationSeconds {
+                                            let minutes = durationSeconds / 60
+                                            let seconds = durationSeconds % 60
+                                            let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
+                                            Text("\(routineExercise.sets) sets × \(durationText)")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
                                         }
                                         
-                                        Spacer()
-                                        
-                                        // Three-dot menu
+                                        // Always show rest line to maintain consistent card height
+                                        if routineExercise.restSeconds > 0 {
+                                            Text("\(routineExercise.restSeconds)s rest")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                        } else {
+                                            Text(" ")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.clear)
+                                        }
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    // Three-dot menu - hide in edit mode
+                                    if editMode != .active {
                                         Menu {
                                             Button {
                                                 editingExercise = routineExercise
@@ -185,21 +242,29 @@ struct RoutineDetailView: View {
                                                 .frame(width: 44, height: 44)
                                         }
                                     }
-                                    .padding()
-                                    .background(Color.appSurface)
-                                    .cornerRadius(10)
                                 }
-                            }
-                            .onMove { source, destination in
-                                Task {
-                                    await viewModel.moveExercise(from: source, to: destination)
-                                }
+                                .padding()
+                                .background(Color.appSurface)
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(editMode == .active ? Color.appAccent.opacity(0.3) : Color.clear, lineWidth: 2)
+                                )
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                .listRowSeparator(.hidden)
                             }
                         }
-                        .padding(.horizontal)
-                        .padding(.vertical)
+                        .onMove { source, destination in
+                            if editMode == .active {
+                                moveItems(from: source, to: destination)
+                            }
+                        }
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                     .background(Color.appBackground)
+                    .environment(\.editMode, $editMode)
                 }
             }
         }
@@ -852,108 +917,340 @@ struct ExerciseConfigSheet: View {
             ZStack {
                 Color.appBackground.ignoresSafeArea()
                 
-                Form {
-                    Section(header: Text("Exercise").foregroundStyle(Color.appText)) {
-                        Text(exercise.name)
-                            .foregroundStyle(Color.appText)
-                        if let muscle = exercise.muscleGroup {
-                            Text(muscle)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Exercise Info Card
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Exercise")
                                 .font(.caption)
-                                .foregroundStyle(Color.appAccent)
-                        }
-                    }
-                    .listRowBackground(Color.appSurface)
-                    
-                    Section(header: Text("Configuration").foregroundStyle(Color.appText)) {
-                        if isCardio {
-                            // Cardio mode picker
-                            Picker("Mode", selection: $cardioMode) {
-                                ForEach(CardioMode.allCases, id: \.self) { mode in
-                                    Text(mode.rawValue).tag(mode)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .listRowBackground(Color.appSurface)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .textCase(.uppercase)
                             
-                            // Only show intervals count if in interval mode
-                            if cardioMode == .intervals {
-                                Stepper("Intervals: \(sets)", value: $sets, in: 1...20)
-                                    .foregroundStyle(Color.appText)
-                            }
-                            
-                            // Duration picker
-                            HStack {
-                                Text(cardioMode == .intervals ? "Duration (per interval)" : "Duration")
-                                    .foregroundStyle(Color.appText)
-                                Spacer()
-                                Picker("Minutes", selection: $durationMinutes) {
-                                    ForEach(0..<61) { mins in
-                                        Text("\(mins)").tag(mins)
-                                    }
-                                }
-                                .pickerStyle(.wheel)
-                                .frame(width: 60)
-                                Text("min")
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(exercise.name)
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
                                     .foregroundStyle(Color.appText)
                                 
-                                Picker("Seconds", selection: $durationSeconds) {
-                                    ForEach(0..<60) { secs in
-                                        Text("\(secs)").tag(secs)
-                                    }
+                                if let muscle = exercise.muscleGroup {
+                                    Text(muscle.capitalized)
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.appAccent)
                                 }
-                                .pickerStyle(.wheel)
-                                .frame(width: 60)
-                                Text("sec")
-                                    .foregroundStyle(Color.appText)
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
+                            .background(Color.appSurface)
+                            .cornerRadius(10)
+                        }
+                        
+                        // Configuration Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Configuration")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .textCase(.uppercase)
                             
-                            // Only show rest for intervals
-                            if cardioMode == .intervals {
-                                Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
-                                    .foregroundStyle(Color.appText)
-                            }
-                        } else {
-                            // Strength training UI
-                            Stepper("Sets: \(sets)", value: $sets, in: 1...10)
-                                .foregroundStyle(Color.appText)
-                            
-                            // Reps
-                            HStack {
-                                Text("Reps")
-                                    .foregroundStyle(Color.appText)
-                                Spacer()
-                                TextField("", text: $repsTarget)
-                                    .foregroundStyle(Color.appText)
-                                    .keyboardType(.numberPad)
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 60)
-                                    .padding(8)
-                                    .background(Color.appBackground)
+                            VStack(spacing: 12) {
+                                if isCardio {
+                                    // Cardio mode picker
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Mode")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Picker("Mode", selection: $cardioMode) {
+                                            ForEach(CardioMode.allCases, id: \.self) { mode in
+                                                Text(mode.rawValue).tag(mode)
+                                            }
+                                        }
+                                        .pickerStyle(.segmented)
+                                    }
+                                    .padding()
+                                    .background(Color.appSurface)
                                     .cornerRadius(10)
-                            }
-                            
-                            // Weight
-                            HStack {
-                                Text("Weight (kg)")
-                                    .foregroundStyle(Color.appText)
-                                Spacer()
-                                TextField("0", text: $targetWeight)
-                                    .foregroundStyle(Color.appText)
-                                    .keyboardType(.decimalPad)
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 80)
-                                    .padding(8)
-                                    .background(Color.appBackground)
+                                    
+                                    // Only show intervals count if in interval mode
+                                    if cardioMode == .intervals {
+                                        VStack(spacing: 0) {
+                                            HStack {
+                                                Text("Intervals")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
+                                                    .foregroundStyle(Color.appText)
+                                                
+                                                Spacer()
+                                                
+                                                HStack(spacing: 12) {
+                                                    Button {
+                                                        if sets > 1 {
+                                                            sets -= 1
+                                                        }
+                                                    } label: {
+                                                        Image(systemName: "minus.circle.fill")
+                                                            .font(.title2)
+                                                            .foregroundStyle(sets > 1 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                    }
+                                                    .disabled(sets <= 1)
+                                                    
+                                                    Text("\(sets)")
+                                                        .font(.title3)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundStyle(Color.appText)
+                                                        .frame(minWidth: 40)
+                                                    
+                                                    Button {
+                                                        if sets < 20 {
+                                                            sets += 1
+                                                        }
+                                                    } label: {
+                                                        Image(systemName: "plus.circle.fill")
+                                                            .font(.title2)
+                                                            .foregroundStyle(sets < 20 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                    }
+                                                    .disabled(sets >= 20)
+                                                }
+                                            }
+                                            .padding()
+                                        }
+                                        .background(Color.appSurface)
+                                        .cornerRadius(10)
+                                    }
+                                    
+                                    // Duration picker
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text(cardioMode == .intervals ? "Duration (per interval)" : "Duration")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        HStack(spacing: 16) {
+                                            Picker("Minutes", selection: $durationMinutes) {
+                                                ForEach(0..<61) { mins in
+                                                    Text("\(mins)").tag(mins)
+                                                }
+                                            }
+                                            .pickerStyle(.wheel)
+                                            .frame(maxWidth: .infinity)
+                                            .clipped()
+                                            
+                                            Text("min")
+                                                .font(.subheadline)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                            
+                                            Picker("Seconds", selection: $durationSeconds) {
+                                                ForEach(0..<60) { secs in
+                                                    Text("\(secs)").tag(secs)
+                                                }
+                                            }
+                                            .pickerStyle(.wheel)
+                                            .frame(maxWidth: .infinity)
+                                            .clipped()
+                                            
+                                            Text("sec")
+                                                .font(.subheadline)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                        }
+                                        .frame(height: 120)
+                                    }
+                                    .padding()
+                                    .background(Color.appSurface)
                                     .cornerRadius(10)
+                                    
+                                    // Only show rest for intervals
+                                    if cardioMode == .intervals {
+                                        VStack(spacing: 0) {
+                                            HStack {
+                                                Text("Rest Between Intervals")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
+                                                    .foregroundStyle(Color.appText)
+                                                
+                                                Spacer()
+                                                
+                                                HStack(spacing: 12) {
+                                                    Button {
+                                                        if restSeconds > 0 {
+                                                            restSeconds -= 15
+                                                        }
+                                                    } label: {
+                                                        Image(systemName: "minus.circle.fill")
+                                                            .font(.title2)
+                                                            .foregroundStyle(restSeconds > 0 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                    }
+                                                    .disabled(restSeconds <= 0)
+                                                    
+                                                    Text("\(restSeconds)s")
+                                                        .font(.title3)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundStyle(Color.appText)
+                                                        .frame(minWidth: 60)
+                                                    
+                                                    Button {
+                                                        if restSeconds < 300 {
+                                                            restSeconds += 15
+                                                        }
+                                                    } label: {
+                                                        Image(systemName: "plus.circle.fill")
+                                                            .font(.title2)
+                                                            .foregroundStyle(restSeconds < 300 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                    }
+                                                    .disabled(restSeconds >= 300)
+                                                }
+                                            }
+                                            .padding()
+                                        }
+                                        .background(Color.appSurface)
+                                        .cornerRadius(10)
+                                    }
+                                } else {
+                                    // Strength training UI
+                                    // Sets
+                                    VStack(spacing: 0) {
+                                        HStack {
+                                            Text("Sets")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            HStack(spacing: 12) {
+                                                Button {
+                                                    if sets > 1 {
+                                                        sets -= 1
+                                                    }
+                                                } label: {
+                                                    Image(systemName: "minus.circle.fill")
+                                                        .font(.title2)
+                                                        .foregroundStyle(sets > 1 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                }
+                                                .disabled(sets <= 1)
+                                                
+                                                Text("\(sets)")
+                                                    .font(.title3)
+                                                    .fontWeight(.semibold)
+                                                    .foregroundStyle(Color.appText)
+                                                    .frame(minWidth: 40)
+                                                
+                                                Button {
+                                                    if sets < 10 {
+                                                        sets += 1
+                                                    }
+                                                } label: {
+                                                    Image(systemName: "plus.circle.fill")
+                                                        .font(.title2)
+                                                        .foregroundStyle(sets < 10 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                }
+                                                .disabled(sets >= 10)
+                                            }
+                                        }
+                                        .padding()
+                                    }
+                                    .background(Color.appSurface)
+                                    .cornerRadius(10)
+                                    
+                                    // Reps
+                                    VStack(spacing: 0) {
+                                        HStack {
+                                            Text("Reps")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            TextField("10", text: $repsTarget)
+                                                .foregroundStyle(Color.appText)
+                                                .keyboardType(.numberPad)
+                                                .multilineTextAlignment(.trailing)
+                                                .frame(width: 80)
+                                                .padding(10)
+                                                .background(Color.appBackground)
+                                                .cornerRadius(8)
+                                        }
+                                        .padding()
+                                    }
+                                    .background(Color.appSurface)
+                                    .cornerRadius(10)
+                                    
+                                    // Weight
+                                    VStack(spacing: 0) {
+                                        HStack {
+                                            Text("Weight (kg)")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            TextField("0", text: $targetWeight)
+                                                .foregroundStyle(Color.appText)
+                                                .keyboardType(.decimalPad)
+                                                .multilineTextAlignment(.trailing)
+                                                .frame(width: 80)
+                                                .padding(10)
+                                                .background(Color.appBackground)
+                                                .cornerRadius(8)
+                                        }
+                                        .padding()
+                                    }
+                                    .background(Color.appSurface)
+                                    .cornerRadius(10)
+                                    
+                                    // Rest
+                                    VStack(spacing: 0) {
+                                        HStack {
+                                            Text("Rest Between Sets")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            HStack(spacing: 12) {
+                                                Button {
+                                                    if restSeconds > 0 {
+                                                        restSeconds -= 15
+                                                    }
+                                                } label: {
+                                                    Image(systemName: "minus.circle.fill")
+                                                        .font(.title2)
+                                                        .foregroundStyle(restSeconds > 0 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                }
+                                                .disabled(restSeconds <= 0)
+                                                
+                                                Text("\(restSeconds)s")
+                                                    .font(.title3)
+                                                    .fontWeight(.semibold)
+                                                    .foregroundStyle(Color.appText)
+                                                    .frame(minWidth: 60)
+                                                
+                                                Button {
+                                                    if restSeconds < 300 {
+                                                        restSeconds += 15
+                                                    }
+                                                } label: {
+                                                    Image(systemName: "plus.circle.fill")
+                                                        .font(.title2)
+                                                        .foregroundStyle(restSeconds < 300 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                }
+                                                .disabled(restSeconds >= 300)
+                                            }
+                                        }
+                                        .padding()
+                                    }
+                                    .background(Color.appSurface)
+                                    .cornerRadius(10)
+                                }
                             }
-                            
-                            Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
-                                .foregroundStyle(Color.appText)
                         }
                     }
-                    .listRowBackground(Color.appSurface)
+                    .padding()
                 }
-                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Configure Exercise")
             .navigationBarTitleDisplayMode(.inline)
@@ -999,6 +1296,7 @@ struct ExerciseConfigSheet: View {
                         }
                     }
                     .foregroundStyle(Color.appAccent)
+                    .fontWeight(.semibold)
                 }
             }
         }
@@ -1132,106 +1430,340 @@ struct EditExerciseSheet: View {
             ZStack {
                 Color.appBackground.ignoresSafeArea()
                 
-                Form {
-                    Section(header: Text("Exercise").foregroundStyle(Color.appText)) {
-                        Text(exercise.name)
-                            .foregroundStyle(Color.appText)
-                        if let muscle = exercise.muscleGroup {
-                            Text(muscle)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Exercise Info Card
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Exercise")
                                 .font(.caption)
-                                .foregroundStyle(Color.appAccent)
-                        }
-                    }
-                    .listRowBackground(Color.appSurface)
-                    
-                    Section(header: Text("Configuration").foregroundStyle(Color.appText)) {
-                        if isCardio {
-                            // Cardio mode picker
-                            Picker("Mode", selection: $cardioMode) {
-                                ForEach(CardioMode.allCases, id: \.self) { mode in
-                                    Text(mode.rawValue).tag(mode)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .listRowBackground(Color.appSurface)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .textCase(.uppercase)
                             
-                            // Only show intervals count if in interval mode
-                            if cardioMode == .intervals {
-                                Stepper("Intervals: \(sets)", value: $sets, in: 1...20)
-                                    .foregroundStyle(Color.appText)
-                            }
-                            
-                            // Duration picker
-                            HStack {
-                                Text(cardioMode == .intervals ? "Duration (per interval)" : "Duration")
-                                    .foregroundStyle(Color.appText)
-                                Spacer()
-                                Picker("Minutes", selection: $durationMinutes) {
-                                    ForEach(0..<61) { mins in
-                                        Text("\(mins)").tag(mins)
-                                    }
-                                }
-                                .pickerStyle(.wheel)
-                                .frame(width: 60)
-                                Text("min")
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(exercise.name)
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
                                     .foregroundStyle(Color.appText)
                                 
-                                Picker("Seconds", selection: $durationSeconds) {
-                                    ForEach(0..<60) { secs in
-                                        Text("\(secs)").tag(secs)
-                                    }
+                                if let muscle = exercise.muscleGroup {
+                                    Text(muscle.capitalized)
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.appAccent)
                                 }
-                                .pickerStyle(.wheel)
-                                .frame(width: 60)
-                                Text("sec")
-                                    .foregroundStyle(Color.appText)
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
+                            .background(Color.appSurface)
+                            .cornerRadius(10)
+                        }
+                        
+                        // Configuration Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Configuration")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .textCase(.uppercase)
                             
-                            // Only show rest for intervals
-                            if cardioMode == .intervals {
-                                Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
-                                    .foregroundStyle(Color.appText)
-                            }
-                        } else {
-                            // Strength training UI
-                            Stepper("Sets: \(sets)", value: $sets, in: 1...10)
-                                .foregroundStyle(Color.appText)
-                            
-                            HStack {
-                                Text("Reps")
-                                    .foregroundStyle(Color.appText)
-                                Spacer()
-                                TextField("", text: $repsTarget)
-                                    .foregroundStyle(Color.appText)
-                                    .keyboardType(.numberPad)
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 60)
-                                    .padding(8)
-                                    .background(Color.appBackground)
+                            VStack(spacing: 12) {
+                                if isCardio {
+                                    // Cardio mode picker
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Mode")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Picker("Mode", selection: $cardioMode) {
+                                            ForEach(CardioMode.allCases, id: \.self) { mode in
+                                                Text(mode.rawValue).tag(mode)
+                                            }
+                                        }
+                                        .pickerStyle(.segmented)
+                                    }
+                                    .padding()
+                                    .background(Color.appSurface)
                                     .cornerRadius(10)
-                            }
-                            
-                            HStack {
-                                Text("Weight (kg)")
-                                    .foregroundStyle(Color.appText)
-                                Spacer()
-                                TextField("0", text: $targetWeight)
-                                    .foregroundStyle(Color.appText)
-                                    .keyboardType(.decimalPad)
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 80)
-                                    .padding(8)
-                                    .background(Color.appBackground)
+                                    
+                                    // Only show intervals count if in interval mode
+                                    if cardioMode == .intervals {
+                                        VStack(spacing: 0) {
+                                            HStack {
+                                                Text("Intervals")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
+                                                    .foregroundStyle(Color.appText)
+                                                
+                                                Spacer()
+                                                
+                                                HStack(spacing: 12) {
+                                                    Button {
+                                                        if sets > 1 {
+                                                            sets -= 1
+                                                        }
+                                                    } label: {
+                                                        Image(systemName: "minus.circle.fill")
+                                                            .font(.title2)
+                                                            .foregroundStyle(sets > 1 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                    }
+                                                    .disabled(sets <= 1)
+                                                    
+                                                    Text("\(sets)")
+                                                        .font(.title3)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundStyle(Color.appText)
+                                                        .frame(minWidth: 40)
+                                                    
+                                                    Button {
+                                                        if sets < 20 {
+                                                            sets += 1
+                                                        }
+                                                    } label: {
+                                                        Image(systemName: "plus.circle.fill")
+                                                            .font(.title2)
+                                                            .foregroundStyle(sets < 20 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                    }
+                                                    .disabled(sets >= 20)
+                                                }
+                                            }
+                                            .padding()
+                                        }
+                                        .background(Color.appSurface)
+                                        .cornerRadius(10)
+                                    }
+                                    
+                                    // Duration picker
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text(cardioMode == .intervals ? "Duration (per interval)" : "Duration")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        HStack(spacing: 16) {
+                                            Picker("Minutes", selection: $durationMinutes) {
+                                                ForEach(0..<61) { mins in
+                                                    Text("\(mins)").tag(mins)
+                                                }
+                                            }
+                                            .pickerStyle(.wheel)
+                                            .frame(maxWidth: .infinity)
+                                            .clipped()
+                                            
+                                            Text("min")
+                                                .font(.subheadline)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                            
+                                            Picker("Seconds", selection: $durationSeconds) {
+                                                ForEach(0..<60) { secs in
+                                                    Text("\(secs)").tag(secs)
+                                                }
+                                            }
+                                            .pickerStyle(.wheel)
+                                            .frame(maxWidth: .infinity)
+                                            .clipped()
+                                            
+                                            Text("sec")
+                                                .font(.subheadline)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                        }
+                                        .frame(height: 120)
+                                    }
+                                    .padding()
+                                    .background(Color.appSurface)
                                     .cornerRadius(10)
+                                    
+                                    // Only show rest for intervals
+                                    if cardioMode == .intervals {
+                                        VStack(spacing: 0) {
+                                            HStack {
+                                                Text("Rest Between Intervals")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
+                                                    .foregroundStyle(Color.appText)
+                                                
+                                                Spacer()
+                                                
+                                                HStack(spacing: 12) {
+                                                    Button {
+                                                        if restSeconds > 0 {
+                                                            restSeconds -= 15
+                                                        }
+                                                    } label: {
+                                                        Image(systemName: "minus.circle.fill")
+                                                            .font(.title2)
+                                                            .foregroundStyle(restSeconds > 0 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                    }
+                                                    .disabled(restSeconds <= 0)
+                                                    
+                                                    Text("\(restSeconds)s")
+                                                        .font(.title3)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundStyle(Color.appText)
+                                                        .frame(minWidth: 60)
+                                                    
+                                                    Button {
+                                                        if restSeconds < 300 {
+                                                            restSeconds += 15
+                                                        }
+                                                    } label: {
+                                                        Image(systemName: "plus.circle.fill")
+                                                            .font(.title2)
+                                                            .foregroundStyle(restSeconds < 300 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                    }
+                                                    .disabled(restSeconds >= 300)
+                                                }
+                                            }
+                                            .padding()
+                                        }
+                                        .background(Color.appSurface)
+                                        .cornerRadius(10)
+                                    }
+                                } else {
+                                    // Strength training UI
+                                    // Sets
+                                    VStack(spacing: 0) {
+                                        HStack {
+                                            Text("Sets")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            HStack(spacing: 12) {
+                                                Button {
+                                                    if sets > 1 {
+                                                        sets -= 1
+                                                    }
+                                                } label: {
+                                                    Image(systemName: "minus.circle.fill")
+                                                        .font(.title2)
+                                                        .foregroundStyle(sets > 1 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                }
+                                                .disabled(sets <= 1)
+                                                
+                                                Text("\(sets)")
+                                                    .font(.title3)
+                                                    .fontWeight(.semibold)
+                                                    .foregroundStyle(Color.appText)
+                                                    .frame(minWidth: 40)
+                                                
+                                                Button {
+                                                    if sets < 10 {
+                                                        sets += 1
+                                                    }
+                                                } label: {
+                                                    Image(systemName: "plus.circle.fill")
+                                                        .font(.title2)
+                                                        .foregroundStyle(sets < 10 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                }
+                                                .disabled(sets >= 10)
+                                            }
+                                        }
+                                        .padding()
+                                    }
+                                    .background(Color.appSurface)
+                                    .cornerRadius(10)
+                                    
+                                    // Reps
+                                    VStack(spacing: 0) {
+                                        HStack {
+                                            Text("Reps")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            TextField("10", text: $repsTarget)
+                                                .foregroundStyle(Color.appText)
+                                                .keyboardType(.numberPad)
+                                                .multilineTextAlignment(.trailing)
+                                                .frame(width: 80)
+                                                .padding(10)
+                                                .background(Color.appBackground)
+                                                .cornerRadius(8)
+                                        }
+                                        .padding()
+                                    }
+                                    .background(Color.appSurface)
+                                    .cornerRadius(10)
+                                    
+                                    // Weight
+                                    VStack(spacing: 0) {
+                                        HStack {
+                                            Text("Weight (kg)")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            TextField("0", text: $targetWeight)
+                                                .foregroundStyle(Color.appText)
+                                                .keyboardType(.decimalPad)
+                                                .multilineTextAlignment(.trailing)
+                                                .frame(width: 80)
+                                                .padding(10)
+                                                .background(Color.appBackground)
+                                                .cornerRadius(8)
+                                        }
+                                        .padding()
+                                    }
+                                    .background(Color.appSurface)
+                                    .cornerRadius(10)
+                                    
+                                    // Rest
+                                    VStack(spacing: 0) {
+                                        HStack {
+                                            Text("Rest Between Sets")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            HStack(spacing: 12) {
+                                                Button {
+                                                    if restSeconds > 0 {
+                                                        restSeconds -= 15
+                                                    }
+                                                } label: {
+                                                    Image(systemName: "minus.circle.fill")
+                                                        .font(.title2)
+                                                        .foregroundStyle(restSeconds > 0 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                }
+                                                .disabled(restSeconds <= 0)
+                                                
+                                                Text("\(restSeconds)s")
+                                                    .font(.title3)
+                                                    .fontWeight(.semibold)
+                                                    .foregroundStyle(Color.appText)
+                                                    .frame(minWidth: 60)
+                                                
+                                                Button {
+                                                    if restSeconds < 300 {
+                                                        restSeconds += 15
+                                                    }
+                                                } label: {
+                                                    Image(systemName: "plus.circle.fill")
+                                                        .font(.title2)
+                                                        .foregroundStyle(restSeconds < 300 ? Color.appAccent : Color.appText.opacity(0.3))
+                                                }
+                                                .disabled(restSeconds >= 300)
+                                            }
+                                        }
+                                        .padding()
+                                    }
+                                    .background(Color.appSurface)
+                                    .cornerRadius(10)
+                                }
                             }
-                            
-                            Stepper("Rest: \(restSeconds)s", value: $restSeconds, in: 0...300, step: 15)
-                                .foregroundStyle(Color.appText)
                         }
                     }
-                    .listRowBackground(Color.appSurface)
+                    .padding()
                 }
-                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Edit Exercise")
             .navigationBarTitleDisplayMode(.inline)
@@ -1277,6 +1809,7 @@ struct EditExerciseSheet: View {
                         }
                     }
                     .foregroundStyle(Color.appAccent)
+                    .fontWeight(.semibold)
                 }
             }
             .presentationBackground(Color.appBackground)

@@ -169,4 +169,24 @@ class RoutineDetailViewModel: ObservableObject {
             errorMessage = "Failed to reorder exercises: \(error.localizedDescription)"
         }
     }
+    
+    func saveExerciseOrder(_ orderedExercises: [RoutineExercise]) async {
+        // Update order_index for all exercises
+        do {
+            for (index, exercise) in orderedExercises.enumerated() {
+                try await routineRepository.updateExerciseOrder(
+                    id: exercise.id,
+                    orderIndex: index
+                )
+            }
+            
+            // Update local state immediately
+            routineExercises = orderedExercises
+            
+            // Then reload to ensure consistency
+            await loadRoutineExercises()
+        } catch {
+            errorMessage = "Failed to save exercise order: \(error.localizedDescription)"
+        }
+    }
 }
