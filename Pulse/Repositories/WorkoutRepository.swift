@@ -263,6 +263,10 @@ class WorkoutRepository {
             .execute()
             .value
         
+        // Post notification to refresh UI
+        NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
+        print("📅 Scheduled workout created and notification posted")
+        
         return scheduled
     }
 
@@ -275,7 +279,7 @@ class WorkoutRepository {
             .from("scheduled_workouts")
             .select()
             .gte("scheduled_date", value: formatter.string(from: startDate))
-            .lt("scheduled_date", value: formatter.string(from: endDate))
+            .lte("scheduled_date", value: formatter.string(from: endDate))
             .order("scheduled_date")
             .execute()
             .value

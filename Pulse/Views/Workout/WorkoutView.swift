@@ -196,6 +196,12 @@ struct ScheduleContentView: View {
         .task {
             await viewModel.loadData()
         }
+        .onAppear {
+            // Reload data when view appears (not just first time)
+            Task {
+                await viewModel.loadData()
+            }
+        }
     }
 }
                    
@@ -426,7 +432,6 @@ struct RoutineContentView: View {
                             } label: {
                                 Text("New Routine")
                                     .font(.subheadline)
-                                    .fontWeight(.semibold)
                                     .foregroundStyle(Color.appText)
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 8)

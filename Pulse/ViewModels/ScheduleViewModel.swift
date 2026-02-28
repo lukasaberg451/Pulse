@@ -22,6 +22,19 @@ class ScheduleViewModel: ObservableObject {
     private let exerciseRepository = ExerciseRepository()
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        // Listen for workout data changes
+        NotificationCenter.default.publisher(for: .workoutDataChanged)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    print("📅 Schedule: Received workout data change notification, reloading...")
+                    await self?.loadData()
+                }
+            }
+            .store(in: &cancellables)
+    }
     
     var currentMonthYear: String {
         let formatter = DateFormatter()
