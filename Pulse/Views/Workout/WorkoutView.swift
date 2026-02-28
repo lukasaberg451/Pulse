@@ -44,6 +44,8 @@ struct ScheduleContentView: View {
     @State private var selectedDate = Date()
     @State private var showingRoutinePicker = false
     @State private var isEditMode = false
+    @State private var scheduledToDelete: ScheduledWorkout?
+    @State private var showingDeleteAlert = false
     
     var body: some View {
         ZStack {
@@ -123,6 +125,14 @@ struct ScheduleContentView: View {
                                 .padding(.top, 20)
                             
                             Button {
+                                // Exit edit mode if active
+                                if isEditMode {
+                                    withAnimation {
+                                        isEditMode = false
+                                    }
+                                }
+                                let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                impactLight.impactOccurred()
                                 showingRoutinePicker = true
                             } label: {
                                 Text("Add Workout")
@@ -147,16 +157,8 @@ struct ScheduleContentView: View {
                                             exerciseCount: viewModel.exerciseCount(for: routine.id),
                                             viewModel: viewModel,
                                             onDelete: {
-                                                Task {
-                                                    await viewModel.deleteScheduled(scheduled)
-                                                    
-                                                    // Exit edit mode if no non-completed workouts remain
-                                                    if !viewModel.scheduledWorkouts(for: selectedDate).contains(where: { !$0.completed }) {
-                                                        withAnimation {
-                                                            isEditMode = false
-                                                        }
-                                                    }
-                                                }
+                                                scheduledToDelete = scheduled
+                                                showingDeleteAlert = true
                                             }
                                         )
                                     }
@@ -164,6 +166,14 @@ struct ScheduleContentView: View {
                                 
                                 // Add button below the cards
                                 Button {
+                                    // Exit edit mode if active
+                                    if isEditMode {
+                                        withAnimation {
+                                            isEditMode = false
+                                        }
+                                    }
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
                                     showingRoutinePicker = true
                                 } label: {
                                     HStack {
@@ -192,6 +202,30 @@ struct ScheduleContentView: View {
                 viewModel: viewModel,
                 selectedDate: selectedDate
             )
+        }
+        .alert("Remove Workout", isPresented: $showingDeleteAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Remove", role: .destructive) {
+                if let scheduled = scheduledToDelete {
+                    let notificationFeedback = UINotificationFeedbackGenerator()
+                    notificationFeedback.notificationOccurred(.warning)
+                    Task {
+                        await viewModel.deleteScheduled(scheduled)
+                        
+                        // Exit edit mode if no non-completed workouts remain
+                        if !viewModel.scheduledWorkouts(for: selectedDate).contains(where: { !$0.completed }) {
+                            withAnimation {
+                                isEditMode = false
+                            }
+                        }
+                    }
+                }
+            }
+        } message: {
+            if let scheduled = scheduledToDelete,
+               let routine = viewModel.routine(for: scheduled.routineId) {
+                Text("Are you sure you want to remove '\(routine.name)' from your schedule?")
+            }
         }
         .task {
             await viewModel.loadData()
@@ -380,6 +414,8 @@ struct RoutineContentView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showingCreateSheet = false
     @State private var isEditMode = false
+    @State private var routineToDelete: Routine?
+    @State private var showingDeleteAlert = false
     @Binding var routineToNavigateTo: Routine?
     
     var body: some View {
@@ -415,6 +451,8 @@ struct RoutineContentView: View {
                         Text("Create your first workout routine")
                             .foregroundStyle(Color.appText.opacity(0.7))
                         Button("Create Routine") {
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
                             showingCreateSheet = true
                         }
                         .foregroundStyle(Color.appText)
@@ -428,6 +466,14 @@ struct RoutineContentView: View {
                         // Header with edit and new routine buttons
                         HStack {
                             Button {
+                                // Exit edit mode if active
+                                if isEditMode {
+                                    withAnimation {
+                                        isEditMode = false
+                                    }
+                                }
+                                let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                impactLight.impactOccurred()
                                 showingCreateSheet = true
                             } label: {
                                 Text("New Routine")
@@ -466,16 +512,8 @@ struct RoutineContentView: View {
                                             routineToNavigateTo = routine
                                         },
                                         onDelete: {
-                                            Task {
-                                                await viewModel.deleteRoutine(routine)
-                                                
-                                                // Exit edit mode if no routines remain
-                                                if viewModel.routines.isEmpty {
-                                                    withAnimation {
-                                                        isEditMode = false
-                                                    }
-                                                }
-                                            }
+                                            routineToDelete = routine
+                                            showingDeleteAlert = true
                                         }
                                     )
                                 }
@@ -493,6 +531,29 @@ struct RoutineContentView: View {
                     routineToNavigateTo = routine
                 }
             )
+        }
+        .alert("Delete Routine", isPresented: $showingDeleteAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                if let routine = routineToDelete {
+                    let notificationFeedback = UINotificationFeedbackGenerator()
+                    notificationFeedback.notificationOccurred(.warning)
+                    Task {
+                        await viewModel.deleteRoutine(routine)
+                        
+                        // Exit edit mode if no routines remain
+                        if viewModel.routines.isEmpty {
+                            withAnimation {
+                                isEditMode = false
+                            }
+                        }
+                    }
+                }
+            }
+        } message: {
+            if let routine = routineToDelete {
+                Text("Are you sure you want to delete '\(routine.name)'? This action cannot be undone.")
+            }
         }
         .task {
             await viewModel.loadRoutines()
@@ -623,6 +684,7 @@ struct RoutineRow: View {
                 .transition(.scale.combined(with: .opacity))
             }
             
+            // Card - always the same structure, just disable tap in edit mode
             Button {
                 if !isEditMode {
                     onTap()

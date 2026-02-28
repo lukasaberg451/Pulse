@@ -62,6 +62,8 @@ struct ProfileView: View {
                                 
                                 // Edit Profile Button
                                 Button {
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
                                     showingEditNameSheet = true
                                 } label: {
                                     HStack {
@@ -89,6 +91,8 @@ struct ProfileView: View {
                                 VStack(spacing: 0) {
                                     //Theme setting
                                     Button {
+                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                        impactLight.impactOccurred()
                                         showingThemeSheet = true
                                     } label: {
                                         HStack(spacing: 16) {
@@ -120,6 +124,8 @@ struct ProfileView: View {
                                     
                                     // Language Row
                                     Button {
+                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                        impactLight.impactOccurred()
                                         showingLanguageSheet = true
                                     } label: {
                                         HStack(spacing: 16) {
@@ -153,6 +159,8 @@ struct ProfileView: View {
                             
                             // Send Feedback
                             Button {
+                                let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                impactLight.impactOccurred()
                                 showingFeedbackSheet = true
                             } label: {
                                 HStack(spacing: 16) {
@@ -181,6 +189,8 @@ struct ProfileView: View {
                             
                             // Sign Out Button
                             Button {
+                                let notificationFeedback = UINotificationFeedbackGenerator()
+                                notificationFeedback.notificationOccurred(.warning)
                                 showingSignOutAlert = true
                             } label: {
                                 HStack {

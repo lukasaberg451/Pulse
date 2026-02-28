@@ -84,6 +84,8 @@ struct RoutineDetailView: View {
                             // Start Workout
                             Button {
                                 cancelEditMode()
+                                let impactMed = UIImpactFeedbackGenerator(style: .medium)
+                                impactMed.impactOccurred()
                                 showingActiveWorkout = true
                             } label: {
                                 VStack(spacing: 4) {
@@ -103,6 +105,8 @@ struct RoutineDetailView: View {
                             // Edit Routine
                             Button {
                                 cancelEditMode()
+                                let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                impactLight.impactOccurred()
                                 showingEditSheet = true
                             } label: {
                                 VStack(spacing: 4) {
@@ -121,6 +125,8 @@ struct RoutineDetailView: View {
                             // Add Exercise
                             Button {
                                 cancelEditMode()
+                                let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                impactLight.impactOccurred()
                                 showingExercisePicker = true
                             } label: {
                                 VStack(spacing: 4) {
@@ -147,6 +153,8 @@ struct RoutineDetailView: View {
                             Button {
                                 if editMode == .active {
                                     // Save the reordered exercises when done
+                                    let notificationFeedback = UINotificationFeedbackGenerator()
+                                    notificationFeedback.notificationOccurred(.success)
                                     Task {
                                         await viewModel.saveExerciseOrder(reorderedExercises)
                                         // Exit edit mode after save completes
@@ -157,6 +165,8 @@ struct RoutineDetailView: View {
                                     }
                                 } else {
                                     // Initialize reordered exercises when entering edit mode
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
                                     withAnimation {
                                         reorderedExercises = viewModel.routineExercises
                                         editMode = .active
@@ -224,11 +234,15 @@ struct RoutineDetailView: View {
                                         Menu {
                                             Button {
                                                 editingExercise = routineExercise
+                                                let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                                impactLight.impactOccurred()
                                             } label: {
                                                 Label("Edit Exercise", systemImage: "pencil")
                                             }
                                             
                                             Button(role: .destructive) {
+                                                let notificationFeedback = UINotificationFeedbackGenerator()
+                                                notificationFeedback.notificationOccurred(.warning)
                                                 Task {
                                                     await viewModel.deleteExercise(routineExercise)
                                                 }
@@ -530,6 +544,8 @@ struct ExercisePickerSheet: View {
                                 ForEach(filteredExercises) { exercise in
                                     Button {
                                         selectedExercise = exercise
+                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                        impactLight.impactOccurred()
                                         showingConfigSheet = true
                                     } label: {
                                         HStack(spacing: 12) {
@@ -1265,6 +1281,8 @@ struct ExerciseConfigSheet: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
+                        let notificationFeedback = UINotificationFeedbackGenerator()
+                        notificationFeedback.notificationOccurred(.success)
                         Task {
                             if isCardio {
                                 let totalSeconds = (durationMinutes * 60) + durationSeconds
@@ -1364,6 +1382,8 @@ struct EditRoutineSheet: View {
                     
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
+                        let notificationFeedback = UINotificationFeedbackGenerator()
+                        notificationFeedback.notificationOccurred(.success)
                         Task {
                             await viewModel.updateRoutine(name: name, description: description)
                             onSaved()
@@ -1778,6 +1798,8 @@ struct EditExerciseSheet: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
+                        let notificationFeedback = UINotificationFeedbackGenerator()
+                        notificationFeedback.notificationOccurred(.success)
                         Task {
                             if isCardio {
                                 let totalSeconds = (durationMinutes * 60) + durationSeconds

@@ -465,6 +465,8 @@ struct HealthMetricsSection: View {
                 Spacer()
                 
                 Button {
+                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                    impactLight.impactOccurred()
                     showingEditSheet = true
                 } label: {
                     Image(systemName: "pencil.circle.fill")
@@ -601,6 +603,8 @@ struct HealthMetricsSection: View {
                                 .multilineTextAlignment(.center)
                             
                             Button {
+                                let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                impactLight.impactOccurred()
                                 showingEditSheet = true
                             } label: {
                                 Text("Add Health Metrics")
@@ -825,6 +829,8 @@ struct EditHealthMetricsSheet: View {
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
+                        let notificationFeedback = UINotificationFeedbackGenerator()
+                        notificationFeedback.notificationOccurred(.success)
                         Task {
                             await saveHealthMetrics()
                         }

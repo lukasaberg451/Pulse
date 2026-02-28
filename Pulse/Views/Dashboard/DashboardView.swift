@@ -38,6 +38,8 @@ struct DashboardView: View {
                                 completedMinutes: viewModel.weeklyWorkoutMinutes,
                                 goalMinutes: viewModel.weeklyGoalMinutes,
                                 onEditGoal: {
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
                                     showingGoalSettings = true
                                 }
                             )
@@ -148,6 +150,8 @@ struct TodayWorkoutCard: View {
             
             if !scheduled.completed {
                 Button{
+                    let impactMed = UIImpactFeedbackGenerator(style: .medium)
+                    impactMed.impactOccurred()
                     showingActiveWorkout = true
                 } label: {
                     VStack(spacing: 4) {
