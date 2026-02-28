@@ -174,7 +174,7 @@ struct RoutineDetailView: View {
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
                                 .background(editMode == .active ? Color.green.opacity(0.1) : Color.appAccent.opacity(0.1))
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                             }
                         }
                         .padding(.horizontal)
@@ -1170,7 +1170,7 @@ struct ExerciseConfigSheet: View {
                                                 .frame(width: 80)
                                                 .padding(10)
                                                 .background(Color.appBackground)
-                                                .cornerRadius(8)
+                                                .cornerRadius(10)
                                         }
                                         .padding()
                                     }
@@ -1194,7 +1194,7 @@ struct ExerciseConfigSheet: View {
                                                 .frame(width: 80)
                                                 .padding(10)
                                                 .background(Color.appBackground)
-                                                .cornerRadius(8)
+                                                .cornerRadius(10)
                                         }
                                         .padding()
                                     }
@@ -1683,7 +1683,7 @@ struct EditExerciseSheet: View {
                                                 .frame(width: 80)
                                                 .padding(10)
                                                 .background(Color.appBackground)
-                                                .cornerRadius(8)
+                                                .cornerRadius(10)
                                         }
                                         .padding()
                                     }
@@ -1707,7 +1707,7 @@ struct EditExerciseSheet: View {
                                                 .frame(width: 80)
                                                 .padding(10)
                                                 .background(Color.appBackground)
-                                                .cornerRadius(8)
+                                                .cornerRadius(10)
                                         }
                                         .padding()
                                     }

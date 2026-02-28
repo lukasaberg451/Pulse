@@ -458,51 +458,30 @@ struct RoutineContentView: View {
                         ScrollView {
                             LazyVStack(spacing: 12) {
                                 ForEach(viewModel.routines) { routine in
-                                    HStack(spacing: 12) {
-                                        // Delete button in edit mode
-                                        if isEditMode {
-                                            Button {
-                                                Task {
-                                                    await viewModel.deleteRoutine(routine)
-                                                    
-                                                    // Exit edit mode if no routines remain
-                                                    if viewModel.routines.isEmpty {
-                                                        withAnimation {
-                                                            isEditMode = false
-                                                        }
+                                    RoutineRow(
+                                        routine: routine,
+                                        isEditMode: isEditMode,
+                                        exerciseCount: viewModel.exerciseCount(for: routine.id),
+                                        onTap: {
+                                            routineToNavigateTo = routine
+                                        },
+                                        onDelete: {
+                                            Task {
+                                                await viewModel.deleteRoutine(routine)
+                                                
+                                                // Exit edit mode if no routines remain
+                                                if viewModel.routines.isEmpty {
+                                                    withAnimation {
+                                                        isEditMode = false
                                                     }
                                                 }
-                                            } label: {
-                                                Image(systemName: "minus.circle.fill")
-                                                    .font(.title2)
-                                                    .foregroundStyle(Color.red)
                                             }
-                                            .transition(.scale.combined(with: .opacity))
                                         }
-                                        
-                                        // Show as plain card in edit mode, tappable card otherwise
-                                        if isEditMode {
-                                            RoutineCard(
-                                                routine: routine,
-                                                exerciseCount: viewModel.exerciseCount(for: routine.id)
-                                            )
-                                        } else {
-                                            Button {
-                                                routineToNavigateTo = routine
-                                            } label: {
-                                                RoutineCard(
-                                                    routine: routine,
-                                                    exerciseCount: viewModel.exerciseCount(for: routine.id)
-                                                )
-                                            }
-                                            .buttonStyle(PlainButtonStyle())
-                                        }
-                                    }
-                                    .animation(.spring(response: 0.3), value: isEditMode)
+                                    )
                                 }
                             }
+                            .padding(16)
                         }
-                        .padding(16)
                     }
                 }
             }
@@ -620,6 +599,44 @@ struct RoutineCard: View {
         .padding()
         .background(Color.appSurface)
         .cornerRadius(10)
+    }
+}
+
+struct RoutineRow: View {
+    let routine: Routine
+    let isEditMode: Bool
+    let exerciseCount: Int
+    let onTap: () -> Void
+    let onDelete: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Delete button in edit mode
+            if isEditMode {
+                Button {
+                    onDelete()
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(Color.red)
+                }
+                .transition(.scale.combined(with: .opacity))
+            }
+            
+            Button {
+                if !isEditMode {
+                    onTap()
+                }
+            } label: {
+                RoutineCard(
+                    routine: routine,
+                    exerciseCount: exerciseCount
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            .allowsHitTesting(!isEditMode)
+        }
+        .animation(.spring(response: 0.3), value: isEditMode)
     }
 }
 
