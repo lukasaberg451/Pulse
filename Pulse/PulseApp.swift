@@ -7,6 +7,20 @@
 
 import SwiftUI
 import SwiftData
+import PostHog
+import UIKit
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        let POSTHOG_API_KEY = "phc_Ot8pm2ingc4NkRMyD7aR1uv6k4Fyg0hNrtnbQtEuQNK"
+        let POSTHOG_HOST = "https://eu.i.posthog.com"
+
+        let config = PostHogConfig(apiKey: POSTHOG_API_KEY, host: POSTHOG_HOST)
+        PostHogSDK.shared.setup(config)
+
+        return true
+    }
+}
 
 struct IdentifiableString: Identifiable {
     let id = UUID()
@@ -26,6 +40,9 @@ extension EnvironmentValues {
 
 @main
 struct PulseApp: App {
+    // Connect the AppDelegate
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     @AppStorage("isFirstAppLaunch") private var isFirstAppLaunch = true
     @StateObject private var authViewModel = AuthViewModel()

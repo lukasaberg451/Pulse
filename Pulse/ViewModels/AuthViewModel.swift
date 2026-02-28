@@ -8,6 +8,7 @@
 import SwiftUI
 import Supabase
 import Combine
+import PostHog
 
 @MainActor
 class AuthViewModel: ObservableObject{
@@ -100,6 +101,20 @@ class AuthViewModel: ObservableObject{
             self.session = result.session
             registrationSuccess = true
             
+            // Track successful sign-up with PostHog
+            PostHogSDK.shared.capture("sign_up_successful", properties: [
+                "user_id": result.user.id.uuidString as Any,
+                "email": email as Any,
+                "first_name": firstName as Any,
+                "last_name": lastName as Any,
+                "timestamp": Date().ISO8601Format() as Any
+            ])
+            PostHogSDK.shared.identify(result.user.id.uuidString, userProperties: [
+                "email": email as Any,
+                "first_name": firstName as Any,
+                "last_name": lastName as Any
+            ])
+            
         } catch let error as AuthError {
             
             errorMessage = error.localizedDescription
@@ -132,6 +147,14 @@ class AuthViewModel: ObservableObject{
             
             self.session = result
             self.isAuthenticated = true
+            
+            // Track successful sign-in with PostHog
+            PostHogSDK.shared.capture("sign_in_successful", properties: [
+                "user_id": result.user.id.uuidString as Any,
+                "email": email as Any,
+                "timestamp": Date().ISO8601Format() as Any
+            ])
+            PostHogSDK.shared.identify(result.user.id.uuidString)
             
             await fetchUserProfile()
         } catch let error as AuthError {

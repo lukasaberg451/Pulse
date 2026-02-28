@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PostHog
 
 struct PostSignInGuideView: View {
     @Binding var isPresented: Bool
@@ -147,6 +148,8 @@ struct PostSignInGuideView: View {
                         if currentStep < steps.count - 1 {
                             currentStep += 1
                         } else {
+                            // Track completion when user clicks the final button
+                            PostHogSDK.shared.capture("onboarding_completed")
                             isPresented = false
                         }
                     }
