@@ -43,8 +43,7 @@ struct PulseApp: App {
     // Connect the AppDelegate
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
-    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
-    @AppStorage("isFirstAppLaunch") private var isFirstAppLaunch = true
+    @AppStorage("hasCompletedFirstLaunchGuide") private var hasCompletedFirstLaunchGuide = false
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var themeManager = ThemeManager()
     @StateObject private var syncService = WorkoutSyncService.shared
@@ -114,21 +113,7 @@ struct PulseApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if !hasSeenOnboarding {
-                    OnboardingView(authViewModel: authViewModel)
-                        .onDisappear {
-                            hasSeenOnboarding = true
-                        }
-                        .fullScreenCover(isPresented: Binding(
-                            get: { isFirstAppLaunch && !hasSeenOnboarding },
-                            set: { if !$0 { isFirstAppLaunch = false } }
-                        )) {
-                            WelcomeTourView()
-                                .onDisappear {
-                                    isFirstAppLaunch = false
-                                }
-                        }
-                } else if authViewModel.isAuthenticated {
+                if authViewModel.isAuthenticated {
                     HomeView(authViewModel: authViewModel)
                         .environmentObject(authViewModel)
                         .overlay {
@@ -137,8 +122,16 @@ struct PulseApp: App {
                             }
                         }
                         .onChange(of: authViewModel.isAuthenticated) { _, newValue in
-                            // Show guide when user signs in
-                            if newValue {
+                            // Show guide ONLY on first launch after user authenticates
+                            if newValue && !hasCompletedFirstLaunchGuide {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    showPostSignInGuide = true
+                                }
+                            }
+                        }
+                        .onAppear {
+                            // Also check on appear in case already authenticated
+                            if authViewModel.isAuthenticated && !hasCompletedFirstLaunchGuide {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                     showPostSignInGuide = true
                                 }

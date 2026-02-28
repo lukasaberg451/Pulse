@@ -11,6 +11,7 @@ import PostHog
 struct PostSignInGuideView: View {
     @Binding var isPresented: Bool
     @State private var currentStep = 0
+    @AppStorage("hasCompletedFirstLaunchGuide") private var hasCompletedGuide = false
     
     let steps = [
         GuideStep(
@@ -76,6 +77,7 @@ struct PostSignInGuideView: View {
                 HStack {
                     Spacer()
                     Button {
+                        hasCompletedGuide = true
                         isPresented = false
                     } label: {
                         Image(systemName: "xmark.circle.fill")
@@ -148,8 +150,8 @@ struct PostSignInGuideView: View {
                         if currentStep < steps.count - 1 {
                             currentStep += 1
                         } else {
-                            // Track completion when user clicks the final button
                             PostHogSDK.shared.capture("onboarding_completed")
+                            hasCompletedGuide = true
                             isPresented = false
                         }
                     }
@@ -168,6 +170,8 @@ struct PostSignInGuideView: View {
                 // Skip option for non-final steps
                 if currentStep < steps.count - 1 {
                     Button {
+                        PostHogSDK.shared.capture("onboarding_skipped")
+                        hasCompletedGuide = true
                         isPresented = false
                     } label: {
                         Text("Skip Guide")
