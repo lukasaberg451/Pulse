@@ -20,7 +20,6 @@ class SubscriptionManager: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private static let apiKey = "test_YJNEeaaIaWVqvPUQzcSFiEeiWax"
     private static let entitlementID = "pulse_pro"
     
     private init() {}
@@ -29,8 +28,11 @@ class SubscriptionManager: ObservableObject {
     
     /// Call this once at app launch (e.g. in AppDelegate)
     func configure() {
+        guard let apiKey = Bundle.main.object(forInfoDictionaryKey: "REVENUECAT_API_KEY") as? String else {
+            fatalError("Missing RevenueCat configuration in Info.plist. Ensure Secrets.xcconfig is set up correctly.")
+        }
         Purchases.logLevel = .debug
-        Purchases.configure(withAPIKey: Self.apiKey)
+        Purchases.configure(withAPIKey: apiKey)
     }
     
     /// Sync the current Supabase user with RevenueCat

@@ -13,10 +13,12 @@ import RevenueCat
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        let POSTHOG_API_KEY = "phc_Ot8pm2ingc4NkRMyD7aR1uv6k4Fyg0hNrtnbQtEuQNK"
-        let POSTHOG_HOST = "https://eu.i.posthog.com"
+        guard let posthogAPIKey = Bundle.main.object(forInfoDictionaryKey: "POSTHOG_API_KEY") as? String,
+              let posthogHost = Bundle.main.object(forInfoDictionaryKey: "POSTHOG_HOST") as? String else {
+            fatalError("Missing PostHog configuration in Info.plist. Ensure Secrets.xcconfig is set up correctly.")
+        }
 
-        let config = PostHogConfig(apiKey: POSTHOG_API_KEY, host: POSTHOG_HOST)
+        let config = PostHogConfig(apiKey: posthogAPIKey, host: posthogHost)
         PostHogSDK.shared.setup(config)
 
         // Configure RevenueCat
