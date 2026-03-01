@@ -2,13 +2,14 @@
 //  PulseApp.swift
 //  Pulse
 //
-//  Created by lukasaberg on 2/5/26.
+//  Created by Lukas Åberg on 2/5/26.
 //
 
 import SwiftUI
 import SwiftData
 import PostHog
 import UIKit
+import RevenueCat
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
@@ -17,6 +18,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
         let config = PostHogConfig(apiKey: POSTHOG_API_KEY, host: POSTHOG_HOST)
         PostHogSDK.shared.setup(config)
+
+        // Configure RevenueCat
+        SubscriptionManager.shared.configure()
 
         return true
     }
@@ -47,6 +51,7 @@ struct PulseApp: App {
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var themeManager = ThemeManager()
     @StateObject private var syncService = WorkoutSyncService.shared
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var showPasswordReset = false
     @State private var recoveryCode: IdentifiableString?
     @State private var showPostSignInGuide = false
@@ -145,7 +150,15 @@ struct PulseApp: App {
             .id(authViewModel.isAuthenticated)
             .environmentObject(themeManager)
             .environmentObject(syncService)
+            .environmentObject(subscriptionManager)
             .preferredColorScheme(themeManager.selectedTheme.colorScheme)
+            .task(id: authViewModel.isAuthenticated) {
+                if authViewModel.isAuthenticated {
+                    await subscriptionManager.syncUser()
+                } else {
+                    await subscriptionManager.logout()
+                }
+            }
             .onOpenURL { url in
                 handleDeepLink(url)
             }

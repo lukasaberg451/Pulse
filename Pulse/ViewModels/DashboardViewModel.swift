@@ -2,7 +2,7 @@
 //  DashboardViewModel.swift
 //  Pulse
 //
-//  Created by lukasaberg on 2/10/26.
+//  Created by Lukas Åberg on 2/10/26.
 //
 
 import Foundation

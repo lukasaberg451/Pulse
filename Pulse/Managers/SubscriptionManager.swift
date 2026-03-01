@@ -1,0 +1,123 @@
+//
+//  SubscriptionManager.swift
+//  Pulse
+//
+//  Created by Lukas Åberg on 3/1/26.
+//
+
+import SwiftUI
+import Combine
+import RevenueCat
+import Supabase
+
+@MainActor
+class SubscriptionManager: ObservableObject {
+    static let shared = SubscriptionManager()
+    
+    @Published var isProUser = false
+    @Published var currentOffering: Offering?
+    @Published var customerInfo: CustomerInfo?
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+    
+    private static let apiKey = "test_YJNEeaaIaWVqvPUQzcSFiEeiWax"
+    private static let entitlementID = "pulse_pro"
+    
+    private init() {}
+    
+    // MARK: - Configuration
+    
+    /// Call this once at app launch (e.g. in AppDelegate)
+    func configure() {
+        Purchases.logLevel = .debug
+        Purchases.configure(withAPIKey: Self.apiKey)
+    }
+    
+    /// Sync the current Supabase user with RevenueCat
+    func syncUser() async {
+        do {
+            let session = try await SupabaseManager.shared.client.auth.session
+            let userID = session.user.id.uuidString
+            let (customerInfo, _) = try await Purchases.shared.logIn(userID)
+            self.customerInfo = customerInfo
+            updateProStatus(from: customerInfo)
+        } catch {
+            print("RevenueCat login error: \(error.localizedDescription)")
+        }
+    }
+    
+    /// Clear user on sign out
+    func logout() async {
+        do {
+            let customerInfo = try await Purchases.shared.logOut()
+            self.customerInfo = customerInfo
+            updateProStatus(from: customerInfo)
+        } catch {
+            print("RevenueCat logout error: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Offerings
+    
+    func fetchOfferings() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            let offerings = try await Purchases.shared.offerings()
+            currentOffering = offerings.current
+        } catch {
+            errorMessage = error.localizedDescription
+            print("Error fetching offerings: \(error.localizedDescription)")
+        }
+        isLoading = false
+    }
+    
+    // MARK: - Purchases
+    
+    func purchase(_ package: Package) async -> Bool {
+        isLoading = true
+        errorMessage = nil
+        do {
+            let result = try await Purchases.shared.purchase(package: package)
+            self.customerInfo = result.customerInfo
+            updateProStatus(from: result.customerInfo)
+            isLoading = false
+            return !result.userCancelled
+        } catch {
+            errorMessage = error.localizedDescription
+            print("Purchase error: \(error.localizedDescription)")
+            isLoading = false
+            return false
+        }
+    }
+    
+    func restorePurchases() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            let customerInfo = try await Purchases.shared.restorePurchases()
+            self.customerInfo = customerInfo
+            updateProStatus(from: customerInfo)
+        } catch {
+            errorMessage = error.localizedDescription
+            print("Restore error: \(error.localizedDescription)")
+        }
+        isLoading = false
+    }
+    
+    // MARK: - Entitlement Check
+    
+    func refreshStatus() async {
+        do {
+            let customerInfo = try await Purchases.shared.customerInfo()
+            self.customerInfo = customerInfo
+            updateProStatus(from: customerInfo)
+        } catch {
+            print("Error fetching customer info: \(error.localizedDescription)")
+        }
+    }
+    
+    private func updateProStatus(from customerInfo: CustomerInfo) {
+        isProUser = customerInfo.entitlements[Self.entitlementID]?.isActive == true
+    }
+}

@@ -2,7 +2,7 @@
 //  RoutineDetailViewModel.swift
 //  Pulse
 //
-//  Created by lukasaberg on 2/8/26.
+//  Created by Lukas Åberg on 2/8/26.
 //
 
 import Foundation

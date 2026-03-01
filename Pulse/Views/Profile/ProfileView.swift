@@ -2,7 +2,7 @@
 //  ProfileView.swift
 //  Pulse
 //
-//  Created by lukasaberg on 2/5/26.
+//  Created by Lukas Åberg on 2/5/26.
 //
 
 import SwiftUI
@@ -17,6 +17,8 @@ struct ProfileView: View {
     @State private var showingFeedbackSheet = false
     @State private var showingLanguageSheet = false
     @State private var showingChangeEmailSheet = false
+    @State private var showingSubscriptionSheet = false
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
     
     var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
@@ -150,6 +152,39 @@ struct ProfileView: View {
                                         }
                                         .padding()
                                     }
+                                    
+                                    Divider()
+                                        .background(Color.appText.opacity(0.1))
+                                        .padding(.leading, 56)
+                                    
+                                    // Subscription Row
+                                    Button {
+                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                        impactLight.impactOccurred()
+                                        showingSubscriptionSheet = true
+                                    } label: {
+                                        HStack(spacing: 16) {
+                                            Image(systemName: "star.fill")
+                                                .font(.system(size: 20))
+                                                .foregroundStyle(Color.appAccent)
+                                                .frame(width: 24)
+                                            
+                                            Text("Subscription")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            Text(subscriptionManager.isProUser ? "Pro" : "Free")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                            
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appText.opacity(0.3))
+                                        }
+                                        .padding()
+                                    }
                                 }
                                 .background(Color.appSurface)
                                 .cornerRadius(10)
@@ -251,6 +286,9 @@ struct ProfileView: View {
                 }
             .sheet(isPresented: $showingThemeSheet) {
                 ThemeSelectionSheet()
+            }
+            .sheet(isPresented: $showingSubscriptionSheet) {
+                SubscriptionView()
             }
             .task {
                 await viewModel.loadProfile()

@@ -2,7 +2,7 @@
 //  CustomTabView.swift
 //  Pulse
 //
-//  Created by lukasaberg on 2/9/26.
+//  Created by Lukas Åberg on 2/9/26.
 //
 
 import SwiftUI

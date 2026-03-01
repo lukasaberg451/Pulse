@@ -2,7 +2,7 @@
 //  DashboardView.swift
 //  Pulse
 //
-//  Created by lukasaberg on 2/5/26.
+//  Created by Lukas Åberg on 2/5/26.
 //
 
 import SwiftUI

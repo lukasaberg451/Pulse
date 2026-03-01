@@ -2,7 +2,7 @@
 //  Routine.swift
 //  Pulse
 //
-//  Created by lukasaberg on 2/7/26.
+//  Created by Lukas Åberg on 2/7/26.
 //
 
 import Foundation

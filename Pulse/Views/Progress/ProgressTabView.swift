@@ -10,11 +10,66 @@ import SwiftUI
 struct ProgressTabView: View {
     @StateObject private var viewModel = ProgressStatsViewModel()
     @EnvironmentObject var syncService: WorkoutSyncService
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
+    @State private var showingPaywall = false
     
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.appBackground.ignoresSafeArea()
+                
+                if !subscriptionManager.isProUser {
+                    // Pro upgrade prompt
+                    VStack(spacing: 20) {
+                        Spacer()
+                        
+                        ZStack {
+                            Circle()
+                                .fill(Color.appAccent.opacity(0.15))
+                                .frame(width: 120, height: 120)
+                            
+                            Circle()
+                                .fill(Color.appAccent.opacity(0.08))
+                                .frame(width: 160, height: 160)
+                            
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.system(size: 50))
+                                .foregroundStyle(Color.appAccent)
+                        }
+                        
+                        Text("Unlock Progress Tracking")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.appText)
+                        
+                        Text("Upgrade to Pro to access detailed analytics, personal records, and training insights.")
+                            .font(.body)
+                            .foregroundStyle(Color.appText.opacity(0.6))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                        
+                        Button {
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                            showingPaywall = true
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Image(systemName: "star.fill")
+                                Text("Upgrade to Pro")
+                                    .font(.headline)
+                                Spacer()
+                            }
+                            .padding()
+                            .background(Color.appAccent)
+                            .foregroundStyle(Color.appText)
+                            .cornerRadius(10)
+                        }
+                        .padding(.horizontal)
+                        
+                        Spacer()
+                    }
+                } else {
                 
                 ScrollView {
                     VStack(spacing: 20) {
@@ -169,9 +224,13 @@ struct ProgressTabView: View {
                 .refreshable {
                     await viewModel.loadStats()
                 }
+                .task {
+                    await viewModel.loadStats()
+                }
+                } // end else (pro user)
             }
-            .task {
-                await viewModel.loadStats()
+            .sheet(isPresented: $showingPaywall) {
+                SubscriptionView()
             }
         }
     }

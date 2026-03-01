@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		310D83362F54BF8900478C32 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 310D83352F54BF8900478C32 /* RevenueCat */; };
+		310D83382F54BF8900478C32 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 310D83372F54BF8900478C32 /* RevenueCatUI */; };
 		3149B7262F435C1000A61B9F /* PulseWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3149B71C2F435C0F00A61B9F /* PulseWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		315DA9A52F5350A9001C58D9 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 315DA9A42F5350A9001C58D9 /* PostHog */; };
 		701BC8CB2F34C8E10085608F /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 701BC8CA2F34C8E10085608F /* Auth */; };
@@ -102,7 +104,9 @@
 				315DA9A52F5350A9001C58D9 /* PostHog in Frameworks */,
 				701BC8D52F34C8E10085608F /* Supabase in Frameworks */,
 				701BC8CB2F34C8E10085608F /* Auth in Frameworks */,
+				310D83362F54BF8900478C32 /* RevenueCat in Frameworks */,
 				701BC8D32F34C8E10085608F /* Storage in Frameworks */,
+				310D83382F54BF8900478C32 /* RevenueCatUI in Frameworks */,
 				701BC8D12F34C8E10085608F /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -179,6 +183,8 @@
 				701BC8D22F34C8E10085608F /* Storage */,
 				701BC8D42F34C8E10085608F /* Supabase */,
 				315DA9A42F5350A9001C58D9 /* PostHog */,
+				310D83352F54BF8900478C32 /* RevenueCat */,
+				310D83372F54BF8900478C32 /* RevenueCatUI */,
 			);
 			productName = Pulse;
 			productReference = 701BC8BB2F34C7F00085608F /* Pulse.app */;
@@ -217,6 +223,7 @@
 			packageReferences = (
 				701BC8C92F34C8E10085608F /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				315DA9A32F5350A9001C58D9 /* XCRemoteSwiftPackageReference "posthog-ios" */,
+				310D83322F54BF8900478C32 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 701BC8BC2F34C7F00085608F /* Products */;
@@ -590,6 +597,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		310D83322F54BF8900478C32 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.60.0;
+			};
+		};
 		315DA9A32F5350A9001C58D9 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/PostHog/posthog-ios.git";
@@ -609,6 +624,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		310D83352F54BF8900478C32 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 310D83322F54BF8900478C32 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+		310D83372F54BF8900478C32 /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 310D83322F54BF8900478C32 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCatUI;
+		};
 		315DA9A42F5350A9001C58D9 /* PostHog */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 315DA9A32F5350A9001C58D9 /* XCRemoteSwiftPackageReference "posthog-ios" */;
