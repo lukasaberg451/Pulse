@@ -217,6 +217,44 @@ struct ProgressTabView: View {
                             }
                             .padding(.horizontal)
                         }
+                        
+                        // Recent Workouts
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Recent Workouts")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.appText)
+                                .padding(.horizontal)
+                            
+                            if viewModel.recentSessions.isEmpty {
+                                VStack(spacing: 12) {
+                                    Image(systemName: "clock.arrow.circlepath")
+                                        .font(.system(size: 50))
+                                        .foregroundStyle(Color.appAccent.opacity(0.4))
+                                    
+                                    Text("No workout history yet")
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.appText.opacity(0.6))
+                                    
+                                    Text("Complete your first workout to see it here")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.appText.opacity(0.5))
+                                        .multilineTextAlignment(.center)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(30)
+                                .background(Color.appSurface)
+                                .cornerRadius(10)
+                                .padding(.horizontal)
+                            } else {
+                                ForEach(viewModel.recentSessions.prefix(5)) { session in
+                                    RecentWorkoutCard(
+                                        session: session,
+                                        viewModel: viewModel
+                                    )
+                                }
+                            }
+                        }
                     }
                     .padding(.top, 30)
                     .padding(.bottom)
@@ -932,6 +970,53 @@ struct EditHealthMetricsSheet: View {
             errorMessage = viewModel.errorMessage ?? "Failed to save health metrics"
             showError = true
         }
+    }
+}
+
+// MARK: - Recent Workout Card
+struct RecentWorkoutCard: View {
+    let session: WorkoutSession
+    @ObservedObject var viewModel: ProgressStatsViewModel
+    
+    var body: some View {
+        NavigationLink(destination: WorkoutDetailView(workoutSession: session)) {
+            HStack {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(session.name)
+                        .font(.headline)
+                        .foregroundStyle(Color.appText)
+                    
+                    HStack(spacing: 12) {
+                        Label(viewModel.formatDate(session.startedAt), systemImage: "calendar")
+                            .font(.caption)
+                            .foregroundStyle(Color.appText.opacity(0.6))
+                        
+                        if session.completedAt != nil {
+                            Label(viewModel.formatDuration(session.durationSeconds), systemImage: "clock")
+                                .font(.caption)
+                                .foregroundStyle(Color.appText.opacity(0.6))
+                        }
+                    }
+                    
+                    if session.completedAt != nil {
+                        Label("Completed", systemImage: "checkmark.circle.fill")
+                            .font(.caption)
+                            .foregroundStyle(Color.green)
+                    }
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(Color.appText.opacity(0.3))
+                    .font(.system(size: 14))
+            }
+            .padding(16)
+            .background(Color.appSurface)
+            .cornerRadius(10)
+            .padding(.horizontal)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

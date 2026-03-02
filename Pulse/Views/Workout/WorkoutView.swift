@@ -263,48 +263,15 @@ struct ScheduledWorkoutCard: View {
                 .transition(.scale.combined(with: .opacity))
             }
             
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(routine.name)
-                        .font(.headline)
-                        .foregroundStyle(Color.appText)
-                    
-                    HStack(spacing: 4) {
-                        Image(systemName: "figure.strengthtraining.traditional")
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.appAccent)
-                        Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
-                            .font(.caption)
-                            .foregroundStyle(Color.appText.opacity(0.6))
-                    }
-                    
-                    if scheduled.completed {
-                        Label("Completed", systemImage: "checkmark.circle.fill")
-                            .font(.caption)
-                            .foregroundStyle(Color.green)
-                    }
+            if scheduled.completed, let sessionId = scheduled.workoutSessionId,
+               let session = viewModel.workoutSession(for: sessionId) {
+                NavigationLink(destination: WorkoutDetailView(workoutSession: session)) {
+                    scheduledWorkoutContent
                 }
-                
-                Spacer()
-                
-                if !scheduled.completed {
-                    Button {
-                        showingActiveWorkout = true
-                    } label: {
-                        Text("Start")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Color.appText)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Color.appAccent)
-                            .cornerRadius(10)
-                    }
-                }
+                .buttonStyle(PlainButtonStyle())
+            } else {
+                scheduledWorkoutContent
             }
-            .padding()
-            .background(Color.appSurface)
-            .cornerRadius(10)
         }
         .animation(.spring(response: 0.3), value: isEditMode)
         .fullScreenCover(isPresented: $showingActiveWorkout) {
@@ -316,6 +283,55 @@ struct ScheduledWorkoutCard: View {
                 workoutSessionId: scheduled.workoutSessionId
             )
         }
+    }
+    
+    private var scheduledWorkoutContent: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(routine.name)
+                    .font(.headline)
+                    .foregroundStyle(Color.appText)
+                
+                HStack(spacing: 4) {
+                    Image(systemName: "figure.strengthtraining.traditional")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.appAccent)
+                    Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
+                        .font(.caption)
+                        .foregroundStyle(Color.appText.opacity(0.6))
+                }
+                
+                if scheduled.completed {
+                    Label("Completed", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(Color.green)
+                }
+            }
+            
+            Spacer()
+            
+            if !scheduled.completed {
+                Button {
+                    showingActiveWorkout = true
+                } label: {
+                    Text("Start")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.appText)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.appAccent)
+                        .cornerRadius(10)
+                }
+            } else {
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(Color.appText.opacity(0.3))
+                    .font(.system(size: 14))
+            }
+        }
+        .padding()
+        .background(Color.appSurface)
+        .cornerRadius(10)
     }
 }
 

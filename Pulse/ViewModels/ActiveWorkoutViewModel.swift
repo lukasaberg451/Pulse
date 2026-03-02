@@ -320,7 +320,17 @@ class ActiveWorkoutViewModel: ObservableObject {
             
             if let scheduledWorkoutId = scheduledWorkoutId {
                 try await markScheduledWorkoutComplete(id: scheduledWorkoutId)
+            } else {
+                // Non-scheduled workout: create a completed scheduled entry so it appears on the calendar
+                try await repository.createCompletedScheduledWorkout(
+                    routineId: routine.id,
+                    sessionId: sessionId,
+                    date: Date()
+                )
             }
+            
+            // Notify other views to refresh
+            NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
             
         } catch {
             errorMessage = "Failed to finish workout: \(error.localizedDescription)"

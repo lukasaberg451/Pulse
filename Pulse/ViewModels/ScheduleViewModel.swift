@@ -18,6 +18,7 @@ class ScheduleViewModel: ObservableObject {
     @Published var routineExerciseCounts: [UUID: Int] = [:]
     @Published var routineExerciseMap: [UUID: [RoutineExercise]] = [:]
     @Published var exercises: [Exercise] = []
+    @Published var workoutSessions: [UUID: WorkoutSession] = [:]
     
     private let exerciseRepository = ExerciseRepository()
     private let workoutRepository = WorkoutRepository()
@@ -101,6 +102,20 @@ class ScheduleViewModel: ObservableObject {
                 startDate: startOfMonth,
                 endDate: endOfMonth
             )
+            
+            // Load workout sessions for completed scheduled workouts
+            let completedSessionIds = scheduledWorkouts
+                .filter { $0.completed }
+                .compactMap { $0.workoutSessionId }
+            
+            if !completedSessionIds.isEmpty {
+                let allSessions = try await workoutRepository.fetchSessions()
+                for session in allSessions {
+                    if completedSessionIds.contains(session.id) {
+                        workoutSessions[session.id] = session
+                    }
+                }
+            }
         } catch {
             errorMessage = "Failed to load data: \(error.localizedDescription)"
         }
@@ -153,6 +168,10 @@ class ScheduleViewModel: ObservableObject {
     
     func routine(for id: UUID) -> Routine? {
         routines.first { $0.id == id }
+    }
+    
+    func workoutSession(for sessionId: UUID) -> WorkoutSession? {
+        workoutSessions[sessionId]
     }
     
     func deleteScheduled(_ scheduled: ScheduledWorkout) async {

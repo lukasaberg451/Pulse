@@ -43,7 +43,10 @@ class ProgressStatsViewModel: ObservableObject {
     @Published var lifetimeHours: Int = 0
     @Published var bestStreak: Int = 0
     
+    @Published var recentSessions: [WorkoutSession] = []
+    
     private let supabase = SupabaseManager.shared.client
+    private let workoutRepository = WorkoutRepository()
     private var loadTask: Task<Void, Never>?
     
     func loadStats() async {
@@ -56,7 +59,8 @@ class ProgressStatsViewModel: ObservableObject {
             async let muscles: Void = self.loadMuscleGroupStats()
             async let lifetime: Void = self.loadLifetimeStats()
             async let streak: Void = self.calculateStreak()
-            _ = await (monthly, lastMonth, prs, muscles, lifetime, streak)
+            async let recent: Void = self.loadRecentSessions()
+            _ = await (monthly, lastMonth, prs, muscles, lifetime, streak, recent)
         }
         loadTask = task
         await task.value
@@ -486,6 +490,38 @@ class ProgressStatsViewModel: ObservableObject {
             print("Failed to calculate streak: \(error)")
             currentStreak = 0
             bestStreak = 0
+        }
+    }
+    
+    private func loadRecentSessions() async {
+        do {
+            let allSessions = try await workoutRepository.fetchSessions()
+            recentSessions = Array(allSessions.filter { $0.completedAt != nil }.prefix(5))
+        } catch {
+            print("Failed to load recent sessions: \(error)")
+            recentSessions = []
+        }
+    }
+    
+    func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+    
+    func formatDuration(_ seconds: Int?) -> String {
+        guard let seconds = seconds else { return "N/A" }
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        let secs = seconds % 60
+        
+        if hours > 0 {
+            return String(format: "%dh %dm %ds", hours, minutes, secs)
+        } else if minutes > 0 {
+            return String(format: "%dm %ds", minutes, secs)
+        } else {
+            return String(format: "%ds", secs)
         }
     }
 }

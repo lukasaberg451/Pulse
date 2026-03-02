@@ -365,6 +365,21 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             print("🔄 Syncing completed workout to Supabase...")
             await syncService.syncPendingWorkouts()
             
+            // Non-scheduled workout: create a completed scheduled entry so it appears on the calendar
+            // This must happen after sync so the workout_session exists in Supabase
+            if scheduledWorkoutId == nil {
+                do {
+                    try await WorkoutRepository().createCompletedScheduledWorkout(
+                        routineId: routine.id,
+                        sessionId: session.id,
+                        date: Date()
+                    )
+                    print("✅ Created completed scheduled entry for non-scheduled workout")
+                } catch {
+                    print("❌ Failed to create scheduled entry: \(error)")
+                }
+            }
+            
             // Post notification to refresh UI
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
             print("📢 Posted workoutDataChanged notification")

@@ -166,6 +166,10 @@ struct PulseApp: App {
             }
             .sheet(item: $recoveryCode) { codeWrapper in
                         ResetPasswordInAppView(recoveryCode: codeWrapper.value)
+                            .onAppear {
+                                // Clear the flag since the reset flow is now being handled
+                                UserDefaults.standard.removeObject(forKey: "pendingPasswordReset")
+                            }
             }
             .sheet(isPresented: $authViewModel.showRecoveryPrompt) {
                 ResetPasswordInAppView(recoveryCode: nil)

@@ -120,6 +120,7 @@ class WorkoutRepository {
         setNumber: Int,
         reps: Int?,
         weight: Double?,
+        durationSeconds: Int?,
         completed: Bool
     ) async throws -> WorkoutSet {
         struct InsertData: Encodable {
@@ -129,6 +130,7 @@ class WorkoutRepository {
             let set_number: Int
             let reps: Int?
             let weight: Double?
+            let duration_seconds: Int?
             let completed: Bool
         }
         
@@ -139,6 +141,7 @@ class WorkoutRepository {
             set_number: setNumber,
             reps: reps,
             weight: weight,
+            duration_seconds: durationSeconds,
             completed: completed
         )
         
@@ -345,6 +348,31 @@ class WorkoutRepository {
         }
     }
 
+    // Create a completed scheduled workout entry (for non-scheduled workouts that were finished)
+    func createCompletedScheduledWorkout(routineId: UUID, sessionId: UUID, date: Date) async throws {
+        struct InsertData: Encodable {
+            let routine_id: String
+            let scheduled_date: String
+            let workout_session_id: String
+            let completed: Bool
+        }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        
+        let data = InsertData(
+            routine_id: routineId.uuidString,
+            scheduled_date: formatter.string(from: date),
+            workout_session_id: sessionId.uuidString,
+            completed: true
+        )
+        
+        try await supabase
+            .from("scheduled_workouts")
+            .insert(data)
+            .execute()
+    }
+    
     // Mark scheduled workout as completed
     func completeScheduledWorkout(id: UUID, sessionId: UUID) async throws {
         struct UpdateData: Encodable {

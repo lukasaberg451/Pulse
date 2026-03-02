@@ -71,26 +71,6 @@ struct DashboardView: View {
                             }
                         }
                         
-                        // Recent Workouts Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Recent Workouts")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.appText)
-                                .padding(.horizontal)
-                            
-                            if viewModel.recentSessions.isEmpty {
-                                EmptyRecentCard()
-                            } else {
-                                ForEach(viewModel.recentSessions) { session in
-                                    RecentWorkoutCard(
-                                        session: session,
-                                        viewModel: viewModel
-                                    )
-                                }
-                            }
-                        }
-                        
                         Spacer(minLength: 40)
                     }
                     .padding(.top, 20)
@@ -217,80 +197,7 @@ struct EmptyTodayCard: View {
     }
 }
 
-struct RecentWorkoutCard: View {
-    let session: WorkoutSession
-    @ObservedObject var viewModel: DashboardViewModel
-    
-    var body: some View {
-        NavigationLink(destination: WorkoutDetailView(workoutSession: session)) {
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(session.name)
-                        .font(.headline)
-                        .foregroundStyle(Color.appText)
-                    
-                    HStack(spacing: 12) {
-                        Label(viewModel.formatDate(session.startedAt), systemImage: "calendar")
-                            .font(.caption)
-                            .foregroundStyle(Color.appText.opacity(0.6))
-                        
-                        if session.completedAt != nil {
-                            Label(viewModel.formatDuration(session.durationSeconds), systemImage: "clock")
-                                .font(.caption)
-                                .foregroundStyle(Color.appText.opacity(0.6))
-                        }
-                    }
-                    
-                    if session.completedAt != nil {
-                        Label("Completed", systemImage: "checkmark.circle.fill")
-                            .font(.caption)
-                            .foregroundStyle(Color.green)
-                    } else {
-                        Label("In Progress", systemImage: "circle.dotted")
-                            .font(.caption)
-                            .foregroundStyle(Color.orange)
-                    }
-                }
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(Color.appText.opacity(0.3))
-                    .font(.system(size: 14))
-            }
-            .padding(16)
-            .background(Color.appSurface)
-            .cornerRadius(10)
-            .padding(.horizontal)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
 
-struct EmptyRecentCard: View {
-    var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 50))
-                .foregroundStyle(Color.appAccent.opacity(0.4))
-            
-            Text("No workout history yet")
-                .font(.subheadline)
-                .foregroundStyle(Color.appText.opacity(0.6))
-            
-            Text("Complete your first workout to see it here")
-                .font(.caption)
-                .foregroundStyle(Color.appText.opacity(0.5))
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(30)
-        .background(Color.appSurface)
-        .cornerRadius(10)
-        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
-        .padding(.horizontal)
-    }
-}
 
 struct DayGreetingView: View {
     var body: some View {

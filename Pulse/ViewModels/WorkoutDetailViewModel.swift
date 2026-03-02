@@ -14,6 +14,7 @@ class WorkoutDetailViewModel: ObservableObject {
     @Published var workoutSession: WorkoutSession
     @Published var workoutSets: [WorkoutSet] = []
     @Published var exerciseNames: [UUID: String] = [:]
+    @Published var exerciseTypes: [UUID: String] = [:]
     @Published var isLoading = false
     @Published var errorMessage: String?
     
@@ -42,16 +43,17 @@ class WorkoutDetailViewModel: ObservableObject {
             // Get unique exercise IDs
             let exerciseIds = Set(sets.map { $0.exerciseId })
             
-            // Fetch exercise names
+            // Fetch exercise names and types
             for exerciseId in exerciseIds {
                 if let exercise: Exercise = try? await supabase
                     .from("exercises")
-                    .select("id, name")
+                    .select("id, name, exercise_type")
                     .eq("id", value: exerciseId.uuidString)
                     .single()
                     .execute()
                     .value {
                     exerciseNames[exerciseId] = exercise.name
+                    exerciseTypes[exerciseId] = exercise.exerciseType
                 }
             }
             
@@ -63,12 +65,13 @@ class WorkoutDetailViewModel: ObservableObject {
     }
     
     // Group sets by exercise
-    var groupedSets: [(exerciseId: UUID, exerciseName: String, sets: [WorkoutSet])] {
+    var groupedSets: [(exerciseId: UUID, exerciseName: String, exerciseType: String?, sets: [WorkoutSet])] {
         let grouped = Dictionary(grouping: workoutSets, by: { $0.exerciseId })
         return grouped.map { (exerciseId, sets) in
             let name = exerciseNames[exerciseId] ?? "Unknown Exercise"
+            let type = exerciseTypes[exerciseId]
             let sortedSets = sets.sorted { $0.setNumber < $1.setNumber }
-            return (exerciseId, name, sortedSets)
+            return (exerciseId, name, type, sortedSets)
         }.sorted { $0.exerciseName < $1.exerciseName }
     }
     

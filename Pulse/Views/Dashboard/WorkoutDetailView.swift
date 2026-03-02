@@ -115,13 +115,14 @@ struct WorkoutDetailView: View {
             ForEach(viewModel.groupedSets, id: \.exerciseId) { exercise in
                 exerciseCard(
                     name: exercise.exerciseName,
-                    sets: exercise.sets
+                    sets: exercise.sets,
+                    isCardio: exercise.exerciseType == "cardio"
                 )
             }
         }
     }
     
-    func exerciseCard(name: String, sets: [WorkoutSet]) -> some View {
+    func exerciseCard(name: String, sets: [WorkoutSet], isCardio: Bool) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             // Exercise name
             Text(name)
@@ -138,17 +139,25 @@ struct WorkoutDetailView: View {
                         .foregroundStyle(Color.appText.opacity(0.6))
                         .frame(width: 50, alignment: .leading)
                     
-                    Text("WEIGHT")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.appText.opacity(0.6))
-                        .frame(maxWidth: .infinity, alignment: .center)
-                    
-                    Text("REPS")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.appText.opacity(0.6))
-                        .frame(maxWidth: .infinity, alignment: .center)
+                    if isCardio {
+                        Text("DURATION")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.appText.opacity(0.6))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    } else {
+                        Text("WEIGHT")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.appText.opacity(0.6))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                        
+                        Text("REPS")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.appText.opacity(0.6))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
                     
                     Image(systemName: "checkmark")
                         .font(.caption)
@@ -162,7 +171,7 @@ struct WorkoutDetailView: View {
                 
                 // Sets
                 ForEach(sets) { set in
-                    setRow(set: set)
+                    setRow(set: set, isCardio: isCardio)
                 }
             }
         }
@@ -171,7 +180,7 @@ struct WorkoutDetailView: View {
         .cornerRadius(10)
     }
     
-    func setRow(set: WorkoutSet) -> some View {
+    func setRow(set: WorkoutSet, isCardio: Bool) -> some View {
         HStack {
             // Set number
             Text("\(set.setNumber)")
@@ -179,35 +188,45 @@ struct WorkoutDetailView: View {
                 .foregroundStyle(Color.appText.opacity(0.8))
                 .frame(width: 50, alignment: .leading)
             
-            // Weight
-            if let weight = set.weight {
-                Text(String(format: "%.1f kg", weight))
-                    .font(.body)
-                    .foregroundStyle(Color.appText)
-                    .frame(maxWidth: .infinity, alignment: .center)
+            if isCardio {
+                // Duration for cardio
+                if let duration = set.durationSeconds {
+                    Text(formattedDuration(duration))
+                        .font(.body)
+                        .foregroundStyle(Color.appText)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    Text("-")
+                        .font(.body)
+                        .foregroundStyle(Color.appText.opacity(0.4))
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
             } else {
-                Text("-")
-                    .font(.body)
-                    .foregroundStyle(Color.appText.opacity(0.4))
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
-            
-            // Reps or Duration
-            if let reps = set.reps {
-                Text("\(reps)")
-                    .font(.body)
-                    .foregroundStyle(Color.appText)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            } else if let duration = set.durationSeconds {
-                Text("\(duration)s")
-                    .font(.body)
-                    .foregroundStyle(Color.appText)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            } else {
-                Text("-")
-                    .font(.body)
-                    .foregroundStyle(Color.appText.opacity(0.4))
-                    .frame(maxWidth: .infinity, alignment: .center)
+                // Weight
+                if let weight = set.weight {
+                    Text(String(format: "%.1f kg", weight))
+                        .font(.body)
+                        .foregroundStyle(Color.appText)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    Text("-")
+                        .font(.body)
+                        .foregroundStyle(Color.appText.opacity(0.4))
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+                
+                // Reps
+                if let reps = set.reps {
+                    Text("\(reps)")
+                        .font(.body)
+                        .foregroundStyle(Color.appText)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    Text("-")
+                        .font(.body)
+                        .foregroundStyle(Color.appText.opacity(0.4))
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
             }
             
             // Checkmark
@@ -223,5 +242,26 @@ struct WorkoutDetailView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+    }
+    
+    // MARK: - Duration Formatting
+    func formattedDuration(_ totalSeconds: Int) -> String {
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+        
+        var parts: [String] = []
+        
+        if hours > 0 {
+            parts.append("\(hours)h")
+        }
+        if minutes > 0 {
+            parts.append("\(minutes)m")
+        }
+        if seconds > 0 {
+            parts.append("\(seconds)s")
+        }
+        
+        return parts.isEmpty ? "0s" : parts.joined(separator: " ")
     }
 }

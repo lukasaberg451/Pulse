@@ -260,6 +260,7 @@ class WorkoutSyncService: ObservableObject {
                     setNumber: set.setNumber,
                     reps: set.reps,
                     weight: set.weight,
+                    durationSeconds: set.durationSeconds,
                     completed: set.completed
                 )
                 print("✅ Created set in Supabase: Set \(set.setNumber) for exercise \(set.exerciseId)")

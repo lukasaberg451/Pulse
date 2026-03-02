@@ -127,6 +127,7 @@ struct ResetPasswordInAppView: View {
                     if !showSuccess && !isInitializing {
                         Button("Cancel") {
                             Task {
+                                UserDefaults.standard.removeObject(forKey: "pendingPasswordReset")
                                 try? await supabase.auth.signOut()
                                 dismiss()
                             }
@@ -204,6 +205,13 @@ struct ResetPasswordInAppView: View {
             try await supabase.auth.update(
                 user: UserAttributes(password: newPassword)
             )
+            
+            // Clear the pending reset flag so it doesn't re-trigger on next launch
+            UserDefaults.standard.removeObject(forKey: "pendingPasswordReset")
+            
+            // Sign out the recovery session so the user must log in fresh
+            try? await supabase.auth.signOut()
+            
             showSuccess = true
         } catch {
             errorMessage = "Failed to reset password: \(error.localizedDescription)"
