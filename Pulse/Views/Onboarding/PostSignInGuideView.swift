@@ -37,7 +37,7 @@ struct PostSignInGuideView: View {
         GuideStep(
             icon: "play.circle.fill",
             title: "Start a Workout Session",
-            description: "When you're ready to train, tap a scheduled workout to begin. Log your sets, track rest times, and stay focused.",
+            description: "When you're ready to train, tap a scheduled workout or start it directly from the routine to begin. Log your sets, track rest times, and stay focused.",
             actionTitle: "Nice!",
             highlightTab: "Dashboard"
         ),

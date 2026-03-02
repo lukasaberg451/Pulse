@@ -17,6 +17,8 @@ struct WatchWorkoutView: View {
     @State private var totalSets: Int = 0
     @State private var targetReps: String = ""
     @State private var targetWeight: Double = 0
+    @State private var exerciseType: String = "strength"
+    @State private var targetDuration: Int = 0
     @State private var restSeconds: Int = 60
     @State private var restTimeRemaining: Int = 0
     @State private var isResting: Bool = false
@@ -81,7 +83,7 @@ struct WatchWorkoutView: View {
                                     .font(.footnote)
                                     .frame(maxWidth: .infinity)
                             }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.bordered)
                             .tint(.appAccent)
                             .padding(.top, 8)
                         }
@@ -97,42 +99,68 @@ struct WatchWorkoutView: View {
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)
                             
-                            // Workout timer
-                            Text(timeString(from: workoutDuration))
-                                .font(.caption2)
-                                .foregroundStyle(Color.gray)
-                            
-                            // Current set progress
-                            Text("Set \(currentSet)/\(totalSets)")
-                                .font(.body)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.white)
-                                .padding(.top, 2)
-                            
-                            // Target weight and reps
-                            HStack(spacing: 20) {
-                                VStack(spacing: 0) {
-                                    Text("Weight")
-                                        .font(.body)
-                                        .foregroundStyle(.gray)
-                                    Text("\(targetWeight, specifier: "%.1f") kg")
-                                        .font(.body)
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(.white)
-                                }
+                            if exerciseType == "cardio" {
+                                // CARDIO VIEW - show time prominently
+                                Text(timeString(from: workoutDuration))
+                                    .font(.system(size: 40, weight: .bold, design: .rounded))
+                                    .foregroundStyle(Color.appAccent)
+                                    .padding(.top, 8)
                                 
-                                VStack(spacing: 0) {
-                                    Text("Reps")
-                                        .font(.body)
+                                HStack(spacing: 8) {
+                                    Text("Set \(currentSet)/\(totalSets)")
+                                        .font(.caption)
                                         .foregroundStyle(.gray)
-                                   
-                                    Text(targetReps.isEmpty ? "—" : "\(targetReps)")
-                                        .font(.body)
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(.white)
+                                    
+                                    if targetDuration > 0 {
+                                        Text("•")
+                                            .font(.caption)
+                                            .foregroundStyle(.gray)
+                                        
+                                        Text(formatDuration(targetDuration))
+                                            .font(.caption)
+                                            .foregroundStyle(.white)
+                                    }
                                 }
+                                .padding(.top, 2)
+                            } else {
+                                // STRENGTH VIEW - show weight and reps
+                                // Workout timer
+                                Text(timeString(from: workoutDuration))
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.gray)
+                                
+                                // Current set progress
+                                Text("Set \(currentSet)/\(totalSets)")
+                                    .font(.body)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.white)
+                                    .padding(.top, 2)
+                                
+                                // Target weight and reps
+                                HStack(spacing: 20) {
+                                    VStack(spacing: 0) {
+                                        Text("Weight")
+                                            .font(.body)
+                                            .foregroundStyle(.gray)
+                                        Text("\(targetWeight, specifier: "%.1f") kg")
+                                            .font(.body)
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(.white)
+                                    }
+                                    
+                                    VStack(spacing: 0) {
+                                        Text("Reps")
+                                            .font(.body)
+                                            .foregroundStyle(.gray)
+                                       
+                                        Text(targetReps.isEmpty ? "—" : "\(targetReps)")
+                                            .font(.body)
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(.white)
+                                    }
+                                }
+                                .padding(.top, 4)
                             }
-                            .padding(.top, 4)
                             
                             Button {
                                 logSetAndStartRest()
@@ -142,8 +170,8 @@ struct WatchWorkoutView: View {
                                     .fontWeight(.semibold)
                                     .frame(maxWidth: .infinity)
                             }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.orange)
+                            .buttonStyle(.bordered)
+                            .tint(.appAccent)
                             .padding(.top, 8)
                         }
                         .padding(.horizontal, 8)
@@ -211,12 +239,32 @@ struct WatchWorkoutView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RestTimerStopped"))) { _ in
             stopRestTimer()
         }
+        .onChange(of: syncManager.restTimerStoppedFromPhone) { _, newValue in
+            if newValue {
+                print("⌚ Rest timer stopped from phone (via @Published)")
+                stopRestTimer()
+                syncManager.restTimerStoppedFromPhone = false
+            }
+        }
     }
     
     func updateWorkoutData(_ data: [String: Any]) {
         print("⌚ ========== UPDATE WORKOUT DATA ==========")
         print("⌚ Received data keys: \(data.keys.sorted())")
         print("⌚ Full data: \(data)")
+        
+        // Check if rest was started from phone
+        if data["restStarted"] as? Bool == true, let duration = data["restDuration"] as? Int {
+            print("⌚ Rest started from phone - starting rest timer for \(duration)s")
+            restSeconds = duration
+            startRestTimer()
+        }
+        
+        // Check if rest was stopped from phone
+        if data["restStopped"] as? Bool == true {
+            print("⌚ Rest stopped from phone - dismissing rest timer")
+            stopRestTimer()
+        }
         
         // Check if workout ended
         if data["workoutEnded"] as? Bool == true {
@@ -266,6 +314,21 @@ struct WatchWorkoutView: View {
             targetWeight = Double(weightInt)
         } else {
             print("⌚ WARNING: No weight in data or wrong type, value: \(String(describing: data["weight"]))")
+        }
+        
+        if let type = data["exerciseType"] as? String {
+            print("⌚ Setting exercise type: \(type)")
+            exerciseType = type
+        } else {
+            print("⌚ WARNING: No exerciseType in data, defaulting to strength")
+            exerciseType = "strength"
+        }
+        
+        if let duration = data["durationSeconds"] as? Int {
+            print("⌚ Setting target duration: \(duration)s")
+            targetDuration = duration
+        } else {
+            targetDuration = 0
         }
         
         if let rest = data["rest"] as? Int {
@@ -426,6 +489,15 @@ struct WatchWorkoutView: View {
         durationTimer = nil
     }
 
+    func formatDuration(_ totalSeconds: Int) -> String {
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        if seconds > 0 {
+            return "\(minutes)m \(seconds)s"
+        }
+        return "\(minutes)m"
+    }
+    
     func timeString(from duration: TimeInterval) -> String {
         let totalSeconds = Int(duration)
         let minutes = totalSeconds / 60

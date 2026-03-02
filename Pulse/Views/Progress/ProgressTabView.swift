@@ -907,9 +907,9 @@ struct EditHealthMetricsSheet: View {
         showError = false
         errorMessage = ""
         
-        // Validate inputs
-        let weight = Double(weightText)
-        let height = Double(heightText)
+        // Validate inputs — normalize comma to dot for locales that use comma as decimal separator
+        let weight = Double(weightText.replacingOccurrences(of: ",", with: "."))
+        let height = Double(heightText.replacingOccurrences(of: ",", with: "."))
         
         if let weight = weight, weight <= 0 {
             errorMessage = "Weight must be greater than 0"

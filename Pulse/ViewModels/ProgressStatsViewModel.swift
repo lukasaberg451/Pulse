@@ -44,14 +44,22 @@ class ProgressStatsViewModel: ObservableObject {
     @Published var bestStreak: Int = 0
     
     private let supabase = SupabaseManager.shared.client
+    private var loadTask: Task<Void, Never>?
     
     func loadStats() async {
-        await loadMonthlyStats()
-        await loadLastMonthStats()
-        await loadRecentPRs()
-        await loadMuscleGroupStats()
-        await loadLifetimeStats()
-        await calculateStreak()
+        loadTask?.cancel()
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            async let monthly: Void = self.loadMonthlyStats()
+            async let lastMonth: Void = self.loadLastMonthStats()
+            async let prs: Void = self.loadRecentPRs()
+            async let muscles: Void = self.loadMuscleGroupStats()
+            async let lifetime: Void = self.loadLifetimeStats()
+            async let streak: Void = self.calculateStreak()
+            _ = await (monthly, lastMonth, prs, muscles, lifetime, streak)
+        }
+        loadTask = task
+        await task.value
     }
     
     private func loadMonthlyStats() async {
@@ -81,6 +89,11 @@ class ProgressStatsViewModel: ObservableObject {
             // Calculate average duration
             let totalDuration = sessions.reduce(0) { $0 + ($1.durationSeconds ?? 0) }
             avgDuration = sessions.isEmpty ? 0 : (totalDuration / sessions.count) / 60
+            
+            guard !sessions.isEmpty else {
+                monthlyVolume = 0
+                return
+            }
             
             // Get all sets from this month to calculate volume
             let sets: [WorkoutSet] = try await supabase
@@ -137,6 +150,11 @@ class ProgressStatsViewModel: ObservableObject {
             
             let totalDuration = sessions.reduce(0) { $0 + ($1.durationSeconds ?? 0) }
             lastMonthAvgDuration = sessions.isEmpty ? 0 : (totalDuration / sessions.count) / 60
+            
+            guard !sessions.isEmpty else {
+                lastMonthVolume = 0
+                return
+            }
             
             let sets: [WorkoutSet] = try await supabase
                 .from("workout_sets")
@@ -348,6 +366,11 @@ class ProgressStatsViewModel: ObservableObject {
             
             let totalSeconds = sessions.reduce(0) { $0 + ($1.durationSeconds ?? 0) }
             lifetimeHours = totalSeconds / 3600
+            
+            guard !sessions.isEmpty else {
+                lifetimeVolume = 0
+                return
+            }
             
             let sets: [WorkoutSet] = try await supabase
                 .from("workout_sets")

@@ -14,6 +14,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     
     @Published var isReachable = false
     @Published var currentWorkoutData: [String: Any]?
+    @Published var restTimerStoppedFromPhone = false
     static let restTimerUpdate = Notification.Name("restTimerUpdate")
     static let restTimerStopped = Notification.Name("restTimerStopped")
     
@@ -55,7 +56,8 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             "reps": firstRoutineExercise.repsTarget ?? "",
             "weight": firstRoutineExercise.targetWeight ?? 0,
             "rest": firstRoutineExercise.restSeconds,
-            "exerciseType": (firstExercise.exerciseType ?? "strength") as Any
+            "exerciseType": (firstExercise.exerciseType ?? "strength") as Any,
+            "durationSeconds": (firstRoutineExercise.durationSeconds ?? 0) as Any
         ]
         
         print("📱 ========== STARTING WORKOUT ON WATCH ==========")
@@ -94,10 +96,22 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     }
     
     func sendRestTimerStopped() {
-        guard let session = session, session.isReachable else { return }
+        guard let session = session else { return }
         
-        let message = ["restTimerStopped": true]
-        session.sendMessage(message, replyHandler: nil)
+        let message: [String: Any] = ["restTimerStopped": true]
+        
+        if session.isReachable {
+            session.sendMessage(message, replyHandler: nil) { error in
+                print("📱 Error sending restTimerStopped via message: \(error.localizedDescription)")
+                // Fallback to transferUserInfo if sendMessage fails
+                session.transferUserInfo(message)
+                print("📱 Queued restTimerStopped via transferUserInfo fallback")
+            }
+        } else {
+            // Not reachable, use guaranteed delivery
+            session.transferUserInfo(message)
+            print("📱 Queued restTimerStopped via transferUserInfo (not reachable)")
+        }
     }
     
     func sendWorkoutFinished() {
@@ -128,13 +142,13 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         NotificationCenter.default.post(name: .skipRestFromWatch, object: nil)
     }
     
-    func sendCurrentExercise(exercise: Exercise, routineExercise: RoutineExercise, currentSetNumber: Int = 1) {
+    func sendCurrentExercise(exercise: Exercise, routineExercise: RoutineExercise, currentSetNumber: Int = 1, restStopped: Bool = false, restStarted: Bool = false, restDuration: Int = 0) {
         guard let session = session else {
             print("📱 ERROR: No WCSession available")
             return
         }
         
-        let exerciseData: [String: Any] = [
+        var exerciseData: [String: Any] = [
             "exerciseId": exercise.id.uuidString,
             "currentExercise": exercise.name,
             "sets": routineExercise.sets,
@@ -142,26 +156,44 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             "reps": routineExercise.repsTarget ?? "",
             "weight": routineExercise.targetWeight ?? 0,
             "rest": routineExercise.restSeconds,
-            "exerciseType": (exercise.exerciseType ?? "strength") as Any
+            "exerciseType": (exercise.exerciseType ?? "strength") as Any,
+            "durationSeconds": (routineExercise.durationSeconds ?? 0) as Any
         ]
+        
+        if restStopped {
+            exerciseData["restStopped"] = true
+        }
+        if restStarted {
+            exerciseData["restStarted"] = true
+            exerciseData["restDuration"] = restDuration
+        }
+        
+        // Add timestamp to ensure applicationContext always sees this as new data
+        exerciseData["timestamp"] = Date().timeIntervalSince1970
         
         print("📱 ========== SENDING EXERCISE UPDATE ==========")
         print("📱 Exercise: \(exercise.name)")
         print("📱 Current Set: \(currentSetNumber)/\(routineExercise.sets)")
-        print("📱 Weight: \(routineExercise.targetWeight ?? 0) kg")
-        print("📱 Reps: '\(routineExercise.repsTarget ?? "")'")
-        print("📱 Full data: \(exerciseData)")
-        #if os(iOS)
-        print("📱 Session state - isPaired: \(session.isPaired), isReachable: \(session.isReachable), activationState: \(session.activationState.rawValue)")
-        #else
-        print("📱 Session state - isReachable: \(session.isReachable), activationState: \(session.activationState.rawValue)")
-        #endif
+        print("📱 restStarted: \(restStarted), restStopped: \(restStopped)")
         
+        // Always try sendMessage for immediate delivery
+        if session.isReachable {
+            session.sendMessage(exerciseData, replyHandler: nil) { error in
+                print("📱 ❌ sendMessage failed: \(error.localizedDescription)")
+            }
+            print("📱 ✅ Sent via sendMessage")
+        }
+        
+        // Always use transferUserInfo as guaranteed delivery
+        session.transferUserInfo(exerciseData)
+        print("📱 ✅ Queued via transferUserInfo")
+        
+        // Also update application context
         do {
             try session.updateApplicationContext(exerciseData)
-            print("📱 ✅ Successfully updated application context")
+            print("📱 ✅ Updated application context")
         } catch {
-            print("📱 ❌ Error sending current exercise: \(error.localizedDescription)")
+            print("📱 ❌ Error updating context: \(error.localizedDescription)")
         }
         print("📱 ============================================")
     }
@@ -216,6 +248,13 @@ extension WorkoutSyncManager: WCSessionDelegate {
             
             #if os(watchOS)
             print("⌚ Processing userInfo on Watch...")
+            
+            if userInfo["restTimerStopped"] as? Bool == true {
+                print("⌚ Rest timer stopped from iPhone (via userInfo)")
+                self.restTimerStoppedFromPhone = true
+                return
+            }
+            
             self.currentWorkoutData = userInfo
             NotificationCenter.default.post(
                 name: NSNotification.Name("WorkoutDataReceived"),
@@ -245,13 +284,19 @@ extension WorkoutSyncManager: WCSessionDelegate {
             
             #if os(watchOS)
             print("⌚ Processing message on Watch...")
-            if message.keys.contains("routineName") {
+            // Process any message that contains exercise data (currentExercise) or routine data (routineName)
+            if message.keys.contains("currentExercise") || message.keys.contains("routineName") {
                 self.currentWorkoutData = message
                 NotificationCenter.default.post(
                     name: NSNotification.Name("WorkoutDataReceived"),
                     object: nil,
                     userInfo: message
                 )
+            }
+            
+            if message["restTimerStopped"] as? Bool == true {
+                print("⌚ Rest timer stopped from iPhone (via message)")
+                self.restTimerStoppedFromPhone = true
             }
             #endif
             

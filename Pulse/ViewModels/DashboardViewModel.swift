@@ -48,7 +48,7 @@ class DashboardViewModel: ObservableObject {
         do {
             await fetchUserProfile()
             //Load exercises first
-            exercises = try await exerciseRepository.fetchExercises()
+            exercises = try await exerciseRepository.fetchAllExercises()
             
             // Load routines
             routines = try await routineRepository.fetchRoutines()

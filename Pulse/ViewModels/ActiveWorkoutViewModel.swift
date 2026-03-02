@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import Supabase
 import PostHog
+import UIKit
 
 @MainActor
 class ActiveWorkoutViewModel: ObservableObject {
@@ -18,6 +19,8 @@ class ActiveWorkoutViewModel: ObservableObject {
     @Published var elapsedTime: TimeInterval = 0
     @Published var isRestTimerActive = false
     @Published var restTimeRemaining: Int = 0
+    
+    private var restEndTime: Date?
     
     private let scheduledWorkoutId: UUID?
     private let exercises: [Exercise]
@@ -64,6 +67,19 @@ class ActiveWorkoutViewModel: ObservableObject {
             guard let self = self else { return }
             Task { @MainActor in
                 self.stopRestTimer()
+            }
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                if self.isRestTimerActive {
+                    self.updateRestTimeRemaining()
+                }
             }
         }
     }
@@ -157,8 +173,12 @@ class ActiveWorkoutViewModel: ObservableObject {
     }
         
     func startRestTimer(seconds: Int) {
+        restEndTime = Date().addingTimeInterval(Double(seconds))
         restTimeRemaining = seconds
         isRestTimerActive = true
+        
+        // Tell the watch to start its rest timer and update set number
+        sendCurrentExerciseToWatch(restStarted: true, restDuration: seconds)
         
         restTimer?.invalidate()
         restTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
@@ -168,20 +188,32 @@ class ActiveWorkoutViewModel: ObservableObject {
             }
             
             Task { @MainActor in
-                if self.restTimeRemaining > 0 {
-                    self.restTimeRemaining -= 1
-                } else {
-                    self.stopRestTimer()
-                }
+                self.updateRestTimeRemaining()
             }
+        }
+    }
+    
+    private func updateRestTimeRemaining() {
+        guard let restEndTime = restEndTime else {
+            stopRestTimer()
+            return
+        }
+        
+        let remaining = Int(ceil(restEndTime.timeIntervalSinceNow))
+        if remaining > 0 {
+            restTimeRemaining = remaining
+        } else {
+            stopRestTimer()
         }
     }
     
     func stopRestTimer() {
         restTimer?.invalidate()
         restTimer = nil
+        restEndTime = nil
         isRestTimerActive = false
         restTimeRemaining = 0
+        sendCurrentExerciseToWatch(restStopped: true)
     }
     
     func formatElapsedTime() -> String {
@@ -332,7 +364,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         restTimer?.invalidate()
     }
     
-    private func sendCurrentExerciseToWatch() {
+    private func sendCurrentExerciseToWatch(restStopped: Bool = false, restStarted: Bool = false, restDuration: Int = 0) {
         guard let currentRoutineExercise = routineExercises.first,
               let currentExercise = exercises.first(where: { $0.id == currentRoutineExercise.exerciseId }) else {
             // No more exercises - send workout ended
@@ -340,9 +372,17 @@ class ActiveWorkoutViewModel: ObservableObject {
             return
         }
         
+        // Figure out current set number for the watch
+        let completedSets = sets.filter { $0.exerciseId == currentRoutineExercise.exerciseId && $0.completed }.count
+        let currentSetNumber = completedSets + 1
+        
         WorkoutSyncManager.shared.sendCurrentExercise(
             exercise: currentExercise,
-            routineExercise: currentRoutineExercise
+            routineExercise: currentRoutineExercise,
+            currentSetNumber: currentSetNumber,
+            restStopped: restStopped,
+            restStarted: restStarted,
+            restDuration: restDuration
         )
     }
 }

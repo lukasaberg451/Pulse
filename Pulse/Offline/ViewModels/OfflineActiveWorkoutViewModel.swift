@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 import Combine
+import UIKit
 
 @MainActor
 class OfflineActiveWorkoutViewModel: ObservableObject {
@@ -17,6 +18,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     @Published var elapsedTime: TimeInterval = 0
     @Published var isRestTimerActive = false
     @Published var restTimeRemaining: Int = 0
+    
+    private var restEndTime: Date?
     @Published var isOfflineMode = false
     
     private let scheduledWorkoutId: UUID?
@@ -87,6 +90,19 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             guard let self = self else { return }
             Task { @MainActor in
                 self.stopRestTimer()
+            }
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                if self.isRestTimerActive {
+                    self.updateRestTimeRemaining()
+                }
             }
         }
     }
@@ -189,6 +205,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     }
         
     func startRestTimer(seconds: Int) {
+        restEndTime = Date().addingTimeInterval(Double(seconds))
         restTimeRemaining = seconds
         isRestTimerActive = true
         
@@ -200,18 +217,29 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             }
             
             Task { @MainActor in
-                if self.restTimeRemaining > 0 {
-                    self.restTimeRemaining -= 1
-                } else {
-                    self.stopRestTimer()
-                }
+                self.updateRestTimeRemaining()
             }
+        }
+    }
+    
+    private func updateRestTimeRemaining() {
+        guard let restEndTime = restEndTime else {
+            stopRestTimer()
+            return
+        }
+        
+        let remaining = Int(ceil(restEndTime.timeIntervalSinceNow))
+        if remaining > 0 {
+            restTimeRemaining = remaining
+        } else {
+            stopRestTimer()
         }
     }
     
     func stopRestTimer() {
         restTimer?.invalidate()
         restTimer = nil
+        restEndTime = nil
         isRestTimerActive = false
         restTimeRemaining = 0
     }

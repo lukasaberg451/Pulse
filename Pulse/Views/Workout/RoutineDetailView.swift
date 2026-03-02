@@ -910,7 +910,7 @@ struct ExerciseConfigSheet: View {
     @ObservedObject var viewModel: RoutineDetailViewModel
     
     @State private var sets = 3
-    @State private var repsTarget = "10"
+    @State private var repsTarget = "8"
     @State private var targetWeight = "0"
     @State private var durationMinutes = 5
     @State private var durationSeconds = 0
