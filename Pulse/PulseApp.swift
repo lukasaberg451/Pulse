@@ -10,6 +10,7 @@ import SwiftData
 import PostHog
 import UIKit
 import RevenueCat
+import Sentry
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
@@ -23,6 +24,17 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
         // Configure RevenueCat
         SubscriptionManager.shared.configure()
+
+        // Configure Sentry
+        if let sentryDSN = Bundle.main.object(forInfoDictionaryKey: "SENTRY_DSN") as? String {
+            SentrySDK.start { options in
+                options.dsn = sentryDSN
+                options.debug = false
+                options.tracesSampleRate = 1.0
+                options.attachScreenshot = true
+                options.attachViewHierarchy = true
+            }
+        }
 
         return true
     }

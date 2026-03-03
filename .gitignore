@@ -10,5 +10,9 @@ xcuserdata/
 build/
 DerivedData/
 
+# Sentry
+.sentryclirc
+sentry-cli
+
 # macOS
 .DS_Store

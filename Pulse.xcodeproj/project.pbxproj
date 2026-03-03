@@ -12,6 +12,7 @@
 		310D834C2F54E2A300478C32 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 310D834B2F54E2A300478C32 /* Secrets.xcconfig */; };
 		3149B7262F435C1000A61B9F /* PulseWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3149B71C2F435C0F00A61B9F /* PulseWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		315DA9A52F5350A9001C58D9 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 315DA9A42F5350A9001C58D9 /* PostHog */; };
+		31F564332F5761D8001EA7BC /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 31F564322F5761D8001EA7BC /* Sentry */; };
 		701BC8CB2F34C8E10085608F /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 701BC8CA2F34C8E10085608F /* Auth */; };
 		701BC8CD2F34C8E10085608F /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 701BC8CC2F34C8E10085608F /* Functions */; };
 		701BC8CF2F34C8E10085608F /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 701BC8CE2F34C8E10085608F /* PostgREST */; };
@@ -106,6 +107,7 @@
 				315DA9A52F5350A9001C58D9 /* PostHog in Frameworks */,
 				701BC8D52F34C8E10085608F /* Supabase in Frameworks */,
 				701BC8CB2F34C8E10085608F /* Auth in Frameworks */,
+				31F564332F5761D8001EA7BC /* Sentry in Frameworks */,
 				310D83362F54BF8900478C32 /* RevenueCat in Frameworks */,
 				701BC8D32F34C8E10085608F /* Storage in Frameworks */,
 				310D83382F54BF8900478C32 /* RevenueCatUI in Frameworks */,
@@ -168,6 +170,7 @@
 				701BC8B82F34C7F00085608F /* Frameworks */,
 				701BC8B92F34C7F00085608F /* Resources */,
 				3149B72A2F435C1000A61B9F /* Embed Watch Content */,
+				31F564342F57649E001EA7BC /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
 			);
@@ -188,6 +191,7 @@
 				315DA9A42F5350A9001C58D9 /* PostHog */,
 				310D83352F54BF8900478C32 /* RevenueCat */,
 				310D83372F54BF8900478C32 /* RevenueCatUI */,
+				31F564322F5761D8001EA7BC /* Sentry */,
 			);
 			productName = Pulse;
 			productReference = 701BC8BB2F34C7F00085608F /* Pulse.app */;
@@ -227,6 +231,7 @@
 				701BC8C92F34C8E10085608F /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				315DA9A32F5350A9001C58D9 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 				310D83322F54BF8900478C32 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				31F564312F5761D8001EA7BC /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 701BC8BC2F34C7F00085608F /* Products */;
@@ -256,6 +261,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		31F564342F57649E001EA7BC /* Upload Debug Symbols to Sentry */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Upload Debug Symbols to Sentry";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"$CONFIGURATION\" = \"Release\" ]; then\n  \"${SRCROOT}/sentry-cli\" debug-files upload --include-sources \"${DWARF_DSYM_FOLDER_PATH}\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		3149B7182F435C0F00A61B9F /* Sources */ = {
@@ -619,6 +646,14 @@
 				minimumVersion = 3.42.0;
 			};
 		};
+		31F564312F5761D8001EA7BC /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.5.1;
+			};
+		};
 		701BC8C92F34C8E10085608F /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift";
@@ -644,6 +679,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 315DA9A32F5350A9001C58D9 /* XCRemoteSwiftPackageReference "posthog-ios" */;
 			productName = PostHog;
+		};
+		31F564322F5761D8001EA7BC /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 31F564312F5761D8001EA7BC /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
 		};
 		701BC8CA2F34C8E10085608F /* Auth */ = {
 			isa = XCSwiftPackageProductDependency;
