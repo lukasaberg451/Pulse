@@ -192,34 +192,47 @@ struct ProfileView: View {
                                             .background(Color.appText.opacity(0.1))
                                             .padding(.leading, 56)
                                         
-                                        HStack(spacing: 16) {
-                                            Image(systemName: "heart.fill")
-                                                .font(.system(size: 20))
-                                                .foregroundStyle(Color.appAccent)
-                                                .frame(width: 24)
-                                            
-                                            Text("Apple Health")
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText)
-                                            
-                                            Spacer()
-                                            
-                                            Toggle("", isOn: Binding(
-                                                get: { healthKitManager.isSyncEnabled },
-                                                set: { newValue in
-                                                    if newValue {
-                                                        Task {
-                                                            await healthKitManager.requestAuthorization()
-                                                        }
-                                                    } else {
-                                                        healthKitManager.disableSync()
-                                                    }
+                                        Button {
+                                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                            impactLight.impactOccurred()
+                                            if healthKitManager.isSyncEnabled {
+                                                if let url = URL(string: "x-apple-health://") {
+                                                    UIApplication.shared.open(url)
                                                 }
-                                            ))
-                                            .tint(Color.appAccent)
-                                            .labelsHidden()
+                                            } else {
+                                                Task {
+                                                    await healthKitManager.requestAuthorization()
+                                                }
+                                            }
+                                        } label: {
+                                            HStack(spacing: 16) {
+                                                Image(systemName: "heart.fill")
+                                                    .font(.system(size: 20))
+                                                    .foregroundStyle(Color.appAccent)
+                                                    .frame(width: 24)
+                                                
+                                                Text("Apple Health")
+                                                    .font(.body)
+                                                    .foregroundStyle(Color.appText)
+                                                
+                                                Spacer()
+                                                
+                                                if healthKitManager.isSyncEnabled {
+                                                    Text("Connected")
+                                                        .font(.body)
+                                                        .foregroundStyle(Color.appText.opacity(0.6))
+                                                    
+                                                    Image(systemName: "chevron.right")
+                                                        .font(.caption)
+                                                        .foregroundStyle(Color.appText.opacity(0.3))
+                                                } else {
+                                                    Text("Connect")
+                                                        .font(.body.weight(.medium))
+                                                        .foregroundStyle(Color.appAccent)
+                                                }
+                                            }
+                                            .padding()
                                         }
-                                        .padding()
                                     }
                                 }
                                 .background(Color.appSurface)
