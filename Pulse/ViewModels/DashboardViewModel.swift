@@ -22,6 +22,7 @@ class DashboardViewModel: ObservableObject {
     @Published var weeklyWorkoutMinutes: Int = 0
     @Published var weeklyGoalMinutes: Int = 150
     @Published var userProfile: Profile?
+    @Published var workoutSessions: [UUID: WorkoutSession] = [:]
     
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
@@ -76,6 +77,13 @@ class DashboardViewModel: ObservableObject {
             //Load recently completed (last 5)
             let allSessions = try await workoutRepository.fetchSessions()
             print("📊 Loaded \(allSessions.count) total sessions from server")
+            
+            // Build session lookup for today's workouts
+            let todaySessionIds = Set(todaysWorkouts.compactMap { $0.workoutSessionId })
+            for session in allSessions where todaySessionIds.contains(session.id) {
+                workoutSessions[session.id] = session
+            }
+            
             recentSessions = Array(allSessions.filter { $0.completedAt != nil}.prefix(5))
             print("📊 Filtered to \(recentSessions.count) recent completed sessions")
             if !recentSessions.isEmpty {
@@ -99,6 +107,14 @@ class DashboardViewModel: ObservableObject {
     
     func routine(for id: UUID) -> Routine? {
         routines.first { $0.id == id }
+    }
+    
+    func sessionName(for scheduled: ScheduledWorkout) -> String {
+        if let sessionId = scheduled.workoutSessionId,
+           let session = workoutSessions[sessionId] {
+            return session.name
+        }
+        return "Deleted Routine"
     }
     
     func formatDate(_ date: Date) -> String {

@@ -17,6 +17,7 @@ struct WorkoutSession: Codable, Identifiable {
     let durationSeconds: Int?
     let notes: String?
     let createdAt: Date
+    let routineDeleted: Bool?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -28,5 +29,6 @@ struct WorkoutSession: Codable, Identifiable {
         case durationSeconds = "duration_seconds"
         case notes
         case createdAt = "created_at"
+        case routineDeleted = "routine_deleted"
     }
 }

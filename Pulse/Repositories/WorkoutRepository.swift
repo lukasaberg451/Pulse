@@ -373,6 +373,36 @@ class WorkoutRepository {
             .execute()
     }
     
+    // Mark all scheduled workouts for a routine as routine_deleted
+    func markScheduledWorkoutsAsRoutineDeleted(routineId: UUID) async throws {
+        struct UpdateData: Encodable {
+            let routine_deleted: Bool
+        }
+        
+        let data = UpdateData(routine_deleted: true)
+        
+        try await supabase
+            .from("scheduled_workouts")
+            .update(data)
+            .eq("routine_id", value: routineId.uuidString)
+            .execute()
+    }
+    
+    // Mark all workout sessions for a routine as routine_deleted
+    func markSessionsAsRoutineDeleted(routineId: UUID) async throws {
+        struct UpdateData: Encodable {
+            let routine_deleted: Bool
+        }
+        
+        let data = UpdateData(routine_deleted: true)
+        
+        try await supabase
+            .from("workout_sessions")
+            .update(data)
+            .eq("routine_id", value: routineId.uuidString)
+            .execute()
+    }
+    
     // Mark scheduled workout as completed
     func completeScheduledWorkout(id: UUID, sessionId: UUID) async throws {
         struct UpdateData: Encodable {

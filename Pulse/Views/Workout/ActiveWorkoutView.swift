@@ -68,10 +68,13 @@ struct ActiveWorkoutViewContent: View {
                 Color.appBackground.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Offline Status Banner
-                    OfflineStatusBanner()
-                        .animation(.easeInOut, value: syncService.isOnline)
-                    
+                    VStack {
+                        // Offline Status Banner
+                        OfflineStatusBanner()
+                            .animation(.easeInOut, value: syncService.isOnline)
+                    }
+                    .padding(.bottom, 20)
+                        
                     // Workout Timer Header
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {

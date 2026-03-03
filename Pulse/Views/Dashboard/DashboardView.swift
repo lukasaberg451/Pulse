@@ -59,12 +59,18 @@ struct DashboardView: View {
                                 EmptyTodayCard()
                             } else {
                                 ForEach(viewModel.todaysWorkouts) { scheduled in
-                                    if let routine = viewModel.routine(for: scheduled.routineId) {
+                                    if let routineId = scheduled.routineId,
+                                       let routine = viewModel.routine(for: routineId) {
                                         TodayWorkoutCard(
                                             routine: routine,
                                             scheduled: scheduled,
                                             routineExercises: viewModel.routineExercises(for: routine.id),
                                             exercises: viewModel.exercises
+                                        )
+                                    } else if scheduled.routineDeleted == true || scheduled.routineId == nil {
+                                        DeletedRoutineTodayCard(
+                                            scheduled: scheduled,
+                                            workoutName: viewModel.sessionName(for: scheduled)
                                         )
                                     }
                                 }
@@ -163,6 +169,57 @@ struct TodayWorkoutCard: View {
                 workoutSessionId: scheduled.workoutSessionId
             )
         }
+    }
+}
+
+struct DeletedRoutineTodayCard: View {
+    let scheduled: ScheduledWorkout
+    let workoutName: String
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "calendar")
+                        .foregroundStyle(Color.appAccent)
+                    Text("Scheduled")
+                        .font(.caption)
+                        .foregroundStyle(Color.appText.opacity(0.6))
+                }
+                
+                Text(workoutName)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.appText)
+                
+                if scheduled.completed {
+                    Label("Completed", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(Color.green)
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 11))
+                        Text("Routine deleted")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(Color.appText.opacity(0.4))
+                }
+            }
+            
+            Spacer()
+            
+            if scheduled.completed {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 40))
+                    .foregroundStyle(Color.green)
+            }
+        }
+        .padding(20)
+        .background(Color.appSurface)
+        .cornerRadius(10)
+        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
+        .padding(.horizontal)
     }
 }
 

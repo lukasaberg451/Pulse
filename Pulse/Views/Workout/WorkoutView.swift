@@ -149,13 +149,24 @@ struct ScheduleContentView: View {
                         ScrollView {
                             VStack(spacing: 12) {
                                 ForEach(viewModel.scheduledWorkouts(for: selectedDate)) { scheduled in
-                                    if let routine = viewModel.routine(for: scheduled.routineId) {
+                                    if let routineId = scheduled.routineId,
+                                       let routine = viewModel.routine(for: routineId) {
                                         ScheduledWorkoutCard(
                                             routine: routine,
                                             scheduled: scheduled,
                                             isEditMode: isEditMode,
                                             exerciseCount: viewModel.exerciseCount(for: routine.id),
                                             viewModel: viewModel,
+                                            onDelete: {
+                                                scheduledToDelete = scheduled
+                                                showingDeleteAlert = true
+                                            }
+                                        )
+                                    } else if scheduled.routineDeleted == true || scheduled.routineId == nil {
+                                        DeletedRoutineWorkoutCard(
+                                            scheduled: scheduled,
+                                            viewModel: viewModel,
+                                            isEditMode: isEditMode,
                                             onDelete: {
                                                 scheduledToDelete = scheduled
                                                 showingDeleteAlert = true
@@ -223,7 +234,8 @@ struct ScheduleContentView: View {
             }
         } message: {
             if let scheduled = scheduledToDelete,
-               let routine = viewModel.routine(for: scheduled.routineId) {
+               let routineId = scheduled.routineId,
+               let routine = viewModel.routine(for: routineId) {
                 Text("Are you sure you want to remove '\(routine.name)' from your schedule?")
             }
         }
@@ -324,6 +336,83 @@ struct ScheduledWorkoutCard: View {
                         .cornerRadius(10)
                 }
             } else {
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(Color.appText.opacity(0.3))
+                    .font(.system(size: 14))
+            }
+        }
+        .padding()
+        .background(Color.appSurface)
+        .cornerRadius(10)
+    }
+}
+
+struct DeletedRoutineWorkoutCard: View {
+    let scheduled: ScheduledWorkout
+    @ObservedObject var viewModel: ScheduleViewModel
+    let isEditMode: Bool
+    let onDelete: () -> Void
+    
+    private var sessionName: String {
+        if let sessionId = scheduled.workoutSessionId,
+           let session = viewModel.workoutSession(for: sessionId) {
+            return session.name
+        }
+        return "Deleted Routine"
+    }
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            if isEditMode && !scheduled.completed {
+                Button {
+                    onDelete()
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(Color.red)
+                }
+                .transition(.scale.combined(with: .opacity))
+            }
+            
+            if scheduled.completed, let sessionId = scheduled.workoutSessionId,
+               let session = viewModel.workoutSession(for: sessionId) {
+                NavigationLink(destination: WorkoutDetailView(workoutSession: session)) {
+                    cardContent
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else {
+                cardContent
+            }
+        }
+        .animation(.spring(response: 0.3), value: isEditMode)
+    }
+    
+    private var cardContent: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(sessionName)
+                    .font(.headline)
+                    .foregroundStyle(Color.appText)
+                
+                HStack(spacing: 4) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.appText.opacity(0.4))
+                    Text("Routine deleted")
+                        .font(.caption)
+                        .foregroundStyle(Color.appText.opacity(0.4))
+                }
+                
+                if scheduled.completed {
+                    Label("Completed", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(Color.green)
+                }
+            }
+            
+            Spacer()
+            
+            if scheduled.completed {
                 Image(systemName: "chevron.right")
                     .foregroundStyle(Color.appText.opacity(0.3))
                     .font(.system(size: 14))

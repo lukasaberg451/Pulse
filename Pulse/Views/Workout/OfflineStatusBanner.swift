@@ -28,7 +28,7 @@ struct OfflineStatusBanner: View {
                 
                 Spacer()
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Color.appText)
             .padding()
             .background(Color.orange.gradient)
             .cornerRadius(10)
@@ -52,9 +52,9 @@ struct OfflineStatusBanner: View {
                 
                 Spacer()
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Color.appText)
             .padding()
-            .background(Color.blue.gradient)
+            .background(Color.appSurface)
             .cornerRadius(10)
             .padding(.horizontal)
             .padding(.top, 8)

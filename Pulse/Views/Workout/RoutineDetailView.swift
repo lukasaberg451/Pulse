@@ -613,7 +613,9 @@ struct ExercisePickerSheet: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button("Done") {
+                        let notificationFeedback = UINotificationFeedbackGenerator()
+                        notificationFeedback.notificationOccurred(.success)
                         dismiss()
                     }
                     .foregroundStyle(Color.appText)

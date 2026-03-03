@@ -17,6 +17,7 @@ class RoutineListViewModel: ObservableObject {
     private let routineRepository = RoutineRepository()
     
     private let repository = RoutineRepository()
+    private let workoutRepository = WorkoutRepository()
     
     func loadRoutines() async {
         isLoading = true
@@ -54,6 +55,11 @@ class RoutineListViewModel: ObservableObject {
     
     func deleteRoutine(_ routine: Routine) async {
         do {
+            // Mark all scheduled workouts and sessions for this routine as routine_deleted
+            // so they are preserved for training history
+            try await workoutRepository.markScheduledWorkoutsAsRoutineDeleted(routineId: routine.id)
+            try await workoutRepository.markSessionsAsRoutineDeleted(routineId: routine.id)
+            
             try await repository.deleteRoutine(id: routine.id)
             routines.removeAll { $0.id == routine.id}
         } catch {

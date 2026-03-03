@@ -10,12 +10,13 @@ import Foundation
 struct ScheduledWorkout: Codable, Identifiable {
     let id: UUID
     let userId: UUID
-    let routineId: UUID
+    let routineId: UUID?
     let scheduledDate: String // Format: "2024-04-07"
     let completed: Bool
     let workoutSessionId: UUID?
     let notes: String?
     let createdAt: Date
+    let routineDeleted: Bool?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -26,6 +27,7 @@ struct ScheduledWorkout: Codable, Identifiable {
         case workoutSessionId = "workout_session_id"
         case notes
         case createdAt = "created_at"
+        case routineDeleted = "routine_deleted"
     }
     
     var date: Date? {

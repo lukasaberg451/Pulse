@@ -214,7 +214,7 @@ private struct SubscriptionFeatureRow: View {
     var body: some View {
         HStack(spacing: 16) {
             ZStack {
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: 10)
                     .fill(Color.appAccent.opacity(0.15))
                     .frame(width: 36, height: 36)
                 

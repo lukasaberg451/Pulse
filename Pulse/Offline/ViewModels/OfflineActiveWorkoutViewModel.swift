@@ -340,34 +340,31 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         offlineRepository.completeSession(session, durationSeconds: durationSeconds)
         print("✅ Workout completed locally")
         
-        // Mark scheduled workout as completed if this was a scheduled workout
-        if let scheduledWorkoutId = scheduledWorkoutId {
-            do {
-                if syncService.isOnline {
-                    // If online, update on server immediately
+        // Sync completed workout to Supabase if online
+        if syncService.isOnline {
+            print("🔄 Syncing completed workout to Supabase...")
+            
+            // Wait for any in-progress sync to finish before starting ours
+            // (completeSession may have triggered a background sync)
+            while syncService.isSyncing {
+                try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+            }
+            await syncService.syncPendingWorkouts()
+            
+            // Mark scheduled workout as completed if this was a scheduled workout
+            if let scheduledWorkoutId = scheduledWorkoutId {
+                do {
                     try await WorkoutRepository().completeScheduledWorkout(
                         id: scheduledWorkoutId,
                         sessionId: session.id
                     )
                     print("✅ Marked scheduled workout \(scheduledWorkoutId) as completed")
-                } else {
-                    // If offline, mark it locally to be synced later
-                    print("📱 Offline - will mark scheduled workout as completed when back online")
-                    // TODO: Add offline scheduled workout completion tracking
+                } catch {
+                    print("❌ Failed to mark scheduled workout as completed: \(error)")
                 }
-            } catch {
-                print("❌ Failed to mark scheduled workout as completed: \(error)")
-            }
-        }
-        
-        // Sync completed workout to Supabase if online
-        if syncService.isOnline {
-            print("🔄 Syncing completed workout to Supabase...")
-            await syncService.syncPendingWorkouts()
-            
-            // Non-scheduled workout: create a completed scheduled entry so it appears on the calendar
-            // This must happen after sync so the workout_session exists in Supabase
-            if scheduledWorkoutId == nil {
+            } else {
+                // Non-scheduled workout: create a completed scheduled entry so it appears on the calendar
+                // This must happen after sync so the workout_session exists in Supabase
                 do {
                     try await WorkoutRepository().createCompletedScheduledWorkout(
                         routineId: routine.id,
@@ -384,6 +381,11 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
             print("📢 Posted workoutDataChanged notification")
         } else {
+            // If offline, mark scheduled workout locally to be synced later
+            if let scheduledWorkoutId = scheduledWorkoutId {
+                print("📱 Offline - will mark scheduled workout \(scheduledWorkoutId) as completed when back online")
+                // TODO: Add offline scheduled workout completion tracking
+            }
             print("📱 Offline - workout will sync when back online")
         }
         
