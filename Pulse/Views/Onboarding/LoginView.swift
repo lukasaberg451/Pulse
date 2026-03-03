@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Supabase
+import AuthenticationServices
 
 struct LoginView: View {
     @ObservedObject var authViewModel: AuthViewModel
@@ -138,6 +139,42 @@ struct LoginView: View {
                             .cornerRadius(10)
                         }
                         .padding(.top, 10)
+                        
+                        // Divider with "or"
+                        HStack {
+                            Rectangle()
+                                .frame(height: 1)
+                                .foregroundStyle(Color.appText.opacity(0.3))
+                            Text("or")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appText.opacity(0.5))
+                            Rectangle()
+                                .frame(height: 1)
+                                .foregroundStyle(Color.appText.opacity(0.3))
+                        }
+                        .padding(.top, 20)
+                        
+                        // Sign in with Apple button
+                        SignInWithAppleButton(.continue) { request in
+                            let nonce = authViewModel.generateNonce()
+                            request.requestedScopes = [.fullName, .email]
+                            request.nonce = authViewModel.sha256(nonce)
+                        } onCompletion: { result in
+                            switch result {
+                            case .success(let authorization):
+                                Task {
+                                    await authViewModel.signInWithApple(authorization: authorization)
+                                }
+                            case .failure(let error):
+                                if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
+                                    errorMessage = "Sign in with Apple failed."
+                                    showError = true
+                                }
+                            }
+                        }
+                        .signInWithAppleButtonStyle(.white)
+                        .frame(height: 50)
+                        .cornerRadius(10)
                     }
                     .padding(.horizontal, 40)
                     

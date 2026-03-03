@@ -9,6 +9,8 @@ import SwiftUI
 import Supabase
 import Combine
 import PostHog
+import AuthenticationServices
+import CryptoKit
 
 @MainActor
 class AuthViewModel: ObservableObject{
@@ -225,6 +227,102 @@ class AuthViewModel: ObservableObject{
             errorMessage = "Failed to send reset email: \(error.localizedDescription)"
             return false
         }
+    }
+    
+    // MARK: - Sign in with Apple
+    
+    /// The current nonce used for Sign in with Apple. Must be set before starting the flow.
+    var currentNonce: String?
+    
+    /// Generates a cryptographically random nonce and stores it for later verification.
+    func generateNonce() -> String {
+        let nonce = randomNonceString()
+        currentNonce = nonce
+        return nonce
+    }
+    
+    func signInWithApple(authorization: ASAuthorization) async {
+        guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+            errorMessage = "Unable to get Apple ID credential."
+            return
+        }
+        
+        guard let identityTokenData = appleIDCredential.identityToken,
+              let idToken = String(data: identityTokenData, encoding: .utf8) else {
+            errorMessage = "Unable to retrieve identity token."
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            let session = try await supabase.auth.signInWithIdToken(
+                credentials: OpenIDConnectCredentials(
+                    provider: .apple,
+                    idToken: idToken,
+                    nonce: currentNonce
+                )
+            )
+            
+            self.session = session
+            self.isAuthenticated = true
+            
+            // Update user metadata with full name if Apple provided it (first sign-in only)
+            if let fullName = appleIDCredential.fullName {
+                let firstName = fullName.givenName ?? ""
+                let lastName = fullName.familyName ?? ""
+                if !firstName.isEmpty || !lastName.isEmpty {
+                    let displayName = [firstName, lastName]
+                        .filter { !$0.isEmpty }
+                        .joined(separator: " ")
+                    _ = try? await supabase.auth.update(
+                        user: UserAttributes(
+                            data: [
+                                "full_name": .string(displayName),
+                                "first_name": .string(firstName),
+                                "last_name": .string(lastName)
+                            ]
+                        )
+                    )
+                }
+            }
+            
+            // Track sign-in with PostHog
+            PostHogSDK.shared.capture("sign_in_with_apple_successful", properties: [
+                "user_id": session.user.id.uuidString as Any,
+                "timestamp": Date().ISO8601Format() as Any
+            ])
+            PostHogSDK.shared.identify(session.user.id.uuidString)
+            
+            await fetchUserProfile()
+        } catch {
+            self.errorMessage = "Sign in with Apple failed. Please try again."
+            self.session = nil
+            self.isAuthenticated = false
+            print("Sign in with Apple failed: \(error.localizedDescription)")
+        }
+        
+        isLoading = false
+    }
+    
+    /// Generates a random string for use as a nonce.
+    private func randomNonceString(length: Int = 32) -> String {
+        precondition(length > 0)
+        var randomBytes = [UInt8](repeating: 0, count: length)
+        let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
+        if errorCode != errSecSuccess {
+            fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
+        }
+        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+        return String(randomBytes.map { charset[Int($0) % charset.count] })
+    }
+    
+    /// Returns the SHA256 hash of the input string.
+    func sha256(_ input: String) -> String {
+        let inputData = Data(input.utf8)
+        let hashedData = SHA256.hash(data: inputData)
+        return hashedData.compactMap { String(format: "%02x", $0) }.joined()
     }
 }
 
