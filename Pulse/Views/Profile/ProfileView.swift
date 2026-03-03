@@ -19,6 +19,7 @@ struct ProfileView: View {
     @State private var showingChangeEmailSheet = false
     @State private var showingSubscriptionSheet = false
     @EnvironmentObject var subscriptionManager: SubscriptionManager
+    @EnvironmentObject var healthKitManager: HealthKitManager
     
     var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
@@ -185,6 +186,41 @@ struct ProfileView: View {
                                         }
                                         .padding()
                                     }
+                                    
+                                    if healthKitManager.isAvailable {
+                                        Divider()
+                                            .background(Color.appText.opacity(0.1))
+                                            .padding(.leading, 56)
+                                        
+                                        HStack(spacing: 16) {
+                                            Image(systemName: "heart.fill")
+                                                .font(.system(size: 20))
+                                                .foregroundStyle(Color.appAccent)
+                                                .frame(width: 24)
+                                            
+                                            Text("Apple Health")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            Toggle("", isOn: Binding(
+                                                get: { healthKitManager.isSyncEnabled },
+                                                set: { newValue in
+                                                    if newValue {
+                                                        Task {
+                                                            await healthKitManager.requestAuthorization()
+                                                        }
+                                                    } else {
+                                                        healthKitManager.disableSync()
+                                                    }
+                                                }
+                                            ))
+                                            .tint(Color.appAccent)
+                                            .labelsHidden()
+                                        }
+                                        .padding()
+                                    }
                                 }
                                 .background(Color.appSurface)
                                 .cornerRadius(10)
@@ -289,6 +325,11 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showingSubscriptionSheet) {
                 SubscriptionView()
+            }
+            .alert("Apple Health Access", isPresented: $healthKitManager.showDeniedAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Workout sharing was not enabled. To allow this later, go to the Health app → Sharing → Apps and grant access to Pulse.")
             }
             .task {
                 await viewModel.loadProfile()

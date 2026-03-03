@@ -66,6 +66,7 @@ struct PulseApp: App {
     @StateObject private var themeManager = ThemeManager()
     @StateObject private var syncService = WorkoutSyncService.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @StateObject private var healthKitManager = HealthKitManager.shared
     @State private var showPasswordReset = false
     @State private var recoveryCode: IdentifiableString?
     @State private var showPostSignInGuide = false
@@ -165,6 +166,7 @@ struct PulseApp: App {
             .environmentObject(themeManager)
             .environmentObject(syncService)
             .environmentObject(subscriptionManager)
+            .environmentObject(healthKitManager)
             .preferredColorScheme(themeManager.selectedTheme.colorScheme)
             .task(id: authViewModel.isAuthenticated) {
                 if authViewModel.isAuthenticated {

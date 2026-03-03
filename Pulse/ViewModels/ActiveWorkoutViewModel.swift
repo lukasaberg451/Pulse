@@ -336,6 +336,14 @@ class ActiveWorkoutViewModel: ObservableObject {
             errorMessage = "Failed to finish workout: \(error.localizedDescription)"
         }
         
+        // Save to HealthKit
+        await HealthKitManager.shared.saveWorkout(
+            name: routine.name,
+            startDate: startTime,
+            durationSeconds: durationSeconds,
+            exercises: exercises
+        )
+        
         WorkoutSyncManager.shared.sendWorkoutEnded()
     }
     

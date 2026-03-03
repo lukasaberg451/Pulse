@@ -389,6 +389,14 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             print("📱 Offline - workout will sync when back online")
         }
         
+        // Save to HealthKit
+        await HealthKitManager.shared.saveWorkout(
+            name: routine.name,
+            startDate: startTime,
+            durationSeconds: durationSeconds,
+            exercises: exercises
+        )
+        
         // Don't send workoutEnded here - let the watch show completion screen
         // It will be sent when the view is dismissed
     }
