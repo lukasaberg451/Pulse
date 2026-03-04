@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import Supabase
+import SwiftUI
 
 @MainActor
 class DashboardViewModel: ObservableObject {
@@ -23,6 +24,14 @@ class DashboardViewModel: ObservableObject {
     @Published var weeklyGoalMinutes: Int = 150
     @Published var userProfile: Profile?
     @Published var workoutSessions: [UUID: WorkoutSession] = [:]
+    @Published var currentStreak: Int = 0
+    @Published var bestStreak: Int = 0
+    @Published var latestPR: PersonalRecord?
+    @Published var currentInsight: SmartInsight?
+    
+    private var insightQueue: [SmartInsight] = []
+    private var insightIndex: Int = 0
+    private var insightTimer: Timer?
     
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
@@ -37,6 +46,9 @@ class DashboardViewModel: ObservableObject {
                     print("📢 Received workout data change notification, reloading...")
                     await self?.loadData()
                     await self?.loadWeeklyProgress()
+                    await self?.calculateStreak()
+                    await self?.loadLatestPR()
+                    self?.loadInsights()
                 }
             }
             .store(in: &cancellables)
@@ -207,6 +219,165 @@ class DashboardViewModel: ObservableObject {
         }
     }
 
+    func calculateStreak() async {
+        let supabase = SupabaseManager.shared.client
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        
+        do {
+            let sessions: [WorkoutSession] = try await supabase
+                .from("workout_sessions")
+                .select()
+                .eq("user_id", value: userId.uuidString)
+                .not("completed_at", operator: .is, value: "null")
+                .order("completed_at", ascending: false)
+                .execute()
+                .value
+            
+            guard !sessions.isEmpty else {
+                currentStreak = 0
+                bestStreak = 0
+                return
+            }
+            
+            let calendar = Calendar.current
+            var workoutDates = Set<Date>()
+            
+            for session in sessions {
+                let date = session.completedAt ?? session.startedAt
+                let dayStart = calendar.startOfDay(for: date)
+                workoutDates.insert(dayStart)
+            }
+            
+            let sortedDates = workoutDates.sorted(by: >)
+            
+            // Calculate current streak
+            let today = calendar.startOfDay(for: Date())
+            var streak = 0
+            var checkDate = today
+            
+            for date in sortedDates {
+                if date == checkDate {
+                    streak += 1
+                    checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
+                } else if calendar.dateComponents([.day], from: date, to: checkDate).day == 1 {
+                    streak += 1
+                    checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
+                } else {
+                    break
+                }
+            }
+            
+            if let firstDate = sortedDates.first {
+                let daysDiff = calendar.dateComponents([.day], from: firstDate, to: today).day ?? 0
+                if daysDiff > 1 {
+                    streak = 0
+                }
+            }
+            
+            currentStreak = streak
+            
+            // Calculate best streak
+            var maxStreak = 0
+            var tempStreak = 0
+            var previousDate: Date? = nil
+            
+            for date in sortedDates.reversed() {
+                if let prev = previousDate {
+                    let daysDiff = calendar.dateComponents([.day], from: prev, to: date).day ?? 0
+                    if daysDiff <= 1 {
+                        tempStreak += 1
+                    } else {
+                        maxStreak = max(maxStreak, tempStreak)
+                        tempStreak = 1
+                    }
+                } else {
+                    tempStreak = 1
+                }
+                previousDate = date
+            }
+            
+            maxStreak = max(maxStreak, tempStreak)
+            bestStreak = maxStreak
+            
+        } catch {
+            print("Failed to calculate streak: \(error)")
+            currentStreak = 0
+            bestStreak = 0
+        }
+    }
+    
+    func loadLatestPR() async {
+        let supabase = SupabaseManager.shared.client
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        
+        do {
+            let sessions: [WorkoutSession] = try await supabase
+                .from("workout_sessions")
+                .select()
+                .eq("user_id", value: userId.uuidString)
+                .not("completed_at", operator: .is, value: "null")
+                .execute()
+                .value
+            
+            guard !sessions.isEmpty else {
+                latestPR = nil
+                return
+            }
+            
+            let sets: [WorkoutSet] = try await supabase
+                .from("workout_sets")
+                .select()
+                .in("session_id", values: sessions.map { $0.id.uuidString })
+                .eq("completed", value: true)
+                .not("weight", operator: .is, value: "null")
+                .not("reps", operator: .is, value: "null")
+                .execute()
+                .value
+            
+            let allExercises: [Exercise] = try await supabase
+                .from("exercises")
+                .select()
+                .execute()
+                .value
+            
+            let exerciseDict = Dictionary(uniqueKeysWithValues: allExercises.map { ($0.id, $0) })
+            
+            // Group sets by exercise and find the best set per exercise
+            let setsByExercise = Dictionary(grouping: sets, by: { $0.exerciseId })
+            var personalRecords: [PersonalRecord] = []
+            
+            for (exerciseId, exerciseSets) in setsByExercise {
+                guard let exercise = exerciseDict[exerciseId],
+                      exercise.exerciseType?.lowercased() != "cardio" else { continue }
+                
+                let sortedSets = exerciseSets.sorted { set1, set2 in
+                    let score1 = (set1.weight ?? 0) * Double(set1.reps ?? 0)
+                    let score2 = (set2.weight ?? 0) * Double(set2.reps ?? 0)
+                    return score1 > score2
+                }
+                
+                if let bestSet = sortedSets.first,
+                   let weight = bestSet.weight,
+                   let reps = bestSet.reps,
+                   let session = sessions.first(where: { $0.id == bestSet.sessionId }) {
+                    personalRecords.append(PersonalRecord(
+                        exerciseName: exercise.name,
+                        weight: weight,
+                        reps: reps,
+                        date: session.completedAt ?? session.startedAt
+                    ))
+                }
+            }
+            
+            // Get the most recent PR
+            latestPR = personalRecords.sorted { $0.date > $1.date }.first
+            
+        } catch {
+            print("Failed to load latest PR: \(error)")
+            latestPR = nil
+        }
+    }
+    
     func updateWeeklyGoal(minutes: Int) async {
         let supabase = SupabaseManager.shared.client
         guard let userId = supabase.auth.currentUser?.id else { return }
@@ -229,5 +400,102 @@ class DashboardViewModel: ObservableObject {
         } catch {
             print("Failed to update weekly goal: \(error)")
         }
+    }
+    
+    // MARK: - Smart Insights
+    
+    func loadInsights() {
+        insightQueue = generatePlaceholderInsights().shuffled()
+        insightIndex = 0
+        if !insightQueue.isEmpty {
+            currentInsight = insightQueue[0]
+        }
+    }
+    
+    func advanceInsight() {
+        guard !insightQueue.isEmpty else { return }
+        insightIndex = (insightIndex + 1) % insightQueue.count
+        withAnimation(.easeInOut(duration: 0.4)) {
+            currentInsight = insightQueue[insightIndex]
+        }
+    }
+    
+    func startInsightRotation() {
+        stopInsightRotation()
+        insightTimer = Timer.scheduledTimer(withTimeInterval: 45.0, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.advanceInsight()
+            }
+        }
+    }
+    
+    func stopInsightRotation() {
+        insightTimer?.invalidate()
+        insightTimer = nil
+    }
+    
+    private func generatePlaceholderInsights() -> [SmartInsight] {
+        [
+            SmartInsight(
+                type: .consistencyPattern,
+                icon: "calendar.badge.checkmark",
+                text: "Consistency beats intensity. Show up today and results will follow",
+                accentColor: .blue
+            ),
+            SmartInsight(
+                type: .streakProtection,
+                icon: "flame.fill",
+                text: "Even a short session counts. Keep your momentum going today",
+                accentColor: .orange
+            ),
+            SmartInsight(
+                type: .progressiveOverload,
+                icon: "arrow.up.circle.fill",
+                text: "Try adding a little more weight or one extra rep today",
+                accentColor: .green
+            ),
+            SmartInsight(
+                type: .recoveryIntelligence,
+                icon: "bed.double.fill",
+                text: "Rest days build muscle too. Listen to your body",
+                accentColor: .purple
+            ),
+            SmartInsight(
+                type: .momentumHighlight,
+                icon: "bolt.fill",
+                text: "Every rep brings you closer to your goals. Keep pushing",
+                accentColor: .yellow
+            ),
+            SmartInsight(
+                type: .habitTimeDetection,
+                icon: "clock.fill",
+                text: "The best time to work out is the time you'll actually do it",
+                accentColor: .cyan
+            ),
+            SmartInsight(
+                type: .weakPointDetection,
+                icon: "figure.strengthtraining.traditional",
+                text: "A balanced routine builds a stronger body. Mix it up",
+                accentColor: .red
+            ),
+            SmartInsight(
+                type: .microGoalMotivation,
+                icon: "figure.walk",
+                text: "Small steps lead to big results. Start with what feels easy",
+                accentColor: .mint
+            ),
+            SmartInsight(
+                type: .performanceTrend,
+                icon: "chart.line.uptrend.xyaxis",
+                text: "Progress isn't always visible. Trust the process",
+                accentColor: .green
+            ),
+            SmartInsight(
+                type: .returnMotivation,
+                icon: "hand.wave.fill",
+                text: "The hardest part is starting. You've got this",
+                accentColor: .orange
+            ),
+        ]
     }
 }

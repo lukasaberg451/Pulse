@@ -18,34 +18,39 @@ struct DashboardView: View {
                 Color.appBackground.ignoresSafeArea()
                 ScrollView {
                     VStack {
-                        VStack {
+                        VStack{
                             Text("Welcome \(authViewModel.firstName)!")
                                 .foregroundStyle(Color.appAccent)
-                                .font(.title2)
+                                .font(.title)
+                            
+                            
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 30)
-                        .padding(.leading, 15)
-                        VStack {
-                            DayGreetingView()
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading, 15)
-                        .padding(.bottom, 5)
+                        .padding(.top, 40)
+                        .padding(.horizontal)
                         
                         VStack {
-                            WeeklyGoalCard(
-                                completedMinutes: viewModel.weeklyWorkoutMinutes,
-                                goalMinutes: viewModel.weeklyGoalMinutes,
-                                onEditGoal: {
-                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                    impactLight.impactOccurred()
-                                    showingGoalSettings = true
-                                }
-                            )
-                            .padding(.horizontal)
+                            Text(Date.now, format: .dateTime
+                                .day()
+                                .month(.wide)
+                                .year())
+                            .foregroundStyle(Color.appText)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        
+                    
                     }
+                    // Smart Insight
+                    if let insight = viewModel.currentInsight {
+                        SmartInsightCard(insight: insight)
+                            .padding(.top, 8)
+                            .onTapGesture {
+                                viewModel.advanceInsight()
+                                viewModel.startInsightRotation()
+                            }
+                    }
+                    
                     VStack(spacing: 20) {
                         // Today's Workouts Section
                         VStack(alignment: .leading, spacing: 12) {
@@ -76,19 +81,45 @@ struct DashboardView: View {
                                 }
                             }
                         }
+                    }
+                    .padding(.top, 20)
+                    
+                    VStack(spacing: 12) {
+                        WeeklyGoalCard(
+                            completedMinutes: viewModel.weeklyWorkoutMinutes,
+                            goalMinutes: viewModel.weeklyGoalMinutes,
+                            onEditGoal: {
+                                let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                impactLight.impactOccurred()
+                                showingGoalSettings = true
+                            }
+                        )
+                        .padding(.horizontal)
                         
                         Spacer(minLength: 40)
                     }
                     .padding(.top, 20)
                 }
             }
+            .onAppear {
+                viewModel.startInsightRotation()
+            }
+            .onDisappear {
+                viewModel.stopInsightRotation()
+            }
             .task {
                 await viewModel.loadData()
                 await viewModel.loadWeeklyProgress()
+                await viewModel.calculateStreak()
+                await viewModel.loadLatestPR()
+                viewModel.loadInsights()
             }
             .refreshable {
                 await viewModel.loadData()
                 await viewModel.loadWeeklyProgress()
+                await viewModel.calculateStreak()
+                await viewModel.loadLatestPR()
+                viewModel.loadInsights()
             }
             .sheet(isPresented: $showingGoalSettings) {
                 WeeklyGoalSheet(viewModel: viewModel)
@@ -254,27 +285,29 @@ struct EmptyTodayCard: View {
     }
 }
 
-
-
-struct DayGreetingView: View {
+struct SmartInsightCard: View {
+    let insight: SmartInsight
+    
     var body: some View {
-        Text(dailyMessage)
-            .font(.system(size: 15))
-            .bold()
-            .foregroundStyle(Color.appAccent)
-    }
-    var dailyMessage: String {
-        let weekday = Calendar.current.component(.weekday, from: Date())
-        
-        switch weekday {
-        case 1: return String(localized: .sundayGreeting)
-        case 2: return String(localized: .mondayGreeting)
-        case 3: return String(localized: .tuesdayGreeting)
-        case 4: return String(localized: .wednesdayGreeting)
-        case 5: return String(localized: .thursdayGreeting)
-        case 6: return String(localized: .fridayGreeting)
-        case 7: return String(localized: .saturdayGreeting)
-        default: return String(localized: .defaultDay)
+        HStack(spacing: 10) {
+            Image(systemName: insight.icon)
+                .font(.system(size: 18))
+                .foregroundStyle(insight.accentColor)
+                .frame(width: 24)
+            
+            Text(insight.text)
+                .font(.subheadline)
+                .foregroundStyle(Color.appText.opacity(0.8))
+                .lineLimit(2)
         }
+        .padding(.horizontal)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: 44)
+        .clipped()
+        .id(insight.id)
+        .transition(.asymmetric(
+            insertion: .opacity.combined(with: .move(edge: .bottom)),
+            removal: .opacity.combined(with: .move(edge: .top))
+        ))
     }
 }

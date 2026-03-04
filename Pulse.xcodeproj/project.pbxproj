@@ -60,6 +60,7 @@
 				Models/Exercise.swift,
 				Models/Routine.swift,
 				Models/RoutineExercise.swift,
+				Models/SmartInsight.swift,
 				Models/WorkoutSet.swift,
 			);
 			target = 3149B71B2F435C0F00A61B9F /* PulseWatch Watch App */;
