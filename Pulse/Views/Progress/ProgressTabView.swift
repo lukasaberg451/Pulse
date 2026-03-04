@@ -63,7 +63,7 @@ struct ProgressTabView: View {
                             //.padding()
                             //.background(Color.appAccent)
                             //.foregroundStyle(Color.appText)
-                            //.cornerRadius(10)
+                            //.cornerRadius(12)
                         //}
                         //.padding(.horizontal)
                         
@@ -175,7 +175,7 @@ struct ProgressTabView: View {
                             }
                             .padding()
                             .background(Color.appSurface)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                             .padding(.horizontal)
                         }
                         
@@ -244,7 +244,7 @@ struct ProgressTabView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(30)
                                 .background(Color.appSurface)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                                 .padding(.horizontal)
                             } else {
                                 ForEach(viewModel.recentSessions.prefix(5)) { session in
@@ -304,7 +304,7 @@ struct StatCard: View {
         .frame(maxWidth: .infinity, minHeight: 160)
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
     }
 }
 
@@ -336,7 +336,7 @@ struct PRCard: View {
         }
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
         .padding(.horizontal)
     }
 }
@@ -360,7 +360,7 @@ struct EmptyPRCard: View {
         .frame(maxWidth: .infinity)
         .padding(32)
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
         .padding(.horizontal)
     }
 }
@@ -432,12 +432,12 @@ struct MuscleGroupRow: View {
                     Rectangle()
                         .fill(Color.appBackground)
                         .frame(height: 8)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                     
                     Rectangle()
                         .fill(Color.appAccent)
                         .frame(width: geometry.size.width * percentage, height: 8)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                 }
             }
             .frame(height: 8)
@@ -462,7 +462,7 @@ struct EmptyMuscleGroupRow: View {
         .frame(maxWidth: .infinity)
         .padding(32)
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
         .padding(.horizontal)
     }
 }
@@ -492,7 +492,7 @@ struct LifetimeStatCard: View {
         .frame(maxWidth: .infinity)
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
     }
 }
 
@@ -648,7 +648,7 @@ struct HealthMetricsSection: View {
                                                 .fill(Color.red.opacity(0.3))
                                                 .frame(width: geometry.size.width * 0.25)
                                         }
-                                        .cornerRadius(10)
+                                        .cornerRadius(12)
                                         
                                         // Indicator
                                         let position = bmiToPosition(bmi: bmi, width: geometry.size.width)
@@ -685,7 +685,7 @@ struct HealthMetricsSection: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
                         .background(Color.appSurface)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                         .padding(.horizontal)
                     } else if profile.weightKg == nil || profile.heightCm == nil {
                         // Empty state - prompt to add data
@@ -710,14 +710,14 @@ struct HealthMetricsSection: View {
                                     .padding(.horizontal, 24)
                                     .padding(.vertical, 12)
                                     .background(Color.appAccent)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                             }
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 24)
                         .padding(.horizontal)
                         .background(Color.appSurface)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                         .padding(.horizontal)
                     }
                 }
@@ -796,7 +796,7 @@ struct HealthMetricCard: View {
         .frame(maxWidth: .infinity, minHeight: 100, alignment: .leading)
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
     }
 }
 
@@ -841,7 +841,7 @@ struct EditHealthMetricsSheet: View {
                                 .padding()
                                 .frame(maxWidth: .infinity)
                                 .background(Color.red.opacity(0.1))
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                         }
                         
                         // Weight Input
@@ -868,7 +868,7 @@ struct EditHealthMetricsSheet: View {
                             }
                             .padding()
                             .background(Color.appSurface)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                         }
                         
                         // Height Input
@@ -895,7 +895,7 @@ struct EditHealthMetricsSheet: View {
                             }
                             .padding()
                             .background(Color.appSurface)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                         }
                         
                         Spacer()
@@ -1035,7 +1035,7 @@ struct RecentWorkoutCard: View {
             }
             .padding(16)
             .background(Color.appSurface)
-            .cornerRadius(10)
+            .cornerRadius(12)
             .padding(.horizontal)
         }
         .buttonStyle(PlainButtonStyle())

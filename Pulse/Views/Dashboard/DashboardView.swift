@@ -188,7 +188,7 @@ struct TodayWorkoutCard: View {
         }
         .padding(20)
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
         .padding(.horizontal)
         .fullScreenCover(isPresented: $showingActiveWorkout) {
@@ -248,7 +248,7 @@ struct DeletedRoutineTodayCard: View {
         }
         .padding(20)
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
         .padding(.horizontal)
     }
@@ -273,13 +273,13 @@ struct EmptyTodayCard: View {
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
                     .background(Color.appAccent)
-                    .cornerRadius(10)
+                    .cornerRadius(12)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(30)
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
         .padding(.horizontal)
     }

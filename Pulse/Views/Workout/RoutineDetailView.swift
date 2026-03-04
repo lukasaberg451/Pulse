@@ -98,7 +98,7 @@ struct RoutineDetailView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(viewModel.routineExercises.isEmpty ? Color.appAccent.opacity(0.5) : Color.appAccent)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                             }
                             .disabled(viewModel.routineExercises.isEmpty)
                             
@@ -119,7 +119,7 @@ struct RoutineDetailView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(Color.appSurface)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                             }
                             
                             // Add Exercise
@@ -139,7 +139,7 @@ struct RoutineDetailView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(Color.appSurface)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                             }
                         }
                     }
@@ -184,7 +184,7 @@ struct RoutineDetailView: View {
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
                                 .background(editMode == .active ? Color.green.opacity(0.1) : Color.appAccent.opacity(0.1))
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                             }
                         }
                         .padding(.horizontal)
@@ -259,9 +259,9 @@ struct RoutineDetailView: View {
                                 }
                                 .padding()
                                 .background(Color.appSurface)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
+                                    RoundedRectangle(cornerRadius: 12)
                                         .stroke(editMode == .active ? Color.appAccent.opacity(0.3) : Color.clear, lineWidth: 2)
                                 )
                                 .listRowBackground(Color.clear)
@@ -451,7 +451,7 @@ struct ExercisePickerSheet: View {
                         }
                         .padding()
                         .background(Color.appSurface)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                         
                         // Filter button
                         Button {
@@ -507,7 +507,7 @@ struct ExercisePickerSheet: View {
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
                                         .background(Color.red.opacity(0.1))
-                                        .cornerRadius(10)
+                                        .cornerRadius(12)
                                 }
                             }
                             .padding(.horizontal)
@@ -581,7 +581,7 @@ struct ExercisePickerSheet: View {
                                         }
                                         .padding()
                                         .background(Color.appSurface)
-                                        .cornerRadius(10)
+                                        .cornerRadius(12)
                                     }
                                     .task {
                                         await viewModel.loadMoreIfNeeded(currentExercise: exercise)
@@ -678,7 +678,7 @@ struct ActiveFilterChip: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color.appAccent)
-        .cornerRadius(10)
+        .cornerRadius(12)
     }
 }
 
@@ -739,14 +739,14 @@ struct FilterSheet: View {
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 10)
                                             .background(tempMuscle == muscle ? Color.appAccent : Color.appSurface)
-                                            .cornerRadius(10)
+                                            .cornerRadius(12)
                                     }
                                 }
                             }
                         }
                         .padding()
                         .background(Color.appSurface.opacity(0.3))
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                         
                         // Equipment Section
                         VStack(alignment: .leading, spacing: 16) {
@@ -778,14 +778,14 @@ struct FilterSheet: View {
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 10)
                                             .background(tempEquipment == equipment ? Color.appAccent : Color.appSurface)
-                                            .cornerRadius(10)
+                                            .cornerRadius(12)
                                     }
                                 }
                             }
                         }
                         .padding()
                         .background(Color.appSurface.opacity(0.3))
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                     }
                     .padding()
                 }
@@ -886,7 +886,7 @@ struct MusclePill: View {
                 .padding(.vertical, 10)
                 .background(isSelected ? Color.appAccent : Color.appSurface)
                 .foregroundStyle(isSelected ? Color.white : Color.appText)
-                .cornerRadius(10)
+                .cornerRadius(12)
         }
     }
 }
@@ -905,7 +905,7 @@ struct FilterChip: View {
                 .padding(.vertical, 6)
                 .background(isSelected ? Color.appAccent : Color.appSurface)
                 .foregroundStyle(isSelected ? Color.white : Color.appText)
-                .cornerRadius(10)
+                .cornerRadius(12)
         }
     }
 }
@@ -964,7 +964,7 @@ struct ExerciseConfigSheet: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding()
                             .background(Color.appSurface)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                         }
                         
                         // Configuration Section
@@ -993,7 +993,7 @@ struct ExerciseConfigSheet: View {
                                     }
                                     .padding()
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                     
                                     // Only show intervals count if in interval mode
                                     if cardioMode == .intervals {
@@ -1039,7 +1039,7 @@ struct ExerciseConfigSheet: View {
                                             .padding()
                                         }
                                         .background(Color.appSurface)
-                                        .cornerRadius(10)
+                                        .cornerRadius(12)
                                     }
                                     
                                     // Duration picker
@@ -1080,7 +1080,7 @@ struct ExerciseConfigSheet: View {
                                     }
                                     .padding()
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                     
                                     // Only show rest for intervals
                                     if cardioMode == .intervals {
@@ -1126,7 +1126,7 @@ struct ExerciseConfigSheet: View {
                                             .padding()
                                         }
                                         .background(Color.appSurface)
-                                        .cornerRadius(10)
+                                        .cornerRadius(12)
                                     }
                                 } else {
                                     // Strength training UI
@@ -1173,7 +1173,7 @@ struct ExerciseConfigSheet: View {
                                         .padding()
                                     }
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                     
                                     // Reps
                                     VStack(spacing: 0) {
@@ -1192,12 +1192,12 @@ struct ExerciseConfigSheet: View {
                                                 .frame(width: 80)
                                                 .padding(10)
                                                 .background(Color.appBackground)
-                                                .cornerRadius(10)
+                                                .cornerRadius(12)
                                         }
                                         .padding()
                                     }
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                     
                                     // Weight
                                     VStack(spacing: 0) {
@@ -1216,12 +1216,12 @@ struct ExerciseConfigSheet: View {
                                                 .frame(width: 80)
                                                 .padding(10)
                                                 .background(Color.appBackground)
-                                                .cornerRadius(10)
+                                                .cornerRadius(12)
                                         }
                                         .padding()
                                     }
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                     
                                     // Rest
                                     VStack(spacing: 0) {
@@ -1266,7 +1266,7 @@ struct ExerciseConfigSheet: View {
                                         .padding()
                                     }
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                 }
                             }
                         }
@@ -1357,7 +1357,7 @@ struct EditRoutineSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                     }
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Notes (Optional)")
@@ -1368,7 +1368,7 @@ struct EditRoutineSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                             .lineLimit(3...6)
                     }
                     Spacer()
@@ -1481,7 +1481,7 @@ struct EditExerciseSheet: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding()
                             .background(Color.appSurface)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                         }
                         
                         // Configuration Section
@@ -1510,7 +1510,7 @@ struct EditExerciseSheet: View {
                                     }
                                     .padding()
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                     
                                     // Only show intervals count if in interval mode
                                     if cardioMode == .intervals {
@@ -1556,7 +1556,7 @@ struct EditExerciseSheet: View {
                                             .padding()
                                         }
                                         .background(Color.appSurface)
-                                        .cornerRadius(10)
+                                        .cornerRadius(12)
                                     }
                                     
                                     // Duration picker
@@ -1597,7 +1597,7 @@ struct EditExerciseSheet: View {
                                     }
                                     .padding()
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                     
                                     // Only show rest for intervals
                                     if cardioMode == .intervals {
@@ -1643,7 +1643,7 @@ struct EditExerciseSheet: View {
                                             .padding()
                                         }
                                         .background(Color.appSurface)
-                                        .cornerRadius(10)
+                                        .cornerRadius(12)
                                     }
                                 } else {
                                     // Strength training UI
@@ -1690,7 +1690,7 @@ struct EditExerciseSheet: View {
                                         .padding()
                                     }
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                     
                                     // Reps
                                     VStack(spacing: 0) {
@@ -1709,12 +1709,12 @@ struct EditExerciseSheet: View {
                                                 .frame(width: 80)
                                                 .padding(10)
                                                 .background(Color.appBackground)
-                                                .cornerRadius(10)
+                                                .cornerRadius(12)
                                         }
                                         .padding()
                                     }
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                     
                                     // Weight
                                     VStack(spacing: 0) {
@@ -1733,12 +1733,12 @@ struct EditExerciseSheet: View {
                                                 .frame(width: 80)
                                                 .padding(10)
                                                 .background(Color.appBackground)
-                                                .cornerRadius(10)
+                                                .cornerRadius(12)
                                         }
                                         .padding()
                                     }
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                     
                                     // Rest
                                     VStack(spacing: 0) {
@@ -1783,7 +1783,7 @@ struct EditExerciseSheet: View {
                                         .padding()
                                     }
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                 }
                             }
                         }

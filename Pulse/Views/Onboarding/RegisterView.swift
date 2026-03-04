@@ -115,7 +115,7 @@ struct RegisterView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.appAccent)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                         }
                         .padding(.horizontal, 40)
                         .padding(.top, 20)
@@ -161,7 +161,7 @@ struct RegisterView: View {
                                     .padding()
                                     .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                             }
                             
                             // Last Name
@@ -176,7 +176,7 @@ struct RegisterView: View {
                                     .padding()
                                     .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                             }
                             
                             // Email
@@ -192,7 +192,7 @@ struct RegisterView: View {
                                     .padding()
                                     .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                             }
                             
                             // Password
@@ -206,7 +206,7 @@ struct RegisterView: View {
                                     .padding()
                                     .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                 
                                 // Password strength indicator
                                 if !password.isEmpty {
@@ -246,7 +246,7 @@ struct RegisterView: View {
                                     .padding()
                                     .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                 
                                 // Password match indicator
                                 if !confirmPassword.isEmpty {
@@ -337,7 +337,7 @@ struct RegisterView: View {
                                 .padding()
                                 .background(isValid && agreedToTerms ? Color.appAccent : Color.appAccent.opacity(0.5))
                                 .foregroundStyle(Color.appText)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                             }
                             .disabled(!isValid || !agreedToTerms)
                             .padding(.top, 10)

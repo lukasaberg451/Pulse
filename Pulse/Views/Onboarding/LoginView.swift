@@ -69,7 +69,7 @@ struct LoginView: View {
                                 .padding()
                                 .background(Color.appSurface)
                                 .foregroundStyle(Color.appText)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                                 .onChange(of: email) {
                                     showError = false
                                 }
@@ -86,7 +86,7 @@ struct LoginView: View {
                                 .padding()
                                 .background(Color.appSurface)
                                 .foregroundStyle(Color.appText)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                                 .onChange(of: password) {
                                     showError = false
                                 }
@@ -136,7 +136,7 @@ struct LoginView: View {
                             .padding()
                             .background(Color.appAccent)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                         }
                         .padding(.top, 10)
                         
@@ -174,7 +174,7 @@ struct LoginView: View {
                         }
                         .signInWithAppleButtonStyle(.white)
                         .frame(height: 50)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                     }
                     .padding(.horizontal, 40)
                     
@@ -268,7 +268,7 @@ struct ForgotPasswordView: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.appAccent)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                     }
                     .padding(.horizontal, 40)
                     .padding(.top, 20)
@@ -330,7 +330,7 @@ struct ForgotPasswordView: View {
                                 .padding()
                                 .background(Color.appSurface)
                                 .foregroundStyle(Color.appText)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                                 .onChange(of: email) {
                                     showError = false
                                 }
@@ -369,7 +369,7 @@ struct ForgotPasswordView: View {
                             .padding()
                             .background(Color.appAccent)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                         }
                         .padding(.top, 10)
                     }

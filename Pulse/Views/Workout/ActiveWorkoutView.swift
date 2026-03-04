@@ -173,7 +173,7 @@ struct ActiveWorkoutViewContent: View {
                         }
                         .padding()
                         .background(Color.black.opacity(0.8))
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                         .padding()
                         
                         Spacer()

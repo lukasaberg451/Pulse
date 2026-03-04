@@ -140,7 +140,7 @@ struct ScheduleContentView: View {
                                     .padding(.horizontal, 24)
                                     .padding(.vertical, 12)
                                     .background(Color.appAccent)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                             }
                         }
                         .frame(maxWidth: .infinity)
@@ -197,7 +197,7 @@ struct ScheduleContentView: View {
                                     .frame(maxWidth: .infinity)
                                     .padding()
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                 }
                             }
                             .padding()
@@ -333,7 +333,7 @@ struct ScheduledWorkoutCard: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(Color.appAccent)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                 }
             } else {
                 Image(systemName: "chevron.right")
@@ -343,7 +343,7 @@ struct ScheduledWorkoutCard: View {
         }
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
     }
 }
 
@@ -420,7 +420,7 @@ struct DeletedRoutineWorkoutCard: View {
         }
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
     }
 }
 
@@ -504,7 +504,7 @@ struct RoutinePickerRow: View {
             }
             .padding()
             .background(Color.appSurface)
-            .cornerRadius(10)
+            .cornerRadius(12)
         }
         .buttonStyle(PlainButtonStyle())
         .listRowBackground(Color.clear)
@@ -564,7 +564,7 @@ struct RoutineContentView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
                         .background(Color.appAccent)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                     }
                 } else {
                     VStack(spacing: 0) {
@@ -587,7 +587,7 @@ struct RoutineContentView: View {
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 8)
                                     .background(Color.appAccent)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                             }
                             
                             Spacer()
@@ -688,7 +688,7 @@ struct CreateRoutineSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                     }
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Notes (Optional)")
@@ -699,7 +699,7 @@ struct CreateRoutineSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                             .lineLimit(3...6)
                     }
                     Spacer()
@@ -764,7 +764,7 @@ struct RoutineCard: View {
         }
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
     }
 }
 
@@ -877,10 +877,10 @@ struct CalendarDayView: View {
     var body: some View {
         ZStack {
             if isSelected {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(Color.appAccent)
             } else if isToday {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.appAccent, lineWidth: 2)
             }
             

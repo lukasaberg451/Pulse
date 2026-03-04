@@ -125,7 +125,7 @@ struct PostSignInGuideView: View {
                         .padding(.vertical, 8)
                         .padding(.horizontal, 16)
                         .background(Color.appAccent.opacity(0.15))
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                         .transition(.scale.combined(with: .opacity))
                     }
                 }
@@ -162,7 +162,7 @@ struct PostSignInGuideView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.appAccent)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
@@ -183,7 +183,7 @@ struct PostSignInGuideView: View {
             }
             .frame(maxWidth: 500)
             .background(Color.appSurface)
-            .cornerRadius(10)
+            .cornerRadius(12)
             .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: 10)
             .padding(32)
         }

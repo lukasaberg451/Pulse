@@ -114,7 +114,7 @@ struct GoalButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .background(currentGoal == minutes ? Color.appAccent : Color.appSurface)
-            .cornerRadius(10)
+            .cornerRadius(12)
         }
     }
 }

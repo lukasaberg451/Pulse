@@ -1,43 +1,11 @@
 //
-//  ActivityRing.swift
+//  WeeklyGoalCard.swift
 //  Pulse
 //
 //  Created by Lukas Åberg on 2026-02-15.
 //
 
 import SwiftUI
-
-struct ActivityRing: View {
-    let progress: Double  // 0.0 to 1.0
-    let lineWidth: CGFloat = 20
-    
-    var body: some View {
-        ZStack {
-            // Background circle
-            Circle()
-                .stroke(Color.appSurface, lineWidth: lineWidth)
-            
-            // Progress arc
-            Circle()
-                .trim(from: 0, to: min(progress, 1.0))
-                .stroke(
-                    AngularGradient(
-                        gradient: Gradient(colors: [
-                            Color.appAccent,
-                            Color.appAccent.opacity(0.7),
-                            Color.appAccent
-                        ]),
-                        center: .center,
-                        startAngle: .degrees(-90),
-                        endAngle: .degrees(270)
-                    ),
-                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-                .animation(.spring(response: 0.6), value: progress)
-        }
-    }
-}
 
 struct WeeklyGoalCard: View {
     let completedMinutes: Int
@@ -61,7 +29,7 @@ struct WeeklyGoalCard: View {
                     Text("Weekly Goal")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                        .foregroundStyle(Color.appText.opacity(0.6))
+                        .foregroundStyle(Color.appText.opacity(0.8))
                     
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
                         Text("\(completedMinutes)")
@@ -133,7 +101,7 @@ struct WeeklyGoalCard: View {
         }
         .padding(20)
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 5)
     }
 }

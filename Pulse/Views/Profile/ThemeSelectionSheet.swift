@@ -47,7 +47,7 @@ struct ThemeSelectionSheet: View {
                     }
                 }
                 .background(Color.appSurface)
-                .cornerRadius(10)
+                .cornerRadius(12)
                 .padding()
             }
             .navigationTitle("Appearance")

@@ -84,7 +84,7 @@ struct WorkoutDetailView: View {
         }
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
     }
     
     func statCard(icon: String, title: String, value: String) -> some View {
@@ -167,7 +167,7 @@ struct WorkoutDetailView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(Color.appBackground)
-                .cornerRadius(10)
+                .cornerRadius(12)
                 
                 // Sets
                 ForEach(sets) { set in
@@ -177,7 +177,7 @@ struct WorkoutDetailView: View {
         }
         .padding()
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
     }
     
     func setRow(set: WorkoutSet, isCardio: Bool) -> some View {

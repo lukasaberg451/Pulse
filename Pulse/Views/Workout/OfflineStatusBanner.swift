@@ -31,7 +31,7 @@ struct OfflineStatusBanner: View {
             .foregroundStyle(Color.appText)
             .padding()
             .background(Color.orange.gradient)
-            .cornerRadius(10)
+            .cornerRadius(12)
             .padding(.horizontal)
             .padding(.top, 8)
             .transition(.move(edge: .top).combined(with: .opacity))
@@ -55,7 +55,7 @@ struct OfflineStatusBanner: View {
             .foregroundStyle(Color.appText)
             .padding()
             .background(Color.appSurface)
-            .cornerRadius(10)
+            .cornerRadius(12)
             .padding(.horizontal)
             .padding(.top, 8)
             .transition(.move(edge: .top).combined(with: .opacity))
@@ -96,6 +96,6 @@ struct SyncStatusIndicator: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color.appSurface)
-        .cornerRadius(10)
+        .cornerRadius(12)
     }
 }

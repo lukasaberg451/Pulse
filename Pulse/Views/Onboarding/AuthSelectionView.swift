@@ -50,7 +50,7 @@ struct AuthSelectionView: View {
                                     .frame(maxWidth: .infinity)
                                     .padding()
                                     .background(Color.appAccent)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                             }
                             NavigationLink {
                                 LoginView(authViewModel: authViewModel, showingSignIn: $showingSignIn)
@@ -61,7 +61,7 @@ struct AuthSelectionView: View {
                                     .frame(maxWidth: .infinity)
                                     .padding()
                                     .background(Color.appSurface)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                             }
                         }
                         .padding(.horizontal, 40)

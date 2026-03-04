@@ -62,7 +62,7 @@ struct ResetPasswordInAppView: View {
                         .padding(.horizontal, 40)
                         .padding(.vertical, 12)
                         .background(Color.appAccent)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                     }
                 } else {
                     // Form
@@ -87,13 +87,13 @@ struct ResetPasswordInAppView: View {
                         SecureField("New Password", text: $newPassword)
                             .padding()
                             .background(Color.appSurface)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                             .textContentType(.newPassword)
                         
                         SecureField("Confirm Password", text: $confirmPassword)
                             .padding()
                             .background(Color.appSurface)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                             .textContentType(.newPassword)
                         
                         Button {
@@ -112,7 +112,7 @@ struct ResetPasswordInAppView: View {
                         .foregroundStyle(Color.appText)
                         .padding()
                         .background(isValid ? Color.appAccent : Color.appAccent.opacity(0.5))
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                         .disabled(!isValid || isLoading)
                         
                         Spacer()

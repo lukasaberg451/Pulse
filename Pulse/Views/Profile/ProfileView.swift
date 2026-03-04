@@ -78,7 +78,7 @@ struct ProfileView: View {
                                     .padding()
                                     .background(Color.appAccent)
                                     .foregroundStyle(Color.appText)
-                                    .cornerRadius(10)
+                                    .cornerRadius(12)
                                 }
                                 .padding(.horizontal)
                                 .padding(.top, 8)
@@ -236,7 +236,7 @@ struct ProfileView: View {
                                     }
                                 }
                                 .background(Color.appSurface)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                                 .padding(.horizontal)
                             }
                             .padding(.top, 20)
@@ -265,7 +265,7 @@ struct ProfileView: View {
                                 }
                                 .padding()
                                 .background(Color.appSurface)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                                 .padding(.horizontal)
                             }
                             .padding(.top, 20)
@@ -287,7 +287,7 @@ struct ProfileView: View {
                                 .padding()
                                 .background(Color.red.opacity(0.1))
                                 .foregroundStyle(Color.red)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                             }
                             .padding(.horizontal)
                             .padding(.top, 20)
@@ -541,7 +541,7 @@ struct EditNameSheet: View {
                                 .padding()
                             }
                             .background(Color.appSurface)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                             .padding(.horizontal)
                         }
                         .padding(.top, 20)
@@ -665,7 +665,7 @@ struct EditFieldSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                     }
                     .padding(.horizontal)
                     
@@ -747,7 +747,7 @@ struct FeedbackSheet: View {
                             }
                             .padding()
                             .background(Color.appSurface)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                         }
                     }
                     .padding(.horizontal)
@@ -762,7 +762,7 @@ struct FeedbackSheet: View {
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                     }
                     .padding(.horizontal)
                     
@@ -778,7 +778,7 @@ struct FeedbackSheet: View {
                                 .padding(8)
                                 .background(Color.appSurface)
                                 .foregroundStyle(Color.appText)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                                 .scrollContentBackground(.hidden)
                         }
                     }
@@ -875,7 +875,7 @@ struct LanguageSelectionSheet: View {
                     }
                     .padding()
                     .background(Color.blue.opacity(0.1))
-                    .cornerRadius(10)
+                    .cornerRadius(12)
                     
                     // Language options
                     VStack(spacing: 0) {
@@ -909,7 +909,7 @@ struct LanguageSelectionSheet: View {
                         }
                     }
                     .background(Color.appSurface)
-                    .cornerRadius(10)
+                    .cornerRadius(12)
                     
                     Spacer()
                 }
@@ -1003,7 +1003,7 @@ struct ChangeEmailSheet: View {
                         .padding(.horizontal, 40)
                         .padding(.vertical, 12)
                         .background(Color.appAccent)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                         .padding(.top, 20)
                     }
                     .padding()
@@ -1032,7 +1032,7 @@ struct ChangeEmailSheet: View {
                                 .autocorrectionDisabled()
                                 .padding()
                                 .background(Color.appSurface)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
@@ -1045,7 +1045,7 @@ struct ChangeEmailSheet: View {
                                 .foregroundStyle(Color.appText)
                                 .padding()
                                 .background(Color.appSurface)
-                                .cornerRadius(10)
+                                .cornerRadius(12)
                         }
                         
                         if let error = errorMessage {
@@ -1072,7 +1072,7 @@ struct ChangeEmailSheet: View {
                         }
                         .padding()
                         .background(isValidForm ? Color.appAccent : Color.appAccent)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                         .disabled(!isValidForm || isLoading)
                         
                         Spacer()

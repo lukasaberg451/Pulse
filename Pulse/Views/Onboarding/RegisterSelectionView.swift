@@ -64,7 +64,7 @@ struct RegisterSelectionView: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.appAccent)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                         }
                         .padding(.top, 10)
                         
@@ -101,7 +101,7 @@ struct RegisterSelectionView: View {
                         }
                         .signInWithAppleButtonStyle(.white)
                         .frame(height: 50)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                     }
                     .padding(.horizontal, 40)
                     

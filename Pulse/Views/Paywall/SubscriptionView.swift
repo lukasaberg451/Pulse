@@ -82,7 +82,7 @@ struct SubscriptionView: View {
                             )
                         }
                         .background(Color.appSurface)
-                        .cornerRadius(10)
+                        .cornerRadius(12)
                         .padding(.horizontal)
                         
                         // Pricing section
@@ -133,7 +133,7 @@ struct SubscriptionView: View {
                             .padding()
                             .background(selectedPackage != nil ? Color.appAccent : Color.appAccent.opacity(0.3))
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                         }
                         .disabled(selectedPackage == nil || isPurchasing)
                         .padding(.horizontal)
@@ -214,7 +214,7 @@ private struct SubscriptionFeatureRow: View {
     var body: some View {
         HStack(spacing: 16) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(Color.appAccent.opacity(0.15))
                     .frame(width: 36, height: 36)
                 
@@ -292,10 +292,10 @@ private struct SubscriptionPackageCard: View {
             }
             .padding(16)
             .background(
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(Color.appSurface)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10)
+                        RoundedRectangle(cornerRadius: 12)
                             .stroke(isSelected ? Color.appAccent : Color.clear, lineWidth: 2)
                     )
             )
