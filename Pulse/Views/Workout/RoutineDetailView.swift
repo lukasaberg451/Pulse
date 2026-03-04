@@ -348,7 +348,7 @@ struct ExercisePickerSheet: View {
     let equipmentOptions = [
         "Barbell", "Bike", "Bodyweight", "Cable", "Dumbbell",
         "Kettlebell", "Machine", "Medicine Ball", "Resistance Band",
-        "Sandbag", "Sled", "Smith Machine", "Treadmill", "TRX"
+        "Sandbag", "Sled", "Smith Machine", "Treadmill", "TRX", "Outdoors", "Stairmaster"
     ]
     
     var filteredExercises: [Exercise] {
@@ -380,9 +380,9 @@ struct ExercisePickerSheet: View {
         case "dumbbell":
             return "dumbbell.fill"
         case "kettlebell":
-            return "figure.cooldown"
+            return "scalemass.fill"
         case "cable":
-            return "cable.connector"
+            return "figure.strengthtraining.traditional"
         case "machine":
             return "gearshape.fill"
         case "bodyweight":
@@ -390,19 +390,23 @@ struct ExercisePickerSheet: View {
         case "resistance band":
             return "arrow.left.and.right.circle"
         case "medicine ball":
-            return "sportscourt.fill"
+            return "circle.circle.fill"
         case "bike":
             return "bicycle"
+        case "stairmaster":
+            return "figure.stair.stepper"
         case "treadmill":
             return "figure.run"
         case "trx":
-            return "triangle.fill"
+            return "figure.strengthtraining.traditional"
         case "smith machine":
-            return "square.stack.3d.up.fill"
+            return "figure.strengthtraining.traditional"
         case "sled":
-            return "arrow.forward.circle.fill"
+            return "figure.run"
         case "sandbag":
             return "bag.fill"
+        case "outdoors":
+            return "figure.walk.motion"
         default:
             return "dumbbell.fill"
         }
@@ -1349,7 +1353,7 @@ struct EditRoutineSheet: View {
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         
-                        TextField("", text: $name)
+                        TextField("Routine Name", text: $name)
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
@@ -1360,7 +1364,7 @@ struct EditRoutineSheet: View {
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         
-                        TextField("", text: $description, axis: .vertical)
+                        TextField("Notes", text: $description, axis: .vertical)
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)

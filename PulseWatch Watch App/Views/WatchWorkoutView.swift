@@ -10,6 +10,16 @@ import WatchConnectivity
 import HealthKit
 import WatchKit
 
+class WorkoutSessionDelegate: NSObject, HKWorkoutSessionDelegate {
+    func workoutSession(_ workoutSession: HKWorkoutSession, didChangeTo toState: HKWorkoutSessionState, from fromState: HKWorkoutSessionState, date: Date) {
+        print("⌚ Workout session state changed: \(fromState.rawValue) -> \(toState.rawValue)")
+    }
+    
+    func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: any Error) {
+        print("⌚ Workout session failed: \(error.localizedDescription)")
+    }
+}
+
 struct WatchWorkoutView: View {
     @StateObject private var syncManager = WorkoutSyncManager.shared
     @State private var currentExerciseName: String = "No active workout"
@@ -24,6 +34,7 @@ struct WatchWorkoutView: View {
     @State private var isResting: Bool = false
     @State private var restTimer: Timer?
     @State private var workoutSession: HKWorkoutSession?
+    @State private var sessionDelegate = WorkoutSessionDelegate()
     @State private var workoutStartTime: Date?
     @State private var workoutDuration: TimeInterval = 0
     @State private var durationTimer: Timer?
@@ -392,7 +403,7 @@ struct WatchWorkoutView: View {
             let remaining = Int(ceil(endTime.timeIntervalSinceNow))
             if remaining <= 0 {
                 self.stopRestTimer()
-                // Don't play sound, just stop the timer and continue
+                WKInterfaceDevice.current().play(.notification)
             } else {
                 self.restTimeRemaining = remaining
             }
@@ -451,8 +462,10 @@ struct WatchWorkoutView: View {
         configuration.locationType = .indoor
         
         do {
-            workoutSession = try HKWorkoutSession(healthStore: HKHealthStore(), configuration: configuration)
-            workoutSession?.startActivity(with: Date())
+            let session = try HKWorkoutSession(healthStore: HKHealthStore(), configuration: configuration)
+            session.delegate = sessionDelegate
+            session.startActivity(with: Date())
+            workoutSession = session
         } catch {
             print("⌚ Failed to start workout session: \(error)")
         }

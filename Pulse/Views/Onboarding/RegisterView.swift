@@ -156,7 +156,7 @@ struct RegisterView: View {
                                     .font(.headline)
                                     .bold()
                                 
-                                TextField("", text: $firstName)
+                                TextField("First Name", text: $firstName)
                                     .textInputAutocapitalization(.words)
                                     .padding()
                                     .background(Color.appSurface)
@@ -171,7 +171,7 @@ struct RegisterView: View {
                                     .font(.headline)
                                     .bold()
                                 
-                                TextField("", text: $lastName)
+                                TextField("Last Name", text: $lastName)
                                     .textInputAutocapitalization(.words)
                                     .padding()
                                     .background(Color.appSurface)
@@ -186,7 +186,7 @@ struct RegisterView: View {
                                     .font(.headline)
                                     .bold()
                                 
-                                TextField("", text: $email)
+                                TextField("Email", text: $email)
                                     .textInputAutocapitalization(.never)
                                     .keyboardType(.emailAddress)
                                     .padding()
@@ -202,7 +202,7 @@ struct RegisterView: View {
                                     .font(.headline)
                                     .bold()
                                 
-                                SecureField("", text: $password)
+                                SecureField("Password", text: $password)
                                     .padding()
                                     .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)
@@ -242,7 +242,7 @@ struct RegisterView: View {
                                     .font(.headline)
                                     .bold()
                                 
-                                SecureField("", text: $confirmPassword)
+                                SecureField("Confirm Password", text: $confirmPassword)
                                     .padding()
                                     .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)

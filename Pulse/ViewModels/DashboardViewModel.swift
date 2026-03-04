@@ -59,6 +59,18 @@ class DashboardViewModel: ObservableObject {
                 let routineExercises = try await routineRepository.fetchRoutineExercises(routineId: routine.id)
                 routineExerciseCounts[routine.id] = routineExercises.count
                 routineExercisesMap[routine.id] = routineExercises
+                
+                // Ensure all exercises referenced by routine exercises are loaded
+                for routineExercise in routineExercises {
+                    if !exercises.contains(where: { $0.id == routineExercise.exerciseId }) {
+                        do {
+                            let exercise = try await exerciseRepository.fetchExercise(id: routineExercise.exerciseId)
+                            exercises.append(exercise)
+                        } catch {
+                            print("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
+                        }
+                    }
+                }
             }
             
             // Load todays workouts

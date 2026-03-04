@@ -203,10 +203,24 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         
         let endData: [String: Any] = ["workoutEnded": true]
         
+        // Use sendMessage for immediate delivery when reachable
+        if session.isReachable {
+            session.sendMessage(endData, replyHandler: nil) { error in
+                print("📱 ❌ sendMessage workoutEnded failed: \(error.localizedDescription)")
+            }
+            print("📱 ✅ Sent workoutEnded via sendMessage")
+        }
+        
+        // Use transferUserInfo for guaranteed delivery
+        session.transferUserInfo(endData)
+        print("📱 ✅ Queued workoutEnded via transferUserInfo")
+        
+        // Also update application context
         do {
             try session.updateApplicationContext(endData)
+            print("📱 ✅ Updated application context with workoutEnded")
         } catch {
-            print("📱 Error sending workout ended: \(error.localizedDescription)")
+            print("📱 ❌ Error updating context with workoutEnded: \(error.localizedDescription)")
         }
     }
 }
@@ -286,6 +300,16 @@ extension WorkoutSyncManager: WCSessionDelegate {
             print("⌚ Processing message on Watch...")
             // Process any message that contains exercise data (currentExercise) or routine data (routineName)
             if message.keys.contains("currentExercise") || message.keys.contains("routineName") {
+                self.currentWorkoutData = message
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("WorkoutDataReceived"),
+                    object: nil,
+                    userInfo: message
+                )
+            }
+            
+            if message["workoutEnded"] as? Bool == true {
+                print("⌚ Workout ended from iPhone (via message)")
                 self.currentWorkoutData = message
                 NotificationCenter.default.post(
                     name: NSNotification.Name("WorkoutDataReceived"),

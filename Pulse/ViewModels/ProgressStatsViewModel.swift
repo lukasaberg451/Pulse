@@ -217,14 +217,16 @@ class ProgressStatsViewModel: ObservableObject {
                 .execute()
                 .value
             
-            let exerciseDict = Dictionary(uniqueKeysWithValues: exercises.map { ($0.id, $0.name) })
+            let exerciseDict = Dictionary(uniqueKeysWithValues: exercises.map { ($0.id, $0) })
             
-            // Group sets by exercise and find PRs
+            // Group sets by exercise and find PRs (strength exercises only)
             let setsByExercise = Dictionary(grouping: sets, by: { $0.exerciseId })
             var personalRecords: [PersonalRecord] = []
             
             for (exerciseId, exerciseSets) in setsByExercise {
-                guard let exerciseName = exerciseDict[exerciseId] else { continue }
+                guard let exercise = exerciseDict[exerciseId],
+                      exercise.exerciseType?.lowercased() != "cardio" else { continue }
+                let exerciseName = exercise.name
                 
                 // Sort by one-rep max (weight * reps as a simple approximation)
                 let sortedSets = exerciseSets.sorted { set1, set2 in
@@ -319,6 +321,7 @@ class ProgressStatsViewModel: ObservableObject {
             
             for set in sets {
                 if let exercise = exerciseDict[set.exerciseId],
+                   exercise.exerciseType?.lowercased() != "cardio",
                    let primaryMuscle = exercise.muscleGroup {
                     muscleGroupCounts[primaryMuscle, default: 0] += 1
                     

@@ -684,7 +684,7 @@ struct CreateRoutineSheet: View {
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         
-                        TextField("", text: $name)
+                        TextField("Routine Name", text: $name)
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
@@ -695,7 +695,7 @@ struct CreateRoutineSheet: View {
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         
-                        TextField("", text: $description, axis: .vertical)
+                        TextField("Notes", text: $description, axis: .vertical)
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)

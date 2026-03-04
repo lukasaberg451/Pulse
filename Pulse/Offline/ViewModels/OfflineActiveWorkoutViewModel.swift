@@ -397,8 +397,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             exercises: exercises
         )
         
-        // Don't send workoutEnded here - let the watch show completion screen
-        // It will be sent when the view is dismissed
+        // Tell the watch the workout has ended so it dismisses
+        WorkoutSyncManager.shared.sendWorkoutEnded()
     }
     
     func cancelWorkout() async {

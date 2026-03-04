@@ -62,8 +62,20 @@ class RoutineDetailViewModel: ObservableObject {
                 }
             } else {
                 // Fallback to direct Supabase queries
-                exercises = try await exerciseRepository.fetchExercises()
+                exercises = try await exerciseRepository.fetchAllExercises()
                 routineExercises = try await routineRepository.fetchRoutineExercises(routineId: routine.id)
+                
+                // Ensure all exercises referenced by routine exercises are loaded
+                for routineExercise in routineExercises {
+                    if !exercises.contains(where: { $0.id == routineExercise.exerciseId }) {
+                        do {
+                            let exercise = try await exerciseRepository.fetchExercise(id: routineExercise.exerciseId)
+                            exercises.append(exercise)
+                        } catch {
+                            print("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
+                        }
+                    }
+                }
             }
         } catch {
             errorMessage = "Failed to load exercises: \(error.localizedDescription)"

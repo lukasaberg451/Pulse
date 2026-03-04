@@ -63,7 +63,7 @@ struct LoginView: View {
                                 .font(.headline)
                                 .bold()
                             
-                            TextField("", text: $email)
+                            TextField("Email", text: $email)
                                 .textInputAutocapitalization(.never)
                                 .keyboardType(.emailAddress)
                                 .padding()
@@ -82,7 +82,7 @@ struct LoginView: View {
                                 .font(.headline)
                                 .bold()
                             
-                            SecureField("", text: $password)
+                            SecureField("Password", text: $password)
                                 .padding()
                                 .background(Color.appSurface)
                                 .foregroundStyle(Color.appText)
@@ -324,7 +324,7 @@ struct ForgotPasswordView: View {
                                 .font(.headline)
                                 .bold()
                             
-                            TextField("", text: $email)
+                            TextField("Email", text: $email)
                                 .textInputAutocapitalization(.never)
                                 .keyboardType(.emailAddress)
                                 .padding()

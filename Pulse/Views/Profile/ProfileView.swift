@@ -566,7 +566,7 @@ struct EditNameSheet: View {
             EditFieldSheet(
                 title: "First Name",
                 value: viewModel.profile?.firstName ?? "",
-                placeholder: "Enter first name",
+                placeholder: "First Name",
                 onSave: { newValue in
                     Task {
                         await viewModel.updateProfile(
@@ -581,7 +581,7 @@ struct EditNameSheet: View {
             EditFieldSheet(
                 title: "Last Name",
                 value: viewModel.profile?.lastName ?? "",
-                placeholder: "Enter last name",
+                placeholder: "Last Name",
                 onSave: { newValue in
                     Task {
                         await viewModel.updateProfile(
@@ -758,7 +758,7 @@ struct FeedbackSheet: View {
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         
-                        TextField("", text: $title)
+                        TextField("Title", text: $title)
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
@@ -1024,7 +1024,7 @@ struct ChangeEmailSheet: View {
                                 .font(.caption)
                                 .foregroundStyle(Color.appText)
                             
-                            TextField("", text: $newEmail)
+                            TextField("New Email", text: $newEmail)
                                 .textFieldStyle(.plain)
                                 .textInputAutocapitalization(.never)
                                 .foregroundStyle(Color.appText)
@@ -1040,7 +1040,7 @@ struct ChangeEmailSheet: View {
                                 .font(.caption)
                                 .foregroundStyle(Color.appText)
                             
-                            SecureField("", text: $password)
+                            SecureField("Current Password", text: $password)
                                 .textFieldStyle(.plain)
                                 .foregroundStyle(Color.appText)
                                 .padding()

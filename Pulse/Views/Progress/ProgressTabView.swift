@@ -407,7 +407,7 @@ struct ComparisonRow: View {
     }
 }
 
-// MARK: - Muscle Group Row (Most Trained)
+// MARK: - Most Trained
 struct MuscleGroupRow: View {
     let name: String
     let sets: Int
@@ -633,7 +633,7 @@ struct HealthMetricsSection: View {
                                         // Background gradient
                                         HStack(spacing: 0) {
                                             Rectangle()
-                                                .fill(Color.orange.opacity(0.3))
+                                                .fill(Color.blue.opacity(0.3))
                                                 .frame(width: geometry.size.width * 0.25)
                                             
                                             Rectangle()
@@ -816,7 +816,13 @@ struct EditHealthMetricsSheet: View {
         let weight = viewModel.profile?.weightKg ?? 0
         let height = viewModel.profile?.heightCm ?? 0
         
-        _weightText = State(initialValue: weight > 0 ? String(format: "%.1f", weight) : "")
+        // Use locale-aware formatting so the decimal separator matches the keyboard
+        let nf = NumberFormatter()
+        nf.numberStyle = .decimal
+        nf.minimumFractionDigits = 1
+        nf.maximumFractionDigits = 1
+        
+        _weightText = State(initialValue: weight > 0 ? (nf.string(from: NSNumber(value: weight)) ?? "") : "")
         _heightText = State(initialValue: height > 0 ? String(format: "%.0f", height) : "")
     }
     
@@ -945,9 +951,9 @@ struct EditHealthMetricsSheet: View {
         showError = false
         errorMessage = ""
         
-        // Validate inputs — normalize comma to dot for locales that use comma as decimal separator
-        let weight = Double(weightText.replacingOccurrences(of: ",", with: "."))
-        let height = Double(heightText.replacingOccurrences(of: ",", with: "."))
+        // Validate inputs — accept both comma and dot as decimal separator
+        let weight = parseDecimal(weightText)
+        let height = parseDecimal(heightText)
         
         if let weight = weight, weight <= 0 {
             errorMessage = "Weight must be greater than 0"
@@ -970,6 +976,22 @@ struct EditHealthMetricsSheet: View {
             errorMessage = viewModel.errorMessage ?? "Failed to save health metrics"
             showError = true
         }
+    }
+    
+    /// Parse a decimal string accepting both comma and dot as decimal separator.
+    private func parseDecimal(_ text: String) -> Double? {
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty { return nil }
+        
+        // First try the locale-aware NumberFormatter (handles the device's locale)
+        let nf = NumberFormatter()
+        nf.numberStyle = .decimal
+        if let value = nf.number(from: trimmed)?.doubleValue {
+            return value
+        }
+        
+        // Fallback: replace comma with dot and parse directly
+        return Double(trimmed.replacingOccurrences(of: ",", with: "."))
     }
 }
 
