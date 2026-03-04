@@ -18,6 +18,7 @@ struct ProfileView: View {
     @State private var showingLanguageSheet = false
     @State private var showingChangeEmailSheet = false
     @State private var showingSubscriptionSheet = false
+    @State private var showingTimezoneSheet = false
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @EnvironmentObject var healthKitManager: HealthKitManager
     
@@ -234,6 +235,40 @@ struct ProfileView: View {
                                             .padding()
                                         }
                                     }
+                                    
+                                    Divider()
+                                        .background(Color.appText.opacity(0.1))
+                                        .padding(.leading, 56)
+                                    
+                                    // Timezone Row
+                                    Button {
+                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                        impactLight.impactOccurred()
+                                        showingTimezoneSheet = true
+                                    } label: {
+                                        HStack(spacing: 16) {
+                                            Image(systemName: "clock.badge.checkmark")
+                                                .font(.system(size: 20))
+                                                .foregroundStyle(Color.appAccent)
+                                                .frame(width: 24)
+                                            
+                                            Text("Timezone")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            Text(viewModel.profile?.timezone ?? TimeZone.current.identifier)
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                                .lineLimit(1)
+                                            
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appText.opacity(0.3))
+                                        }
+                                        .padding()
+                                    }
                                 }
                                 .background(Color.appSurface)
                                 .cornerRadius(12)
@@ -335,6 +370,9 @@ struct ProfileView: View {
                 }
             .sheet(isPresented: $showingThemeSheet) {
                 ThemeSelectionSheet()
+            }
+            .sheet(isPresented: $showingTimezoneSheet) {
+                TimezoneSelectionSheet(viewModel: viewModel)
             }
             .sheet(isPresented: $showingSubscriptionSheet) {
                 SubscriptionView()

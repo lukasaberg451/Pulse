@@ -86,16 +86,18 @@ class DashboardViewModel: ObservableObject {
             }
             
             // Load todays workouts
-            let calendar = Calendar.current
+            let calendar = userProfile?.userCalendar ?? Calendar.current
             let startOfToday = calendar.startOfDay(for: Date())
             guard let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday) else {
                 isLoading = false
                 return
             }
             
+            let tz = userProfile?.resolvedTimeZone ?? .current
             todaysWorkouts = try await workoutRepository.fetchScheduledWorkouts(
                 startDate: startOfToday,
-                endDate: endOfToday
+                endDate: endOfToday,
+                timeZone: tz
             )
             
             //Load recently completed (last 5)
@@ -145,6 +147,7 @@ class DashboardViewModel: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
+        formatter.timeZone = userProfile?.resolvedTimeZone ?? TimeZone.current
         return formatter.string(from: date)
     }
     
@@ -184,7 +187,7 @@ class DashboardViewModel: ObservableObject {
     
     func loadWeeklyProgress() async {
         // Get start of current week (Monday)
-        let calendar = Calendar.current
+        let calendar = userProfile?.userCalendar ?? Calendar.current
         let now = Date()
         guard let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)),
               let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else {
@@ -239,7 +242,7 @@ class DashboardViewModel: ObservableObject {
                 return
             }
             
-            let calendar = Calendar.current
+            let calendar = userProfile?.userCalendar ?? Calendar.current
             var workoutDates = Set<Date>()
             
             for session in sessions {

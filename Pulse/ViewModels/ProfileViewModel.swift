@@ -44,11 +44,45 @@ class ProfileViewModel: ObservableObject {
                 .value
             
             self.profile = profile
+            
+            // Auto-detect timezone on first load if not set
+            if profile.timezone == nil {
+                await updateTimezone(TimeZone.current.identifier)
+            }
         } catch {
             print("Failed to load profile: \(error)")
         }
         
         isLoading = false
+    }
+    
+    func updateTimezone(_ timezoneIdentifier: String) async {
+        do {
+            guard let userId = supabase.auth.currentUser?.id else { return }
+            
+            struct UpdateTimezone: Encodable {
+                let timezone: String
+            }
+            
+            try await supabase
+                .from("profiles")
+                .update(UpdateTimezone(timezone: timezoneIdentifier))
+                .eq("id", value: userId.uuidString)
+                .execute()
+            
+            // Reload profile to pick up the new timezone
+            let updatedProfile: Profile = try await supabase
+                .from("profiles")
+                .select()
+                .eq("id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+            
+            self.profile = updatedProfile
+        } catch {
+            print("Failed to update timezone: \(error)")
+        }
     }
     
     func updateProfile(firstName: String, lastName: String) async {

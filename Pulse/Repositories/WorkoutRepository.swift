@@ -217,9 +217,10 @@ class WorkoutRepository {
     }
     
     // Schedule a workout
-    func scheduleWorkout(routineId: UUID, date: Date) async throws -> ScheduledWorkout {
+    func scheduleWorkout(routineId: UUID, date: Date, timeZone: TimeZone = .current) async throws -> ScheduledWorkout {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = timeZone
         let dateString = formatter.string(from: date)
         
         // Fetch the routine to get its name
@@ -274,9 +275,10 @@ class WorkoutRepository {
     }
 
     // Fetch scheduled workouts for a date range
-    func fetchScheduledWorkouts(startDate: Date, endDate: Date) async throws -> [ScheduledWorkout] {
+    func fetchScheduledWorkouts(startDate: Date, endDate: Date, timeZone: TimeZone = .current) async throws -> [ScheduledWorkout] {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = timeZone
         
         let response: [ScheduledWorkout] = try await supabase
             .from("scheduled_workouts")
@@ -349,7 +351,7 @@ class WorkoutRepository {
     }
 
     // Create a completed scheduled workout entry (for non-scheduled workouts that were finished)
-    func createCompletedScheduledWorkout(routineId: UUID, sessionId: UUID, date: Date) async throws {
+    func createCompletedScheduledWorkout(routineId: UUID, sessionId: UUID, date: Date, timeZone: TimeZone = .current) async throws {
         struct InsertData: Encodable {
             let routine_id: String
             let scheduled_date: String
@@ -359,6 +361,7 @@ class WorkoutRepository {
         
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = timeZone
         
         let data = InsertData(
             routine_id: routineId.uuidString,

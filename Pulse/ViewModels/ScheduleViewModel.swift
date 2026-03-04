@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import Supabase
 
 @MainActor
 class ScheduleViewModel: ObservableObject {
@@ -20,6 +21,7 @@ class ScheduleViewModel: ObservableObject {
     @Published var exercises: [Exercise] = []
     @Published var workoutSessions: [UUID: WorkoutSession] = [:]
     
+    private var userProfile: Profile?
     private let exerciseRepository = ExerciseRepository()
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
@@ -46,7 +48,7 @@ class ScheduleViewModel: ObservableObject {
     var calendarDays: [Date?] {
         var days: [Date?] = []
         
-        let calendar = Calendar.current
+        let calendar = userProfile?.userCalendar ?? Calendar.current
         let components = calendar.dateComponents([.year, .month], from: currentMonth)
         guard let firstOfMonth = calendar.date(from: components) else { return [] }
         
@@ -72,11 +74,31 @@ class ScheduleViewModel: ObservableObject {
         return days
     }
     
+    private func fetchUserProfile() async {
+        let supabase = SupabaseManager.shared.client
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        
+        do {
+            let profile: Profile = try await supabase
+                .from("profiles")
+                .select()
+                .eq("id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+            userProfile = profile
+        } catch {
+            print("Failed to fetch user profile: \(error)")
+        }
+    }
+    
     func loadData() async {
         isLoading = true
         errorMessage = nil
         
         do {
+            await fetchUserProfile()
+            
             //Load exercises first
             exercises = try await exerciseRepository.fetchAllExercises()
             
@@ -103,16 +125,18 @@ class ScheduleViewModel: ObservableObject {
             }
 
             // Load scheduled workouts for current month
-            let calendar = Calendar.current
+            let calendar = userProfile?.userCalendar ?? Calendar.current
             let components = calendar.dateComponents([.year, .month], from: currentMonth)
             guard let startOfMonth = calendar.date(from: components),
                   let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth) else {
                 return
             }
             
+            let tz = userProfile?.resolvedTimeZone ?? .current
             scheduledWorkouts = try await workoutRepository.fetchScheduledWorkouts(
                 startDate: startOfMonth,
-                endDate: endOfMonth
+                endDate: endOfMonth,
+                timeZone: tz
             )
             
             // Load workout sessions for completed scheduled workouts
@@ -144,18 +168,21 @@ class ScheduleViewModel: ObservableObject {
     }
     
     func previousMonth() {
-        currentMonth = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
+        let calendar = userProfile?.userCalendar ?? Calendar.current
+        currentMonth = calendar.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
         Task { await loadData() }
     }
     
     func nextMonth() {
-        currentMonth = Calendar.current.date(byAdding: .month, value: 1, to: currentMonth) ?? currentMonth
+        let calendar = userProfile?.userCalendar ?? Calendar.current
+        currentMonth = calendar.date(byAdding: .month, value: 1, to: currentMonth) ?? currentMonth
         Task { await loadData() }
     }
     
     func scheduleWorkout(routineId: UUID, date: Date) async {
         do {
-            let scheduled = try await workoutRepository.scheduleWorkout(routineId: routineId, date: date)
+            let tz = userProfile?.resolvedTimeZone ?? .current
+            let scheduled = try await workoutRepository.scheduleWorkout(routineId: routineId, date: date, timeZone: tz)
             scheduledWorkouts.append(scheduled)
         } catch {
             errorMessage = "Failed to schedule workout: \(error.localizedDescription)"
@@ -165,6 +192,7 @@ class ScheduleViewModel: ObservableObject {
     func scheduledWorkouts(for date: Date) -> [ScheduledWorkout] {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = userProfile?.resolvedTimeZone ?? TimeZone.current
         let dateString = formatter.string(from: date)
         
         return scheduledWorkouts.filter { $0.scheduledDate == dateString }

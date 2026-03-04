@@ -18,6 +18,7 @@ struct Profile: Codable, Identifiable {
     let termsAcceptedAt: Date?
     let weightKg: Double?
     let heightCm: Double?
+    let timezone: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -30,6 +31,22 @@ struct Profile: Codable, Identifiable {
         case termsAcceptedAt = "terms_accepted_at"
         case weightKg = "weight_kg"
         case heightCm = "height_cm"
+        case timezone
+    }
+    
+    // Resolved TimeZone from stored identifier, falls back to device timezone
+    var resolvedTimeZone: TimeZone {
+        if let tz = timezone, let timeZone = TimeZone(identifier: tz) {
+            return timeZone
+        }
+        return TimeZone.current
+    }
+    
+    // Calendar configured with the user's timezone
+    var userCalendar: Calendar {
+        var cal = Calendar.current
+        cal.timeZone = resolvedTimeZone
+        return cal
     }
     
     // Computed property for BMI

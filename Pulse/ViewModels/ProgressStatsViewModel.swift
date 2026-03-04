@@ -45,12 +45,30 @@ class ProgressStatsViewModel: ObservableObject {
     
     @Published var recentSessions: [WorkoutSession] = []
     
+    private var userProfile: Profile?
     private let supabase = SupabaseManager.shared.client
     private let workoutRepository = WorkoutRepository()
     private var loadTask: Task<Void, Never>?
     
+    private func fetchUserProfile() async {
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        do {
+            let profile: Profile = try await supabase
+                .from("profiles")
+                .select()
+                .eq("id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+            userProfile = profile
+        } catch {
+            print("Failed to fetch user profile: \(error)")
+        }
+    }
+    
     func loadStats() async {
         loadTask?.cancel()
+        await fetchUserProfile()
         let task = Task { @MainActor [weak self] in
             guard let self else { return }
             async let monthly: Void = self.loadMonthlyStats()
@@ -67,7 +85,7 @@ class ProgressStatsViewModel: ObservableObject {
     }
     
     private func loadMonthlyStats() async {
-        let calendar = Calendar.current
+        let calendar = userProfile?.userCalendar ?? Calendar.current
         let now = Date()
         guard let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
               let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart) else {
@@ -122,7 +140,7 @@ class ProgressStatsViewModel: ObservableObject {
     }
     
     private func loadLastMonthStats() async {
-        let calendar = Calendar.current
+        let calendar = userProfile?.userCalendar ?? Calendar.current
         let now = Date()
             guard let thisMonthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
             let lastMonthStart = calendar.date(byAdding: .month, value: -1, to: thisMonthStart) else {
@@ -254,7 +272,7 @@ class ProgressStatsViewModel: ObservableObject {
             recentPRs = personalRecords.sorted { $0.date > $1.date }
             
             // Calculate PRs from this month
-            let calendar = Calendar.current
+            let calendar = userProfile?.userCalendar ?? Calendar.current
             let now = Date()
             guard let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) else {
                 monthlyPRs = 0
@@ -271,7 +289,7 @@ class ProgressStatsViewModel: ObservableObject {
     }
     
     private func loadMuscleGroupStats() async {
-        let calendar = Calendar.current
+        let calendar = userProfile?.userCalendar ?? Calendar.current
         let now = Date()
         guard let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
               let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart) else {
@@ -419,7 +437,7 @@ class ProgressStatsViewModel: ObservableObject {
                 return
             }
             
-            let calendar = Calendar.current
+            let calendar = userProfile?.userCalendar ?? Calendar.current
             var workoutDates = Set<Date>()
             
             // Extract unique workout dates (ignoring time)
@@ -510,6 +528,7 @@ class ProgressStatsViewModel: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
+        formatter.timeZone = userProfile?.resolvedTimeZone ?? TimeZone.current
         return formatter.string(from: date)
     }
     
