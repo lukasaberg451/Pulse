@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PostHog
 
 struct WorkoutView: View {
     @State private var selectedTab = 0
@@ -325,6 +326,7 @@ struct ScheduledWorkoutCard: View {
             if !scheduled.completed {
                 Button {
                     showingActiveWorkout = true
+                    PostHogSDK.shared.capture("scheduled_workout_started​")
                 } label: {
                     Text("Start")
                         .font(.subheadline)

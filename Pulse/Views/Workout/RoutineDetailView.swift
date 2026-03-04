@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PostHog
 
 struct RoutineDetailView: View {
     let routine: Routine
@@ -87,6 +88,7 @@ struct RoutineDetailView: View {
                                 let impactMed = UIImpactFeedbackGenerator(style: .medium)
                                 impactMed.impactOccurred()
                                 showingActiveWorkout = true
+                                PostHogSDK.shared.capture("workout​_started")
                             } label: {
                                 VStack(spacing: 4) {
                                     Image(systemName: "play.fill")

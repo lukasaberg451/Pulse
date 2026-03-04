@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PostHog
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
@@ -170,6 +171,7 @@ struct TodayWorkoutCard: View {
                     let impactMed = UIImpactFeedbackGenerator(style: .medium)
                     impactMed.impactOccurred()
                     showingActiveWorkout = true
+                    PostHogSDK.shared.capture("scheduled_from_dashboard_started")
                 } label: {
                     VStack(spacing: 4) {
                         Image(systemName: "play.circle.fill")

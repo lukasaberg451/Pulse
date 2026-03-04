@@ -8,7 +8,6 @@
 import Foundation
 import Combine
 import Supabase
-import PostHog
 import UIKit
 
 @MainActor
@@ -124,16 +123,6 @@ class ActiveWorkoutViewModel: ObservableObject {
                 routineId: routine.id
             )
             sessionId = session.id
-            
-            // Track workout started with PostHog
-            PostHogSDK.shared.capture("workout_started", properties: [
-                "workout_session_id": session.id.uuidString as Any,
-                "routine_id": routine.id.uuidString as Any,
-                "routine_name": routine.name as Any,
-                "exercise_count": routineExercises.count as Any,
-                "scheduled_workout_id": scheduledWorkoutId?.uuidString as Any? ?? "none" as Any,
-                "timestamp": Date().ISO8601Format() as Any
-            ])
             
             // Create placeholder sets for each exercise
             for routineExercise in routineExercises {
