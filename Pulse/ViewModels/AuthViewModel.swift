@@ -16,6 +16,7 @@ import CryptoKit
 class AuthViewModel: ObservableObject{
     @Published var session: Session?
     @Published var isAuthenticated = false
+    @Published var isInitializing = true
     @Published var userProfile: UserProfile?
     @Published var isLoading = false
     @Published var isRegistering = false
@@ -36,6 +37,8 @@ class AuthViewModel: ObservableObject{
                                 self.showRecoveryPrompt = true
                             }
                         }
+                
+                self.isInitializing = false
                     }
                 }
     

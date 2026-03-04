@@ -162,6 +162,9 @@ struct PulseApp: App {
                         .environmentObject(authViewModel)
                 }
             }
+            .overlay {
+                SplashOverlay(isInitializing: authViewModel.isInitializing)
+            }
             .id(authViewModel.isAuthenticated)
             .environmentObject(themeManager)
             .environmentObject(syncService)
