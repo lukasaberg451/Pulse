@@ -19,8 +19,10 @@ struct ProfileView: View {
     @State private var showingChangeEmailSheet = false
     @State private var showingSubscriptionSheet = false
     @State private var showingTimezoneSheet = false
+    @State private var showingUnitSheet = false
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @EnvironmentObject var healthKitManager: HealthKitManager
+    @EnvironmentObject var unitManager: UnitManager
     
     var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
@@ -85,6 +87,48 @@ struct ProfileView: View {
                                 .padding(.top, 8)
                             }
                             
+                            // Subscription Section
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Subscription")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.appText)
+                                    .padding(.horizontal)
+                                
+                                VStack(spacing: 0) {
+                                    Button {
+                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                        impactLight.impactOccurred()
+                                        showingSubscriptionSheet = true
+                                    } label: {
+                                        HStack(spacing: 16) {
+                                            Image(systemName: "star.fill")
+                                                .font(.system(size: 20))
+                                                .foregroundStyle(Color.appAccent)
+                                                .frame(width: 24)
+                                            
+                                            Text("Plan")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            Text(subscriptionManager.isProUser ? "Pro" : "Free")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                            
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appText.opacity(0.3))
+                                        }
+                                        .padding()
+                                    }
+                                }
+                                .background(Color.appSurface)
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                            }
+                            .padding(.top, 20)
+                            
                             // Settings Section
                             VStack(alignment: .leading, spacing: 16) {
                                 Text("Settings")
@@ -93,7 +137,7 @@ struct ProfileView: View {
                                     .padding(.horizontal)
                                 
                                 VStack(spacing: 0) {
-                                    //Theme setting
+                                    // Appearance
                                     Button {
                                         let impactLight = UIImpactFeedbackGenerator(style: .light)
                                         impactLight.impactOccurred()
@@ -126,7 +170,7 @@ struct ProfileView: View {
                                         .background(Color.appText.opacity(0.1))
                                         .padding(.leading, 56)
                                     
-                                    // Language Row
+                                    // Language
                                     Button {
                                         let impactLight = UIImpactFeedbackGenerator(style: .light)
                                         impactLight.impactOccurred()
@@ -159,27 +203,61 @@ struct ProfileView: View {
                                         .background(Color.appText.opacity(0.1))
                                         .padding(.leading, 56)
                                     
-                                    // Subscription Row
+                                    // Units
                                     Button {
                                         let impactLight = UIImpactFeedbackGenerator(style: .light)
                                         impactLight.impactOccurred()
-                                        showingSubscriptionSheet = true
+                                        showingUnitSheet = true
                                     } label: {
                                         HStack(spacing: 16) {
-                                            Image(systemName: "star.fill")
+                                            Image(systemName: "ruler")
                                                 .font(.system(size: 20))
                                                 .foregroundStyle(Color.appAccent)
                                                 .frame(width: 24)
                                             
-                                            Text("Subscription")
+                                            Text("Units")
                                                 .font(.body)
                                                 .foregroundStyle(Color.appText)
                                             
                                             Spacer()
                                             
-                                            Text(subscriptionManager.isProUser ? "Pro" : "Free")
+                                            Text(unitManager.unitSystem.displayName)
                                                 .font(.body)
                                                 .foregroundStyle(Color.appText.opacity(0.6))
+                                            
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appText.opacity(0.3))
+                                        }
+                                        .padding()
+                                    }
+                                    
+                                    Divider()
+                                        .background(Color.appText.opacity(0.1))
+                                        .padding(.leading, 56)
+                                    
+                                    // Timezone
+                                    Button {
+                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                        impactLight.impactOccurred()
+                                        showingTimezoneSheet = true
+                                    } label: {
+                                        HStack(spacing: 16) {
+                                            Image(systemName: "clock.badge.checkmark")
+                                                .font(.system(size: 20))
+                                                .foregroundStyle(Color.appAccent)
+                                                .frame(width: 24)
+                                            
+                                            Text("Timezone")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            Text(viewModel.profile?.timezone ?? TimeZone.current.identifier)
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                                .lineLimit(1)
                                             
                                             Image(systemName: "chevron.right")
                                                 .font(.caption)
@@ -193,6 +271,7 @@ struct ProfileView: View {
                                             .background(Color.appText.opacity(0.1))
                                             .padding(.leading, 56)
                                         
+                                        // Apple Health
                                         Button {
                                             let impactLight = UIImpactFeedbackGenerator(style: .light)
                                             impactLight.impactOccurred()
@@ -236,39 +315,28 @@ struct ProfileView: View {
                                         }
                                     }
                                     
+                                    // Apple Watch
                                     Divider()
                                         .background(Color.appText.opacity(0.1))
                                         .padding(.leading, 56)
                                     
-                                    // Timezone Row
-                                    Button {
-                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                        impactLight.impactOccurred()
-                                        showingTimezoneSheet = true
-                                    } label: {
-                                        HStack(spacing: 16) {
-                                            Image(systemName: "clock.badge.checkmark")
-                                                .font(.system(size: 20))
-                                                .foregroundStyle(Color.appAccent)
-                                                .frame(width: 24)
-                                            
-                                            Text("Timezone")
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText)
-                                            
-                                            Spacer()
-                                            
-                                            Text(viewModel.profile?.timezone ?? TimeZone.current.identifier)
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
-                                                .lineLimit(1)
-                                            
-                                            Image(systemName: "chevron.right")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0.3))
-                                        }
-                                        .padding()
+                                    HStack(spacing: 16) {
+                                        Image(systemName: "applewatch")
+                                            .font(.system(size: 20))
+                                            .foregroundStyle(Color.appAccent)
+                                            .frame(width: 24)
+                                        
+                                        Text("Apple Watch")
+                                            .font(.body)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Spacer()
+                                        
+                                        Text(WorkoutSyncManager.shared.isReachable ? "Connected" : "Not Connected")
+                                            .font(.body)
+                                            .foregroundStyle(Color.appText.opacity(0.6))
                                     }
+                                    .padding()
                                 }
                                 .background(Color.appSurface)
                                 .cornerRadius(12)
@@ -370,6 +438,9 @@ struct ProfileView: View {
                 }
             .sheet(isPresented: $showingThemeSheet) {
                 ThemeSelectionSheet()
+            }
+            .sheet(isPresented: $showingUnitSheet) {
+                UnitSelectionSheet(viewModel: viewModel)
             }
             .sheet(isPresented: $showingTimezoneSheet) {
                 TimezoneSelectionSheet(viewModel: viewModel)

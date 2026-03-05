@@ -914,6 +914,7 @@ struct FilterChip: View {
 
 struct ExerciseConfigSheet: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var unitManager: UnitManager
     let exercise: Exercise
     @ObservedObject var viewModel: RoutineDetailViewModel
     
@@ -1204,7 +1205,7 @@ struct ExerciseConfigSheet: View {
                                     // Weight
                                     VStack(spacing: 0) {
                                         HStack {
-                                            Text("Weight (kg)")
+                                            Text("Weight (\(unitManager.weightUnit))")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
@@ -1308,7 +1309,7 @@ struct ExerciseConfigSheet: View {
                                     restSeconds: actualRest
                                 )
                             } else {
-                                let weight = Double(targetWeight) ?? 0
+                                let weight = unitManager.toKg(Double(targetWeight) ?? 0)
                                 await viewModel.addExercise(
                                     exerciseId: exercise.id,
                                     sets: sets,
@@ -1410,6 +1411,7 @@ struct EditRoutineSheet: View {
 
 struct EditExerciseSheet: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var unitManager: UnitManager
     let routineExercise: RoutineExercise
     let exercise: Exercise
     @ObservedObject var viewModel: RoutineDetailViewModel
@@ -1440,7 +1442,8 @@ struct EditExerciseSheet: View {
         
         _sets = State(initialValue: routineExercise.sets)
         _repsTarget = State(initialValue: routineExercise.repsTarget ?? "")
-        _targetWeight = State(initialValue: String(routineExercise.targetWeight ?? 0))
+        let displayWeight = UnitManager.shared.displayWeight(routineExercise.targetWeight ?? 0)
+        _targetWeight = State(initialValue: String(format: "%.1f", displayWeight))
         _restSeconds = State(initialValue: routineExercise.restSeconds)
         
         let totalSeconds = routineExercise.durationSeconds ?? 0
@@ -1721,7 +1724,7 @@ struct EditExerciseSheet: View {
                                     // Weight
                                     VStack(spacing: 0) {
                                         HStack {
-                                            Text("Weight (kg)")
+                                            Text("Weight (\(unitManager.weightUnit))")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
@@ -1825,7 +1828,7 @@ struct EditExerciseSheet: View {
                                     restSeconds: actualRest
                                 )
                             } else {
-                                let weight = Double(targetWeight) ?? 0
+                                let weight = unitManager.toKg(Double(targetWeight) ?? 0)
                                 await viewModel.updateExercise(
                                     id: routineExercise.id,
                                     sets: sets,

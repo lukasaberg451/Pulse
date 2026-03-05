@@ -11,6 +11,7 @@ struct ProgressTabView: View {
     @StateObject private var viewModel = ProgressStatsViewModel()
     @EnvironmentObject var syncService: WorkoutSyncService
     @EnvironmentObject var subscriptionManager: SubscriptionManager
+    @EnvironmentObject var unitManager: UnitManager
     @State private var showingPaywall = false
     
     var body: some View {
@@ -85,8 +86,8 @@ struct ProgressTabView: View {
                                 HStack(spacing: 16) {
                                     StatCard(
                                         title: "Volume",
-                                        value: "\(viewModel.monthlyVolume)",
-                                        unit: "kg",
+                                        value: "\(Int(unitManager.displayWeight(Double(viewModel.monthlyVolume))))",
+                                        unit: unitManager.weightUnit,
                                         icon: "chart.bar.fill",
                                         color: .appAccent
                                     )
@@ -199,7 +200,7 @@ struct ProgressTabView: View {
                                 
                                 LifetimeStatCard(
                                     title: "Total Volume",
-                                    value: "\(viewModel.lifetimeVolume)kg",
+                                    value: "\(Int(unitManager.displayWeight(Double(viewModel.lifetimeVolume))))\(unitManager.weightUnit)",
                                     icon: "scalemass"
                                 )
                                 
@@ -311,6 +312,7 @@ struct StatCard: View {
 // MARK: - PR Card
 struct PRCard: View {
     let pr: PersonalRecord
+    @EnvironmentObject var unitManager: UnitManager
     
     var body: some View {
         HStack {
@@ -319,7 +321,7 @@ struct PRCard: View {
                     .font(.headline)
                     .foregroundStyle(Color.appText)
                 
-                Text("\(pr.weight, specifier: "%.1f")kg × \(pr.reps) reps")
+                Text("\(unitManager.displayWeight(pr.weight), specifier: "%.1f")\(unitManager.weightUnit) × \(pr.reps) reps")
                     .font(.subheadline)
                     .foregroundStyle(Color.appAccent)
                 
@@ -549,6 +551,7 @@ struct AllPRsView: View {
 // MARK: - Health Metrics Section
 struct HealthMetricsSection: View {
     @StateObject private var viewModel = ProfileViewModel()
+    @EnvironmentObject var unitManager: UnitManager
     @State private var showingEditSheet = false
     
     var body: some View {
@@ -581,8 +584,8 @@ struct HealthMetricsSection: View {
                         HealthMetricCard(
                             icon: "scalemass.fill",
                             title: "Weight",
-                            value: profile.weightKg != nil ? String(format: "%.1f", profile.weightKg!) : "--",
-                            unit: "kg",
+                            value: profile.weightKg != nil ? String(format: "%.1f", unitManager.displayWeight(profile.weightKg!)) : "--",
+                            unit: unitManager.weightUnit,
                             color: .blue
                         )
                         
@@ -590,8 +593,8 @@ struct HealthMetricsSection: View {
                         HealthMetricCard(
                             icon: "ruler.fill",
                             title: "Height",
-                            value: profile.heightCm != nil ? String(format: "%.0f", profile.heightCm!) : "--",
-                            unit: "cm",
+                            value: profile.heightCm != nil ? unitManager.displayHeightFormatted(profile.heightCm!) : "--",
+                            unit: unitManager.unitSystem == .metric ? "cm" : "",
                             color: .green
                         )
                     }
@@ -803,18 +806,25 @@ struct HealthMetricCard: View {
 // MARK: - Edit Health Metrics Sheet
 struct EditHealthMetricsSheet: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var unitManager: UnitManager
     @ObservedObject var viewModel: ProfileViewModel
     
     @State private var weightText: String
     @State private var heightText: String
+    @State private var heightFeet: String
+    @State private var heightInches: String
     @State private var showError = false
     @State private var errorMessage = ""
     
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
         
-        let weight = viewModel.profile?.weightKg ?? 0
-        let height = viewModel.profile?.heightCm ?? 0
+        let weightKg = viewModel.profile?.weightKg ?? 0
+        let heightCm = viewModel.profile?.heightCm ?? 0
+        
+        // Convert to display units
+        let um = UnitManager.shared
+        let displayWeight = um.displayWeight(weightKg)
         
         // Use locale-aware formatting so the decimal separator matches the keyboard
         let nf = NumberFormatter()
@@ -822,8 +832,17 @@ struct EditHealthMetricsSheet: View {
         nf.minimumFractionDigits = 1
         nf.maximumFractionDigits = 1
         
-        _weightText = State(initialValue: weight > 0 ? (nf.string(from: NSNumber(value: weight)) ?? "") : "")
-        _heightText = State(initialValue: height > 0 ? String(format: "%.0f", height) : "")
+        _weightText = State(initialValue: weightKg > 0 ? (nf.string(from: NSNumber(value: displayWeight)) ?? "") : "")
+        _heightText = State(initialValue: heightCm > 0 ? String(format: "%.0f", heightCm) : "")
+        
+        // Feet/inches for imperial
+        if heightCm > 0 {
+            _heightFeet = State(initialValue: "\(um.feetFromCm(heightCm))")
+            _heightInches = State(initialValue: "\(um.inchesFromCm(heightCm))")
+        } else {
+            _heightFeet = State(initialValue: "")
+            _heightInches = State(initialValue: "")
+        }
     }
     
     var body: some View {
@@ -862,7 +881,7 @@ struct EditHealthMetricsSheet: View {
                                     .foregroundStyle(Color.appText)
                                     .multilineTextAlignment(.leading)
                                 
-                                Text("kg")
+                                Text(unitManager.weightUnit)
                                     .font(.title3)
                                     .foregroundStyle(Color.appText.opacity(0.6))
                             }
@@ -881,21 +900,57 @@ struct EditHealthMetricsSheet: View {
                                     .foregroundStyle(Color.appText)
                             }
                             
-                            HStack {
-                                TextField("0", text: $heightText)
-                                    .keyboardType(.numberPad)
-                                    .textFieldStyle(.plain)
-                                    .font(.title2)
-                                    .foregroundStyle(Color.appText)
-                                    .multilineTextAlignment(.leading)
-                                
-                                Text("cm")
-                                    .font(.title3)
-                                    .foregroundStyle(Color.appText.opacity(0.6))
+                            if unitManager.unitSystem == .metric {
+                                HStack {
+                                    TextField("0", text: $heightText)
+                                        .keyboardType(.numberPad)
+                                        .textFieldStyle(.plain)
+                                        .font(.title2)
+                                        .foregroundStyle(Color.appText)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Text("cm")
+                                        .font(.title3)
+                                        .foregroundStyle(Color.appText.opacity(0.6))
+                                }
+                                .padding()
+                                .background(Color.appSurface)
+                                .cornerRadius(12)
+                            } else {
+                                HStack(spacing: 12) {
+                                    HStack {
+                                        TextField("0", text: $heightFeet)
+                                            .keyboardType(.numberPad)
+                                            .textFieldStyle(.plain)
+                                            .font(.title2)
+                                            .foregroundStyle(Color.appText)
+                                            .multilineTextAlignment(.leading)
+                                        
+                                        Text("ft")
+                                            .font(.title3)
+                                            .foregroundStyle(Color.appText.opacity(0.6))
+                                    }
+                                    .padding()
+                                    .background(Color.appSurface)
+                                    .cornerRadius(12)
+                                    
+                                    HStack {
+                                        TextField("0", text: $heightInches)
+                                            .keyboardType(.numberPad)
+                                            .textFieldStyle(.plain)
+                                            .font(.title2)
+                                            .foregroundStyle(Color.appText)
+                                            .multilineTextAlignment(.leading)
+                                        
+                                        Text("in")
+                                            .font(.title3)
+                                            .foregroundStyle(Color.appText.opacity(0.6))
+                                    }
+                                    .padding()
+                                    .background(Color.appSurface)
+                                    .cornerRadius(12)
+                                }
                             }
-                            .padding()
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
                         }
                         
                         Spacer()
@@ -951,9 +1006,8 @@ struct EditHealthMetricsSheet: View {
         showError = false
         errorMessage = ""
         
-        // Validate inputs — accept both comma and dot as decimal separator
+        // Validate weight
         let weight = parseDecimal(weightText)
-        let height = parseDecimal(heightText)
         
         if let weight = weight, weight <= 0 {
             errorMessage = "Weight must be greater than 0"
@@ -961,14 +1015,35 @@ struct EditHealthMetricsSheet: View {
             return
         }
         
-        if let height = height, height <= 0 {
-            errorMessage = "Height must be greater than 0"
-            showError = true
-            return
+        // Convert weight from display units back to metric
+        let weightKg = weight.map { unitManager.toKg($0) }
+        
+        // Convert height based on unit system
+        let heightCm: Double?
+        if unitManager.unitSystem == .metric {
+            let height = parseDecimal(heightText)
+            if let height = height, height <= 0 {
+                errorMessage = "Height must be greater than 0"
+                showError = true
+                return
+            }
+            heightCm = height
+        } else {
+            let feet = Int(heightFeet) ?? 0
+            let inches = Int(heightInches) ?? 0
+            if feet == 0 && inches == 0 && heightFeet.isEmpty && heightInches.isEmpty {
+                heightCm = nil
+            } else if feet <= 0 && inches <= 0 {
+                errorMessage = "Height must be greater than 0"
+                showError = true
+                return
+            } else {
+                heightCm = unitManager.toCmFromFeetInches(feet: feet, inches: inches)
+            }
         }
         
         // Save to database
-        let success = await viewModel.updateHealthMetrics(weightKg: weight, heightCm: height)
+        let success = await viewModel.updateHealthMetrics(weightKg: weightKg, heightCm: heightCm)
         
         if success {
             dismiss()

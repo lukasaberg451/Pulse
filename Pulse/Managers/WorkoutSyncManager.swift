@@ -13,6 +13,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     static let shared = WorkoutSyncManager()
     
     @Published var isReachable = false
+    @Published var isPaired = false
     @Published var currentWorkoutData: [String: Any]?
     @Published var restTimerStoppedFromPhone = false
     static let restTimerUpdate = Notification.Name("restTimerUpdate")
@@ -235,6 +236,9 @@ extension WorkoutSyncManager: WCSessionDelegate {
                 } else {
                     print("✅ WCSession activated with state: \(activationState.rawValue)")
                     self.isReachable = session.isReachable
+                    #if os(iOS)
+                    self.isPaired = session.isPaired
+                    #endif
                 }
             }
         }
@@ -283,6 +287,9 @@ extension WorkoutSyncManager: WCSessionDelegate {
     func sessionReachabilityDidChange(_ session: WCSession) {
         DispatchQueue.main.async {
             self.isReachable = session.isReachable
+            #if os(iOS)
+            self.isPaired = session.isPaired
+            #endif
             print("REACHABILITY CHANGED: \(session.isReachable)")
             #if os(iOS)
             print("   isPaired: \(session.isPaired)")

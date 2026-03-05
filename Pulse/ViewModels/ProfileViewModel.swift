@@ -45,6 +45,12 @@ class ProfileViewModel: ObservableObject {
             
             self.profile = profile
             
+            // Sync unit system preference
+            if let unitRaw = profile.unitSystem,
+               let unit = UnitSystem(rawValue: unitRaw) {
+                UnitManager.shared.unitSystem = unit
+            }
+            
             // Auto-detect timezone on first load if not set
             if profile.timezone == nil {
                 await updateTimezone(TimeZone.current.identifier)
@@ -82,6 +88,28 @@ class ProfileViewModel: ObservableObject {
             self.profile = updatedProfile
         } catch {
             print("Failed to update timezone: \(error)")
+        }
+    }
+    
+    func updateUnitSystem(_ system: UnitSystem) async {
+        do {
+            guard let userId = supabase.auth.currentUser?.id else { return }
+            
+            struct UpdateUnitSystem: Encodable {
+                let unit_system: String
+            }
+            
+            try await supabase
+                .from("profiles")
+                .update(UpdateUnitSystem(unit_system: system.rawValue))
+                .eq("id", value: userId.uuidString)
+                .execute()
+            
+            UnitManager.shared.unitSystem = system
+            
+            await loadProfile()
+        } catch {
+            print("Failed to update unit system: \(error)")
         }
     }
     

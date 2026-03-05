@@ -9,6 +9,7 @@ import SwiftUI
 
 struct WorkoutDetailView: View {
     @StateObject private var viewModel: WorkoutDetailViewModel
+    @EnvironmentObject var unitManager: UnitManager
     @Environment(\.dismiss) var dismiss
     
     init(workoutSession: WorkoutSession) {
@@ -78,7 +79,7 @@ struct WorkoutDetailView: View {
                 statCard(
                     icon: "scalemass.fill",
                     title: "Volume",
-                    value: String(format: "%.0f kg", viewModel.totalVolume)
+                    value: String(format: "%.0f %@", unitManager.displayWeight(viewModel.totalVolume), unitManager.weightUnit)
                 )
             }
         }
@@ -204,7 +205,7 @@ struct WorkoutDetailView: View {
             } else {
                 // Weight
                 if let weight = set.weight {
-                    Text(String(format: "%.1f kg", weight))
+                    Text(String(format: "%.1f %@", unitManager.displayWeight(weight), unitManager.weightUnit))
                         .font(.body)
                         .foregroundStyle(Color.appText)
                         .frame(maxWidth: .infinity, alignment: .center)

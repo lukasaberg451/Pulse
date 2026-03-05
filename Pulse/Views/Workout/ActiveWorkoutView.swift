@@ -314,6 +314,7 @@ struct OfflineExerciseSetSection: View {
 
 struct OfflineExerciseSetRow: View {
     @ObservedObject var viewModel: OfflineActiveWorkoutViewModel
+    @EnvironmentObject var unitManager: UnitManager
     let set: LocalWorkoutSet
     let exercise: Exercise
     let routineExercise: RoutineExercise
@@ -330,10 +331,10 @@ struct OfflineExerciseSetRow: View {
             if exercise.exerciseType == "strength" {
                 // Display weight
                 HStack(spacing: 4) {
-                    Text("\(routineExercise.targetWeight ?? 0, specifier: "%.1f")")
+                    Text("\(unitManager.displayWeight(routineExercise.targetWeight ?? 0), specifier: "%.1f")")
                         .font(.body)
                         .foregroundStyle(Color.appText)
-                    Text("kg")
+                    Text(unitManager.weightUnit)
                         .font(.caption)
                         .foregroundStyle(Color.appText.opacity(0.6))
                 }
@@ -438,6 +439,7 @@ struct ExerciseSetSection: View {
 
 struct ExerciseSetRow: View {
     @ObservedObject var viewModel: ActiveWorkoutViewModel
+    @EnvironmentObject var unitManager: UnitManager
     let set: WorkoutSet
     let exercise: Exercise
     let routineExercise: RoutineExercise
@@ -451,13 +453,13 @@ struct ExerciseSetRow: View {
                 // Weight and reps for strength
                 HStack {
                     TextField("Weight", value: Binding(
-                        get: { set.weight ?? 0 },
+                        get: { unitManager.displayWeight(set.weight ?? 0) },
                         set: { newValue in
                             Task {
                                 await viewModel.updateSet(
                                     id: set.id,
                                     reps: set.reps,
-                                    weight: newValue,
+                                    weight: unitManager.toKg(newValue),
                                     durationSeconds: nil,
                                     completed: set.completed
                                 )
@@ -468,7 +470,7 @@ struct ExerciseSetRow: View {
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 80)
                     
-                    Text("kg")
+                    Text(unitManager.weightUnit)
                         .foregroundStyle(Color.appText.opacity(0.6))
                 }
                 
