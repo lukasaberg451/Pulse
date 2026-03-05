@@ -663,6 +663,7 @@ struct RoutineContentView: View {
             }
         }
         .task {
+            viewModel.modelContext = modelContext
             await viewModel.loadRoutines()
         }
     }

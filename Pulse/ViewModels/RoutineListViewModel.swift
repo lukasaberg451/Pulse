@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import SwiftData
 
 @MainActor
 class RoutineListViewModel: ObservableObject {
@@ -18,18 +19,36 @@ class RoutineListViewModel: ObservableObject {
     
     private let repository = RoutineRepository()
     private let workoutRepository = WorkoutRepository()
+    private let syncService = WorkoutSyncService.shared
+    
+    var modelContext: ModelContext?
     
     func loadRoutines() async {
         isLoading = true
         errorMessage = nil
         
         do {
-            routines = try await routineRepository.fetchRoutines()
-            
-            // Load exercise counts for each routine
-            for routine in routines {
-                let exercises = try await routineRepository.fetchRoutineExercises(routineId: routine.id)
-                routineExerciseCounts[routine.id] = exercises.count
+            if let modelContext = modelContext {
+                let offlineRepo = OfflineExerciseRepository(modelContext: modelContext)
+                
+                routines = try await offlineRepo.getRoutines(
+                    forceRefresh: syncService.isOnline
+                )
+                
+                for routine in routines {
+                    let exercises = try await offlineRepo.getRoutineExercises(
+                        routineId: routine.id,
+                        forceRefresh: syncService.isOnline
+                    )
+                    routineExerciseCounts[routine.id] = exercises.count
+                }
+            } else {
+                routines = try await routineRepository.fetchRoutines()
+                
+                for routine in routines {
+                    let exercises = try await routineRepository.fetchRoutineExercises(routineId: routine.id)
+                    routineExerciseCounts[routine.id] = exercises.count
+                }
             }
         } catch {
             errorMessage = "Failed to load routines: \(error.localizedDescription)"
