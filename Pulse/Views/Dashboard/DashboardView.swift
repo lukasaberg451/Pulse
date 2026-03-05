@@ -6,12 +6,22 @@
 //
 
 import SwiftUI
+import SwiftData
 import PostHog
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
     @StateObject var authViewModel : AuthViewModel
     @State private var showingGoalSettings = false
+    
+    // In-progress workout recovery
+    @Environment(\.modelContext) private var modelContext
+    @State private var inProgressSession: LocalWorkoutSession?
+    @State private var resumeRoutine: Routine?
+    @State private var resumeRoutineExercises: [RoutineExercise] = []
+    @State private var resumeExercises: [Exercise] = []
+    @State private var showingResumeWorkout = false
+    @State private var showingResumeAlert = false
     
     var body: some View {
         NavigationStack {
@@ -114,6 +124,7 @@ struct DashboardView: View {
                 await viewModel.calculateStreak()
                 await viewModel.loadLatestPR()
                 viewModel.loadInsights()
+                await checkForInProgressWorkout()
             }
             .refreshable {
                 await viewModel.loadData()
@@ -125,7 +136,67 @@ struct DashboardView: View {
             .sheet(isPresented: $showingGoalSettings) {
                 WeeklyGoalSheet(viewModel: viewModel)
             }
+            .alert("Resume Workout?", isPresented: $showingResumeAlert) {
+                Button("Resume") {
+                    showingResumeWorkout = true
+                }
+                Button("Discard", role: .destructive) {
+                    discardInProgressWorkout()
+                }
+            } message: {
+                if let session = inProgressSession {
+                    let minutes = Int(Date().timeIntervalSince(session.startedAt)) / 60
+                    Text("You have an unfinished \"\(session.name)\" workout from \(minutes) minutes ago. Would you like to continue?")
+                }
+            }
+            .fullScreenCover(isPresented: $showingResumeWorkout) {
+                if let routine = resumeRoutine, let session = inProgressSession {
+                    ActiveWorkoutView(
+                        routine: routine,
+                        routineExercises: resumeRoutineExercises,
+                        exercises: resumeExercises,
+                        scheduledWorkoutId: nil,
+                        workoutSessionId: nil,
+                        resumingSession: session
+                    )
+                }
+            }
         }
+    }
+    
+    private func checkForInProgressWorkout() async {
+        let repository = OfflineWorkoutRepository(modelContext: modelContext)
+        
+        guard let session = try? repository.fetchInProgressSession() else { return }
+        guard let routineId = session.routineId else { return }
+        
+        do {
+            let exerciseRepo = OfflineExerciseRepository(modelContext: modelContext)
+            let routines = try await exerciseRepo.getRoutines()
+            guard let routine = routines.first(where: { $0.id == routineId }) else {
+                // Routine was deleted — discard the orphaned session
+                repository.deleteSession(session)
+                return
+            }
+            
+            let routineExercises = try await exerciseRepo.getRoutineExercises(routineId: routineId)
+            let exercises = try exerciseRepo.getCachedExercises()
+            
+            self.inProgressSession = session
+            self.resumeRoutine = routine
+            self.resumeRoutineExercises = routineExercises
+            self.resumeExercises = exercises
+            self.showingResumeAlert = true
+        } catch {
+            print("⚠️ Failed to load data for in-progress workout: \(error)")
+        }
+    }
+    
+    private func discardInProgressWorkout() {
+        guard let session = inProgressSession else { return }
+        let repository = OfflineWorkoutRepository(modelContext: modelContext)
+        repository.deleteSession(session)
+        inProgressSession = nil
     }
 }
 

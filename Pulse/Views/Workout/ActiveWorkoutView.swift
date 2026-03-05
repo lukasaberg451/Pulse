@@ -20,6 +20,7 @@ struct ActiveWorkoutView: View {
     let exercises: [Exercise]
     let scheduledWorkoutId: UUID?
     let workoutSessionId: UUID?
+    var resumingSession: LocalWorkoutSession? = nil
     
     @Environment(\.modelContext) private var modelContext
     
@@ -30,6 +31,7 @@ struct ActiveWorkoutView: View {
             exercises: exercises,
             scheduledWorkoutId: scheduledWorkoutId,
             workoutSessionId: workoutSessionId,
+            resumingSession: resumingSession,
             modelContext: modelContext
         )
     }
@@ -47,7 +49,7 @@ struct ActiveWorkoutViewContent: View {
     @State private var alertType: WorkoutAlertType?
     @AppStorage("hasSeenWatchTip") private var hasSeenWatchTip = false
     
-    init(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise], scheduledWorkoutId: UUID? = nil, workoutSessionId: UUID? = nil, modelContext: ModelContext) {
+    init(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise], scheduledWorkoutId: UUID? = nil, workoutSessionId: UUID? = nil, resumingSession: LocalWorkoutSession? = nil, modelContext: ModelContext) {
         self.routine = routine
         self.routineExercises = routineExercises
         self.exercises = exercises
@@ -58,7 +60,8 @@ struct ActiveWorkoutViewContent: View {
             scheduledWorkoutId: scheduledWorkoutId,
             workoutSessionId: workoutSessionId,
             exercises: exercises,
-            modelContext: modelContext
+            modelContext: modelContext,
+            resumingSession: resumingSession
         ))
     }
     

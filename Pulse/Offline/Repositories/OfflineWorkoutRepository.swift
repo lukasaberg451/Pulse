@@ -153,6 +153,18 @@ class OfflineWorkoutRepository {
         }
     }
     
+    // MARK: - In-Progress Session Recovery
+    
+    /// Finds an in-progress workout session (started but not completed).
+    /// Used to detect sessions that were interrupted by an app kill.
+    func fetchInProgressSession() throws -> LocalWorkoutSession? {
+        let descriptor = FetchDescriptor<LocalWorkoutSession>(
+            predicate: #Predicate { $0.completedAt == nil },
+            sortBy: [SortDescriptor(\.startedAt, order: .reverse)]
+        )
+        return try modelContext.fetch(descriptor).first
+    }
+    
     // MARK: - Sync Status
     
     func getPendingSyncCount() throws -> Int {

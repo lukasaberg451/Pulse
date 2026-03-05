@@ -37,6 +37,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     private let offlineRepository: OfflineWorkoutRepository
     private let syncService: WorkoutSyncService
     private let modelContext: ModelContext
+    private var resumingSession: LocalWorkoutSession?
     
     init(
         routine: Routine,
@@ -44,7 +45,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         scheduledWorkoutId: UUID? = nil,
         workoutSessionId: UUID? = nil,
         exercises: [Exercise],
-        modelContext: ModelContext
+        modelContext: ModelContext,
+        resumingSession: LocalWorkoutSession? = nil
     ) {
         self.routine = routine
         self.routineExercises = routineExercises
@@ -55,6 +57,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         self.offlineRepository = OfflineWorkoutRepository(modelContext: modelContext)
         self.syncService = WorkoutSyncService.shared
         self.modelContext = modelContext
+        self.resumingSession = resumingSession
         
         // Monitor network status
         self.isOfflineMode = !syncService.isOnline
@@ -136,6 +139,50 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     
     func startWorkout() async {
         isLoading = true
+        
+        // Check if we're resuming an interrupted session
+        if let session = resumingSession {
+            print("📱 Resuming interrupted workout session: \(session.id)")
+            currentSession = session
+            startTime = session.startedAt
+            
+            // Load existing sets from SwiftData
+            do {
+                let loadedSets = try offlineRepository.fetchSets(for: session)
+                sets = loadedSets
+            } catch {
+                print("❌ Failed to load sets for resumed session: \(error)")
+            }
+            
+            // Advance routineExercises past completed exercises
+            while let first = routineExercises.first {
+                let setsForExercise = sets.filter { $0.exerciseId == first.exerciseId }
+                let allCompleted = !setsForExercise.isEmpty && setsForExercise.allSatisfy { $0.completed }
+                if allCompleted {
+                    routineExercises.removeFirst()
+                } else {
+                    break
+                }
+            }
+            
+            // Clear the resuming flag
+            resumingSession = nil
+            
+            // Start elapsed time timer
+            startWorkoutTimer()
+            
+            // Send to Watch with original start time
+            WorkoutSyncManager.shared.sendWorkoutToWatch(
+                routine: routine,
+                routineExercises: routineExercises,
+                exercises: exercises,
+                startTime: startTime!
+            )
+            
+            isLoading = false
+            return
+        }
+        
         startTime = Date()
         
         // Start elapsed time timer
