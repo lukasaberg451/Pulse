@@ -39,6 +39,29 @@ struct WorkoutDetailView: View {
         .navigationTitle(viewModel.workoutSession.name)
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    viewModel.showDeleteConfirmation = true
+                } label: {
+                    Image(systemName: "trash")
+                        .foregroundStyle(Color.red)
+                }
+            }
+        }
+        .alert("Delete Workout", isPresented: $viewModel.showDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                Task {
+                    let success = await viewModel.deleteWorkout()
+                    if success {
+                        dismiss()
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to delete this workout? This action cannot be undone.")
+        }
         .task {
             await viewModel.loadWorkoutDetails()
         }

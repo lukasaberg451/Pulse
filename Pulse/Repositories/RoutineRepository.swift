@@ -193,6 +193,37 @@ class RoutineRepository {
         
         return routine
     }
+    
+    /// Duplicates a routine and all its exercises, returning the new routine
+    func duplicateRoutine(fromRoutineId: UUID, newName: String) async throws -> Routine {
+        // 1. Fetch the original routine
+        let originalRoutine = try await fetchRoutine(id: fromRoutineId)
+        
+        // 2. Create new routine with copied name/description
+        let newRoutine = try await createRoutine(
+            name: newName,
+            description: originalRoutine.description
+        )
+        
+        // 3. Fetch all exercises from original routine
+        let exercises = try await fetchRoutineExercises(routineId: fromRoutineId)
+        
+        // 4. Copy each exercise to the new routine
+        for exercise in exercises {
+            _ = try await addExerciseToRoutine(
+                routineId: newRoutine.id,
+                exerciseId: exercise.exerciseId,
+                sets: exercise.sets,
+                repsTarget: exercise.repsTarget,
+                targetWeight: exercise.targetWeight,
+                durationSeconds: exercise.durationSeconds,
+                restSeconds: exercise.restSeconds,
+                orderIndex: exercise.orderIndex
+            )
+        }
+        
+        return newRoutine
+    }
 }
     
    

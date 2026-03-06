@@ -72,6 +72,25 @@ class RoutineListViewModel: ObservableObject {
         }
     }
     
+    func duplicateRoutine(_ routine: Routine) async -> Routine? {
+        do {
+            let newRoutine = try await routineRepository.duplicateRoutine(
+                fromRoutineId: routine.id,
+                newName: "\(routine.name) - Copy"
+            )
+            routines.append(newRoutine)
+            
+            // Load exercise count for the new routine
+            let exercises = try await routineRepository.fetchRoutineExercises(routineId: newRoutine.id)
+            routineExerciseCounts[newRoutine.id] = exercises.count
+            
+            return newRoutine
+        } catch {
+            errorMessage = "Failed to duplicate routine: \(error.localizedDescription)"
+            return nil
+        }
+    }
+    
     func deleteRoutine(_ routine: Routine) async {
         do {
             // Mark all scheduled workouts and sessions for this routine as routine_deleted

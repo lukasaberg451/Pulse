@@ -204,8 +204,16 @@ class WorkoutRepository {
             .execute()
     }
     
-    // Delete a workout session
+    // Delete a workout session and its associated scheduled workout
     func deleteSession(id: UUID) async throws {
+        // Delete any scheduled workout that references this session
+        try await supabase
+            .from("scheduled_workouts")
+            .delete()
+            .eq("workout_session_id", value: id.uuidString)
+            .execute()
+        
+        // Delete the session itself
         try await supabase
             .from("workout_sessions")
             .delete()

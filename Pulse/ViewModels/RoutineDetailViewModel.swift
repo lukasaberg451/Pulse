@@ -147,6 +147,19 @@ class RoutineDetailViewModel: ObservableObject {
         }
     }
     
+    func duplicateRoutine() async -> Routine? {
+        do {
+            let newRoutine = try await routineRepository.duplicateRoutine(
+                fromRoutineId: routine.id,
+                newName: "\(routine.name) - Copy"
+            )
+            return newRoutine
+        } catch {
+            errorMessage = "Failed to duplicate routine: \(error.localizedDescription)"
+            return nil
+        }
+    }
+    
     func loadExercises() async {
         do {
             // Try to use offline repository if available

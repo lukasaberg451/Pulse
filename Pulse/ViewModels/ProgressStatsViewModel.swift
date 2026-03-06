@@ -343,8 +343,9 @@ class ProgressStatsViewModel: ObservableObject {
                    let primaryMuscle = exercise.muscleGroup {
                     muscleGroupCounts[primaryMuscle, default: 0] += 1
                     
-                    // Also count secondary muscle groups with half weight
-                    if let secondaryMuscle = exercise.secondaryMuscleGroup {
+                    // Also count secondary muscle groups with half weight and exclude None
+                    if let secondaryMuscle = exercise.secondaryMuscleGroup,
+                       secondaryMuscle.lowercased() != "none" {
                         muscleGroupCounts[secondaryMuscle, default: 0] += 1
                     }
                 }

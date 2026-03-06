@@ -89,6 +89,24 @@ class WorkoutDetailViewModel: ObservableObject {
         workoutSets.count
     }
     
+    @Published var showDeleteConfirmation = false
+    @Published var isDeleting = false
+    
+    // Delete the workout session
+    func deleteWorkout() async -> Bool {
+        isDeleting = true
+        do {
+            let repository = WorkoutRepository()
+            try await repository.deleteSession(id: workoutSession.id)
+            isDeleting = false
+            return true
+        } catch {
+            errorMessage = "Failed to delete workout: \(error.localizedDescription)"
+            isDeleting = false
+            return false
+        }
+    }
+    
     // Format duration
     var formattedDuration: String {
         guard let duration = workoutSession.durationSeconds else { return "N/A" }

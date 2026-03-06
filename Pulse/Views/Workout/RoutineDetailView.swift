@@ -18,6 +18,8 @@ struct RoutineDetailView: View {
     @State private var editingExercise: RoutineExercise?
     @State private var editMode: EditMode = .inactive
     @State private var reorderedExercises: [RoutineExercise] = []
+    @State private var showingCopySuccess = false
+    @State private var isCopying = false
     
     init(routine: Routine) {
         self.routine = routine
@@ -80,68 +82,107 @@ struct RoutineDetailView: View {
                             }
                         }
                         
-                        // Action buttons
-                        HStack(spacing: 12) {
-                            // Start Workout
-                            Button {
-                                cancelEditMode()
-                                let impactMed = UIImpactFeedbackGenerator(style: .medium)
-                                impactMed.impactOccurred()
-                                showingActiveWorkout = true
-                                PostHogSDK.shared.capture("workout​_started")
-                            } label: {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "play.fill")
-                                        .font(.title2)
-                                    Text("Start")
-                                        .font(.caption)
+                        // Action buttons - 2x2 grid
+                        VStack(spacing: 12) {
+                            HStack(spacing: 12) {
+                                // Start Workout
+                                Button {
+                                    cancelEditMode()
+                                    let impactMed = UIImpactFeedbackGenerator(style: .medium)
+                                    impactMed.impactOccurred()
+                                    showingActiveWorkout = true
+                                    PostHogSDK.shared.capture("workout​_started")
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "play.fill")
+                                            .font(.subheadline)
+                                        Text("Start Workout")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                    }
+                                    .foregroundStyle(viewModel.routineExercises.isEmpty ? Color.appText.opacity(0.7) : Color.appText)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(viewModel.routineExercises.isEmpty ? Color.appAccent.opacity(0.5) : Color.appAccent)
+                                    .cornerRadius(12)
                                 }
-                                .foregroundStyle(viewModel.routineExercises.isEmpty ? Color.appText.opacity(0.7) : Color.appText)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(viewModel.routineExercises.isEmpty ? Color.appAccent.opacity(0.5) : Color.appAccent)
-                                .cornerRadius(12)
+                                .disabled(viewModel.routineExercises.isEmpty)
+                                
+                                // Edit Routine
+                                Button {
+                                    cancelEditMode()
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
+                                    showingEditSheet = true
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "pencil")
+                                            .font(.subheadline)
+                                        Text("Edit Routine")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                    }
+                                    .foregroundStyle(Color.appText)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(Color.appSurface)
+                                    .cornerRadius(12)
+                                }
                             }
-                            .disabled(viewModel.routineExercises.isEmpty)
                             
-                            // Edit Routine
-                            Button {
-                                cancelEditMode()
-                                let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                impactLight.impactOccurred()
-                                showingEditSheet = true
-                            } label: {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "pencil")
-                                        .font(.title2)
-                                    Text("Edit")
-                                        .font(.caption)
+                            HStack(spacing: 12) {
+                                // Add Exercise
+                                Button {
+                                    cancelEditMode()
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
+                                    showingExercisePicker = true
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "plus")
+                                            .font(.subheadline)
+                                        Text("Add Exercise")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                    }
+                                    .foregroundStyle(Color.appText)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(Color.appSurface)
+                                    .cornerRadius(12)
                                 }
-                                .foregroundStyle(Color.appText)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Color.appSurface)
-                                .cornerRadius(12)
-                            }
-                            
-                            // Add Exercise
-                            Button {
-                                cancelEditMode()
-                                let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                impactLight.impactOccurred()
-                                showingExercisePicker = true
-                            } label: {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "plus")
-                                        .font(.title2)
-                                    Text("Add")
-                                        .font(.caption)
+                                
+                                // Copy Routine
+                                Button {
+                                    cancelEditMode()
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
+                                    isCopying = true
+                                    Task {
+                                        if let _ = await viewModel.duplicateRoutine() {
+                                            showingCopySuccess = true
+                                        }
+                                        isCopying = false
+                                    }
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        if isCopying {
+                                            ProgressView()
+                                        } else {
+                                            Image(systemName: "doc.on.doc")
+                                                .font(.subheadline)
+                                        }
+                                        Text("Copy Routine")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                    }
+                                    .foregroundStyle(Color.appText)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(Color.appSurface)
+                                    .cornerRadius(12)
                                 }
-                                .foregroundStyle(Color.appText)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Color.appSurface)
-                                .cornerRadius(12)
+                                .disabled(isCopying)
                             }
                         }
                     }
@@ -315,6 +356,11 @@ struct RoutineDetailView: View {
                 scheduledWorkoutId: nil,
                 workoutSessionId: nil
             )
+        }
+        .alert("Routine Copied", isPresented: $showingCopySuccess) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("A copy of '\(viewModel.routine.name)' has been created. You can find it in your routine list.")
         }
         .task {
             // Inject modelContext for offline support
