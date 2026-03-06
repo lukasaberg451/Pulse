@@ -1356,7 +1356,7 @@ struct EditRoutineSheet: View {
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         
-                        TextField("Routine Name", text: $name)
+                        TextField("Push Day", text: $name)
                             .padding()
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)

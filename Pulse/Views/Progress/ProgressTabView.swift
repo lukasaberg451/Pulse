@@ -741,7 +741,7 @@ struct HealthMetricsSection: View {
     func categoryColor(for category: String) -> Color {
         switch category {
         case "Underweight":
-            return .orange
+            return .blue
         case "Normal":
             return .green
         case "Overweight":

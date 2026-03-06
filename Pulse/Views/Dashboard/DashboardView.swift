@@ -113,6 +113,7 @@ struct DashboardView: View {
                 }
             }
             .onAppear {
+                viewModel.loadInsights()
                 viewModel.startInsightRotation()
             }
             .onDisappear {
@@ -123,7 +124,6 @@ struct DashboardView: View {
                 await viewModel.loadWeeklyProgress()
                 await viewModel.calculateStreak()
                 await viewModel.loadLatestPR()
-                viewModel.loadInsights()
                 await checkForInProgressWorkout()
             }
             .refreshable {

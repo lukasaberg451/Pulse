@@ -91,9 +91,7 @@ struct WeeklyGoalCard: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(.green)
                 } else {
-                    Label("\(max(0, goalMinutes - completedMinutes)) min to go", systemImage: "clock")
-                        .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.5))
+                    Text("")
                 }
                 
                 Spacer()

@@ -45,7 +45,7 @@ struct OfflineStatusBanner: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                     
-                    Text("Uploading your workouts to the cloud")
+                    Text("Saving your workout")
                         .font(.caption)
                         .opacity(0.8)
                 }
