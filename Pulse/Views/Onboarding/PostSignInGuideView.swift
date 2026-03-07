@@ -39,6 +39,13 @@ struct PostSignInGuideView: View {
             title: "Start a Workout Session",
             description: "When you're ready to train, tap a scheduled workout or start it directly from the routine to begin. Log your sets, track rest times, and stay focused.",
             actionTitle: "Nice!",
+            highlightTab: "Workout"
+        ),
+        GuideStep(
+            icon: "chart.bar.fill",
+            title: "Your Day at a Glance",
+            description: "See today's scheduled workouts, your weekly progress and jump straight into training. All from one place.",
+            actionTitle: "Cool!",
             highlightTab: "Dashboard"
         ),
         GuideStep(
@@ -47,6 +54,13 @@ struct PostSignInGuideView: View {
             description: "Watch your stats grow over time. Check your workout history, view personal records, and see how far you've come.",
             actionTitle: "Awesome",
             highlightTab: "Progress"
+        ),
+        GuideStep(
+            icon: "person.circle.fill",
+            title: "Personalize Your Experience",
+            description: "Connect Apple Health, pick a theme, change language, set your preferred units, and more, Make Pulse truly yours.",
+            actionTitle: "Super!",
+            highlightTab: "Profile"
         ),
         GuideStep(
             icon: "bubble.left.and.exclamationmark.bubble.right",
@@ -73,20 +87,7 @@ struct PostSignInGuideView: View {
             
             // Guide card
             VStack(spacing: 0) {
-                // Close button
-                HStack {
-                    Spacer()
-                    Button {
-                        hasCompletedGuide = true
-                        isPresented = false
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(Color.appText.opacity(0.6))
-                    }
-                    .padding()
-                }
-                
+               
                 // Content
                 VStack(spacing: 24) {
                     // Icon
@@ -183,7 +184,7 @@ struct PostSignInGuideView: View {
             }
             .frame(maxWidth: 500)
             .background(Color.appSurface)
-            .cornerRadius(12)
+            .cornerRadius(18)
             .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: 10)
             .padding(32)
         }
