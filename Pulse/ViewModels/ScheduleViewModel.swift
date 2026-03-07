@@ -21,7 +21,11 @@ class ScheduleViewModel: ObservableObject {
     @Published var exercises: [Exercise] = []
     @Published var workoutSessions: [UUID: WorkoutSession] = [:]
     
-    private var userProfile: Profile?
+    private(set) var userProfile: Profile?
+    
+    var userCalendar: Calendar {
+        userProfile?.userCalendar ?? Calendar.current
+    }
     private let exerciseRepository = ExerciseRepository()
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
@@ -42,6 +46,7 @@ class ScheduleViewModel: ObservableObject {
     var currentMonthYear: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
+        formatter.timeZone = userProfile?.resolvedTimeZone ?? .current
         return formatter.string(from: currentMonth)
     }
     
@@ -204,6 +209,14 @@ class ScheduleViewModel: ObservableObject {
     
     func isWorkoutCompleted(on date: Date) -> Bool {
         scheduledWorkouts(for: date).contains { $0.completed }
+    }
+    
+    func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        formatter.timeZone = userProfile?.resolvedTimeZone ?? .current
+        return formatter.string(from: date)
     }
     
     func routine(for id: UUID) -> Routine? {

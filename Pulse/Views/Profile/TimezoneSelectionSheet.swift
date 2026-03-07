@@ -62,14 +62,14 @@ struct TimezoneSelectionSheet: View {
                                     Text(TimeZone.current.identifier)
                                         .foregroundStyle(Color.appText)
                                     Spacer()
-                                    Text("Device")
+                                    Text("Default")
                                         .font(.caption)
                                         .foregroundStyle(Color.appAccent)
                                 }
                             }
                             .listRowBackground(Color.appSurface)
                         } header: {
-                            Text("Device Timezone")
+                            Text("Default Timezone")
                         }
                     }
                     

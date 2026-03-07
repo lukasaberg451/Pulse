@@ -8,6 +8,7 @@
 import Foundation
 import WatchConnectivity
 import Combine
+import HealthKit
 
 class WorkoutSyncManager: NSObject, ObservableObject {
     static let shared = WorkoutSyncManager()
@@ -20,6 +21,9 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     static let restTimerStopped = Notification.Name("restTimerStopped")
     
     private let session: WCSession? = WCSession.isSupported() ? WCSession.default : nil
+    #if os(iOS)
+    private let healthStore = HKHealthStore()
+    #endif
     
     private override init() {
         super.init()
@@ -31,6 +35,34 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         session.delegate = self
         session.activate()
     }
+    
+    // MARK: - Launch Watch App
+    
+    #if os(iOS)
+    func launchWatchApp(exercises: [Exercise]) {
+        let activityType: HKWorkoutActivityType
+        let types = Set(exercises.compactMap { $0.exerciseType })
+        if types == ["cardio"] {
+            activityType = .mixedCardio
+        } else {
+            activityType = .traditionalStrengthTraining
+        }
+        
+        let configuration = HKWorkoutConfiguration()
+        configuration.activityType = activityType
+        configuration.locationType = .indoor
+        
+        healthStore.startWatchApp(with: configuration) { success, error in
+            if let error = error {
+                print("📱 ❌ Failed to launch watch app: \(error.localizedDescription)")
+            } else if success {
+                print("📱 ✅ Watch app launched successfully")
+            } else {
+                print("📱 ⚠️ Watch app launch returned false without error")
+            }
+        }
+    }
+    #endif
     
     // MARK: - Send Data from iPhone to Watch
     

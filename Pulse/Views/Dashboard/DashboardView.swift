@@ -41,11 +41,8 @@ struct DashboardView: View {
                         .padding(.horizontal)
                         
                         VStack {
-                            Text(Date.now, format: .dateTime
-                                .day()
-                                .month(.wide)
-                                .year())
-                            .foregroundStyle(Color.appText)
+                            Text(viewModel.formattedToday)
+                                .foregroundStyle(Color.appText)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
@@ -120,18 +117,11 @@ struct DashboardView: View {
                 viewModel.stopInsightRotation()
             }
             .task {
-                await viewModel.loadData()
-                await viewModel.loadWeeklyProgress()
-                await viewModel.calculateStreak()
-                await viewModel.loadLatestPR()
+                await viewModel.refreshAll()
                 await checkForInProgressWorkout()
             }
             .refreshable {
-                await viewModel.loadData()
-                await viewModel.loadWeeklyProgress()
-                await viewModel.calculateStreak()
-                await viewModel.loadLatestPR()
-                viewModel.loadInsights()
+                await viewModel.refreshAll(includeInsights: true)
             }
             .sheet(isPresented: $showingGoalSettings) {
                 WeeklyGoalSheet(viewModel: viewModel)

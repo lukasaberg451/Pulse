@@ -416,7 +416,7 @@ struct ExercisePickerSheet: View {
             await viewModel.resetAndLoad(
                 equipment: selectedEquipment,
                 muscle: selectedMuscle,
-                search: searchText
+                search: searchText.trimmingCharacters(in: .whitespaces)
             )
         }
     }
@@ -482,7 +482,7 @@ struct ExercisePickerSheet: View {
                                             await viewModel.resetAndLoad(
                                                 equipment: selectedEquipment,
                                                 muscle: selectedMuscle,
-                                                search: newValue
+                                                search: newValue.trimmingCharacters(in: .whitespaces)
                                             )
                                         }
                                     }

@@ -332,7 +332,7 @@ struct ProfileView: View {
                                         
                                         Spacer()
                                         
-                                        Text(WorkoutSyncManager.shared.isReachable ? "Connected" : "Not Connected")
+                                        Text(WorkoutSyncManager.shared.isPaired ? "Connected" : "Not Connected")
                                             .font(.body)
                                             .foregroundStyle(Color.appText.opacity(0.6))
                                     }

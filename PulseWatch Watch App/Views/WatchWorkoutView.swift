@@ -10,18 +10,9 @@ import WatchConnectivity
 import HealthKit
 import WatchKit
 
-class WorkoutSessionDelegate: NSObject, HKWorkoutSessionDelegate {
-    func workoutSession(_ workoutSession: HKWorkoutSession, didChangeTo toState: HKWorkoutSessionState, from fromState: HKWorkoutSessionState, date: Date) {
-        print("⌚ Workout session state changed: \(fromState.rawValue) -> \(toState.rawValue)")
-    }
-    
-    func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: any Error) {
-        print("⌚ Workout session failed: \(error.localizedDescription)")
-    }
-}
-
 struct WatchWorkoutView: View {
     @StateObject private var syncManager = WorkoutSyncManager.shared
+    @StateObject private var sessionManager = WatchWorkoutSessionManager.shared
     @State private var currentExerciseName: String = "No active workout"
     @State private var currentSet: Int = 1
     @State private var totalSets: Int = 0
@@ -33,8 +24,6 @@ struct WatchWorkoutView: View {
     @State private var restTimeRemaining: Int = 0
     @State private var isResting: Bool = false
     @State private var restTimer: Timer?
-    @State private var workoutSession: HKWorkoutSession?
-    @State private var sessionDelegate = WorkoutSessionDelegate()
     @State private var workoutStartTime: Date?
     @State private var workoutDuration: TimeInterval = 0
     @State private var durationTimer: Timer?
@@ -216,14 +205,11 @@ struct WatchWorkoutView: View {
                 print("⌚ Found existing context: \(context)")
                 updateWorkoutData(context)
             }
-            
-            startWorkoutSession()
         }
         .onDisappear {
             print("⌚ WatchWorkoutView disappeared")
             stopRestTimer()
             stopDurationTimer()
-            endWorkoutSession()
         }
         .onChange(of: syncManager.isReachable) { oldValue, newValue in
             print("⌚ Reachability changed to: \(newValue)")
@@ -289,6 +275,7 @@ struct WatchWorkoutView: View {
             workoutDuration = 0
             stopRestTimer()
             stopDurationTimer()
+            sessionManager.endSession()
             return
         }
         
@@ -456,24 +443,6 @@ struct WatchWorkoutView: View {
         session.sendMessage(message, replyHandler: nil)
     }
     
-    func startWorkoutSession() {
-        let configuration = HKWorkoutConfiguration()
-        configuration.activityType = .traditionalStrengthTraining
-        configuration.locationType = .indoor
-        
-        do {
-            let session = try HKWorkoutSession(healthStore: HKHealthStore(), configuration: configuration)
-            session.delegate = sessionDelegate
-            session.startActivity(with: Date())
-            workoutSession = session
-        } catch {
-            print("⌚ Failed to start workout session: \(error)")
-        }
-    }
-    
-    func endWorkoutSession() {
-        workoutSession?.end()
-    }
     
     func startDurationTimer() {
         // Stop any existing timer first

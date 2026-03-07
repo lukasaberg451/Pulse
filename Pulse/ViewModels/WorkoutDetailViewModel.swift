@@ -19,14 +19,49 @@ class WorkoutDetailViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     private let supabase = SupabaseManager.shared.client
+    private var userProfile: Profile?
     
     init(workoutSession: WorkoutSession) {
         self.workoutSession = workoutSession
     }
     
+    private func fetchUserProfile() async {
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        do {
+            let profile: Profile = try await supabase
+                .from("profiles")
+                .select()
+                .eq("id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+            userProfile = profile
+        } catch {
+            print("Failed to fetch user profile: \(error)")
+        }
+    }
+    
+    func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        formatter.timeZone = userProfile?.resolvedTimeZone ?? .current
+        return formatter.string(from: date)
+    }
+    
+    func formattedTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        formatter.timeZone = userProfile?.resolvedTimeZone ?? .current
+        return formatter.string(from: date)
+    }
+    
     func loadWorkoutDetails() async {
         isLoading = true
         errorMessage = nil
+        
+        await fetchUserProfile()
         
         do {
             // Fetch all sets for this workout

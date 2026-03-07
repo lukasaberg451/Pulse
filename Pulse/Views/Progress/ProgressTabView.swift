@@ -148,7 +148,7 @@ struct ProgressTabView: View {
                                 EmptyPRCard()
                             } else {
                                 ForEach(viewModel.recentPRs.prefix(3)) { pr in
-                                    PRCard(pr: pr)
+                                    PRCard(pr: pr, formattedDate: viewModel.formatDate(pr.date))
                                 }
                             }
                         }
@@ -312,6 +312,7 @@ struct StatCard: View {
 // MARK: - PR Card
 struct PRCard: View {
     let pr: PersonalRecord
+    let formattedDate: String
     @EnvironmentObject var unitManager: UnitManager
     
     var body: some View {
@@ -325,7 +326,7 @@ struct PRCard: View {
                     .font(.subheadline)
                     .foregroundStyle(Color.appAccent)
                 
-                Text(pr.date, style: .date)
+                Text(formattedDate)
                     .font(.caption)
                     .foregroundStyle(Color.appText.opacity(0.6))
             }
@@ -530,7 +531,7 @@ struct AllPRsView: View {
                     } else {
                         // Show all PRs
                         ForEach(viewModel.recentPRs) { pr in
-                            PRCard(pr: pr)
+                            PRCard(pr: pr, formattedDate: viewModel.formatDate(pr.date))
                         }
                     }
                 }

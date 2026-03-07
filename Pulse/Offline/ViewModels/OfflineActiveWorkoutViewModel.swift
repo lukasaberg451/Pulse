@@ -171,7 +171,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             // Start elapsed time timer
             startWorkoutTimer()
             
-            // Send to Watch with original start time
+            // Launch the watch app and send workout data
+            WorkoutSyncManager.shared.launchWatchApp(exercises: exercises)
             WorkoutSyncManager.shared.sendWorkoutToWatch(
                 routine: routine,
                 routineExercises: routineExercises,
@@ -227,8 +228,9 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             }
         }
         
-        // Send to Watch with start time
+        // Launch the watch app and send workout data
         if let startTime = startTime {
+            WorkoutSyncManager.shared.launchWatchApp(exercises: exercises)
             WorkoutSyncManager.shared.sendWorkoutToWatch(
                 routine: routine,
                 routineExercises: routineExercises,

@@ -74,10 +74,10 @@ struct WorkoutDetailView: View {
             HStack {
                 Image(systemName: "calendar")
                     .foregroundStyle(Color.appAccent)
-                Text(viewModel.workoutSession.startedAt, style: .date)
+                Text(viewModel.formattedDate(viewModel.workoutSession.startedAt))
                     .foregroundStyle(Color.appText)
                 Spacer()
-                Text(viewModel.workoutSession.startedAt, style: .time)
+                Text(viewModel.formattedTime(viewModel.workoutSession.startedAt))
                     .foregroundStyle(Color.appText.opacity(0.6))
             }
             .font(.subheadline)

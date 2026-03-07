@@ -96,7 +96,7 @@ struct ScheduleContentView: View {
                 // Scheduled workouts for selected date
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Scheduled for \(selectedDate, style: .date)")
+                        Text("Scheduled for \(viewModel.formattedDate(selectedDate))")
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         
@@ -599,7 +599,7 @@ struct RoutineContentView: View {
                                     isEditMode.toggle()
                                 }
                             } label: {
-                                Text(isEditMode ? "Done" : "Edit")
+                                Text(isEditMode ? "Done" : "Delete Routine")
                                     .foregroundStyle(Color.appAccent)
                                     .font(.subheadline)
                             }
@@ -659,7 +659,7 @@ struct RoutineContentView: View {
             }
         } message: {
             if let routine = routineToDelete {
-                Text("Are you sure you want to delete '\(routine.name)'? This action cannot be undone.")
+                Text("Are you sure you want to delete '\(routine.name)'? All past workouts related to the routine will not be deleted. This action cannot be undone.")
             }
         }
         .task {
@@ -820,6 +820,10 @@ struct CalendarGridView: View {
     let columns = Array(repeating: GridItem(.flexible()), count: 7)
     let daysOfWeek = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
     
+    private var userCalendar: Calendar {
+        viewModel.userCalendar
+    }
+    
     // Create identifiable calendar items
     private var calendarItems: [CalendarItem] {
         viewModel.calendarDays.enumerated().map { index, date in
@@ -843,9 +847,10 @@ struct CalendarGridView: View {
                 ForEach(calendarItems) { item in
                     if let date = item.date {
                         CalendarDayView(
+                            calendar: userCalendar,
                             date: date,
-                            isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate),
-                            isToday: Calendar.current.isDateInToday(date),
+                            isSelected: userCalendar.isDate(date, inSameDayAs: selectedDate),
+                            isToday: userCalendar.isDate(date, inSameDayAs: Date()),
                             hasWorkout: viewModel.hasScheduledWorkout(on: date),
                             isCompleted: viewModel.isWorkoutCompleted(on: date)
                         )
@@ -871,6 +876,7 @@ private struct CalendarItem: Identifiable {
 }
 
 struct CalendarDayView: View {
+    let calendar: Calendar
     let date: Date
     let isSelected: Bool
     let isToday: Bool
@@ -888,7 +894,7 @@ struct CalendarDayView: View {
             }
             
             VStack(spacing: 2) {
-                Text("\(Calendar.current.component(.day, from: date))")
+                Text("\(calendar.component(.day, from: date))")
                     .font(.system(size: 16, weight: isToday ? .bold : .regular))
                     .foregroundStyle(isSelected ? Color.appText : Color.appText)
                 

@@ -137,6 +137,7 @@ class ActiveWorkoutViewModel: ObservableObject {
                     sets.append(set)
                 }
             }
+            WorkoutSyncManager.shared.launchWatchApp(exercises: exercises)
             WorkoutSyncManager.shared.sendWorkoutToWatch(
                     routine: routine,
                     routineExercises: routineExercises,

@@ -37,6 +37,7 @@ class DashboardViewModel: ObservableObject {
     private let routineRepository = RoutineRepository()
     private let exerciseRepository = ExerciseRepository()
     private var cancellables = Set<AnyCancellable>()
+    private var refreshTask: Task<Void, Never>?
     
     init() {
         // Listen for workout data changes
@@ -44,14 +45,33 @@ class DashboardViewModel: ObservableObject {
             .sink { [weak self] _ in
                 Task { @MainActor [weak self] in
                     print("📢 Received workout data change notification, reloading...")
-                    await self?.loadData()
-                    await self?.loadWeeklyProgress()
-                    await self?.calculateStreak()
-                    await self?.loadLatestPR()
-                    self?.loadInsights()
+                    await self?.refreshAll(includeInsights: true)
                 }
             }
             .store(in: &cancellables)
+    }
+    
+    func refreshAll(includeInsights: Bool = false) async {
+        // Cancel any in-flight refresh to avoid request cancellation errors
+        refreshTask?.cancel()
+        
+        let task = Task {
+            await loadData()
+            
+            guard !Task.isCancelled else { return }
+            
+            // Run independent network calls concurrently
+            async let weeklyProgress: () = loadWeeklyProgress()
+            async let streak: () = calculateStreak()
+            async let latestPR: () = loadLatestPR()
+            _ = await (weeklyProgress, streak, latestPR)
+            
+            if includeInsights {
+                loadInsights()
+            }
+        }
+        refreshTask = task
+        await task.value
     }
     
     func loadData() async {
@@ -141,6 +161,13 @@ class DashboardViewModel: ObservableObject {
             return session.name
         }
         return "Deleted Routine"
+    }
+    
+    var formattedToday: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d MMMM yyyy"
+        formatter.timeZone = userProfile?.resolvedTimeZone ?? .current
+        return formatter.string(from: Date())
     }
     
     func formatDate(_ date: Date) -> String {
