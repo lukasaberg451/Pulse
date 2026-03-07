@@ -92,14 +92,14 @@ struct PostSignInGuideView: View {
                 VStack(spacing: 24) {
                     // Icon
                     Image(systemName: steps[currentStep].icon)
-                        .font(.system(size: 60))
+                        .font(.largeTitle)
                         .foregroundStyle(Color.appAccent)
                         .id(currentStep) // Force animation on change
                         .transition(.scale.combined(with: .opacity))
                     
                     // Title
                     Text(steps[currentStep].title)
-                        .font(.system(size: 26, weight: .bold))
+                        .font(.title2.weight(.bold))
                         .foregroundStyle(Color.appText)
                         .multilineTextAlignment(.center)
                         .id("title\(currentStep)")

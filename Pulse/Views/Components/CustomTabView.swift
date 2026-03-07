@@ -18,7 +18,7 @@ struct CustomTabView: View {
             ForEach(Array(tabs.enumerated()), id: \.offset) { index, tab in
                 VStack(spacing: 8) {
                     Text(tab)
-                        .font(.system(size: 16, weight: selectedTab == index ? .semibold : .regular))
+                        .font(.subheadline.weight(selectedTab == index ? .semibold : .regular))
                         .foregroundStyle(selectedTab == index ? Color.appText : Color.appText.opacity(0.6))
                         .frame(maxWidth: .infinity)
                         .onTapGesture {

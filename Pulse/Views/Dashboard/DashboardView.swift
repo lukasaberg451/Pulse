@@ -236,7 +236,7 @@ struct TodayWorkoutCard: View {
                 } label: {
                     VStack(spacing: 4) {
                         Image(systemName: "play.circle.fill")
-                            .font(.system(size: 40))
+                            .font(.title)
                         Text("Start")
                             .font(.caption)
                             .fontWeight(.semibold)
@@ -245,7 +245,7 @@ struct TodayWorkoutCard: View {
                 }
             } else {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 40))
+                    .font(.title)
                     .foregroundStyle(Color.green)
             }
         }
@@ -293,7 +293,7 @@ struct DeletedRoutineTodayCard: View {
                 } else {
                     HStack(spacing: 4) {
                         Image(systemName: "trash")
-                            .font(.system(size: 11))
+                            .font(.caption2)
                         Text("Routine deleted")
                             .font(.caption)
                     }
@@ -305,7 +305,7 @@ struct DeletedRoutineTodayCard: View {
             
             if scheduled.completed {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 40))
+                    .font(.title)
                     .foregroundStyle(Color.green)
             }
         }
@@ -321,7 +321,7 @@ struct EmptyTodayCard: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "calendar.badge.clock")
-                .font(.system(size: 50))
+                .font(.largeTitle)
                 .foregroundStyle(Color.appAccent.opacity(0.4))
             
             Text("No workouts scheduled today")
@@ -354,7 +354,7 @@ struct SmartInsightCard: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: insight.icon)
-                .font(.system(size: 18))
+                .font(.callout)
                 .foregroundStyle(insight.accentColor)
                 .frame(width: 24)
             

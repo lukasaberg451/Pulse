@@ -230,7 +230,7 @@ struct ProgressTabView: View {
                             if viewModel.recentSessions.isEmpty {
                                 VStack(spacing: 12) {
                                     Image(systemName: "clock.arrow.circlepath")
-                                        .font(.system(size: 50))
+                                        .font(.largeTitle)
                                         .foregroundStyle(Color.appAccent.opacity(0.4))
                                     
                                     Text("No workout history yet")
@@ -286,11 +286,11 @@ struct StatCard: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 32))
+                .font(.title)
                 .foregroundStyle(color)
             
             Text(value)
-                .font(.system(size: 32, weight: .bold))
+                .font(.title.weight(.bold))
                 .foregroundStyle(Color.appText)
             
             Text(unit)
@@ -348,7 +348,7 @@ struct EmptyPRCard: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "trophy")
-                .font(.system(size: 48))
+                .font(.largeTitle)
                 .foregroundStyle(Color.appAccent.opacity(0.4))
             
             Text("No PRs Yet")
@@ -452,7 +452,7 @@ struct EmptyMuscleGroupRow: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 48))
+                .font(.largeTitle)
                 .foregroundStyle(Color.appAccent.opacity(0.4))
             Text("No history yet")
                 .font(.headline)
@@ -479,7 +479,7 @@ struct LifetimeStatCard: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 28))
+                .font(.title2)
                 .foregroundStyle(Color.appAccent)
             
             Text(value)
@@ -513,7 +513,7 @@ struct AllPRsView: View {
                         // Empty state
                         VStack(spacing: 16) {
                             Image(systemName: "trophy")
-                                .font(.system(size: 60))
+                                .font(.largeTitle)
                                 .foregroundStyle(Color.appAccent.opacity(0.4))
                             
                             Text("No Personal Records Yet")
@@ -671,16 +671,16 @@ struct HealthMetricsSection: View {
                                 // Category labels
                                 HStack {
                                     Text("Underweight")
-                                        .font(.system(size: 9))
+                                        .font(.caption2)
                                     Spacer()
                                     Text("Normal")
-                                        .font(.system(size: 9))
+                                        .font(.caption2)
                                     Spacer()
                                     Text("Overweight")
-                                        .font(.system(size: 9))
+                                        .font(.caption2)
                                     Spacer()
                                     Text("Obese")
-                                        .font(.system(size: 9))
+                                        .font(.caption2)
                                 }
                                 .foregroundStyle(Color.appText.opacity(0.5))
                             }
@@ -695,7 +695,7 @@ struct HealthMetricsSection: View {
                         // Empty state - prompt to add data
                         VStack(spacing: 12) {
                             Image(systemName: "chart.line.uptrend.xyaxis")
-                                .font(.system(size: 40))
+                                .font(.title)
                                 .foregroundStyle(Color.appAccent.opacity(0.5))
                             
                             Text("Add your weight and height to calculate BMI")
@@ -1107,7 +1107,7 @@ struct RecentWorkoutCard: View {
                 
                 Image(systemName: "chevron.right")
                     .foregroundStyle(Color.appText.opacity(0.3))
-                    .font(.system(size: 14))
+    .font(.footnote)
             }
             .padding(16)
             .background(Color.appSurface)

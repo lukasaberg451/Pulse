@@ -64,7 +64,7 @@ struct AuthSelectionView: View {
                                     .cornerRadius(12)
                             }
                         }
-                        .padding(.horizontal, 40)
+                        .padding(.horizontal, 24)
                         .padding(.bottom, 40)
                     }
                     .navigationDestination(isPresented: $showingSignUp) {

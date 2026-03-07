@@ -103,7 +103,7 @@ struct RegisterSelectionView: View {
                         .frame(height: 50)
                         .cornerRadius(12)
                     }
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, 24)
                     
                     Spacer()
                 }

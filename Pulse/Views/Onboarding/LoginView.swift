@@ -176,7 +176,7 @@ struct LoginView: View {
                         .frame(height: 50)
                         .cornerRadius(12)
                     }
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, 24)
                     
                     Spacer()
                 }
@@ -256,7 +256,7 @@ struct ForgotPasswordView: View {
                     Text("Click the link in the email to reset your password, then return here to sign in.")
                         .foregroundStyle(Color.appText.opacity(0.7))
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
+                        .padding(.horizontal, 24)
                     
                     Button(action: {
                         resetSuccess = false
@@ -270,7 +270,7 @@ struct ForgotPasswordView: View {
                             .background(Color.appAccent)
                             .cornerRadius(12)
                     }
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, 24)
                     .padding(.top, 20)
                 }
             } else {
@@ -373,7 +373,7 @@ struct ForgotPasswordView: View {
                         }
                         .padding(.top, 10)
                     }
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, 24)
                     
                     Spacer()
                 }

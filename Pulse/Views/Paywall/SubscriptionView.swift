@@ -33,7 +33,7 @@ struct SubscriptionView: View {
                             .padding(.bottom, 20)
                             
                             Text("Upgrade to Pro")
-                                .font(.system(size: 30, weight: .bold))
+                                .font(.title.weight(.bold))
                                 .foregroundStyle(Color.appText)
                             
                             Text("Take your training to the next level")
@@ -231,7 +231,7 @@ private struct SubscriptionFeatureRow: View {
                     .frame(width: 36, height: 36)
                 
                 Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appAccent)
             }
             
@@ -249,7 +249,7 @@ private struct SubscriptionFeatureRow: View {
             Spacer()
             
             Image(systemName: "checkmark")
-                .font(.system(size: 14, weight: .bold))
+                .font(.subheadline.weight(.bold))
                 .foregroundStyle(Color.appAccent)
         }
         .padding(.horizontal, 16)

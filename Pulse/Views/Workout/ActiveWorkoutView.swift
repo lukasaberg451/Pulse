@@ -145,7 +145,7 @@ struct ActiveWorkoutViewContent: View {
                                     }
                                 )
                                 .padding(.horizontal)
-                                .animation(.spring(response: 0.3), value: status)
+                                .animation(.spring(response: 0.4, dampingFraction: 0.85), value: status)
                             }
                         }
                         
@@ -396,60 +396,50 @@ struct ExerciseCard: View {
         .background(Color.appSurface)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(status == .current ? 0.4 : 0.2), radius: status == .current ? 10 : 6, x: 0, y: status == .current ? 6 : 3)
-        .overlay(
-            // Accent left border for current exercise
-            HStack {
-                if status == .current {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.appAccent)
-                        .frame(width: 4)
-                }
-                Spacer()
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-        )
     }
     
     private var exerciseHeader: some View {
-        Button(action: onToggleExpand) {
-            HStack(spacing: 12) {
-                // Status icon
-                statusIcon
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(exercise.name)
-                            .font(.headline)
-                            .foregroundStyle(status == .upcoming ? Color.appText.opacity(0.5) : Color.appText)
-                        
-                        if status == .current {
-                            Text("Current")
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.appText)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(Color.appAccent)
-                                .cornerRadius(6)
-                        }
-                    }
+        HStack(spacing: 12) {
+            // Status icon
+            statusIcon
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(exercise.name)
+                        .font(.headline)
+                        .foregroundStyle(Color.appText)
                     
-                    exerciseSubtitle
+                    if status == .current {
+                        Text("Current")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.appText)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Color.appAccent)
+                            .cornerRadius(6)
+                    }
                 }
                 
-                Spacer()
-                
-                // Expand/collapse chevron for completed exercises
-                if status == .completed {
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.4))
-                }
+                exerciseSubtitle
             }
-            .padding(16)
+            
+            Spacer()
+            
+            // Expand/collapse chevron for completed exercises
+            if status == .completed {
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    .font(.caption)
+                    .foregroundStyle(Color.appText.opacity(0.4))
+            }
         }
-        .disabled(status != .completed)
-        .buttonStyle(.plain)
+        .padding(16)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if status == .completed {
+                onToggleExpand()
+            }
+        }
     }
     
     @ViewBuilder
@@ -481,27 +471,27 @@ struct ExerciseCard: View {
             if let reps = routineExercise.repsTarget {
                 Text("\(completedSetsCount)/\(totalSetsCount) sets \u{2022} \(reps) reps \u{2022} \(routineExercise.restSeconds)s rest")
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.6))
+                    .foregroundStyle(Color.appText.opacity(0.5))
             } else if let durationSeconds = routineExercise.durationSeconds {
                 let minutes = durationSeconds / 60
                 let seconds = durationSeconds % 60
                 let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
                 Text("\(completedSetsCount)/\(totalSetsCount) sets \u{2022} \(durationText) \u{2022} \(routineExercise.restSeconds)s rest")
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.6))
+                    .foregroundStyle(Color.appText.opacity(0.5))
             }
         case .upcoming:
             if let reps = routineExercise.repsTarget {
                 Text("\(routineExercise.sets) sets \u{00d7} \(reps) reps")
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.4))
+                    .foregroundStyle(Color.appText.opacity(0.5))
             } else if let durationSeconds = routineExercise.durationSeconds {
                 let minutes = durationSeconds / 60
                 let seconds = durationSeconds % 60
                 let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
                 Text("\(routineExercise.sets) sets \u{00d7} \(durationText)")
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.4))
+                    .foregroundStyle(Color.appText.opacity(0.5))
             }
         }
     }
@@ -637,8 +627,8 @@ struct SwipeableSetRow: View {
                         let translation = value.translation.width
                         
                         if !set.completed && translation < swipeThreshold {
-                            // Complete the set
-                            withAnimation(.spring(response: 0.3)) {
+                            // Complete the set — delay state update so the swipe animation finishes first
+                            withAnimation(.easeOut(duration: 0.2)) {
                                 dragOffset = 0
                             }
                             
@@ -646,29 +636,37 @@ struct SwipeableSetRow: View {
                             let targetWeight = routineExercise.targetWeight
                             let targetDuration = routineExercise.durationSeconds
                             
-                            viewModel.updateSet(
-                                set: set,
-                                reps: targetReps,
-                                weight: targetWeight,
-                                durationSeconds: targetDuration,
-                                completed: true
-                            )
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                                    viewModel.updateSet(
+                                        set: set,
+                                        reps: targetReps,
+                                        weight: targetWeight,
+                                        durationSeconds: targetDuration,
+                                        completed: true
+                                    )
+                                }
+                            }
                         } else if set.completed && translation > undoThreshold {
                             // Undo the set
-                            withAnimation(.spring(response: 0.3)) {
+                            withAnimation(.easeOut(duration: 0.2)) {
                                 dragOffset = 0
                             }
                             
-                            viewModel.updateSet(
-                                set: set,
-                                reps: set.reps,
-                                weight: set.weight,
-                                durationSeconds: set.durationSeconds,
-                                completed: false
-                            )
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                                    viewModel.updateSet(
+                                        set: set,
+                                        reps: set.reps,
+                                        weight: set.weight,
+                                        durationSeconds: set.durationSeconds,
+                                        completed: false
+                                    )
+                                }
+                            }
                         } else {
                             // Snap back
-                            withAnimation(.spring(response: 0.3)) {
+                            withAnimation(.easeOut(duration: 0.2)) {
                                 dragOffset = 0
                             }
                         }

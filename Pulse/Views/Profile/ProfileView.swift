@@ -49,7 +49,7 @@ struct ProfileView: View {
                                         .frame(width: 100, height: 100)
                                     
                                     Text(getUserInitials())
-                                        .font(.system(size: 40))
+                                        .font(.title)
                                         .fontWeight(.semibold)
                                         .foregroundStyle(Color.appAccent)
                                 }
@@ -102,7 +102,7 @@ struct ProfileView: View {
                                     } label: {
                                         HStack(spacing: 16) {
                                             Image(systemName: "star.fill")
-                                                .font(.system(size: 20))
+                                                .font(.title3)
                                                 .foregroundStyle(Color.appAccent)
                                                 .frame(width: 24)
                                             
@@ -145,7 +145,7 @@ struct ProfileView: View {
                                     } label: {
                                         HStack(spacing: 16) {
                                             Image(systemName: "paintbrush.fill")
-                                                .font(.system(size: 20))
+                                                .font(.title3)
                                                 .foregroundStyle(Color.appAccent)
                                                 .frame(width: 24)
                                             
@@ -178,7 +178,7 @@ struct ProfileView: View {
                                     } label: {
                                         HStack(spacing: 16) {
                                             Image(systemName: "globe")
-                                                .font(.system(size: 20))
+                                                .font(.title3)
                                                 .foregroundStyle(Color.appAccent)
                                                 .frame(width: 24)
                                             
@@ -211,7 +211,7 @@ struct ProfileView: View {
                                     } label: {
                                         HStack(spacing: 16) {
                                             Image(systemName: "ruler")
-                                                .font(.system(size: 20))
+                                                .font(.title3)
                                                 .foregroundStyle(Color.appAccent)
                                                 .frame(width: 24)
                                             
@@ -244,7 +244,7 @@ struct ProfileView: View {
                                     } label: {
                                         HStack(spacing: 16) {
                                             Image(systemName: "clock.badge.checkmark")
-                                                .font(.system(size: 20))
+                                                .font(.title3)
                                                 .foregroundStyle(Color.appAccent)
                                                 .frame(width: 24)
                                             
@@ -352,7 +352,7 @@ struct ProfileView: View {
                             } label: {
                                 HStack(spacing: 16) {
                                     Image(systemName: "bubble.left.and.exclamationmark.bubble.right")
-                                        .font(.system(size: 20))
+                                        .font(.title3)
                                         .foregroundStyle(Color.appAccent)
                                         .frame(width: 24)
                                     
@@ -484,7 +484,7 @@ struct ProfileRow: View {
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
-                .font(.system(size: 20))
+                .font(.title3)
                 .foregroundStyle(Color.appAccent)
                 .frame(width: 24)
             
@@ -540,7 +540,7 @@ struct EditNameSheet: View {
                                 .frame(width: 100, height: 100)
                             
                             Text(getUserInitials())
-                                .font(.system(size: 40))
+                                .font(.title)
                                 .fontWeight(.semibold)
                                 .foregroundStyle(Color.appAccent)
                         }
@@ -557,7 +557,7 @@ struct EditNameSheet: View {
                                 // First Name Row
                                 HStack(spacing: 16) {
                                     Image(systemName: "person.fill")
-                                        .font(.system(size: 20))
+                                        .font(.title3)
                                         .foregroundStyle(Color.appAccent)
                                         .frame(width: 24)
                                     
@@ -577,7 +577,7 @@ struct EditNameSheet: View {
                                         showingEditFirstNameSheet = true
                                     } label: {
                                         Image(systemName: "pencil")
-                                            .font(.system(size: 16))
+                                            .font(.callout)
                                             .foregroundStyle(Color.appAccent)
                                     }
                                 }
@@ -590,7 +590,7 @@ struct EditNameSheet: View {
                                 // Last Name Row
                                 HStack(spacing: 16) {
                                     Image(systemName: "person.fill")
-                                        .font(.system(size: 20))
+                                        .font(.title3)
                                         .foregroundStyle(Color.appAccent)
                                         .frame(width: 24)
                                     
@@ -610,7 +610,7 @@ struct EditNameSheet: View {
                                         showingEditLastNameSheet = true
                                     } label: {
                                         Image(systemName: "pencil")
-                                            .font(.system(size: 16))
+                                            .font(.callout)
                                             .foregroundStyle(Color.appAccent)
                                     }
                                 }
@@ -623,7 +623,7 @@ struct EditNameSheet: View {
                                 // Email Row
                                 HStack(spacing: 16) {
                                     Image(systemName: "envelope")
-                                        .font(.system(size: 20))
+                                        .font(.title3)
                                         .foregroundStyle(Color.appAccent)
                                         .frame(width: 24)
                                     
@@ -643,7 +643,7 @@ struct EditNameSheet: View {
                                         showingChangeEmailSheet = true
                                     } label: {
                                         Image(systemName: "pencil")
-                                            .font(.system(size: 16))
+                                            .font(.callout)
                                             .foregroundStyle(Color.appAccent)
                                     }
                                 }
@@ -1109,7 +1109,7 @@ struct ChangeEmailSheet: View {
                             dismiss()
                         }
                         .foregroundStyle(Color.appText)
-                        .padding(.horizontal, 40)
+                        .padding(.horizontal, 24)
                         .padding(.vertical, 12)
                         .background(Color.appAccent)
                         .cornerRadius(12)

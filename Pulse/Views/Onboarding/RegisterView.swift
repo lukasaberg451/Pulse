@@ -104,7 +104,7 @@ struct RegisterView: View {
                         Text("Please verify your email before signing in")
                             .foregroundStyle(Color.appText.opacity(0.7))
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
+                            .padding(.horizontal, 24)
                         
                         NavigationLink {
                             LoginView(authViewModel: authViewModel, showingSignIn: $showingSignIn)
@@ -117,7 +117,7 @@ struct RegisterView: View {
                                 .background(Color.appAccent)
                                 .cornerRadius(12)
                         }
-                        .padding(.horizontal, 40)
+                        .padding(.horizontal, 24)
                         .padding(.top, 20)
                     }
                 } else {
@@ -303,7 +303,7 @@ struct RegisterView: View {
                                     }
                                 }
                             }
-                            .padding(.horizontal, 40)
+                            .padding(.horizontal, 24)
                             .padding(.top, 10)
     
                             // Sign up button
@@ -342,7 +342,7 @@ struct RegisterView: View {
                             .disabled(!isValid || !agreedToTerms)
                             .padding(.top, 10)
                         }
-                        .padding(.horizontal, 40)
+                        .padding(.horizontal, 24)
                         .padding(.bottom, 40) // Extra padding at bottom for keyboard
                     }
                 }
