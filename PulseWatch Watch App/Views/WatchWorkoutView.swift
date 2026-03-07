@@ -52,13 +52,6 @@ struct WatchWorkoutView: View {
                             .foregroundStyle(.gray)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
-                        
-                        // Show workout duration
-                        Text(timeString(from: workoutDuration))
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Color.appAccent)
-                            .padding(.top, 8)
                     }
                 } else if showWorkout {
                     if isResting {
@@ -371,6 +364,8 @@ struct WatchWorkoutView: View {
     }
     
     func logSetAndStartRest() {
+        WKInterfaceDevice.current().play(.click)
+        
         // Send completed set to iPhone
         sendSetCompleted()
         
