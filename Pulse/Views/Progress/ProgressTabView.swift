@@ -57,7 +57,7 @@ struct ProgressTabView: View {
                           //  HStack {
                             //    Spacer()
                               //  Image(systemName: "star.fill")
-                               // Text("Upgrade to Pro")
+                               // Text("Upgrade to Pulse Pro")
                                  //   .font(.headline)
                                // Spacer()
                             //}

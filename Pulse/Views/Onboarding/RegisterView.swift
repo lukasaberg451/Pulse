@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SafariServices
 
 struct RegisterView: View {
     @ObservedObject var authViewModel: AuthViewModel
@@ -19,8 +20,7 @@ struct RegisterView: View {
     @State private var errorMessage = ""
     @State private var showError = false
     @State private var agreedToTerms = false
-    @State private var showingTerms = false
-    @State private var showingPrivacy = false
+    @State private var safariURL: URL?
     
     func isValidEmail(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
@@ -278,7 +278,7 @@ struct RegisterView: View {
                                             .foregroundStyle(Color.appText.opacity(0.7))
                                         
                                         Button(action: {
-                                            showingTerms = true
+                                            safariURL = URL(string: "https://pulsefitness.io/terms.html")
                                         }) {
                                             Text("Terms & Conditions")
                                                 .font(.caption)
@@ -293,7 +293,7 @@ struct RegisterView: View {
                                             .foregroundStyle(Color.appText.opacity(0.7))
                                         
                                         Button(action: {
-                                            showingPrivacy = true
+                                            safariURL = URL(string: "https://pulsefitness.io/privacy.html")
                                         }) {
                                             Text("Privacy Policy")
                                                 .font(.caption)
@@ -365,11 +365,9 @@ struct RegisterView: View {
                     .transition(.opacity)
                 }
             }
-            .sheet(isPresented: $showingTerms) {
-                TermsAndConditionsView()
-            }
-            .sheet(isPresented: $showingPrivacy) {
-                PrivacyPolicyView()
+            .sheet(item: $safariURL) { url in
+                SafariView(url: url)
+                    .ignoresSafeArea()
             }
             .animation(.easeInOut, value: authViewModel.isRegistering)
             .animation(.easeInOut, value: authViewModel.registrationSuccess)

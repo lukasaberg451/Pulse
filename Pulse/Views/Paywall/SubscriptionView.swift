@@ -11,8 +11,8 @@ import RevenueCat
 struct SubscriptionView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var subscriptionManager: SubscriptionManager
-    @State private var selectedPackage: Package?
     @State private var isPurchasing = false
+    @State private var safariURL: URL?
     
     var body: some View {
         NavigationStack {
@@ -85,57 +85,64 @@ struct SubscriptionView: View {
                         .cornerRadius(12)
                         .padding(.horizontal)
                         
-                        // Pricing section
-                        VStack(spacing: 16) {
+                        // Pricing & CTA
+                        VStack(spacing: 12) {
                             if subscriptionManager.isLoading && !isPurchasing {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
                                     .padding(.vertical, 30)
-                            } else if let offering = subscriptionManager.currentOffering {
-                                ForEach(offering.availablePackages) { package in
-                                    SubscriptionPackageCard(
-                                        package: package,
-                                        isSelected: selectedPackage?.identifier == package.identifier
-                                    ) {
-                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                        impactLight.impactOccurred()
-                                        selectedPackage = package
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 24)
-                        
-                        // CTA button
-                        Button {
-                            guard let package = selectedPackage else { return }
-                            isPurchasing = true
-                            Task {
-                                let success = await subscriptionManager.purchase(package)
-                                isPurchasing = false
-                                if success {
-                                    dismiss()
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Spacer()
-                                if isPurchasing {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .appText))
+                            } else if let package = subscriptionManager.currentOffering?.availablePackages.first {
+                                if let intro = package.storeProduct.introductoryDiscount,
+                                   intro.paymentMode == .freeTrial {
+                                    Text("\(intro.subscriptionPeriod.trialDescription) free, then \(package.localizedPriceString)/month")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(Color.appText)
                                 } else {
-                                    Text("Continue")
-                                        .font(.headline)
+                                    Text("Unlock Pro for \(package.localizedPriceString)/month")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(Color.appText)
                                 }
-                                Spacer()
+                                
+                                Button {
+                                    isPurchasing = true
+                                    Task {
+                                        let success = await subscriptionManager.purchase(package)
+                                        isPurchasing = false
+                                        if success {
+                                            dismiss()
+                                        }
+                                    }
+                                } label: {
+                                    HStack {
+                                        Spacer()
+                                        if isPurchasing {
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle(tint: .appText))
+                                        } else {
+                                            let hasFreeTrial = package.storeProduct.introductoryDiscount?.paymentMode == .freeTrial
+                                            Text(hasFreeTrial ? "Start Free Trial" : "Continue")
+                                                .font(.headline)
+                                        }
+                                        Spacer()
+                                    }
+                                    .padding()
+                                    .background(Color.appAccent)
+                                    .foregroundStyle(Color.appText)
+                                    .cornerRadius(12)
+                                }
+                                .disabled(isPurchasing)
+                                
+                                if package.storeProduct.introductoryDiscount?.paymentMode == .freeTrial {
+                                    Text("Subscription automatically renews unless cancelled at least 24 hours before the end of the current period.")
+                                        .font(.caption2)
+                                        .foregroundStyle(Color.appText.opacity(0.4))
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal, 4)
+                                }
                             }
-                            .padding()
-                            .background(selectedPackage != nil ? Color.appAccent : Color.appAccent.opacity(0.3))
-                            .foregroundStyle(Color.appText)
-                            .cornerRadius(12)
                         }
-                        .disabled(selectedPackage == nil || isPurchasing)
                         .padding(.horizontal)
                         .padding(.top, 24)
                         
@@ -165,16 +172,20 @@ struct SubscriptionView: View {
                         
                         // Legal
                         HStack(spacing: 16) {
-                            Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
-                                .font(.caption2)
-                                .foregroundStyle(Color.appText.opacity(0.4))
+                            Button("Terms of Use") {
+                                safariURL = URL(string: "https://pulsefitness.io/terms.html")
+                            }
+                            .font(.caption2)
+                            .foregroundStyle(Color.appText.opacity(0.4))
                             
                             Text("·")
                                 .foregroundStyle(Color.appText.opacity(0.3))
                             
-                            Link("Privacy Policy", destination: URL(string: "https://www.apple.com/legal/privacy/")!)
-                                .font(.caption2)
-                                .foregroundStyle(Color.appText.opacity(0.4))
+                            Button("Privacy Policy") {
+                                safariURL = URL(string: "https://pulsefitness.io/privacy.html")
+                            }
+                            .font(.caption2)
+                            .foregroundStyle(Color.appText.opacity(0.4))
                         }
                         .padding(.top, 12)
                         .padding(.bottom, 30)
@@ -195,9 +206,10 @@ struct SubscriptionView: View {
             }
             .task {
                 await subscriptionManager.fetchOfferings()
-                if selectedPackage == nil {
-                    selectedPackage = subscriptionManager.currentOffering?.availablePackages.first
-                }
+            }
+            .sheet(item: $safariURL) { url in
+                SafariView(url: url)
+                    .ignoresSafeArea()
             }
         }
         .presentationBackground(Color.appBackground)
@@ -245,60 +257,19 @@ private struct SubscriptionFeatureRow: View {
     }
 }
 
-// MARK: - Package Card
+// MARK: - Trial Period Formatting
 
-private struct SubscriptionPackageCard: View {
-    let package: Package
-    let isSelected: Bool
-    let onSelect: () -> Void
-    
-    var body: some View {
-        Button(action: onSelect) {
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .stroke(isSelected ? Color.appAccent : Color.appText.opacity(0.2), lineWidth: 2)
-                        .frame(width: 22, height: 22)
-                    
-                    if isSelected {
-                        Circle()
-                            .fill(Color.appAccent)
-                            .frame(width: 14, height: 14)
-                    }
-                }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(package.storeProduct.localizedTitle)
-                        .font(.headline)
-                        .foregroundStyle(Color.appText)
-                    
-                    Text(package.storeProduct.localizedDescription)
-                        .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.5))
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(package.localizedPriceString)
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.appText)
-                    
-                    Text("/month")
-                        .font(.caption2)
-                        .foregroundStyle(Color.appText.opacity(0.4))
-                }
-            }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.appSurface)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(isSelected ? Color.appAccent : Color.clear, lineWidth: 2)
-                    )
-            )
+private extension SubscriptionPeriod {
+    var trialDescription: String {
+        switch unit {
+        case .day:
+            return value == 1 ? "1 day" : "\(value) days"
+        case .week:
+            return value == 1 ? "7 days" : "\(value) weeks"
+        case .month:
+            return value == 1 ? "1 month" : "\(value) months"
+        case .year:
+            return value == 1 ? "1 year" : "\(value) years"
         }
     }
 }
