@@ -63,7 +63,7 @@ struct WatchWorkoutView: View {
                             
                             Text("\(restTimeRemaining)")
                                 .font(.system(size: 50, weight: .bold, design: .rounded))
-                                .foregroundStyle(Color.appAccent)
+                                .foregroundStyle(Color.appAccent.opacity(0.8))
                             
                             Text("seconds")
                                 .font(.caption2)
@@ -337,20 +337,20 @@ struct WatchWorkoutView: View {
             currentSet = 1
         }
         
-        // Check if this is a new workout starting (workoutStarted flag or workoutStartTime)
-        if let workoutStarted = data["workoutStarted"] as? Bool, workoutStarted {
-            print("⌚ New workout detected - starting timer")
-            // New workout starting - reset and start timer
+        // Check if this is a new workout starting or syncing with existing
+        if let startTimeInterval = data["workoutStartTime"] as? TimeInterval {
+            // Use the phone's actual start time so timers stay in sync
+            let phoneStartTime = Date(timeIntervalSince1970: startTimeInterval)
+            print("⌚ Setting workout start time from phone: \(phoneStartTime)")
+            workoutStartTime = phoneStartTime
+            workoutDuration = Date().timeIntervalSince(phoneStartTime)
+            startDurationTimer()
+        } else if let workoutStarted = data["workoutStarted"] as? Bool, workoutStarted {
+            // Fallback if no start time provided
+            print("⌚ New workout detected without start time - using current time")
             workoutStartTime = Date()
             workoutDuration = 0
             startDurationTimer()
-        } else if let startTimeInterval = data["workoutStartTime"] as? TimeInterval {
-            // Sync with existing workout time from iPhone
-            print("⌚ Syncing with existing workout timer from iPhone")
-            workoutStartTime = Date(timeIntervalSince1970: startTimeInterval)
-            if workoutStartTime != nil {
-                startDurationTimer()
-            }
         }
         
         print("⌚ ========== STATE AFTER UPDATE ==========")
@@ -400,6 +400,7 @@ struct WatchWorkoutView: View {
     }
     
     func skipRest() {
+        WKInterfaceDevice.current().play(.click)
         stopRestTimer()
         // Don't increment here - the iPhone will send the updated set number
         sendSkipRest()

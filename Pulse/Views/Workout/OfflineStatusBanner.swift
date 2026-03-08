@@ -45,7 +45,7 @@ struct OfflineStatusBanner: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                     
-                    Text("Saving your workout")
+                    Text("Saving your workout.")
                         .font(.caption)
                         .opacity(0.8)
                 }

@@ -16,6 +16,21 @@ class WatchWorkoutSessionManager: NSObject, ObservableObject, HKWorkoutSessionDe
     @Published var workoutSession: HKWorkoutSession?
     private let healthStore = HKHealthStore()
     
+    func requestAuthorization() async {
+        guard HKHealthStore.isHealthDataAvailable() else { return }
+        
+        let typesToShare: Set<HKSampleType> = [
+            HKObjectType.workoutType()
+        ]
+        
+        do {
+            try await healthStore.requestAuthorization(toShare: typesToShare, read: [])
+            print("⌚ HealthKit authorization granted")
+        } catch {
+            print("⌚ HealthKit authorization failed: \(error.localizedDescription)")
+        }
+    }
+    
     func startSession(configuration: HKWorkoutConfiguration) {
         // End any existing session first
         workoutSession?.end()
@@ -68,6 +83,9 @@ struct PulseWatchAppApp: App {
     var body: some Scene {
         WindowGroup {
             WatchWorkoutView()
+                .task {
+                    await WatchWorkoutSessionManager.shared.requestAuthorization()
+                }
         }
     }
 }
