@@ -11,6 +11,7 @@ import PostHog
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
+    @StateObject private var milestoneViewModel = MilestoneViewModel()
     @StateObject var authViewModel : AuthViewModel
     @State private var showingGoalSettings = false
     
@@ -104,6 +105,11 @@ struct DashboardView: View {
                         )
                         .padding(.horizontal)
                         
+                        if let nextMilestone = milestoneViewModel.nextMilestone {
+                            MilestoneCard(milestone: nextMilestone)
+                                .padding(.horizontal)
+                        }
+                        
                         Spacer(minLength: 40)
                     }
                     .padding(.top, 20)
@@ -118,6 +124,7 @@ struct DashboardView: View {
             }
             .task {
                 await viewModel.refreshAll()
+                await milestoneViewModel.loadMilestones()
                 await checkForInProgressWorkout()
             }
             .refreshable {

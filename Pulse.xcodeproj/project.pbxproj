@@ -58,6 +58,7 @@
 				Extensions/ColorExtensions.swift,
 				Managers/WorkoutSyncManager.swift,
 				Models/Exercise.swift,
+				Models/Milestone.swift,
 				Models/Routine.swift,
 				Models/RoutineExercise.swift,
 				Models/SmartInsight.swift,

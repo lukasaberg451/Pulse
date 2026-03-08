@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProgressTabView: View {
     @StateObject private var viewModel = ProgressStatsViewModel()
+    @StateObject private var milestoneViewModel = MilestoneViewModel()
     @EnvironmentObject var syncService: WorkoutSyncService
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @EnvironmentObject var unitManager: UnitManager
@@ -219,6 +220,9 @@ struct ProgressTabView: View {
                             .padding(.horizontal)
                         }
                         
+                        // Milestones
+                        MilestonesSection(viewModel: milestoneViewModel)
+                        
                         // Recent Workouts
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Recent Workouts")
@@ -265,6 +269,7 @@ struct ProgressTabView: View {
                 }
                 .task {
                     await viewModel.loadStats()
+                    await milestoneViewModel.loadMilestones()
                 }
                // } // end else (pro user)
             }
