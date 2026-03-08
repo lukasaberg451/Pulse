@@ -48,6 +48,9 @@ struct ActiveWorkoutViewContent: View {
     @EnvironmentObject var syncService: WorkoutSyncService
     @Environment(\.dismiss) var dismiss
     @State private var alertType: WorkoutAlertType?
+    @State private var showWorkoutSummary = false
+    @State private var summaryElapsedTime: TimeInterval = 0
+    @State private var summarySets: [LocalWorkoutSet] = []
     @AppStorage("hasSeenWatchTip") private var hasSeenWatchTip = false
     @State private var expandedCompletedExercises: Set<UUID> = []
     
@@ -218,8 +221,10 @@ struct ActiveWorkoutViewContent: View {
                     Button("Cancel", role: .cancel) { }
                     Button("Finish") {
                         Task {
+                            summaryElapsedTime = viewModel.elapsedTime
+                            summarySets = viewModel.sets
                             await viewModel.finishWorkout()
-                            dismiss()
+                            showWorkoutSummary = true
                         }
                     }
                 }
@@ -231,6 +236,18 @@ struct ActiveWorkoutViewContent: View {
                         ? "Your workout will be saved locally and synced when you're back online."
                         : "Are you sure you want to finish this workout?")
                 }
+            }
+            .fullScreenCover(isPresented: $showWorkoutSummary) {
+                WorkoutSummaryView(
+                    routineName: routine.name,
+                    elapsedTime: summaryElapsedTime,
+                    sets: summarySets,
+                    exercises: exercises,
+                    onDismiss: {
+                        showWorkoutSummary = false
+                        dismiss()
+                    }
+                )
             }
             .task {
                 await viewModel.startWorkout()

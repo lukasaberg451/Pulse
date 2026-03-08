@@ -6,11 +6,14 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct WorkoutDetailView: View {
     @StateObject private var viewModel: WorkoutDetailViewModel
     @EnvironmentObject var unitManager: UnitManager
     @Environment(\.dismiss) var dismiss
+    @State private var showShareSheet = false
+    @State private var shareImage: UIImage?
     
     init(workoutSession: WorkoutSession) {
         _viewModel = StateObject(wrappedValue: WorkoutDetailViewModel(workoutSession: workoutSession))
@@ -42,6 +45,14 @@ struct WorkoutDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
+                    shareWorkout()
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundStyle(Color.appAccent)
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
                     viewModel.showDeleteConfirmation = true
                 } label: {
                     Image(systemName: "trash")
@@ -64,6 +75,32 @@ struct WorkoutDetailView: View {
         }
         .task {
             await viewModel.loadWorkoutDetails()
+        }
+        .sheet(isPresented: $showShareSheet) {
+            shareImage = nil
+        } content: {
+            if let shareImage {
+                SharePreviewSheet(image: shareImage)
+            }
+        }
+    }
+    
+    private func shareWorkout() {
+        let exerciseCount = Set(viewModel.groupedSets.map { $0.exerciseId }).count
+        
+        let card = ShareableWorkoutCard(
+            routineName: viewModel.workoutSession.name,
+            formattedDuration: viewModel.formattedDuration,
+            totalVolume: String(format: "%.0f %@", unitManager.displayWeight(viewModel.totalVolume), unitManager.weightUnit),
+            exerciseCount: exerciseCount
+        )
+        
+        let renderer = ImageRenderer(content: card)
+        renderer.scale = 3.0
+        
+        if let image = renderer.uiImage {
+            shareImage = image
+            showShareSheet = true
         }
     }
     
