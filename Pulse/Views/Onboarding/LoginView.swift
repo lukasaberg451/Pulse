@@ -8,6 +8,7 @@
 import SwiftUI
 import Supabase
 import AuthenticationServices
+import SafariServices
 
 struct LoginView: View {
     @ObservedObject var authViewModel: AuthViewModel
@@ -17,6 +18,7 @@ struct LoginView: View {
     @State private var errorMessage = ""
     @State private var showError = false
     @State private var showingForgotPassword = false
+    @State private var safariURL: URL?
     
     func isValidEmail(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
@@ -175,6 +177,37 @@ struct LoginView: View {
                         .signInWithAppleButtonStyle(.white)
                         .frame(height: 50)
                         .cornerRadius(12)
+                        
+                        // Terms & Privacy note
+                        HStack(spacing: 4) {
+                            Text("By continuing, you agree to our")
+                                .font(.caption2)
+                                .foregroundStyle(Color.appText.opacity(0.5))
+                            
+                            Button(action: {
+                                safariURL = URL(string: "https://pulsefitness.io/terms.html")
+                            }) {
+                                Text("Terms")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.appAccent)
+                                    .underline()
+                            }
+                            
+                            Text("&")
+                                .font(.caption2)
+                                .foregroundStyle(Color.appText.opacity(0.5))
+                            
+                            Button(action: {
+                                safariURL = URL(string: "https://pulsefitness.io/privacy.html")
+                            }) {
+                                Text("Privacy Policy")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.appAccent)
+                                    .underline()
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 8)
                     }
                     .padding(.horizontal, 24)
                     
@@ -197,6 +230,10 @@ struct LoginView: View {
                     }
                     .transition(.opacity)
                 }
+            }
+            .sheet(item: $safariURL) { url in
+                SafariView(url: url)
+                    .ignoresSafeArea()
             }
             .animation(.easeInOut, value: authViewModel.isLoading)
             .navigationBarBackButtonHidden(false)

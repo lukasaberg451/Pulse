@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AuthenticationServices
+import SafariServices
 
 struct RegisterSelectionView: View {
     @ObservedObject var authViewModel: AuthViewModel
@@ -14,6 +15,7 @@ struct RegisterSelectionView: View {
     @Binding var showingSignIn: Bool
     @State private var errorMessage = ""
     @State private var showError = false
+    @State private var safariURL: URL?
     
     var body: some View {
         NavigationStack {
@@ -102,6 +104,37 @@ struct RegisterSelectionView: View {
                         .signInWithAppleButtonStyle(.white)
                         .frame(height: 50)
                         .cornerRadius(12)
+                        
+                        // Terms & Privacy note
+                        HStack(spacing: 4) {
+                            Text("By continuing, you agree to our")
+                                .font(.caption2)
+                                .foregroundStyle(Color.appText.opacity(0.5))
+                            
+                            Button(action: {
+                                safariURL = URL(string: "https://pulsefitness.io/terms.html")
+                            }) {
+                                Text("Terms")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.appAccent)
+                                    .underline()
+                            }
+                            
+                            Text("&")
+                                .font(.caption2)
+                                .foregroundStyle(Color.appText.opacity(0.5))
+                            
+                            Button(action: {
+                                safariURL = URL(string: "https://pulsefitness.io/privacy.html")
+                            }) {
+                                Text("Privacy Policy")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.appAccent)
+                                    .underline()
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 8)
                     }
                     .padding(.horizontal, 24)
                     
@@ -124,6 +157,10 @@ struct RegisterSelectionView: View {
                     }
                     .transition(.opacity)
                 }
+            }
+            .sheet(item: $safariURL) { url in
+                SafariView(url: url)
+                    .ignoresSafeArea()
             }
             .animation(.easeInOut, value: authViewModel.isLoading)
             .navigationBarBackButtonHidden(false)

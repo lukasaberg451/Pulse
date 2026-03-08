@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SafariServices
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
@@ -20,6 +21,7 @@ struct ProfileView: View {
     @State private var showingSubscriptionSheet = false
     @State private var showingTimezoneSheet = false
     @State private var showingUnitSheet = false
+    @State private var safariURL: URL?
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @EnvironmentObject var healthKitManager: HealthKitManager
     @EnvironmentObject var unitManager: UnitManager
@@ -344,33 +346,65 @@ struct ProfileView: View {
                             }
                             .padding(.top, 20)
                             
-                            // Send Feedback
-                            Button {
-                                let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                impactLight.impactOccurred()
-                                showingFeedbackSheet = true
-                            } label: {
-                                HStack(spacing: 16) {
-                                    Image(systemName: "bubble.left.and.exclamationmark.bubble.right")
-                                        .font(.title3)
-                                        .foregroundStyle(Color.appAccent)
-                                        .frame(width: 24)
-                                    
-                                    Text("Send Feedback")
-                                        .font(.body)
-                                        .foregroundStyle(Color.appText)
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                        .foregroundStyle(Color.appText.opacity(0.3))
+                            // Support Section
+                            VStack(spacing: 0) {
+                                // Send Feedback
+                                Button {
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
+                                    showingFeedbackSheet = true
+                                } label: {
+                                    HStack(spacing: 16) {
+                                        Image(systemName: "bubble.left.and.exclamationmark.bubble.right")
+                                            .font(.title3)
+                                            .foregroundStyle(Color.appAccent)
+                                            .frame(width: 24)
+                                        
+                                        Text("Send Feedback")
+                                            .font(.body)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appText.opacity(0.3))
+                                    }
+                                    .padding()
                                 }
-                                .padding()
-                                .background(Color.appSurface)
-                                .cornerRadius(12)
-                                .padding(.horizontal)
+                                
+                                Divider()
+                                    .background(Color.appText.opacity(0.1))
+                                    .padding(.leading, 56)
+                                
+                                // Help & Support
+                                Button {
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
+                                    openSupportEmail()
+                                } label: {
+                                    HStack(spacing: 16) {
+                                        Image(systemName: "questionmark.circle")
+                                            .font(.title3)
+                                            .foregroundStyle(Color.appAccent)
+                                            .frame(width: 24)
+                                        
+                                        Text("Help & Support")
+                                            .font(.body)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "envelope")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appText.opacity(0.3))
+                                    }
+                                    .padding()
+                                }
                             }
+                            .background(Color.appSurface)
+                            .cornerRadius(12)
+                            .padding(.horizontal)
                             .padding(.top, 20)
                             
                             
@@ -396,14 +430,40 @@ struct ProfileView: View {
                             .padding(.top, 20)
                         }
                         .padding(.top, 20)
-                        .padding(.bottom, 20)
+                        .padding(.bottom, 25)
+                        // Terms & Privacy
+                        HStack(spacing: 4) {
+                            Button(action: {
+                                safariURL = URL(string: "https://pulsefitness.io/terms.html")
+                            }) {
+                                Text("Terms & Conditions")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.appAccent)
+                                    .underline()
+                            }
+                            
+                            Text("·")
+                                .font(.caption)
+                                .foregroundStyle(Color.appText.opacity(0.5))
+                            
+                            Button(action: {
+                                safariURL = URL(string: "https://pulsefitness.io/privacy.html")
+                            }) {
+                                Text("Privacy Policy")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.appAccent)
+                                    .underline()
+                            }
+                        }
+                        .padding(.bottom, 10)
+                        
                         VStack(spacing: 8) {
                             Text(appVersion)
                                 .font(.caption)
                                 .foregroundStyle(Color.appText.opacity(0.5))
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.bottom, 40)
+                        .padding(.bottom, 20)
                     }
                 }
             }
@@ -448,6 +508,10 @@ struct ProfileView: View {
             .sheet(isPresented: $showingSubscriptionSheet) {
                 SubscriptionView()
             }
+            .sheet(item: $safariURL) { url in
+                SafariView(url: url)
+                    .ignoresSafeArea()
+            }
             .alert("Apple Health Access", isPresented: $healthKitManager.showDeniedAlert) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -457,6 +521,14 @@ struct ProfileView: View {
                 await viewModel.loadProfile()
             }
         }
+    
+    private func openSupportEmail() {
+        let subject = "Pulse Support Request"
+        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
+        if let url = URL(string: "mailto:support@pulsefitness.io?subject=\(encodedSubject)") {
+            UIApplication.shared.open(url)
+        }
+    }
     
     // Helper function to get user initials
     func getUserInitials() -> String {
@@ -988,18 +1060,14 @@ struct LanguageSelectionSheet: View {
                     
                     // Language options
                     VStack(spacing: 0) {
-                        ForEach(languageManager.supportedLanguages, id: \.0) { code, name, icon in
+                        ForEach(languageManager.supportedLanguages, id: \.0) { code, name in
                             Button {
                                 selectedLanguage = code
                             } label: {
                                 HStack(spacing: 16) {
-                                    Image(systemName: icon)
-                                        .font(.title3)
-                                        .foregroundStyle(Color.appAccent)
-                                        .frame(width: 24)
-                                    
                                     Text(name)
                                         .foregroundStyle(Color.appText)
+                                        .padding(.leading, 15)
                                     
                                     Spacer()
                                     
@@ -1016,6 +1084,7 @@ struct LanguageSelectionSheet: View {
                                     .background(Color.appText.opacity(0.1))
                             }
                         }
+                        .padding(.trailing, 15)
                     }
                     .background(Color.appSurface)
                     .cornerRadius(12)
@@ -1091,7 +1160,7 @@ struct ChangeEmailSheet: View {
                             .fontWeight(.bold)
                             .foregroundStyle(Color.appText)
                         
-                        Text("We've sent a confirmation email to:")
+                        Text("We've sent a confirmation email to")
                             .font(.body)
                             .foregroundStyle(Color.appText.opacity(0.7))
                         
