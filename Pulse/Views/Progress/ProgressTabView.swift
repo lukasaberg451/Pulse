@@ -225,11 +225,23 @@ struct ProgressTabView: View {
                         
                         // Recent Workouts
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Recent Workouts")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.appText)
-                                .padding(.horizontal)
+                            HStack {
+                                Text("Recent Workouts")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.appText)
+                                
+                                Spacer()
+                                
+                                if !viewModel.recentSessions.isEmpty {
+                                    NavigationLink(destination: AllRecentWorkoutsView()) {
+                                        Text("See All")
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.appAccent)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
                             
                             if viewModel.recentSessions.isEmpty {
                                 VStack(spacing: 12) {
@@ -252,7 +264,7 @@ struct ProgressTabView: View {
                                 .cornerRadius(12)
                                 .padding(.horizontal)
                             } else {
-                                ForEach(viewModel.recentSessions.prefix(5)) { session in
+                                ForEach(viewModel.recentSessions.prefix(3)) { session in
                                     RecentWorkoutCard(
                                         session: session,
                                         viewModel: viewModel
@@ -1120,6 +1132,58 @@ struct RecentWorkoutCard: View {
             .padding(.horizontal)
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - All Recent Workouts View
+struct AllRecentWorkoutsView: View {
+    @StateObject private var viewModel = ProgressStatsViewModel()
+    
+    var body: some View {
+        ZStack {
+            Color.appBackground.ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 16) {
+                    if viewModel.recentSessions.isEmpty {
+                        VStack(spacing: 16) {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .font(.largeTitle)
+                                .foregroundStyle(Color.appAccent.opacity(0.4))
+                            
+                            Text("No Workout History Yet")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.appText)
+                            
+                            Text("Complete your first workout to see it here!")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                        .padding(.top, 100)
+                    } else {
+                        ForEach(viewModel.recentSessions) { session in
+                            RecentWorkoutCard(
+                                session: session,
+                                viewModel: viewModel
+                            )
+                        }
+                    }
+                }
+                .padding(.vertical)
+            }
+            .refreshable {
+                await viewModel.loadStats()
+            }
+        }
+        .navigationTitle("Recent Workouts")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.appBackground, for: .navigationBar)
+        .task {
+            await viewModel.loadStats()
+        }
     }
 }
 

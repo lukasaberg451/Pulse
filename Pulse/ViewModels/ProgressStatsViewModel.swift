@@ -518,7 +518,7 @@ class ProgressStatsViewModel: ObservableObject {
     private func loadRecentSessions() async {
         do {
             let allSessions = try await workoutRepository.fetchSessions()
-            recentSessions = Array(allSessions.filter { $0.completedAt != nil }.prefix(5))
+            recentSessions = allSessions.filter { $0.completedAt != nil }
         } catch {
             print("Failed to load recent sessions: \(error)")
             recentSessions = []

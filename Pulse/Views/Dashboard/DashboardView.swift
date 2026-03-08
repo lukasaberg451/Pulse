@@ -134,7 +134,7 @@ struct DashboardView: View {
                 WeeklyGoalSheet(viewModel: viewModel)
             }
             .alert("Resume Workout?", isPresented: $showingResumeAlert) {
-                Button("Resume") {
+                Button("Resume", role: .cancel) {
                     showingResumeWorkout = true
                 }
                 Button("Discard", role: .destructive) {

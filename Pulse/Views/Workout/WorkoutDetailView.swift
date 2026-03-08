@@ -28,7 +28,14 @@ struct WorkoutDetailView: View {
                     .scaleEffect(1.5)
             } else {
                 ScrollView {
-                    VStack(spacing: 24) {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Title rendered manually to avoid SwiftUI bug where
+                        // the navigation title turns blue on cancelled swipe-back
+                        Text(viewModel.workoutSession.name)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.appText)
+                        
                         // Header Stats
                         statsSection
                         
@@ -39,8 +46,7 @@ struct WorkoutDetailView: View {
                 }
             }
         }
-        .navigationTitle(viewModel.workoutSession.name)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

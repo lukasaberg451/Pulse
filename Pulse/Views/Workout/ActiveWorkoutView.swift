@@ -125,7 +125,7 @@ struct ActiveWorkoutViewContent: View {
                         }
                         
                         // Exercise Cards
-                        ForEach(routineExercises) { routineExercise in
+                        ForEach(viewModel.allWorkoutExercises) { routineExercise in
                             if let exercise = exercises.first(where: { $0.id == routineExercise.exerciseId }) {
                                 let status = exerciseStatus(routineExercise)
                                 
@@ -537,39 +537,41 @@ struct SwipeableSetRow: View {
     
     var body: some View {
         ZStack {
-            // Background revealed on swipe
-            HStack {
-                // Undo action (swipe right on completed sets)
-                if set.completed {
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrow.uturn.backward")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                        Text("Undo")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
+            // Background revealed on swipe - only render when actively dragging
+            if dragOffset != 0 {
+                HStack {
+                    // Undo action (swipe right on completed sets)
+                    if set.completed {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.uturn.backward")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Text("Undo")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxHeight: .infinity)
+                        .padding(.horizontal, 20)
+                        .background(Color.orange)
                     }
-                    .foregroundStyle(.white)
-                    .frame(maxHeight: .infinity)
-                    .padding(.horizontal, 20)
-                    .background(Color.orange)
-                }
-                
-                Spacer()
-                
-                // Complete action (swipe left on incomplete sets)
-                if !set.completed {
-                    HStack(spacing: 6) {
-                        Text("Complete")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.subheadline)
+                    
+                    Spacer()
+                    
+                    // Complete action (swipe left on incomplete sets)
+                    if !set.completed {
+                        HStack(spacing: 6) {
+                            Text("Complete")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.subheadline)
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxHeight: .infinity)
+                        .padding(.horizontal, 20)
+                        .background(Color.green)
                     }
-                    .foregroundStyle(.white)
-                    .frame(maxHeight: .infinity)
-                    .padding(.horizontal, 20)
-                    .background(Color.green)
                 }
             }
             
@@ -693,7 +695,9 @@ struct SwipeableSetRow: View {
             )
         }
         .clipShape(Rectangle())
-        .opacity(set.completed ? 1.0 : 1.0)
+        .onChange(of: set.completed) {
+            dragOffset = 0
+        }
     }
     
     @ViewBuilder

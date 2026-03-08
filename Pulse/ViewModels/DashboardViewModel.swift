@@ -119,6 +119,7 @@ class DashboardViewModel: ObservableObject {
                 endDate: endOfToday,
                 timeZone: tz
             )
+            .sorted { !$0.completed && $1.completed }
             
             //Load recently completed (last 5)
             let allSessions = try await workoutRepository.fetchSessions()

@@ -200,7 +200,9 @@ class ScheduleViewModel: ObservableObject {
         formatter.timeZone = userProfile?.resolvedTimeZone ?? TimeZone.current
         let dateString = formatter.string(from: date)
         
-        return scheduledWorkouts.filter { $0.scheduledDate == dateString }
+        return scheduledWorkouts
+            .filter { $0.scheduledDate == dateString }
+            .sorted { !$0.completed && $1.completed }
     }
     
     func hasScheduledWorkout(on date: Date) -> Bool {

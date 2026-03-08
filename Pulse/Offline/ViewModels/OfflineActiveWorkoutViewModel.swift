@@ -9,6 +9,7 @@ import Foundation
 import SwiftData
 import Combine
 import UIKit
+import Supabase
 
 @MainActor
 class OfflineActiveWorkoutViewModel: ObservableObject {
@@ -27,8 +28,9 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     private let exercises: [Exercise]
     
     let routine: Routine
-    var routineExercises: [RoutineExercise]
-    private let originalRoutineExercises: [RoutineExercise] // Store original list
+    @Published var routineExercises: [RoutineExercise]
+    @Published private(set) var allWorkoutExercises: [RoutineExercise] // All exercises in this workout session
+    private let originalRoutineExercises: [RoutineExercise] // Store original list for watch
     
     private var currentSession: LocalWorkoutSession?
     private var startTime: Date?
@@ -50,7 +52,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     ) {
         self.routine = routine
         self.routineExercises = routineExercises
-        self.originalRoutineExercises = routineExercises // Store a copy
+        self.allWorkoutExercises = routineExercises
+        self.originalRoutineExercises = routineExercises // Store a copy for watch
         self.scheduledWorkoutId = scheduledWorkoutId
         self.workoutSessionId = workoutSessionId
         self.exercises = exercises
@@ -153,6 +156,12 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             } catch {
                 print("❌ Failed to load sets for resumed session: \(error)")
             }
+            
+            // Filter routineExercises to only those that have sets in this session
+            // This prevents exercises added to the routine after the workout started from appearing
+            let exerciseIdsInSession = Set(sets.map { $0.exerciseId })
+            routineExercises = routineExercises.filter { exerciseIdsInSession.contains($0.exerciseId) }
+            allWorkoutExercises = routineExercises
             
             // Advance routineExercises past completed exercises
             while let first = routineExercises.first {
@@ -419,10 +428,13 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 // Non-scheduled workout: create a completed scheduled entry so it appears on the calendar
                 // This must happen after sync so the workout_session exists in Supabase
                 do {
+                    // Fetch user's timezone setting so the date is stored correctly
+                    let userTimeZone = await Self.fetchUserTimeZone()
                     try await WorkoutRepository().createCompletedScheduledWorkout(
                         routineId: routine.id,
                         sessionId: session.id,
-                        date: Date()
+                        date: Date(),
+                        timeZone: userTimeZone
                     )
                     print("✅ Created completed scheduled entry for non-scheduled workout")
                 } catch {
@@ -466,6 +478,24 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         print("🗑️ Cancelled workout - deleted local session without syncing")
         
         WorkoutSyncManager.shared.sendWorkoutEnded()
+    }
+    
+    private static func fetchUserTimeZone() async -> TimeZone {
+        let supabase = SupabaseManager.shared.client
+        guard let userId = supabase.auth.currentUser?.id else { return .current }
+        
+        do {
+            let profile: Profile = try await supabase
+                .from("profiles")
+                .select()
+                .eq("id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+            return profile.resolvedTimeZone
+        } catch {
+            return .current
+        }
     }
     
     deinit {

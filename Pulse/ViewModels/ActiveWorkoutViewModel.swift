@@ -312,10 +312,12 @@ class ActiveWorkoutViewModel: ObservableObject {
                 try await markScheduledWorkoutComplete(id: scheduledWorkoutId)
             } else {
                 // Non-scheduled workout: create a completed scheduled entry so it appears on the calendar
+                let userTimeZone = await Self.fetchUserTimeZone()
                 try await repository.createCompletedScheduledWorkout(
                     routineId: routine.id,
                     sessionId: sessionId,
-                    date: Date()
+                    date: Date(),
+                    timeZone: userTimeZone
                 )
             }
             
@@ -364,6 +366,24 @@ class ActiveWorkoutViewModel: ObservableObject {
             WorkoutSyncManager.shared.sendWorkoutEnded()
         } catch {
             errorMessage = "Failed to cancel workout: \(error.localizedDescription)"
+        }
+    }
+    
+    private static func fetchUserTimeZone() async -> TimeZone {
+        let supabase = SupabaseManager.shared.client
+        guard let userId = supabase.auth.currentUser?.id else { return .current }
+        
+        do {
+            let profile: Profile = try await supabase
+                .from("profiles")
+                .select()
+                .eq("id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+            return profile.resolvedTimeZone
+        } catch {
+            return .current
         }
     }
     
