@@ -62,6 +62,20 @@ class WorkoutRepository {
         return response
     }
     
+    // Fetch completed workout sessions with pagination
+    func fetchCompletedSessions(limit: Int, offset: Int) async throws -> [WorkoutSession] {
+        let response: [WorkoutSession] = try await supabase
+            .from("workout_sessions")
+            .select()
+            .not("completed_at", operator: .is, value: "null")
+            .order("started_at", ascending: false)
+            .range(from: offset, to: offset + limit - 1)
+            .execute()
+            .value
+        
+        return response
+    }
+    
     // Fetch sets for a session
     func fetchSets(sessionId: UUID) async throws -> [WorkoutSet] {
         let response: [WorkoutSet] = try await supabase

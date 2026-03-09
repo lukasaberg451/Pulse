@@ -75,6 +75,33 @@ struct ProgressTabView: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
+                        // Milestones
+                        MilestonesSection(viewModel: milestoneViewModel)
+                        
+                        // Current Streak
+                        HStack(spacing: 16) {
+                            Image(systemName: "flame.fill")
+                                .font(.title)
+                                .foregroundStyle(.orange)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Current Streak")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appText.opacity(0.7))
+                                
+                                Text("\(viewModel.currentStreak) days")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.appText)
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding()
+                        .background(Color.appSurface)
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                        
                         // Monthly Stats
                         VStack(alignment: .leading, spacing: 12) {
                             Text("This Month")
@@ -84,15 +111,16 @@ struct ProgressTabView: View {
                                 .padding(.horizontal)
                             
                             VStack(spacing: 16) {
+                                StatCard(
+                                    title: "Volume",
+                                    value: "\(Int(unitManager.displayWeight(Double(viewModel.monthlyVolume))))",
+                                    unit: unitManager.weightUnit,
+                                    icon: "chart.bar.fill",
+                                    color: .appAccent
+                                )
+                                .padding(.horizontal)
+                                
                                 HStack(spacing: 16) {
-                                    StatCard(
-                                        title: "Volume",
-                                        value: "\(Int(unitManager.displayWeight(Double(viewModel.monthlyVolume))))",
-                                        unit: unitManager.weightUnit,
-                                        icon: "chart.bar.fill",
-                                        color: .appAccent
-                                    )
-                                    
                                     StatCard(
                                         title: "Workouts",
                                         value: "\(viewModel.monthlyWorkouts)",
@@ -100,24 +128,13 @@ struct ProgressTabView: View {
                                         icon: "figure.strengthtraining.traditional",
                                         color: .green
                                     )
-                                }
-                                .padding(.horizontal)
-                                
-                                HStack(spacing: 16) {
+                                    
                                     StatCard(
                                         title: "Avg Duration",
                                         value: "\(viewModel.avgDuration)",
                                         unit: "min",
                                         icon: "timer",
                                         color: .blue
-                                    )
-                                    
-                                    StatCard(
-                                        title: "Current Streak",
-                                        value: "\(viewModel.currentStreak)",
-                                        unit: "days",
-                                        icon: "flame.fill",
-                                        color: .orange
                                     )
                                 }
                                 .padding(.horizontal)
@@ -220,9 +237,6 @@ struct ProgressTabView: View {
                             .padding(.horizontal)
                         }
                         
-                        // Milestones
-                        MilestonesSection(viewModel: milestoneViewModel)
-                        
                         // Recent Workouts
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
@@ -235,7 +249,7 @@ struct ProgressTabView: View {
                                 
                                 if !viewModel.recentSessions.isEmpty {
                                     NavigationLink(destination: AllRecentWorkoutsView()) {
-                                        Text("See All")
+                                        Text("See All Workouts")
                                             .font(.subheadline)
                                             .foregroundStyle(Color.appAccent)
                                     }
@@ -319,7 +333,7 @@ struct StatCard: View {
                 .foregroundStyle(Color.appText.opacity(0.8))
                 .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, minHeight: 160)
+        .frame(maxWidth: .infinity, minHeight: 110)
         .padding()
         .background(Color.appSurface)
         .cornerRadius(12)
@@ -1144,8 +1158,8 @@ struct AllRecentWorkoutsView: View {
             Color.appBackground.ignoresSafeArea()
             
             ScrollView {
-                VStack(spacing: 16) {
-                    if viewModel.recentSessions.isEmpty {
+                LazyVStack(spacing: 16) {
+                    if viewModel.allRecentSessions.isEmpty && !viewModel.isLoadingMore {
                         VStack(spacing: 16) {
                             Image(systemName: "clock.arrow.circlepath")
                                 .font(.largeTitle)
@@ -1164,25 +1178,37 @@ struct AllRecentWorkoutsView: View {
                         }
                         .padding(.top, 100)
                     } else {
-                        ForEach(viewModel.recentSessions) { session in
+                        ForEach(viewModel.allRecentSessions) { session in
                             RecentWorkoutCard(
                                 session: session,
                                 viewModel: viewModel
                             )
+                            .onAppear {
+                                if session.id == viewModel.allRecentSessions.last?.id {
+                                    Task {
+                                        await viewModel.loadMoreSessions()
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if viewModel.isLoadingMore {
+                            ProgressView()
+                                .padding()
                         }
                     }
                 }
                 .padding(.vertical)
             }
             .refreshable {
-                await viewModel.loadStats()
+                await viewModel.loadRecentSessionsPaginated()
             }
         }
-        .navigationTitle("Recent Workouts")
+        .navigationTitle("All Workouts")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         .task {
-            await viewModel.loadStats()
+            await viewModel.loadRecentSessionsPaginated()
         }
     }
 }

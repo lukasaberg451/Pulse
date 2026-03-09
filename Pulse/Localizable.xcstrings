@@ -551,6 +551,9 @@
         }
       }
     },
+    "%lld days" : {
+
+    },
     "%lld exercise%@" : {
       "localizations" : {
         "de" : {
@@ -1672,6 +1675,9 @@
           }
         }
       }
+    },
+    "All Workouts" : {
+
     },
     "Already Have an Account" : {
       "localizations" : {
@@ -3672,6 +3678,9 @@
           }
         }
       }
+    },
+    "Current Streak" : {
+
     },
     "Dashboard" : {
       "localizations" : {
@@ -8832,6 +8841,9 @@
           }
         }
       }
+    },
+    "See All Workouts" : {
+
     },
     "Select Routine" : {
       "localizations" : {

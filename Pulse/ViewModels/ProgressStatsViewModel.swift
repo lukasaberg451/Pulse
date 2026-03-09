@@ -45,6 +45,13 @@ class ProgressStatsViewModel: ObservableObject {
     
     @Published var recentSessions: [WorkoutSession] = []
     
+    // Pagination state for AllRecentWorkoutsView
+    @Published var allRecentSessions: [WorkoutSession] = []
+    @Published var hasMoreSessions: Bool = true
+    @Published var isLoadingMore: Bool = false
+    private var paginationOffset: Int = 0
+    private let pageSize: Int = 20
+    
     private var userProfile: Profile?
     private let supabase = SupabaseManager.shared.client
     private let workoutRepository = WorkoutRepository()
@@ -517,12 +524,50 @@ class ProgressStatsViewModel: ObservableObject {
     
     private func loadRecentSessions() async {
         do {
-            let allSessions = try await workoutRepository.fetchSessions()
-            recentSessions = allSessions.filter { $0.completedAt != nil }
+            recentSessions = try await workoutRepository.fetchCompletedSessions(limit: 3, offset: 0)
         } catch {
             print("Failed to load recent sessions: \(error)")
             recentSessions = []
         }
+    }
+    
+    // Load first page of sessions for AllRecentWorkoutsView
+    func loadRecentSessionsPaginated() async {
+        paginationOffset = 0
+        hasMoreSessions = true
+        do {
+            let sessions = try await workoutRepository.fetchCompletedSessions(limit: pageSize, offset: 0)
+            allRecentSessions = sessions
+            hasMoreSessions = sessions.count >= pageSize
+            paginationOffset = sessions.count
+        } catch is CancellationError {
+            // Ignore cancellation from refreshable
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // Ignore URL session cancellation
+        } catch {
+            print("Failed to load paginated sessions: \(error)")
+            allRecentSessions = []
+            hasMoreSessions = false
+        }
+    }
+    
+    // Load next page of sessions
+    func loadMoreSessions() async {
+        guard hasMoreSessions, !isLoadingMore else { return }
+        isLoadingMore = true
+        do {
+            let sessions = try await workoutRepository.fetchCompletedSessions(limit: pageSize, offset: paginationOffset)
+            allRecentSessions.append(contentsOf: sessions)
+            hasMoreSessions = sessions.count >= pageSize
+            paginationOffset += sessions.count
+        } catch is CancellationError {
+            // Ignore cancellation
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // Ignore URL session cancellation
+        } catch {
+            print("Failed to load more sessions: \(error)")
+        }
+        isLoadingMore = false
     }
     
     func formatDate(_ date: Date) -> String {
