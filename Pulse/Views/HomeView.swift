@@ -13,23 +13,45 @@ struct HomeView: View {
     @EnvironmentObject var syncService: WorkoutSyncService
     @State private var hasPrefetched = false
     
+    @StateObject private var scheduleViewModel = ScheduleViewModel()
+    @StateObject private var routineListViewModel = RoutineListViewModel()
+    @StateObject private var progressStatsViewModel = ProgressStatsViewModel()
+    @StateObject private var milestoneViewModel = MilestoneViewModel()
+    
     var body: some View {
         TabView {
             Tab("Dashboard", systemImage: "chart.bar.fill") {
-                DashboardView(authViewModel: authViewModel)
+                DashboardView(
+                    milestoneViewModel: milestoneViewModel,
+                    authViewModel: authViewModel,
+                    scheduleViewModel: scheduleViewModel,
+                    routineListViewModel: routineListViewModel
+                )
             }
             Tab("Workout", systemImage: "dumbbell.fill") {
-                WorkoutView()
+                WorkoutView(
+                    scheduleViewModel: scheduleViewModel,
+                    routineListViewModel: routineListViewModel
+                )
             }
             Tab("Progress", systemImage: "chart.line.uptrend.xyaxis") {
-                ProgressTabView()
+                ProgressTabView(
+                    viewModel: progressStatsViewModel,
+                    milestoneViewModel: milestoneViewModel
+                )
             }
             Tab("Profile", systemImage: "person.circle.fill") {
                 ProfileView()
             }
         }
         .task {
-            await prefetchOfflineData()
+            routineListViewModel.modelContext = modelContext
+            async let routines: Void = routineListViewModel.loadRoutines()
+            async let schedule: Void = scheduleViewModel.loadData()
+            async let progress: Void = progressStatsViewModel.loadStats()
+            async let milestones: Void = milestoneViewModel.loadMilestones()
+            async let offline: Void = prefetchOfflineData()
+            _ = await (routines, schedule, progress, milestones, offline)
         }
     }
     

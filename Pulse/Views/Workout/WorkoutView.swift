@@ -9,6 +9,8 @@ import SwiftUI
 import PostHog
 
 struct WorkoutView: View {
+    @ObservedObject var scheduleViewModel: ScheduleViewModel
+    @ObservedObject var routineListViewModel: RoutineListViewModel
     @State private var selectedTab = 0
     @State private var routineToNavigateTo: Routine?
     
@@ -21,10 +23,10 @@ struct WorkoutView: View {
                 
                 // Content based on selection
                 TabView(selection: $selectedTab) {
-                    ScheduleContentView()
+                    ScheduleContentView(viewModel: scheduleViewModel)
                         .tag(0)
                     
-                    RoutineContentView(routineToNavigateTo: $routineToNavigateTo)
+                    RoutineContentView(viewModel: routineListViewModel, routineToNavigateTo: $routineToNavigateTo)
                         .tag(1)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
@@ -40,7 +42,7 @@ struct WorkoutView: View {
 
 // Schedule tab content
 struct ScheduleContentView: View {
-    @StateObject private var viewModel = ScheduleViewModel()
+    @ObservedObject var viewModel: ScheduleViewModel
     @StateObject private var exerciseViewModel = ExerciseListViewModel()
     @State private var selectedDate = Date()
     @State private var showingRoutinePicker = false
@@ -241,11 +243,7 @@ struct ScheduleContentView: View {
             }
         }
         .task {
-            await viewModel.loadData()
-        }
-        .onAppear {
-            // Reload data when view appears (not just first time)
-            Task {
+            if !viewModel.hasLoaded {
                 await viewModel.loadData()
             }
         }
@@ -517,8 +515,7 @@ struct RoutinePickerRow: View {
 
 // Routines tab content
 struct RoutineContentView: View {
-    @StateObject private var viewModel = RoutineListViewModel()
-    @Environment(\.modelContext) private var modelContext
+    @ObservedObject var viewModel: RoutineListViewModel
     @State private var showingCreateSheet = false
     @State private var isEditMode = false
     @State private var routineToDelete: Routine?
@@ -663,8 +660,9 @@ struct RoutineContentView: View {
             }
         }
         .task {
-            viewModel.modelContext = modelContext
-            await viewModel.loadRoutines()
+            if !viewModel.hasLoaded {
+                await viewModel.loadRoutines()
+            }
         }
     }
 }

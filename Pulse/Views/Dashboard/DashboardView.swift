@@ -11,8 +11,10 @@ import PostHog
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
-    @StateObject private var milestoneViewModel = MilestoneViewModel()
+    @ObservedObject var milestoneViewModel: MilestoneViewModel
     @StateObject var authViewModel : AuthViewModel
+    @ObservedObject var scheduleViewModel: ScheduleViewModel
+    @ObservedObject var routineListViewModel: RoutineListViewModel
     @State private var showingGoalSettings = false
     
     // In-progress workout recovery
@@ -70,7 +72,7 @@ struct DashboardView: View {
                                 .padding(.horizontal)
                             
                             if viewModel.todaysWorkouts.isEmpty {
-                                EmptyTodayCard()
+                                EmptyTodayCard(scheduleViewModel: scheduleViewModel, routineListViewModel: routineListViewModel)
                             } else {
                                 ForEach(viewModel.todaysWorkouts) { scheduled in
                                     if let routineId = scheduled.routineId,
@@ -129,7 +131,9 @@ struct DashboardView: View {
             }
             .task {
                 await viewModel.refreshAll()
-                await milestoneViewModel.loadMilestones()
+                if !milestoneViewModel.hasLoaded {
+                    await milestoneViewModel.loadMilestones()
+                }
                 await checkForInProgressWorkout()
             }
             .refreshable {
@@ -330,6 +334,9 @@ struct DeletedRoutineTodayCard: View {
 }
 
 struct EmptyTodayCard: View {
+    @ObservedObject var scheduleViewModel: ScheduleViewModel
+    @ObservedObject var routineListViewModel: RoutineListViewModel
+    
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "calendar.badge.clock")
@@ -340,7 +347,7 @@ struct EmptyTodayCard: View {
                 .font(.subheadline)
                 .foregroundStyle(Color.appText.opacity(0.6))
             
-            NavigationLink(destination: WorkoutView()) {
+            NavigationLink(destination: WorkoutView(scheduleViewModel: scheduleViewModel, routineListViewModel: routineListViewModel)) {
                 Text("Schedule a workout")
                     .font(.subheadline)
                     .fontWeight(.semibold)

@@ -12,6 +12,7 @@ class MilestoneViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var newlyAchieved: [UserMilestone] = []
     
+    private(set) var hasLoaded = false
     private let repository = MilestoneRepository()
     private var cancellables = Set<AnyCancellable>()
     private var loadTask: Task<Void, Never>?
@@ -59,6 +60,7 @@ class MilestoneViewModel: ObservableObject {
                 let milestones = try await repository.fetchUserMilestones()
                 if !Task.isCancelled {
                     allMilestones = milestones
+                    hasLoaded = true
                 }
             } catch is CancellationError {
                 // Ignore cancellation

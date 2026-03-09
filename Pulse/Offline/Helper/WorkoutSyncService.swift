@@ -13,6 +13,7 @@ import Supabase
 
 extension Notification.Name {
     static let workoutDataChanged = Notification.Name("workoutDataChanged")
+    static let routineDataChanged = Notification.Name("routineDataChanged")
 }
 
 @MainActor

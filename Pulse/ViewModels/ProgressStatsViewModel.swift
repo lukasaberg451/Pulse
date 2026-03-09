@@ -55,6 +55,7 @@ class ProgressStatsViewModel: ObservableObject {
     private var userProfile: Profile?
     private let supabase = SupabaseManager.shared.client
     private let workoutRepository = WorkoutRepository()
+    private(set) var hasLoaded = false
     private var loadTask: Task<Void, Never>?
     
     private func fetchUserProfile() async {
@@ -89,6 +90,7 @@ class ProgressStatsViewModel: ObservableObject {
         }
         loadTask = task
         await task.value
+        hasLoaded = true
     }
     
     private func loadMonthlyStats() async {

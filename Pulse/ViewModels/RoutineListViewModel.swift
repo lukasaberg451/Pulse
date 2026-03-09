@@ -15,6 +15,7 @@ class RoutineListViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var routineExerciseCounts: [UUID: Int] = [:]
+    private(set) var hasLoaded = false
     private let routineRepository = RoutineRepository()
     
     private let repository = RoutineRepository()
@@ -50,6 +51,7 @@ class RoutineListViewModel: ObservableObject {
                     routineExerciseCounts[routine.id] = exercises.count
                 }
             }
+            hasLoaded = true
         } catch {
             errorMessage = "Failed to load routines: \(error.localizedDescription)"
         }
@@ -65,6 +67,7 @@ class RoutineListViewModel: ObservableObject {
         do {
             let newRoutine = try await routineRepository.createRoutine(name: name, description: description)
             routines.append(newRoutine)
+            NotificationCenter.default.post(name: .routineDataChanged, object: nil)
             return newRoutine
         } catch {
             errorMessage = "Failed to create routine: \(error.localizedDescription)"
@@ -84,6 +87,7 @@ class RoutineListViewModel: ObservableObject {
             let exercises = try await routineRepository.fetchRoutineExercises(routineId: newRoutine.id)
             routineExerciseCounts[newRoutine.id] = exercises.count
             
+            NotificationCenter.default.post(name: .routineDataChanged, object: nil)
             return newRoutine
         } catch {
             errorMessage = "Failed to duplicate routine: \(error.localizedDescription)"
@@ -103,6 +107,11 @@ class RoutineListViewModel: ObservableObject {
             
             try await repository.deleteRoutine(id: routine.id)
             routines.removeAll { $0.id == routine.id}
+            
+            // Notify other views: schedule needs to remove deleted scheduled workouts,
+            // dashboard needs to update today's workouts
+            NotificationCenter.default.post(name: .routineDataChanged, object: nil)
+            NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
         } catch {
             errorMessage = "Failed to delete routine: \(error.localizedDescription)"
         }

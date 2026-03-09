@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct ProgressTabView: View {
-    @StateObject private var viewModel = ProgressStatsViewModel()
-    @StateObject private var milestoneViewModel = MilestoneViewModel()
+    @ObservedObject var viewModel: ProgressStatsViewModel
+    @ObservedObject var milestoneViewModel: MilestoneViewModel
     @EnvironmentObject var syncService: WorkoutSyncService
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @EnvironmentObject var unitManager: UnitManager
@@ -294,8 +294,12 @@ struct ProgressTabView: View {
                     await viewModel.loadStats()
                 }
                 .task {
-                    await viewModel.loadStats()
-                    await milestoneViewModel.loadMilestones()
+                    if !viewModel.hasLoaded {
+                        await viewModel.loadStats()
+                    }
+                    if !milestoneViewModel.hasLoaded {
+                        await milestoneViewModel.loadMilestones()
+                    }
                 }
                // } // end else (pro user)
             }

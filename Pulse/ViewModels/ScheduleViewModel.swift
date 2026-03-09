@@ -21,6 +21,7 @@ class ScheduleViewModel: ObservableObject {
     @Published var exercises: [Exercise] = []
     @Published var workoutSessions: [UUID: WorkoutSession] = [:]
     
+    private(set) var hasLoaded = false
     private(set) var userProfile: Profile?
     
     var userCalendar: Calendar {
@@ -30,13 +31,25 @@ class ScheduleViewModel: ObservableObject {
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
     private var cancellables = Set<AnyCancellable>()
+    private var isSelfPosting = false
     
     init() {
-        // Listen for workout data changes
+        // Listen for workout data changes (skip self-posted notifications)
         NotificationCenter.default.publisher(for: .workoutDataChanged)
             .sink { [weak self] _ in
                 Task { @MainActor [weak self] in
+                    guard let self, !self.isSelfPosting else { return }
                     print("📅 Schedule: Received workout data change notification, reloading...")
+                    await self.loadData()
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Listen for routine data changes (create, delete, duplicate)
+        NotificationCenter.default.publisher(for: .routineDataChanged)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    print("📅 Schedule: Received routine data change notification, reloading...")
                     await self?.loadData()
                 }
             }
@@ -157,6 +170,7 @@ class ScheduleViewModel: ObservableObject {
                     }
                 }
             }
+            hasLoaded = true
         } catch {
             errorMessage = "Failed to load data: \(error.localizedDescription)"
         }
@@ -189,6 +203,9 @@ class ScheduleViewModel: ObservableObject {
             let tz = userProfile?.resolvedTimeZone ?? .current
             let scheduled = try await workoutRepository.scheduleWorkout(routineId: routineId, date: date, timeZone: tz)
             scheduledWorkouts.append(scheduled)
+            isSelfPosting = true
+            NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
+            isSelfPosting = false
         } catch {
             errorMessage = "Failed to schedule workout: \(error.localizedDescription)"
         }
@@ -233,6 +250,9 @@ class ScheduleViewModel: ObservableObject {
         do {
             try await workoutRepository.deleteScheduledWorkout(id: scheduled.id)
             scheduledWorkouts.removeAll { $0.id == scheduled.id }
+            isSelfPosting = true
+            NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
+            isSelfPosting = false
         } catch {
             errorMessage = "Failed to delete: \(error.localizedDescription)"
         }
