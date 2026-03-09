@@ -93,7 +93,10 @@ class RoutineListViewModel: ObservableObject {
     
     func deleteRoutine(_ routine: Routine) async {
         do {
-            // Mark all scheduled workouts and sessions for this routine as routine_deleted
+            // Delete uncompleted scheduled workouts (and their sessions) for this routine
+            try await workoutRepository.deleteUncompletedScheduledWorkouts(routineId: routine.id)
+            
+            // Mark remaining (completed) scheduled workouts and sessions as routine_deleted
             // so they are preserved for training history
             try await workoutRepository.markScheduledWorkoutsAsRoutineDeleted(routineId: routine.id)
             try await workoutRepository.markSessionsAsRoutineDeleted(routineId: routine.id)

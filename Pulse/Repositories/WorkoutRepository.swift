@@ -292,7 +292,7 @@ class WorkoutRepository {
             .from("scheduled_workouts")
             .select()
             .gte("scheduled_date", value: formatter.string(from: startDate))
-            .lte("scheduled_date", value: formatter.string(from: endDate))
+            .lt("scheduled_date", value: formatter.string(from: endDate))
             .order("scheduled_date")
             .execute()
             .value
@@ -382,6 +382,38 @@ class WorkoutRepository {
             .from("scheduled_workouts")
             .insert(data)
             .execute()
+    }
+    
+    // Delete uncompleted scheduled workouts for a routine (and their linked sessions)
+    func deleteUncompletedScheduledWorkouts(routineId: UUID) async throws {
+        // Fetch uncompleted scheduled workouts for this routine
+        let uncompleted: [ScheduledWorkout] = try await supabase
+            .from("scheduled_workouts")
+            .select()
+            .eq("routine_id", value: routineId.uuidString)
+            .eq("completed", value: false)
+            .execute()
+            .value
+        
+        for workout in uncompleted {
+            // Delete the scheduled workout
+            try await supabase
+                .from("scheduled_workouts")
+                .delete()
+                .eq("id", value: workout.id.uuidString)
+                .execute()
+            
+            // Delete the linked session if it exists
+            if let sessionId = workout.workoutSessionId {
+                try await supabase
+                    .from("workout_sessions")
+                    .delete()
+                    .eq("id", value: sessionId.uuidString)
+                    .execute()
+                
+                await deleteLocalSession(id: sessionId)
+            }
+        }
     }
     
     // Mark all scheduled workouts for a routine as routine_deleted

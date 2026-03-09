@@ -16,12 +16,6 @@
 		</dict>
 		<dict/>
 	</array>
-	<key>WCSupportsAlwaysOnDisplay</key>
-	<true/>
-	<key>SUPABASE_URL</key>
-	<string>$(SUPABASE_URL)</string>
-	<key>SUPABASE_KEY</key>
-	<string>$(SUPABASE_KEY)</string>
 	<key>POSTHOG_API_KEY</key>
 	<string>$(POSTHOG_API_KEY)</string>
 	<key>POSTHOG_HOST</key>
@@ -30,9 +24,11 @@
 	<string>$(REVENUECAT_API_KEY)</string>
 	<key>SENTRY_DSN</key>
 	<string>$(SENTRY_DSN)</string>
-	<key>NSHealthShareUsageDescription</key>
-	<string>Pulse uses HealthKit to track your workouts and sync them with Apple Health.</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>Pulse saves your workout sessions to Apple Health to keep all your fitness data in one place.</string>
+	<key>SUPABASE_KEY</key>
+	<string>$(SUPABASE_KEY)</string>
+	<key>SUPABASE_URL</key>
+	<string>$(SUPABASE_URL)</string>
+	<key>WCSupportsAlwaysOnDisplay</key>
+	<true/>
 </dict>
 </plist>

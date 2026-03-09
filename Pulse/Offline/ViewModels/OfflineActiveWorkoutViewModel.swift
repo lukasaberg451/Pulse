@@ -78,12 +78,15 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                   let reps = userInfo["reps"] as? Int,
                   let weight = userInfo["weight"] as? Double else { return }
             
+            let durationSeconds = userInfo["durationSeconds"] as? Int
+            
             Task { @MainActor in
                 await self.handleWatchSetCompleted(
                     exerciseId: exerciseId,
                     setNumber: setNumber,
                     reps: reps,
-                    weight: weight
+                    weight: weight,
+                    durationSeconds: durationSeconds
                 )
             }
         }
@@ -117,7 +120,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         exerciseId: UUID,
         setNumber: Int,
         reps: Int,
-        weight: Double
+        weight: Double,
+        durationSeconds: Int? = nil
     ) async {
         guard let currentRoutineExercise = routineExercises.first,
               currentRoutineExercise.exerciseId == exerciseId else {
@@ -134,7 +138,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 set: set,
                 reps: reps,
                 weight: weight,
-                durationSeconds: nil,
+                durationSeconds: durationSeconds,
                 completed: true
             )
         }

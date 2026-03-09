@@ -120,7 +120,7 @@ struct WorkoutDetailView: View {
                 Text(viewModel.formattedDate(viewModel.workoutSession.startedAt))
                     .foregroundStyle(Color.appText)
                 Spacer()
-                Text(viewModel.formattedTime(viewModel.workoutSession.startedAt))
+                Text(viewModel.formattedTime(viewModel.workoutSession.completedAt ?? viewModel.workoutSession.startedAt))
                     .foregroundStyle(Color.appText.opacity(0.6))
             }
             .font(.subheadline)

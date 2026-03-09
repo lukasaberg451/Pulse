@@ -63,7 +63,7 @@ struct WatchWorkoutView: View {
                             
                             Text("\(restTimeRemaining)")
                                 .font(.system(size: 50, weight: .bold, design: .rounded))
-                                .foregroundStyle(Color.appAccent.opacity(0.8))
+                                .foregroundStyle(Color.appAccent)
                             
                             Text("seconds")
                                 .font(.caption2)
@@ -418,12 +418,16 @@ struct WatchWorkoutView: View {
             return
         }
         
-        let message: [String: Any] = [
+        var message: [String: Any] = [
             "completedSet_exerciseId": exerciseIdString,
             "completedSet_setNumber": currentSet,
             "completedSet_reps": Int(targetReps) ?? 10,
             "completedSet_weight": targetWeight
         ]
+        
+        if exerciseType == "cardio" && targetDuration > 0 {
+            message["completedSet_durationSeconds"] = targetDuration
+        }
         
         print("⌚ Sending completed set: \(message)")
         

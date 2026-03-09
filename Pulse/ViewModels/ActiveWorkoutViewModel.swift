@@ -53,8 +53,10 @@ class ActiveWorkoutViewModel: ObservableObject {
                       let reps = userInfo["reps"] as? Int,
                       let weight = userInfo["weight"] as? Double else { return }
                 
+                let durationSeconds = userInfo["durationSeconds"] as? Int
+                
                 Task { @MainActor in
-                    await self.handleWatchSetCompleted(exerciseId: exerciseId, setNumber: setNumber, reps: reps, weight: weight)
+                    await self.handleWatchSetCompleted(exerciseId: exerciseId, setNumber: setNumber, reps: reps, weight: weight, durationSeconds: durationSeconds)
                 }
             }
             
@@ -83,7 +85,7 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
     }
     
-    private func handleWatchSetCompleted(exerciseId: UUID, setNumber: Int, reps: Int, weight: Double) async {
+    private func handleWatchSetCompleted(exerciseId: UUID, setNumber: Int, reps: Int, weight: Double, durationSeconds: Int? = nil) async {
         // Find the current exercise and set
         guard let currentRoutineExercise = routineExercises.first,
               currentRoutineExercise.exerciseId == exerciseId else {
@@ -103,7 +105,7 @@ class ActiveWorkoutViewModel: ObservableObject {
                 id: set.id,
                 reps: reps,
                 weight: weight,
-                durationSeconds: nil,
+                durationSeconds: durationSeconds,
                 completed: true
             )
         }

@@ -311,6 +311,10 @@ struct ProfileView: View {
                                                     Text("Connect")
                                                         .font(.body.weight(.medium))
                                                         .foregroundStyle(Color.appAccent)
+                                                    
+                                                    Image(systemName: "chevron.right")
+                                                        .font(.caption)
+                                                        .foregroundStyle(Color.appText.opacity(0))
                                                 }
                                             }
                                             .padding()
@@ -334,9 +338,23 @@ struct ProfileView: View {
                                         
                                         Spacer()
                                         
-                                        Text(WorkoutSyncManager.shared.isPaired ? "Connected" : "Not Connected")
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText.opacity(0.6))
+                                        if WorkoutSyncManager.shared.isPaired == true {
+                                            Text("Connected")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                            
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appText.opacity(0))
+                                        } else {
+                                            Text("Not Connected")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                            
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appText.opacity(0))
+                                        }
                                     }
                                     .padding()
                                 }

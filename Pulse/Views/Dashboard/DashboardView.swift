@@ -92,6 +92,11 @@ struct DashboardView: View {
                         }
                     }
                     .padding(.top, 20)
+                    .padding(.bottom, 10)
+                    
+                    Divider()
+                        .background(Color.appText.opacity(0.1))
+                        .padding(.horizontal)
                     
                     VStack(spacing: 12) {
                         WeeklyGoalCard(
@@ -112,7 +117,7 @@ struct DashboardView: View {
                         
                         Spacer(minLength: 40)
                     }
-                    .padding(.top, 20)
+                    .padding(.top, 10)
                 }
             }
             .onAppear {

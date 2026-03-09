@@ -156,17 +156,21 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     
     // MARK: - Receive Data from Watch
     
-    func handleSetCompleted(exerciseId: String, setNumber: Int, reps: Int, weight: Double) {
+    func handleSetCompleted(exerciseId: String, setNumber: Int, reps: Int, weight: Double, durationSeconds: Int?) {
         // This will be called on iPhone when Watch completes a set
+        var userInfo: [String: Any] = [
+            "exerciseId": exerciseId,
+            "setNumber": setNumber,
+            "reps": reps,
+            "weight": weight
+        ]
+        if let durationSeconds = durationSeconds {
+            userInfo["durationSeconds"] = durationSeconds
+        }
         NotificationCenter.default.post(
             name: .setCompletedFromWatch,
             object: nil,
-            userInfo: [
-                "exerciseId": exerciseId,
-                "setNumber": setNumber,
-                "reps": reps,
-                "weight": weight
-            ]
+            userInfo: userInfo
         )
     }
     
@@ -369,7 +373,8 @@ extension WorkoutSyncManager: WCSessionDelegate {
                let setNumber = message["completedSet_setNumber"] as? Int,
                let reps = message["completedSet_reps"] as? Int,
                let weight = message["completedSet_weight"] as? Double {
-                self.handleSetCompleted(exerciseId: exerciseId, setNumber: setNumber, reps: reps, weight: weight)
+                let durationSeconds = message["completedSet_durationSeconds"] as? Int
+                self.handleSetCompleted(exerciseId: exerciseId, setNumber: setNumber, reps: reps, weight: weight, durationSeconds: durationSeconds)
             }
             
             if message["skipRest"] as? Bool == true {
