@@ -70,6 +70,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     #if os(iOS)
     func syncProStatus(_ isProUser: Bool) {
         guard let session = session else { return }
+        
         let data: [String: Any] = ["isProUser": isProUser]
         do {
             try session.updateApplicationContext(data)
