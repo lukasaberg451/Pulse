@@ -107,14 +107,14 @@ struct RegisterSelectionView: View {
                         
                         // Terms & Privacy note
                         HStack(spacing: 4) {
-                            Text("By continuing, you agree to our")
+                            Text("By continuing, you agree to the")
                                 .font(.caption2)
-                                .foregroundStyle(Color.appText.opacity(0.5))
+                                .foregroundStyle(Color.appText)
                             
                             Button(action: {
-                                safariURL = URL(string: "https://pulsefitness.io/terms.html")
+                                safariURL = URL(string: "https://pulsefitness.io/terms-app.html")
                             }) {
-                                Text("Terms")
+                                Text("Terms of Service")
                                     .font(.caption2)
                                     .foregroundStyle(Color.appAccent)
                                     .underline()
@@ -122,10 +122,10 @@ struct RegisterSelectionView: View {
                             
                             Text("&")
                                 .font(.caption2)
-                                .foregroundStyle(Color.appText.opacity(0.5))
+                                .foregroundStyle(Color.appText)
                             
                             Button(action: {
-                                safariURL = URL(string: "https://pulsefitness.io/privacy.html")
+                                safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
                             }) {
                                 Text("Privacy Policy")
                                     .font(.caption2)
@@ -133,6 +133,7 @@ struct RegisterSelectionView: View {
                                     .underline()
                             }
                         }
+                        .fixedSize(horizontal: true, vertical: false)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 8)
                     }

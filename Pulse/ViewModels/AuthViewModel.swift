@@ -153,6 +153,9 @@ class AuthViewModel: ObservableObject{
             self.session = result
             self.isAuthenticated = true
             
+            // Sync RevenueCat user identity
+            await SubscriptionManager.shared.syncUser()
+            
             // Track successful sign-in with PostHog
             PostHogSDK.shared.capture("sign_in_successful", properties: [
                 "user_id": result.user.id.uuidString as Any,
@@ -204,9 +207,9 @@ class AuthViewModel: ObservableObject{
         }
     }
     
-    func fetchUserProfile()async {
+    func fetchUserProfile() async {
         guard let userId = session?.user.id else { return }
-        do{
+        do {
             let profile: UserProfile = try await supabase
                 .from("profiles")
                 .select()
@@ -215,6 +218,19 @@ class AuthViewModel: ObservableObject{
                 .execute()
                 .value
             self.userProfile = profile
+            
+            // Sync email from auth to profiles table if it changed
+            if let authEmail = session?.user.email,
+               profile.email != authEmail {
+                struct UpdateEmail: Encodable {
+                    let email: String
+                }
+                try await supabase
+                    .from("profiles")
+                    .update(UpdateEmail(email: authEmail))
+                    .eq("id", value: userId.uuidString)
+                    .execute()
+            }
         } catch {
             print("Failed to fetch profile: \(error.localizedDescription)")
         }
@@ -286,6 +302,9 @@ class AuthViewModel: ObservableObject{
             self.session = session
             self.isAuthenticated = true
             
+            // Sync RevenueCat user identity
+            await SubscriptionManager.shared.syncUser()
+            
             // Update user metadata with full name if Apple provided it (first sign-in only)
             if let fullName = appleIDCredential.fullName {
                 let firstName = fullName.givenName ?? ""
@@ -346,12 +365,14 @@ class AuthViewModel: ObservableObject{
 
 struct UserProfile : Codable {
     let id: UUID
+    let email: String?
     let fullName: String?
     let username: String?
     let avatarUrl: String?
     
     enum CodingKeys: String, CodingKey {
         case id
+        case email
         case fullName = "full_name"
         case username = "username"
         case avatarUrl = "avatar_url"

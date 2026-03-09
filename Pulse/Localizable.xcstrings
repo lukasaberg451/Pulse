@@ -1720,6 +1720,7 @@
       }
     },
     "and" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2283,6 +2284,7 @@
       }
     },
     "By continuing, you agree to our" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2321,6 +2323,9 @@
           }
         }
       }
+    },
+    "By continuing, you agree to the" : {
+
     },
     "Cancel" : {
       "localizations" : {
@@ -2563,6 +2568,7 @@
       }
     },
     "Check your inbox and click the link to confirm your new email address." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4452,6 +4458,7 @@
       }
     },
     "Enter your new email address and current password to confirm the change." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4490,6 +4497,9 @@
           }
         }
       }
+    },
+    "Enter your new email address and current password to confirm the change. You will be signed out and need to sign back in after confirming." : {
+
     },
     "Enter your new password below" : {
       "localizations" : {
@@ -5690,6 +5700,9 @@
           }
         }
       }
+    },
+    "Manage Subscription" : {
+
     },
     "Milestones" : {
       "localizations" : {
@@ -7291,6 +7304,9 @@
         }
       }
     },
+    "Please confirm the change by clicking the link in your inbox. You will be signed out now." : {
+
+    },
     "Please verify your email before signing in" : {
       "localizations" : {
         "de" : {
@@ -7530,6 +7546,9 @@
           }
         }
       }
+    },
+    "Pulse Pro" : {
+
     },
     "Push Day" : {
       "localizations" : {
@@ -9814,6 +9833,9 @@
         }
       }
     },
+    "Subscription automatically renews unless canceled." : {
+
+    },
     "Subscription automatically renews unless cancelled at least 24 hours before the end of the current period." : {
       "localizations" : {
         "de" : {
@@ -10095,6 +10117,7 @@
       }
     },
     "Terms" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -10135,6 +10158,7 @@
       }
     },
     "Terms & Conditions" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -10174,7 +10198,11 @@
         }
       }
     },
+    "Terms of Service" : {
+
+    },
     "Terms of Use" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -10416,6 +10444,9 @@
           }
         }
       }
+    },
+    "To cancel your subscription, go to your Apple ID subscription settings." : {
+
     },
     "Today" : {
       "localizations" : {
@@ -10700,6 +10731,9 @@
         }
       }
     },
+    "Unlock Progress Tracking" : {
+
+    },
     "Upgrade to Pro" : {
       "localizations" : {
         "de" : {
@@ -10739,6 +10773,12 @@
           }
         }
       }
+    },
+    "Upgrade to Pro to access detailed analytics, personal records, and training insights." : {
+
+    },
+    "Upgrade to Pulse Pro" : {
+
     },
     "Verification Email Sent" : {
       "localizations" : {
@@ -11505,6 +11545,9 @@
           }
         }
       }
+    },
+    "You're a Pro subscriber" : {
+
     },
     "Your account and all associated data will be permanently deleted." : {
 

@@ -15,6 +15,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     
     @Published var isReachable = false
     @Published var isPaired = false
+    @Published var isProUser = false
     @Published var currentWorkoutData: [String: Any]?
     @Published var restTimerStoppedFromPhone = false
     static let restTimerUpdate = Notification.Name("restTimerUpdate")
@@ -60,6 +61,20 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             } else {
                 print("📱 ⚠️ Watch app launch returned false without error")
             }
+        }
+    }
+    #endif
+    
+    // MARK: - Sync Pro Status
+    
+    #if os(iOS)
+    func syncProStatus(_ isProUser: Bool) {
+        guard let session = session else { return }
+        let data: [String: Any] = ["isProUser": isProUser]
+        do {
+            try session.updateApplicationContext(data)
+        } catch {
+            print("📱 Error syncing pro status: \(error.localizedDescription)")
         }
     }
     #endif
@@ -275,6 +290,11 @@ extension WorkoutSyncManager: WCSessionDelegate {
                     #if os(iOS)
                     self.isPaired = session.isPaired
                     #endif
+                    #if os(watchOS)
+                    if let proStatus = session.receivedApplicationContext["isProUser"] as? Bool {
+                        self.isProUser = proStatus
+                    }
+                    #endif
                 }
             }
         }
@@ -284,6 +304,10 @@ extension WorkoutSyncManager: WCSessionDelegate {
             print("📩 Received application context: \(applicationContext)")
             
             #if os(watchOS)
+            if let proStatus = applicationContext["isProUser"] as? Bool {
+                self.isProUser = proStatus
+            }
+            
             print("⌚ Processing context on Watch...")
             self.currentWorkoutData = applicationContext
             NotificationCenter.default.post(

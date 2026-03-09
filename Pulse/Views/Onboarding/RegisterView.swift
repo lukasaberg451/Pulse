@@ -262,7 +262,7 @@ struct RegisterView: View {
                                 }
                             }
                             
-                            HStack(alignment: .top, spacing: 8) {
+                                HStack(alignment: .center, spacing: 8) {
                                 Button(action: {
                                     agreedToTerms.toggle()
                                 }) {
@@ -271,37 +271,34 @@ struct RegisterView: View {
                                         .font(.title3)
                                 }
                                 
-                                VStack(alignment: .leading, spacing: 4) {
-                                    HStack(spacing: 4) {
-                                        Text("I agree to the")
+                                HStack(spacing: 4) {
+                                    Text("I agree to the")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.appText)
+                                    
+                                    Button(action: {
+                                        safariURL = URL(string: "https://pulsefitness.io/terms-app.html")
+                                    }) {
+                                        Text("Terms of Service")
                                             .font(.caption)
-                                            .foregroundStyle(Color.appText.opacity(0.7))
-                                        
-                                        Button(action: {
-                                            safariURL = URL(string: "https://pulsefitness.io/terms.html")
-                                        }) {
-                                            Text("Terms & Conditions")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appAccent)
-                                                .underline()
-                                        }
+                                            .foregroundStyle(Color.appAccent)
+                                            .underline()
                                     }
                                     
-                                    HStack(spacing: 4) {
-                                        Text("and")
+                                    Text("&")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.appText)
+                                    
+                                    Button(action: {
+                                        safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
+                                    }) {
+                                        Text("Privacy Policy")
                                             .font(.caption)
-                                            .foregroundStyle(Color.appText.opacity(0.7))
-                                        
-                                        Button(action: {
-                                            safariURL = URL(string: "https://pulsefitness.io/privacy.html")
-                                        }) {
-                                            Text("Privacy Policy")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appAccent)
-                                                .underline()
-                                        }
+                                            .foregroundStyle(Color.appAccent)
+                                            .underline()
                                     }
                                 }
+                                .fixedSize(horizontal: true, vertical: false)
                             }
                             .padding(.horizontal, 24)
                             .padding(.top, 10)

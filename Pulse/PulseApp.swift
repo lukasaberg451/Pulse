@@ -175,11 +175,14 @@ struct PulseApp: App {
             .environmentObject(healthKitManager)
             .environmentObject(unitManager)
             .preferredColorScheme(themeManager.selectedTheme.colorScheme)
-            .task(id: authViewModel.isAuthenticated) {
-                if authViewModel.isAuthenticated {
-                    await subscriptionManager.syncUser()
-                } else {
-                    await subscriptionManager.logout()
+            .onChange(of: authViewModel.isAuthenticated) { _, isAuthenticated in
+                Task {
+                    if isAuthenticated {
+                        await subscriptionManager.syncUser()
+                    } else {
+                        await subscriptionManager.logout()
+                    }
+                    WorkoutSyncManager.shared.syncProStatus(subscriptionManager.isProUser)
                 }
             }
             .onOpenURL { url in

@@ -516,11 +516,17 @@ struct RoutinePickerRow: View {
 // Routines tab content
 struct RoutineContentView: View {
     @ObservedObject var viewModel: RoutineListViewModel
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
     @State private var showingCreateSheet = false
+    @State private var showingPaywall = false
     @State private var isEditMode = false
     @State private var routineToDelete: Routine?
     @State private var showingDeleteAlert = false
     @Binding var routineToNavigateTo: Routine?
+    
+    private var canCreateRoutine: Bool {
+        subscriptionManager.isProUser || viewModel.routines.count < SubscriptionManager.freeRoutineLimit
+    }
     
     var body: some View {
         ZStack {
@@ -557,7 +563,11 @@ struct RoutineContentView: View {
                         Button("Create Routine") {
                             let impactLight = UIImpactFeedbackGenerator(style: .light)
                             impactLight.impactOccurred()
-                            showingCreateSheet = true
+                            if canCreateRoutine {
+                                showingCreateSheet = true
+                            } else {
+                                showingPaywall = true
+                            }
                         }
                         .foregroundStyle(Color.appText)
                         .padding(.horizontal, 24)
@@ -578,7 +588,11 @@ struct RoutineContentView: View {
                                 }
                                 let impactLight = UIImpactFeedbackGenerator(style: .light)
                                 impactLight.impactOccurred()
-                                showingCreateSheet = true
+                                if canCreateRoutine {
+                                    showingCreateSheet = true
+                                } else {
+                                    showingPaywall = true
+                                }
                             } label: {
                                 Text("New Routine")
                                     .font(.subheadline)
@@ -635,6 +649,9 @@ struct RoutineContentView: View {
                     routineToNavigateTo = routine
                 }
             )
+        }
+        .sheet(isPresented: $showingPaywall) {
+            SubscriptionView()
         }
         .alert("Delete Routine", isPresented: $showingDeleteAlert) {
             Button("Cancel", role: .cancel) { }

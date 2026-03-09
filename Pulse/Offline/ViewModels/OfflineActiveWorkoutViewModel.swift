@@ -186,14 +186,16 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             
             // Launch the watch app and send workout data after a delay
             // The watch app needs time to launch and activate its WCSession
-            WorkoutSyncManager.shared.launchWatchApp(exercises: exercises)
-            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
-            WorkoutSyncManager.shared.sendWorkoutToWatch(
-                routine: routine,
-                routineExercises: routineExercises,
-                exercises: exercises,
-                startTime: startTime!
-            )
+            if SubscriptionManager.shared.isProUser {
+                WorkoutSyncManager.shared.launchWatchApp(exercises: exercises)
+                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+                WorkoutSyncManager.shared.sendWorkoutToWatch(
+                    routine: routine,
+                    routineExercises: routineExercises,
+                    exercises: exercises,
+                    startTime: startTime!
+                )
+            }
             
             isLoading = false
             return
@@ -245,7 +247,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         
         // Launch the watch app and send workout data after a delay
         // The watch app needs time to launch and activate its WCSession
-        if let startTime = startTime {
+        if let startTime = startTime, SubscriptionManager.shared.isProUser {
             WorkoutSyncManager.shared.launchWatchApp(exercises: exercises)
             try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
             WorkoutSyncManager.shared.sendWorkoutToWatch(

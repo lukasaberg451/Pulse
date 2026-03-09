@@ -19,7 +19,9 @@ class SubscriptionManager: ObservableObject {
     @Published var customerInfo: CustomerInfo?
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var trialEligible = false
     
+    static let freeRoutineLimit = 3
     private static let entitlementID = "pulse_pro"
     
     private init() {}
@@ -32,7 +34,13 @@ class SubscriptionManager: ObservableObject {
             fatalError("Missing RevenueCat configuration in Info.plist. Ensure Secrets.xcconfig is set up correctly.")
         }
         Purchases.logLevel = .debug
-        Purchases.configure(withAPIKey: apiKey)
+        
+        // Try to get the existing Supabase user ID so RevenueCat starts identified
+        if let userId = SupabaseManager.shared.client.auth.currentSession?.user.id.uuidString {
+            Purchases.configure(withAPIKey: apiKey, appUserID: userId)
+        } else {
+            Purchases.configure(withAPIKey: apiKey)
+        }
     }
     
     /// Sync the current Supabase user with RevenueCat
@@ -67,6 +75,11 @@ class SubscriptionManager: ObservableObject {
         do {
             let offerings = try await Purchases.shared.offerings()
             currentOffering = offerings.current
+            
+            if let product = offerings.current?.availablePackages.first?.storeProduct {
+                let eligibility = await Purchases.shared.checkTrialOrIntroDiscountEligibility(product: product)
+                trialEligible = eligibility == .eligible
+            }
         } catch {
             errorMessage = error.localizedDescription
             print("Error fetching offerings: \(error.localizedDescription)")

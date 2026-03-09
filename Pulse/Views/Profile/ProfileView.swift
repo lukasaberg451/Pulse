@@ -480,11 +480,11 @@ struct ProfileView: View {
                         .padding(.top, 20)
                         .padding(.bottom, 25)
                         // Terms & Privacy
-                        HStack(spacing: 4) {
+                        HStack(spacing: 16) {
                             Button(action: {
-                                safariURL = URL(string: "https://pulsefitness.io/terms.html")
+                                safariURL = URL(string: "https://pulsefitness.io/terms-app.html")
                             }) {
-                                Text("Terms & Conditions")
+                                Text("Terms of Service")
                                     .font(.caption)
                                     .foregroundStyle(Color.appAccent)
                                     .underline()
@@ -492,10 +492,10 @@ struct ProfileView: View {
                             
                             Text("·")
                                 .font(.caption)
-                                .foregroundStyle(Color.appText.opacity(0.5))
+                                .foregroundStyle(Color.appText.opacity(0.7))
                             
                             Button(action: {
-                                safariURL = URL(string: "https://pulsefitness.io/privacy.html")
+                                safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
                             }) {
                                 Text("Privacy Policy")
                                     .font(.caption)
@@ -1230,14 +1230,16 @@ struct ChangeEmailSheet: View {
                             .font(.headline)
                             .foregroundStyle(Color.appAccent)
                         
-                        Text("Check your inbox and click the link to confirm your new email address.")
+                        Text("Please confirm the change by clicking the link in your inbox. You will be signed out now.")
                             .font(.body)
                             .foregroundStyle(Color.appText.opacity(0.7))
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                         
-                        Button("Done") {
-                            dismiss()
+                        Button("OK") {
+                            Task {
+                                await authViewModel.signOut()
+                            }
                         }
                         .foregroundStyle(Color.appText)
                         .padding(.horizontal, 24)
@@ -1255,7 +1257,7 @@ struct ChangeEmailSheet: View {
                             .fontWeight(.bold)
                             .foregroundStyle(Color.appText)
                         
-                        Text("Enter your new email address and current password to confirm the change.")
+                        Text("Enter your new email address and current password to confirm the change. You will be signed out and need to sign back in after confirming.")
                             .font(.subheadline)
                             .foregroundStyle(Color.appText.opacity(0.7))
                         
@@ -1334,6 +1336,7 @@ struct ChangeEmailSheet: View {
             }
         }
         .presentationBackground(Color.appBackground)
+        .interactiveDismissDisabled(showSuccess)
     }
     
     var isValidForm: Bool {

@@ -11,15 +11,18 @@ import PostHog
 struct RoutineDetailView: View {
     let routine: Routine
     @StateObject private var viewModel: RoutineDetailViewModel
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
     @Environment(\.modelContext) private var modelContext
     @State private var showingExercisePicker = false
     @State private var showingActiveWorkout = false
     @State private var showingEditSheet = false
+    @State private var showingPaywall = false
     @State private var editingExercise: RoutineExercise?
     @State private var editMode: EditMode = .inactive
     @State private var reorderedExercises: [RoutineExercise] = []
     @State private var showingCopySuccess = false
     @State private var isCopying = false
+    @State private var routineCount = 0
     
     init(routine: Routine) {
         self.routine = routine
@@ -157,12 +160,17 @@ struct RoutineDetailView: View {
                                     cancelEditMode()
                                     let impactLight = UIImpactFeedbackGenerator(style: .light)
                                     impactLight.impactOccurred()
-                                    isCopying = true
-                                    Task {
-                                        if let _ = await viewModel.duplicateRoutine() {
-                                            showingCopySuccess = true
+                                    if subscriptionManager.isProUser || routineCount < SubscriptionManager.freeRoutineLimit {
+                                        isCopying = true
+                                        Task {
+                                            if let _ = await viewModel.duplicateRoutine() {
+                                                routineCount += 1
+                                                showingCopySuccess = true
+                                            }
+                                            isCopying = false
                                         }
-                                        isCopying = false
+                                    } else {
+                                        showingPaywall = true
                                     }
                                 } label: {
                                     HStack(spacing: 8) {
@@ -368,6 +376,13 @@ struct RoutineDetailView: View {
             
             await viewModel.loadRoutineExercises()
             await viewModel.loadExercises()
+            
+            if let routines = try? await RoutineRepository().fetchRoutines() {
+                routineCount = routines.count
+            }
+        }
+        .sheet(isPresented: $showingPaywall) {
+            SubscriptionView()
         }
     }
 }

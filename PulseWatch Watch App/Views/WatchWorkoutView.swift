@@ -169,6 +169,23 @@ struct WatchWorkoutView: View {
                         }
                         .padding(.horizontal, 8)
                     }
+                } else if !syncManager.isProUser {
+                    // Upgrade required
+                    VStack(spacing: 8) {
+                        Image(systemName: "lock.fill")
+                            .font(.title)
+                            .foregroundStyle(Color.appAccent)
+                            .padding(.top, 20)
+                        
+                        Text("Pro Feature")
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                        
+                        Text("Upgrade to Pro in the Pulse app on iPhone to use Apple Watch.")
+                            .font(.caption2)
+                            .foregroundStyle(.gray)
+                            .multilineTextAlignment(.center)
+                    }
                 } else {
                     // Not connected or no workout
                     VStack(spacing: 8) {

@@ -139,13 +139,15 @@ class ActiveWorkoutViewModel: ObservableObject {
                     sets.append(set)
                 }
             }
-            WorkoutSyncManager.shared.launchWatchApp(exercises: exercises)
-            WorkoutSyncManager.shared.sendWorkoutToWatch(
+            if SubscriptionManager.shared.isProUser {
+                WorkoutSyncManager.shared.launchWatchApp(exercises: exercises)
+                WorkoutSyncManager.shared.sendWorkoutToWatch(
                     routine: routine,
                     routineExercises: routineExercises,
                     exercises: exercises,
                     startTime: startTime!
-                    )
+                )
+            }
         } catch {
             errorMessage = "Failed to start workout: \(error.localizedDescription)"
         }

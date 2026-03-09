@@ -20,58 +20,58 @@ struct ProgressTabView: View {
             ZStack {
                 Color.appBackground.ignoresSafeArea()
                 
-              //  if !subscriptionManager.isProUser {
-                    // Pro upgrade prompt
-                //    VStack(spacing: 20) {
-                  //      Spacer()
+                // Pro upgrade prompt
+                if !subscriptionManager.isProUser {
+                    VStack(spacing: 20) {
+                        Spacer()
                         
-                    //    ZStack {
-                      //      Circle()
-                        //        .fill(Color.appAccent.opacity(0.15))
-                          //      .frame(width: 120, height: 120)
+                        ZStack {
+                            Circle()
+                                .fill(Color.appAccent.opacity(0.15))
+                                .frame(width: 120, height: 120)
                             
-                           // Circle()
-                             //   .fill(Color.appAccent.opacity(0.08))
-                               // .frame(width: 160, height: 160)
+                            Circle()
+                                .fill(Color.appAccent.opacity(0.08))
+                                .frame(width: 160, height: 160)
                             
-                           // Image(systemName: "chart.line.uptrend.xyaxis")
-                             //   .font(.system(size: 50))
-                               // .foregroundStyle(Color.appAccent)
-                        //}
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.system(size: 50))
+                                .foregroundStyle(Color.appAccent)
+                        }
                         
-                        //Text("Unlock Progress Tracking")
-                          //  .font(.title2)
-                           // .fontWeight(.bold)
-                            //.foregroundStyle(Color.appText)
+                        Text("Unlock Progress Tracking")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.appText)
                         
-                       // Text("Upgrade to Pro to access detailed analytics, personal records, and training insights.")
-                           // .font(.body)
-                         //   .foregroundStyle(Color.appText.opacity(0.6))
-                            //.multilineTextAlignment(.center)
-                            //.padding(.horizontal, 32)
+                        Text("Upgrade to Pro to access detailed analytics, personal records, and training insights.")
+                            .font(.body)
+                            .foregroundStyle(Color.appText.opacity(0.6))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
                         
-                        //Button {
-                          //  let impactLight = UIImpactFeedbackGenerator(style: .light)
-                           // impactLight.impactOccurred()
-                            //showingPaywall = true
-                        //} label: {
-                          //  HStack {
-                            //    Spacer()
-                              //  Image(systemName: "star.fill")
-                               // Text("Upgrade to Pulse Pro")
-                                 //   .font(.headline)
-                               // Spacer()
-                            //}
-                            //.padding()
-                            //.background(Color.appAccent)
-                            //.foregroundStyle(Color.appText)
-                            //.cornerRadius(12)
-                        //}
-                        //.padding(.horizontal)
+                        Button {
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                            showingPaywall = true
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Image(systemName: "star.fill")
+                                Text("Upgrade to Pulse Pro")
+                                    .font(.headline)
+                                Spacer()
+                            }
+                            .padding()
+                            .background(Color.appAccent)
+                            .foregroundStyle(Color.appText)
+                            .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
                         
-                        //Spacer()
-                    //}
-                //} else {
+                        Spacer()
+                    }
+                } else {
                 
                 ScrollView {
                     VStack(spacing: 20) {
@@ -301,11 +301,11 @@ struct ProgressTabView: View {
                         await milestoneViewModel.loadMilestones()
                     }
                 }
-               // } // end else (pro user)
+                } // end else (pro user)
             }
-            //.sheet(isPresented: $showingPaywall) {
-              //  SubscriptionView()
-            //}
+            .sheet(isPresented: $showingPaywall) {
+                SubscriptionView()
+            }
         }
     }
 }
