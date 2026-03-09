@@ -200,12 +200,9 @@ struct PulseApp: App {
     }
     
     func handleDeepLink(_ url: URL) {
-        print("📱 Deep link received: \(url)")
-        
         if url.path.contains("reset-password") {
             let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
             if let code = components?.queryItems?.first(where: { $0.name == "code" })?.value {
-                print("📱 Code extracted: \(code)")
                 
                 // Mark that we're in recovery mode
                 UserDefaults.standard.set(true, forKey: "pendingPasswordReset")

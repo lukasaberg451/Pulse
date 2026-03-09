@@ -153,16 +153,12 @@ struct ResetPasswordInAppView: View {
         
         // If no code provided, assume session already exists from previous exchange
         if recoveryCode == nil {
-            print("🔄 No code provided, checking for existing session")
-            
             do {
                 _ = try await supabase.auth.session
-                print("✅ Session already exists, ready to reset password")
                 await MainActor.run {
                     isInitializing = false  // Show the form
                 }
             } catch {
-                print("❌ No existing session")
                 await MainActor.run {
                     errorMessage = "Session expired. Please request a new password reset."
                     showError = true
@@ -173,20 +169,14 @@ struct ResetPasswordInAppView: View {
         }
         
         // Code provided - exchange it
-        print("🔄 recoveryCode value: \(recoveryCode ?? "NIL")")
-        print("🔄 Attempting to exchange code: \(recoveryCode!)")
         
         do {
             _ = try await supabase.auth.exchangeCodeForSession(authCode: recoveryCode!)
-            print("✅ Session exchanged successfully")
-            
             await MainActor.run {
                 isInitializing = false
                 showError = false
             }
         } catch {
-            print("❌ Failed to exchange code: \(error.localizedDescription)")
-            
             await MainActor.run {
                 if isInitializing {
                     errorMessage = "Invalid or expired recovery link: \(error.localizedDescription)"
