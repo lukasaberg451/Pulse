@@ -189,6 +189,21 @@ class AuthViewModel: ObservableObject{
         }
     }
     
+    func deleteAccount() async -> Bool {
+        do {
+            try await supabase.rpc("delete_user_account").execute()
+            try await supabase.auth.signOut()
+            self.session = nil
+            self.isAuthenticated = false
+            self.userProfile = nil
+            return true
+        } catch {
+            errorMessage = "Failed to delete account: \(error.localizedDescription)"
+            print("Account deletion failed: \(error.localizedDescription)")
+            return false
+        }
+    }
+    
     func fetchUserProfile()async {
         guard let userId = session?.user.id else { return }
         do{

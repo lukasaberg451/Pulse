@@ -2079,6 +2079,9 @@
         }
       }
     },
+    "Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data will be removed." : {
+
+    },
     "Are you sure you want to finish this workout?" : {
       "localizations" : {
         "de" : {
@@ -3841,6 +3844,12 @@
           }
         }
       }
+    },
+    "DELETE" : {
+
+    },
+    "Delete Account" : {
+
     },
     "Delete Exercise" : {
       "localizations" : {
@@ -10245,6 +10254,9 @@
         }
       }
     },
+    "This action is irreversible" : {
+
+    },
     "This Month" : {
       "localizations" : {
         "de" : {
@@ -10524,6 +10536,9 @@
           }
         }
       }
+    },
+    "Type DELETE to confirm" : {
+
     },
     "Underweight" : {
       "localizations" : {
@@ -11490,6 +11505,9 @@
           }
         }
       }
+    },
+    "Your account and all associated data will be permanently deleted." : {
+
     },
     "Your Fitness Journey Starts Here" : {
       "localizations" : {

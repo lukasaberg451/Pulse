@@ -15,6 +15,9 @@ struct ProfileView: View {
     @State private var showingThemeSheet = false
     @State private var showingEditNameSheet = false
     @State private var showingSignOutAlert = false
+    @State private var showingDeleteAccountAlert = false
+    @State private var showingDeleteConfirmation = false
+    @State private var isDeletingAccount = false
     @State private var showingFeedbackSheet = false
     @State private var showingLanguageSheet = false
     @State private var showingChangeEmailSheet = false
@@ -446,6 +449,33 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal)
                             .padding(.top, 20)
+                            
+                            // Delete Account Button
+                            Button {
+                                let notificationFeedback = UINotificationFeedbackGenerator()
+                                notificationFeedback.notificationOccurred(.warning)
+                                showingDeleteAccountAlert = true
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    if isDeletingAccount {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                                    } else {
+                                        Image(systemName: "trash")
+                                        Text("Delete Account")
+                                            .font(.headline)
+                                    }
+                                    Spacer()
+                                }
+                                .padding()
+                                .background(Color.red.opacity(0.1))
+                                .foregroundStyle(Color.red)
+                                .cornerRadius(12)
+                            }
+                            .disabled(isDeletingAccount)
+                            .padding(.horizontal)
+                            .padding(.top, 8)
                         }
                         .padding(.top, 20)
                         .padding(.bottom, 25)
@@ -494,6 +524,20 @@ struct ProfileView: View {
                 }
             } message: {
                 Text("Are you sure you want to sign out?")
+            }
+            .alert("Delete Account", isPresented: $showingDeleteAccountAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Continue", role: .destructive) {
+                    showingDeleteConfirmation = true
+                }
+            } message: {
+                Text("Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data will be removed.")
+            }
+            .sheet(isPresented: $showingDeleteConfirmation) {
+                DeleteAccountConfirmationSheet(
+                    isDeletingAccount: $isDeletingAccount,
+                    authViewModel: authViewModel
+                )
             }
             .sheet(isPresented: $showingEditNameSheet) {
                 EditNameSheet(viewModel: viewModel)
@@ -1315,3 +1359,108 @@ struct ChangeEmailSheet: View {
         }
     }
 }
+// MARK: - Delete Account Confirmation Sheet
+struct DeleteAccountConfirmationSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @Binding var isDeletingAccount: Bool
+    @ObservedObject var authViewModel: AuthViewModel
+    @State private var confirmationText = ""
+    @FocusState private var isTextFieldFocused: Bool
+    
+    private var isDeleteEnabled: Bool {
+        confirmationText == "DELETE"
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+                
+                VStack(spacing: 16) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(.red)
+                        .padding(.top, 20)
+                    
+                    Text("This action is irreversible")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.appText)
+                    
+                    Text("Your account and all associated data will be permanently deleted.")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appText.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal)
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Type DELETE to confirm")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appText.opacity(0.7))
+                        
+                        TextField("DELETE", text: $confirmationText)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .padding()
+                            .background(Color.appSurface)
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.appText.opacity(0.1), lineWidth: 1)
+                            )
+                            .focused($isTextFieldFocused)
+                    }
+                    .padding(.horizontal)
+                    
+                    Button {
+                        isDeletingAccount = true
+                        Task {
+                            let success = await authViewModel.deleteAccount()
+                            isDeletingAccount = false
+                            if success {
+                                dismiss()
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if isDeletingAccount {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            } else {
+                                Text("Delete Account")
+                                    .font(.headline)
+                            }
+                            Spacer()
+                        }
+                        .padding()
+                        .background(isDeleteEnabled ? Color.red : Color.red.opacity(0.3))
+                        .foregroundStyle(.white)
+                        .cornerRadius(12)
+                    }
+                    .disabled(!isDeleteEnabled || isDeletingAccount)
+                    .padding(.horizontal)
+                    
+                    Spacer()
+                }
+            }
+            .navigationTitle("Delete Account")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundStyle(Color.appText)
+                }
+            }
+            .onAppear {
+                isTextFieldFocused = true
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationBackground(Color.appBackground)
+    }
+}
+
