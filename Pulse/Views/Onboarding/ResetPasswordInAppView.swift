@@ -26,75 +26,111 @@ struct ResetPasswordInAppView: View {
         self.recoveryCode = recoveryCode
     }
     
+    @Environment(\.colorScheme) private var colorScheme
+    
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 if isInitializing {
                     // Loading state while exchanging code
-                    VStack(spacing: 20) {
+                    VStack(spacing: 16) {
                         ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
                             .scaleEffect(1.5)
                         Text("Verifying...")
-                            .foregroundStyle(Color.appText)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Color.appSecondaryText)
                     }
                 } else if showSuccess {
                     // Success view
-                    VStack(spacing: 24) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 80))
-                            .foregroundStyle(Color.green)
+                    VStack(spacing: 20) {
+                        IconBadge(systemName: "checkmark.circle.fill", color: .green, size: 64)
                         
                         Text("Password Reset!")
-                            .font(.title)
-                            .fontWeight(.bold)
+                            .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
                         Text("You can now sign in with your new password.")
-                            .foregroundStyle(Color.appText.opacity(0.7))
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                         
-                        Button("Go to Login") {
+                        PrimaryCTAButton("Go to Login") {
                             dismiss()
                         }
-                        .foregroundStyle(Color.appText)
-                        .padding(.horizontal, 40)
-                        .padding(.vertical, 12)
-                        .background(Color.appAccent)
-                        .cornerRadius(12)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 12)
                     }
                 } else {
                     // Form
                     VStack(alignment: .leading, spacing: 20) {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Set New Password")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                                .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
                             
                             Text("Enter your new password below")
                                 .font(.subheadline)
-                                .foregroundStyle(Color.appText.opacity(0.7))
+                                .foregroundStyle(Color.appSecondaryText)
                         }
                         
                         if showError {
-                            Text(errorMessage)
-                                .foregroundStyle(Color.red)
-                                .font(.caption)
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .foregroundStyle(.red)
+                                    .font(.caption)
+                                Text(errorMessage)
+                                    .foregroundStyle(.red)
+                                    .font(.caption.weight(.medium))
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                         }
                         
-                        SecureField("New Password", text: $newPassword)
-                            .padding()
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
-                            .textContentType(.newPassword)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("New Password")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.appText)
+                            
+                            SecureField("New Password", text: $newPassword)
+                                .padding()
+                                .foregroundStyle(Color.appText)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                            }
+                                        }
+                                }
+                                .textContentType(.newPassword)
+                        }
                         
-                        SecureField("Confirm Password", text: $confirmPassword)
-                            .padding()
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
-                            .textContentType(.newPassword)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Confirm Password")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.appText)
+                            
+                            SecureField("Confirm Password", text: $confirmPassword)
+                                .padding()
+                                .foregroundStyle(Color.appText)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                            }
+                                        }
+                                }
+                                .textContentType(.newPassword)
+                        }
                         
                         Button {
                             Task {
@@ -103,21 +139,29 @@ struct ResetPasswordInAppView: View {
                         } label: {
                             if isLoading {
                                 ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                     .frame(maxWidth: .infinity)
+                                    .frame(height: 52)
+                                    .background(LinearGradient.accentGradient.opacity(0.5), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                             } else {
                                 Text("Reset Password")
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundStyle(.white)
                                     .frame(maxWidth: .infinity)
+                                    .frame(height: 52)
+                                    .background(
+                                        LinearGradient.accentGradient.opacity(isValid ? 1 : 0.5),
+                                        in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    )
                             }
                         }
-                        .foregroundStyle(Color.appText)
-                        .padding()
-                        .background(isValid ? Color.appAccent : Color.appAccent.opacity(0.5))
-                        .cornerRadius(12)
+                        .buttonStyle(ScalePressStyle())
                         .disabled(!isValid || isLoading)
+                        .padding(.top, 4)
                         
                         Spacer()
                     }
-                    .padding()
+                    .padding(24)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -132,12 +176,12 @@ struct ResetPasswordInAppView: View {
                                 dismiss()
                             }
                         }
-                        .foregroundStyle(Color.appText)
+                        .foregroundStyle(Color.appSecondaryText)
                     }
                 }
             }
         }
-        .presentationBackground(Color.appBackground)
+        .presentationBackground(LinearGradient.dashboardBackground)
         .task {
             await exchangeCodeForSession()
         }

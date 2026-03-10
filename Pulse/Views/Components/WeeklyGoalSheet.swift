@@ -9,62 +9,73 @@ import SwiftUI
 
 struct WeeklyGoalSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var viewModel: DashboardViewModel
     @State private var goalMinutes: Int
-    
+
     init(viewModel: DashboardViewModel) {
         self.viewModel = viewModel
         _goalMinutes = State(initialValue: viewModel.userProfile?.weeklyGoalMinutes ?? 150)
     }
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
-                
-                VStack(spacing: 24) {
+                LinearGradient.dashboardBackground
+                    .ignoresSafeArea()
+
+                VStack(spacing: 28) {
+                    // Header
                     VStack(spacing: 8) {
+                        IconBadge(systemName: "flame.fill", color: .appAccent, size: 48)
+
                         Text("Weekly Workout Goal")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
-                        
+
                         Text("Set your target workout minutes per week")
                             .font(.subheadline)
-                            .foregroundStyle(Color.appText.opacity(0.7))
+                            .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                     }
                     .padding(.top, 20)
-                    
-                    // Picker for goal
+
+                    // Large value display
                     VStack(spacing: 16) {
-                        Text("\(goalMinutes) minutes")
-                            .font(.system(size: 48, weight: .bold))
+                        Text("\(goalMinutes)")
+                            .font(.system(size: 56, weight: .bold, design: .rounded))
                             .foregroundStyle(Color.appAccent)
-                        
+                            .contentTransition(.numericText())
+                            .animation(.spring(response: 0.3), value: goalMinutes)
+
+                        Text("minutes per week")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Color.appTertiaryText)
+
                         Picker("Goal", selection: $goalMinutes) {
                             ForEach([30, 60, 90, 120, 150, 180, 210, 240, 270, 300], id: \.self) { minutes in
                                 Text("\(minutes) min").tag(minutes)
                             }
                         }
                         .pickerStyle(.wheel)
-                        .frame(height: 150)
+                        .frame(height: 140)
                     }
-                    
-                    // Suggestions
-                    VStack(alignment: .leading, spacing: 12) {
+
+                    // Suggested goals
+                    VStack(alignment: .leading, spacing: 10) {
                         Text("Suggested Goals")
-                            .font(.caption)
-                            .foregroundStyle(Color.appText.opacity(0.6))
-                        
-                        HStack(spacing: 12) {
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.appSecondaryText)
+                            .padding(.horizontal, 4)
+
+                        HStack(spacing: 10) {
                             GoalButton(minutes: 150, currentGoal: $goalMinutes, label: "Recommended")
                             GoalButton(minutes: 210, currentGoal: $goalMinutes, label: "Active")
                             GoalButton(minutes: 300, currentGoal: $goalMinutes, label: "Athlete")
                         }
                     }
                     .padding(.horizontal)
-                    
+
                     Spacer()
                 }
             }
@@ -77,7 +88,7 @@ struct WeeklyGoalSheet: View {
                     }
                     .foregroundStyle(Color.appText)
                 }
-                
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         Task {
@@ -98,23 +109,46 @@ struct GoalButton: View {
     let minutes: Int
     @Binding var currentGoal: Int
     let label: String
-    
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var isSelected: Bool { currentGoal == minutes }
+
     var body: some View {
         Button {
-            currentGoal = minutes
-        } label: {
-            VStack(spacing: 4) {
-                Text("\(minutes)")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                Text(label)
-                    .font(.caption)
+            let impact = UIImpactFeedbackGenerator(style: .light)
+            impact.impactOccurred()
+            withAnimation(.spring(response: 0.3)) {
+                currentGoal = minutes
             }
-            .foregroundStyle(currentGoal == minutes ? Color.appText : Color.appText)
+        } label: {
+            VStack(spacing: 5) {
+                Text("\(minutes)")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                Text(label)
+                    .font(.caption2.weight(.medium))
+            }
+            .foregroundStyle(isSelected ? .white : Color.appText)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(currentGoal == minutes ? Color.appAccent : Color.appSurface)
-            .cornerRadius(12)
+            .padding(.vertical, 14)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(isSelected ? AnyShapeStyle(LinearGradient.accentGradient) : AnyShapeStyle(Color.appSurface))
+                    .overlay {
+                        if !isSelected && colorScheme == .dark {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        }
+                    }
+                    .shadow(
+                        color: isSelected
+                            ? Color.appAccent.opacity(0.3)
+                            : (colorScheme == .light ? Color.black.opacity(0.06) : Color.clear),
+                        radius: isSelected ? 8 : 6,
+                        x: 0,
+                        y: isSelected ? 4 : 3
+                    )
+            }
         }
+        .buttonStyle(ScalePressStyle())
     }
 }

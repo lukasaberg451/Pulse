@@ -7,46 +7,56 @@ import SwiftUI
 
 struct MilestonesSection: View {
     @ObservedObject var viewModel: MilestoneViewModel
-    
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Milestones")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.title3.weight(.bold))
                     .foregroundStyle(Color.appText)
-                
+
                 Spacer()
-                
+
                 if !viewModel.allMilestones.isEmpty {
                     NavigationLink(destination: AllMilestonesView(viewModel: viewModel)) {
                         Text("See All")
-                            .font(.subheadline)
+                            .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.appAccent)
                     }
                 }
             }
             .padding(.horizontal)
-            
+
             if viewModel.allMilestones.isEmpty && !viewModel.isLoading {
-                VStack(spacing: 12) {
-                    Image(systemName: "trophy")
-                        .font(.largeTitle)
-                        .foregroundStyle(Color.appAccent.opacity(0.4))
-                    
+                VStack(spacing: 14) {
+                    IconBadge(systemName: "trophy", size: 48)
+
                     Text("No Milestones Yet")
-                        .font(.headline)
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
-                    
+
                     Text("Complete your first workout to start tracking milestones!")
                         .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.6))
+                        .foregroundStyle(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(32)
-                .background(Color.appSurface)
-                .cornerRadius(12)
+                .padding(28)
+                .background {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Color.appSurface)
+                        .overlay {
+                            if colorScheme == .dark {
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                            }
+                        }
+                        .shadow(
+                            color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear,
+                            radius: 16, x: 0, y: 6
+                        )
+                }
                 .padding(.horizontal)
             } else {
                 ForEach(viewModel.inProgressMilestones.prefix(3)) { milestone in
@@ -60,37 +70,38 @@ struct MilestonesSection: View {
 // MARK: - All Milestones View
 struct AllMilestonesView: View {
     @ObservedObject var viewModel: MilestoneViewModel
-    
+
     var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
-            
+            LinearGradient.dashboardBackground
+                .ignoresSafeArea()
+
             ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: 20) {
                     // In Progress
                     if !viewModel.inProgressMilestones.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("In Progress")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.appText.opacity(0.7))
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.appSecondaryText)
+                                .textCase(.uppercase)
                                 .padding(.horizontal)
-                            
+
                             ForEach(viewModel.inProgressMilestones) { milestone in
                                 MilestoneRow(milestone: milestone)
                             }
                         }
                     }
-                    
+
                     // Achieved
                     if !viewModel.achievedMilestones.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Achieved")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.appText.opacity(0.7))
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.appSecondaryText)
+                                .textCase(.uppercase)
                                 .padding(.horizontal)
-                            
+
                             ForEach(viewModel.achievedMilestones) { milestone in
                                 AchievedMilestoneRow(
                                     milestone: milestone,
@@ -115,52 +126,47 @@ struct AllMilestonesView: View {
 // MARK: - In-Progress Row
 struct MilestoneRow: View {
     let milestone: UserMilestone
-    
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         VStack(spacing: 12) {
-            HStack {
-                Image(systemName: milestone.icon)
-                    .font(.title3)
-                    .foregroundStyle(Color.appAccent)
-                    .frame(width: 32)
-                
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 12) {
+                IconBadge(systemName: milestone.icon, color: .appAccent, size: 38)
+
+                VStack(alignment: .leading, spacing: 3) {
                     Text(milestone.name)
-                        .font(.headline)
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
-                    
+
                     Text(milestone.description)
                         .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.6))
+                        .foregroundStyle(Color.appSecondaryText)
                 }
-                
+
                 Spacer()
-                
+
                 Text("\(Int(milestone.currentValue))/\(Int(milestone.targetValue))")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.appText.opacity(0.8))
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Color.appAccent)
             }
-            
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color.appAccent.opacity(0.15))
-                        .frame(height: 6)
-                    
-                    Capsule()
-                        .fill(Color.appAccent)
-                        .frame(
-                            width: max(6, geometry.size.width * milestone.progress),
-                            height: 6
-                        )
-                }
-            }
-            .frame(height: 6)
+
+            PremiumProgressBar(progress: milestone.progress, height: 8)
         }
-        .padding()
-        .background(Color.appSurface)
-        .cornerRadius(12)
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.appSurface)
+                .overlay {
+                    if colorScheme == .dark {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                    }
+                }
+                .shadow(
+                    color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear,
+                    radius: 16, x: 0, y: 6
+                )
+        }
         .padding(.horizontal)
     }
 }
@@ -169,33 +175,43 @@ struct MilestoneRow: View {
 struct AchievedMilestoneRow: View {
     let milestone: UserMilestone
     let formattedDate: String
-    
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        HStack {
-            Image(systemName: milestone.icon)
-                .font(.title3)
-                .foregroundStyle(.green)
-                .frame(width: 32)
-            
-            VStack(alignment: .leading, spacing: 2) {
+        HStack(spacing: 12) {
+            IconBadge(systemName: milestone.icon, color: .green, size: 38)
+
+            VStack(alignment: .leading, spacing: 3) {
                 Text(milestone.name)
-                    .font(.headline)
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
-                
+
                 Text(formattedDate)
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.6))
+                    .foregroundStyle(Color.appSecondaryText)
             }
-            
+
             Spacer()
-            
+
             Image(systemName: "checkmark.circle.fill")
-                .font(.title2)
+                .font(.title3)
                 .foregroundStyle(.green)
         }
-        .padding()
-        .background(Color.appSurface)
-        .cornerRadius(12)
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.appSurface)
+                .overlay {
+                    if colorScheme == .dark {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                    }
+                }
+                .shadow(
+                    color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear,
+                    radius: 16, x: 0, y: 6
+                )
+        }
         .padding(.horizontal)
     }
 }

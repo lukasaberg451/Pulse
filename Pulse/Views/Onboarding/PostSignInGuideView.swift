@@ -77,10 +77,13 @@ struct PostSignInGuideView: View {
         )
     ]
     
+    @Environment(\.colorScheme) private var colorScheme
+    
     var body: some View {
         ZStack {
             // Semi-transparent background
-            Color.black.opacity(0.6)
+            Rectangle()
+                .fill(.ultraThinMaterial)
                 .ignoresSafeArea()
                 .onTapGesture {
                 }
@@ -89,17 +92,15 @@ struct PostSignInGuideView: View {
             VStack(spacing: 0) {
                
                 // Content
-                VStack(spacing: 24) {
+                VStack(spacing: 20) {
                     // Icon
-                    Image(systemName: steps[currentStep].icon)
-                        .font(.largeTitle)
-                        .foregroundStyle(Color.appAccent)
-                        .id(currentStep) // Force animation on change
+                    IconBadge(systemName: steps[currentStep].icon, size: 56)
+                        .id(currentStep)
                         .transition(.scale.combined(with: .opacity))
                     
                     // Title
                     Text(steps[currentStep].title)
-                        .font(.title2.weight(.bold))
+                        .font(.title3.weight(.bold))
                         .foregroundStyle(Color.appText)
                         .multilineTextAlignment(.center)
                         .id("title\(currentStep)")
@@ -107,10 +108,11 @@ struct PostSignInGuideView: View {
                     
                     // Description
                     Text(steps[currentStep].description)
-                        .font(.body)
-                        .foregroundStyle(Color.appText.opacity(0.8))
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 20)
+                        .lineSpacing(2)
+                        .padding(.horizontal, 16)
                         .id("desc\(currentStep)")
                         .transition(.opacity)
                     
@@ -118,35 +120,34 @@ struct PostSignInGuideView: View {
                     if let highlightTab = steps[currentStep].highlightTab {
                         HStack(spacing: 8) {
                             Image(systemName: "arrow.down.circle.fill")
+                                .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appAccent)
                             Text("Check the \(highlightTab) tab")
-                                .font(.subheadline)
+                                .font(.subheadline.weight(.medium))
                                 .foregroundStyle(Color.appAccent)
                         }
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 10)
                         .padding(.horizontal, 16)
-                        .background(Color.appAccent.opacity(0.15))
-                        .cornerRadius(12)
+                        .background(Color.appAccentSubtle, in: Capsule())
                         .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .padding(.vertical, 32)
+                .padding(.vertical, 28)
                 .padding(.horizontal, 24)
                 
                 // Progress dots
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     ForEach(0..<steps.count, id: \.self) { index in
-                        Circle()
-                            .fill(index == currentStep ? Color.appAccent : Color.appText.opacity(0.3))
-                            .frame(width: 8, height: 8)
-                            .scaleEffect(index == currentStep ? 1.2 : 1.0)
+                        Capsule()
+                            .fill(index == currentStep ? Color.appAccent : Color.appText.opacity(0.15))
+                            .frame(width: index == currentStep ? 20 : 8, height: 8)
                             .animation(.spring(response: 0.3), value: currentStep)
                     }
                 }
                 .padding(.vertical, 20)
                 
                 // Action button
-                Button {
+                PrimaryCTAButton(steps[currentStep].actionTitle) {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                         if currentStep < steps.count - 1 {
                             currentStep += 1
@@ -156,17 +157,9 @@ struct PostSignInGuideView: View {
                             isPresented = false
                         }
                     }
-                } label: {
-                    Text(steps[currentStep].actionTitle)
-                        .font(.headline)
-                        .foregroundStyle(Color.appText)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.appAccent)
-                        .cornerRadius(12)
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, 32)
+                .padding(.bottom, 24)
                 
                 // Skip option for non-final steps
                 if currentStep < steps.count - 1 {
@@ -176,16 +169,27 @@ struct PostSignInGuideView: View {
                         isPresented = false
                     } label: {
                         Text("Skip Guide")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.appText.opacity(0.5))
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Color.appTertiaryText)
                     }
                     .padding(.bottom, 16)
                 }
             }
             .frame(maxWidth: 500)
-            .background(Color.appSurface)
-            .cornerRadius(18)
-            .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: 10)
+            .background {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color.appSurface)
+                    .overlay {
+                        if colorScheme == .dark {
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        }
+                    }
+                    .shadow(
+                        color: colorScheme == .light ? .black.opacity(0.12) : .clear,
+                        radius: 24, x: 0, y: 12
+                    )
+            }
             .padding(32)
         }
     }

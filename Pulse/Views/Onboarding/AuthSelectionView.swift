@@ -11,11 +11,12 @@ struct AuthSelectionView: View {
     @ObservedObject var authViewModel: AuthViewModel
     @State private var showingSignUp = false
     @State private var showingSignIn = false
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
             
                 if showingSignUp {
                     RegisterSelectionView(authViewModel: authViewModel, showingSignUp: $showingSignUp, showingSignIn: $showingSignIn)
@@ -26,43 +27,46 @@ struct AuthSelectionView: View {
                         Spacer()
                         
                         // App branding
-                        VStack(spacing: 16) {
+                        VStack(spacing: 20) {
                             Image(.logo)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 140, height: 80)
                         
                             Text("Your Fitness Journey Starts Here")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.appText.opacity(0.7))
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
                         }
                     
                         Spacer()
                     
                         // Auth buttons
-                        VStack(spacing: 16) {
-                            NavigationLink {
+                        VStack(spacing: 14) {
+                            PrimaryCTALink("Let's Get Started") {
                                 RegisterSelectionView(authViewModel: authViewModel, showingSignUp: $showingSignUp, showingSignIn: $showingSignIn)
-                            } label: {
-                                Text("Let's Get Started")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.appText)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.appAccent)
-                                    .cornerRadius(12)
                             }
+                            
                             NavigationLink {
                                 LoginView(authViewModel: authViewModel, showingSignIn: $showingSignIn)
                             } label: {
                                 Text("Already Have an Account")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.appAccent)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(Color.appText)
                                     .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .frame(height: 52)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .fill(Color.appSurface)
+                                            .overlay {
+                                                if colorScheme == .dark {
+                                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                                }
+                                            }
+                                            .shadow(color: colorScheme == .light ? .black.opacity(0.06) : .clear, radius: 8, x: 0, y: 4)
+                                    }
                             }
+                            .buttonStyle(ScalePressStyle())
                         }
                         .padding(.horizontal, 24)
                         .padding(.bottom, 40)

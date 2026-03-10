@@ -49,166 +49,83 @@ struct ScheduleContentView: View {
     @State private var isEditMode = false
     @State private var scheduledToDelete: ScheduledWorkout?
     @State private var showingDeleteAlert = false
-    
+    @State private var monthChangeDirection: Edge = .trailing
+
     var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Month/Year selector
-                HStack {
-                    Button {
-                        viewModel.previousMonth()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .foregroundStyle(Color.appText)
-                    }
-                    
-                    Spacer()
-                    
-                    Text(viewModel.currentMonthYear)
-                        .font(.headline)
-                        .foregroundStyle(Color.appText)
-                    
-                    Spacer()
-                    
-                    Button {
-                        viewModel.nextMonth()
-                    } label: {
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(Color.appText)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 30)
-                .padding(.bottom, 16)
-                
-                // Calendar Grid
-                CalendarGridView(
-                    viewModel: viewModel,
-                    selectedDate: $selectedDate,
-                    onDateSelected: { date in
-                        selectedDate = date
-                    }
-                )
-                
-                Divider()
-                    .background(Color.appSurface)
-                
-                // Scheduled workouts for selected date
-                VStack(alignment: .leading, spacing: 8) {
+            LinearGradient.dashboardBackground
+                .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Month/Year selector
                     HStack {
-                        Text("Scheduled for \(viewModel.formattedDate(selectedDate))")
-                            .font(.headline)
-                            .foregroundStyle(Color.appText)
-                        
-                        Spacer()
-                        
-                        // Show Edit button only if there are non-completed workouts
-                        if !viewModel.scheduledWorkouts(for: selectedDate).isEmpty &&
-                           viewModel.scheduledWorkouts(for: selectedDate).contains(where: { !$0.completed }) {
-                            Button {
-                                withAnimation {
-                                    isEditMode.toggle()
-                                }
-                            } label: {
-                                Text(isEditMode ? "Done" : "Edit")
-                                    .foregroundStyle(Color.appAccent)
-                                    .font(.subheadline)
+                        Button {
+                            monthChangeDirection = .leading
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.previousMonth()
                             }
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.body.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
+                                .frame(width: 36, height: 36)
+                                .contentShape(Rectangle())
                         }
+                        .buttonStyle(ScalePressStyle())
+
+                        Spacer()
+
+                        Text(viewModel.currentMonthYear)
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(Color.appText)
+                            .id(viewModel.currentMonthYear)
+                            .transition(.push(from: monthChangeDirection))
+
+                        Spacer()
+
+                        Button {
+                            monthChangeDirection = .trailing
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.nextMonth()
+                            }
+                        } label: {
+                            Image(systemName: "chevron.right")
+                                .font(.body.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
+                                .frame(width: 36, height: 36)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(ScalePressStyle())
                     }
                     .padding(.horizontal)
-                    .padding(.top)
-                    
-                    if viewModel.scheduledWorkouts(for: selectedDate).isEmpty {
-                        VStack(spacing: 12) {
-                            Text("No workouts scheduled")
-                                .foregroundStyle(Color.appText.opacity(0.6))
-                                .padding(.top, 20)
-                            
-                            Button {
-                                // Exit edit mode if active
-                                if isEditMode {
-                                    withAnimation {
-                                        isEditMode = false
-                                    }
-                                }
-                                let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                impactLight.impactOccurred()
-                                showingRoutinePicker = true
-                            } label: {
-                                Text("Add Workout")
-                                    .foregroundStyle(Color.appText)
-                                    .padding(.horizontal, 24)
-                                    .padding(.vertical, 12)
-                                    .background(Color.appAccent)
-                                    .cornerRadius(12)
-                            }
+                    .padding(.top, 32)
+                    .padding(.bottom, 12)
+
+                    // Calendar Grid
+                    CalendarGridView(
+                        viewModel: viewModel,
+                        selectedDate: $selectedDate,
+                        onDateSelected: { date in
+                            selectedDate = date
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                    } else {
-                        ScrollView {
-                            VStack(spacing: 12) {
-                                ForEach(viewModel.scheduledWorkouts(for: selectedDate)) { scheduled in
-                                    if let routineId = scheduled.routineId,
-                                       let routine = viewModel.routine(for: routineId) {
-                                        ScheduledWorkoutCard(
-                                            routine: routine,
-                                            scheduled: scheduled,
-                                            isEditMode: isEditMode,
-                                            exerciseCount: viewModel.exerciseCount(for: routine.id),
-                                            viewModel: viewModel,
-                                            onDelete: {
-                                                scheduledToDelete = scheduled
-                                                showingDeleteAlert = true
-                                            }
-                                        )
-                                    } else if scheduled.routineDeleted == true || scheduled.routineId == nil {
-                                        DeletedRoutineWorkoutCard(
-                                            scheduled: scheduled,
-                                            viewModel: viewModel,
-                                            isEditMode: isEditMode,
-                                            onDelete: {
-                                                scheduledToDelete = scheduled
-                                                showingDeleteAlert = true
-                                            }
-                                        )
-                                    }
-                                }
-                                
-                                // Add button below the cards
-                                Button {
-                                    // Exit edit mode if active
-                                    if isEditMode {
-                                        withAnimation {
-                                            isEditMode = false
-                                        }
-                                    }
-                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                    impactLight.impactOccurred()
-                                    showingRoutinePicker = true
-                                } label: {
-                                    HStack {
-                                        Image(systemName: "plus.circle.fill")
-                                            .font(.title3)
-                                        Text("Add Workout")
-                                            .font(.headline)
-                                    }
-                                    .foregroundStyle(Color.appAccent)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
-                                }
-                            }
-                            .padding()
+                    )
+
+                    // Scheduled workouts section in a card
+                    ScheduledSectionCard(
+                        viewModel: viewModel,
+                        selectedDate: selectedDate,
+                        isEditMode: $isEditMode,
+                        showingRoutinePicker: $showingRoutinePicker,
+                        onDeleteScheduled: { scheduled in
+                            scheduledToDelete = scheduled
+                            showingDeleteAlert = true
                         }
-                    }
+                    )
+                    .padding(.horizontal)
+                    .padding(.top, 12)
+                    .padding(.bottom, 24)
                 }
-                
-                Spacer()
             }
         }
         .sheet(isPresented: $showingRoutinePicker) {
@@ -225,8 +142,7 @@ struct ScheduleContentView: View {
                     notificationFeedback.notificationOccurred(.warning)
                     Task {
                         await viewModel.deleteScheduled(scheduled)
-                        
-                        // Exit edit mode if no non-completed workouts remain
+
                         if !viewModel.scheduledWorkouts(for: selectedDate).contains(where: { !$0.completed }) {
                             withAnimation {
                                 isEditMode = false
@@ -249,6 +165,142 @@ struct ScheduleContentView: View {
         }
     }
 }
+
+// MARK: - Scheduled Section Card
+
+/// The bottom section showing workouts for the selected date, wrapped in a modern card.
+private struct ScheduledSectionCard: View {
+    @ObservedObject var viewModel: ScheduleViewModel
+    let selectedDate: Date
+    @Binding var isEditMode: Bool
+    @Binding var showingRoutinePicker: Bool
+    let onDeleteScheduled: (ScheduledWorkout) -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var workouts: [ScheduledWorkout] {
+        viewModel.scheduledWorkouts(for: selectedDate)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header row
+            HStack {
+                Text("Scheduled for \(viewModel.formattedDate(selectedDate))")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.appText)
+
+                Spacer()
+
+                if !workouts.isEmpty && workouts.contains(where: { !$0.completed }) {
+                    Button {
+                        withAnimation(.spring(response: 0.3)) {
+                            isEditMode.toggle()
+                        }
+                    } label: {
+                        Text(isEditMode ? "Done" : "Edit")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Color.appAccent)
+                    }
+                }
+            }
+
+            if workouts.isEmpty {
+                // Empty state
+                VStack(spacing: 14) {
+                    IconBadge(systemName: "calendar.badge.plus", size: 44)
+
+                    Text("No workouts scheduled")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
+
+                    PrimaryCTAButton("Add Workout", icon: "plus") {
+                        if isEditMode {
+                            withAnimation { isEditMode = false }
+                        }
+                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                        impactLight.impactOccurred()
+                        showingRoutinePicker = true
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(workouts) { scheduled in
+                        if let routineId = scheduled.routineId,
+                           let routine = viewModel.routine(for: routineId) {
+                            ScheduledWorkoutCard(
+                                routine: routine,
+                                scheduled: scheduled,
+                                isEditMode: isEditMode,
+                                exerciseCount: viewModel.exerciseCount(for: routine.id),
+                                viewModel: viewModel,
+                                onDelete: {
+                                    onDeleteScheduled(scheduled)
+                                }
+                            )
+                        } else if scheduled.routineDeleted == true || scheduled.routineId == nil {
+                            DeletedRoutineWorkoutCard(
+                                scheduled: scheduled,
+                                viewModel: viewModel,
+                                isEditMode: isEditMode,
+                                onDelete: {
+                                    onDeleteScheduled(scheduled)
+                                }
+                            )
+                        }
+                    }
+
+                    // Inline add button
+                    Button {
+                        if isEditMode {
+                            withAnimation { isEditMode = false }
+                        }
+                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                        impactLight.impactOccurred()
+                        showingRoutinePicker = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.body)
+                                .symbolRenderingMode(.hierarchical)
+                            Text("Add Workout")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .foregroundStyle(Color.appAccent)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(Color.appAccentSubtle)
+                        }
+                    }
+                    .buttonStyle(ScalePressStyle())
+                }
+            }
+        }
+        .padding(16)
+        .background {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.appSurface)
+                .overlay {
+                    if colorScheme == .dark {
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                    }
+                }
+                .shadow(
+                    color: colorScheme == .light
+                        ? Color.black.opacity(0.08)
+                        : Color.clear,
+                    radius: 16,
+                    x: 0,
+                    y: 6
+                )
+        }
+    }
+}
                    
 struct ScheduledWorkoutCard: View {
     let routine: Routine
@@ -257,29 +309,29 @@ struct ScheduledWorkoutCard: View {
     let exerciseCount: Int
     @ObservedObject var viewModel: ScheduleViewModel
     let onDelete: () -> Void
-    
+
+    @Environment(\.colorScheme) private var colorScheme
     @State private var showingActiveWorkout = false
-    
+
     var body: some View {
         HStack(spacing: 12) {
-            // Delete button (only for non-completed workouts in edit mode)
             if isEditMode && !scheduled.completed {
                 Button {
                     onDelete()
                 } label: {
                     Image(systemName: "minus.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(Color.red)
+                        .foregroundStyle(.red)
                 }
                 .transition(.scale.combined(with: .opacity))
             }
-            
+
             if scheduled.completed, let sessionId = scheduled.workoutSessionId,
                let session = viewModel.workoutSession(for: sessionId) {
                 NavigationLink(destination: WorkoutDetailView(workoutSession: session)) {
                     scheduledWorkoutContent
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(.plain)
             } else {
                 scheduledWorkoutContent
             }
@@ -295,55 +347,63 @@ struct ScheduledWorkoutCard: View {
             )
         }
     }
-    
+
     private var scheduledWorkoutContent: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 12) {
+            IconBadge(
+                systemName: "figure.strengthtraining.traditional",
+                color: .appAccent,
+                size: 38
+            )
+
+            VStack(alignment: .leading, spacing: 3) {
                 Text(routine.name)
-                    .font(.headline)
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "figure.strengthtraining.traditional")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.appAccent)
-                    Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
-                        .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.6))
-                }
-                
+
+                Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
+                    .font(.caption)
+                    .foregroundStyle(Color.appSecondaryText)
+
                 if scheduled.completed {
                     Label("Completed", systemImage: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(Color.green)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.green)
                 }
             }
-            
+
             Spacer()
-            
+
             if !scheduled.completed {
                 Button {
                     showingActiveWorkout = true
                     PostHogSDK.shared.capture("scheduled_workout_started​")
                 } label: {
                     Text("Start")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.appText)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color.appAccent)
-                        .cornerRadius(12)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 9)
+                        .background(LinearGradient.accentGradient, in: Capsule())
                 }
+                .buttonStyle(ScalePressStyle())
             } else {
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(Color.appText.opacity(0.3))
-                    .font(.system(size: 14))
+                    .foregroundStyle(Color.appTertiaryText)
+                    .font(.system(size: 13, weight: .semibold))
             }
         }
-        .padding()
-        .background(Color.appSurface)
-        .cornerRadius(12)
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.appBackground)
+                .overlay {
+                    if colorScheme == .dark {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                    }
+                }
+        }
     }
 }
 
@@ -352,7 +412,9 @@ struct DeletedRoutineWorkoutCard: View {
     @ObservedObject var viewModel: ScheduleViewModel
     let isEditMode: Bool
     let onDelete: () -> Void
-    
+
+    @Environment(\.colorScheme) private var colorScheme
+
     private var sessionName: String {
         if let sessionId = scheduled.workoutSessionId,
            let session = viewModel.workoutSession(for: sessionId) {
@@ -360,7 +422,7 @@ struct DeletedRoutineWorkoutCard: View {
         }
         return "Deleted Routine"
     }
-    
+
     var body: some View {
         HStack(spacing: 12) {
             if isEditMode && !scheduled.completed {
@@ -369,81 +431,93 @@ struct DeletedRoutineWorkoutCard: View {
                 } label: {
                     Image(systemName: "minus.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(Color.red)
+                        .foregroundStyle(.red)
                 }
                 .transition(.scale.combined(with: .opacity))
             }
-            
+
             if scheduled.completed, let sessionId = scheduled.workoutSessionId,
                let session = viewModel.workoutSession(for: sessionId) {
                 NavigationLink(destination: WorkoutDetailView(workoutSession: session)) {
                     cardContent
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(.plain)
             } else {
                 cardContent
             }
         }
         .animation(.spring(response: 0.3), value: isEditMode)
     }
-    
+
     private var cardContent: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 12) {
+            IconBadge(systemName: "trash", color: Color.appTertiaryText, size: 38)
+
+            VStack(alignment: .leading, spacing: 3) {
                 Text(sessionName)
-                    .font(.headline)
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.appText.opacity(0.4))
-                    Text("Routine deleted")
-                        .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.4))
-                }
-                
+
+                Text("Routine deleted")
+                    .font(.caption)
+                    .foregroundStyle(Color.appTertiaryText)
+
                 if scheduled.completed {
                     Label("Completed", systemImage: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(Color.green)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.green)
                 }
             }
-            
+
             Spacer()
-            
+
             if scheduled.completed {
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(Color.appText.opacity(0.3))
-                    .font(.system(size: 14))
+                    .foregroundStyle(Color.appTertiaryText)
+                    .font(.system(size: 13, weight: .semibold))
             }
         }
-        .padding()
-        .background(Color.appSurface)
-        .cornerRadius(12)
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.appBackground)
+                .overlay {
+                    if colorScheme == .dark {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                    }
+                }
+        }
     }
 }
 
 struct RoutinePickerSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var viewModel: ScheduleViewModel
     let selectedDate: Date
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground
+                    .ignoresSafeArea()
+
                 if viewModel.routines.isEmpty {
                     VStack(spacing: 16) {
-                        Image(systemName: "figure.strengthtraining.traditional")
-                            .font(.system(size: 60))
-                            .foregroundStyle(Color.appAccent.opacity(0.4))
+                        IconBadge(
+                            systemName: "figure.strengthtraining.traditional",
+                            size: 56
+                        )
                         Text("No Routines Yet")
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         Text("Go to Routines tab to create your first routine")
-                            .foregroundStyle(Color.appText.opacity(0.7))
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
+                            .multilineTextAlignment(.center)
                     }
+                    .padding()
                 } else {
                     List(viewModel.routines) { routine in
                         RoutinePickerRow(
@@ -481,35 +555,59 @@ struct RoutinePickerRow: View {
     let routine: Routine
     let exerciseCount: Int
     let onSelect: () -> Void
-    
+
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         Button(action: onSelect) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 12) {
+                IconBadge(
+                    systemName: "figure.strengthtraining.traditional",
+                    color: .appAccent,
+                    size: 38
+                )
+
+                VStack(alignment: .leading, spacing: 3) {
                     Text(routine.name)
-                        .font(.headline)
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
-                    
-                    HStack(spacing: 4) {
-                        Image(systemName: "figure.strengthtraining.traditional")
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.appAccent)
-                        Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
-                            .font(.caption)
-                            .foregroundStyle(Color.appText.opacity(0.6))
-                    }
+
+                    Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
+                        .font(.caption)
+                        .foregroundStyle(Color.appSecondaryText)
                 }
-                
+
                 Spacer()
+
+                Image(systemName: "plus.circle.fill")
+                    .font(.title3)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(Color.appAccent)
             }
-            .padding()
-            .background(Color.appSurface)
-            .cornerRadius(12)
+            .padding(14)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.appSurface)
+                    .overlay {
+                        if colorScheme == .dark {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                        }
+                    }
+                    .shadow(
+                        color: colorScheme == .light
+                            ? Color.black.opacity(0.06)
+                            : Color.clear,
+                        radius: 8,
+                        x: 0,
+                        y: 3
+                    )
+            }
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(ScalePressStyle())
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
-        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+        .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
     }
 }
 
@@ -523,44 +621,54 @@ struct RoutineContentView: View {
     @State private var routineToDelete: Routine?
     @State private var showingDeleteAlert = false
     @Binding var routineToNavigateTo: Routine?
-    
+
     private var canCreateRoutine: Bool {
         subscriptionManager.isProUser || viewModel.routines.count < SubscriptionManager.freeRoutineLimit
     }
-    
+
     var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
-            
+            LinearGradient.dashboardBackground
+                .ignoresSafeArea()
+
             Group {
                 if viewModel.isLoading {
-                    ProgressView("Loading routines...")
-                        .foregroundStyle(Color.appText)
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .tint(Color.appAccent)
+                        Text("Loading routines...")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
+                    }
                 } else if let error = viewModel.errorMessage {
-                    VStack {
-                        Text("Error")
+                    VStack(spacing: 14) {
+                        IconBadge(systemName: "exclamationmark.triangle", color: .red, size: 48)
+                        Text("Something went wrong")
                             .font(.headline)
                             .foregroundStyle(Color.appText)
                         Text(error)
-                            .foregroundStyle(Color.appText.opacity(0.7))
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
-                        Button("Retry") {
+                        PrimaryCTAButton("Retry", icon: "arrow.clockwise") {
                             Task { await viewModel.loadRoutines() }
                         }
-                        .foregroundStyle(Color.appAccent)
+                        .frame(width: 160)
                     }
                     .padding()
                 } else if viewModel.routines.isEmpty {
                     VStack(spacing: 16) {
-                        Image(systemName: "figure.strengthtraining.traditional")
-                            .font(.system(size: 60))
-                            .foregroundStyle(Color.appAccent.opacity(0.4))
+                        IconBadge(
+                            systemName: "figure.strengthtraining.traditional",
+                            size: 56
+                        )
                         Text("No Routines Yet")
-                            .font(.headline)
+                            .font(.title3.weight(.semibold))
                             .foregroundStyle(Color.appText)
                         Text("Create your first workout routine")
-                            .foregroundStyle(Color.appText.opacity(0.7))
-                        Button("Create Routine") {
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
+                        PrimaryCTAButton("Create Routine", icon: "plus") {
                             let impactLight = UIImpactFeedbackGenerator(style: .light)
                             impactLight.impactOccurred()
                             if canCreateRoutine {
@@ -569,20 +677,15 @@ struct RoutineContentView: View {
                                 showingPaywall = true
                             }
                         }
-                        .foregroundStyle(Color.appText)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .background(Color.appAccent)
-                        .cornerRadius(12)
+                        .frame(width: 220)
                     }
                 } else {
                     VStack(spacing: 0) {
-                        // Header with edit and new routine buttons
+                        // Header with new routine and edit buttons
                         HStack {
                             Button {
-                                // Exit edit mode if active
                                 if isEditMode {
-                                    withAnimation {
+                                    withAnimation(.spring(response: 0.3)) {
                                         isEditMode = false
                                     }
                                 }
@@ -594,33 +697,37 @@ struct RoutineContentView: View {
                                     showingPaywall = true
                                 }
                             } label: {
-                                Text("New Routine")
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color.appText)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(Color.appAccent)
-                                    .cornerRadius(12)
+                                HStack(spacing: 6) {
+                                    Image(systemName: "plus")
+                                        .font(.caption.weight(.bold))
+                                    Text("New Routine")
+                                        .font(.subheadline.weight(.semibold))
+                                }
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 9)
+                                .background(LinearGradient.accentGradient, in: Capsule())
                             }
-                            
+                            .buttonStyle(ScalePressStyle())
+
                             Spacer()
-                            
+
                             Button {
-                                withAnimation {
+                                withAnimation(.spring(response: 0.3)) {
                                     isEditMode.toggle()
                                 }
                             } label: {
-                                Text(isEditMode ? "Done" : "Delete Routine")
+                                Text(isEditMode ? "Done" : "Edit")
+                                    .font(.subheadline.weight(.medium))
                                     .foregroundStyle(Color.appAccent)
-                                    .font(.subheadline)
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.top, 30)
+                        .padding(.top, 24)
                         .padding(.bottom, 12)
-                        
+
                         ScrollView {
-                            LazyVStack(spacing: 12) {
+                            LazyVStack(spacing: 10) {
                                 ForEach(viewModel.routines) { routine in
                                     RoutineRow(
                                         routine: routine,
@@ -661,8 +768,7 @@ struct RoutineContentView: View {
                     notificationFeedback.notificationOccurred(.warning)
                     Task {
                         await viewModel.deleteRoutine(routine)
-                        
-                        // Exit edit mode if no routines remain
+
                         if viewModel.routines.isEmpty {
                             withAnimation {
                                 isEditMode = false
@@ -681,50 +787,139 @@ struct RoutineContentView: View {
                 await viewModel.loadRoutines()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .routineDataChanged)) { _ in
+            Task { await viewModel.loadRoutines() }
+        }
     }
 }
 
 struct CreateRoutineSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var viewModel: RoutineListViewModel
     let onRoutineCreated: (Routine) -> Void
     @State private var name = ""
     @State private var description = ""
-    
+    @State private var isCreating = false
+    @FocusState private var focusedField: Field?
+
+    private enum Field { case name, notes }
+
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
-                
-                VStack(alignment: .leading, spacing: 20) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Routine Name")
-                            .font(.headline)
+                LinearGradient.dashboardBackground
+                    .ignoresSafeArea()
+
+                VStack(spacing: 28) {
+                    // Header
+                    VStack(spacing: 8) {
+                        IconBadge(systemName: "plus.circle.fill", color: .appAccent, size: 48)
+
+                        Text("New Routine")
+                            .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
-                        
-                        TextField("Push Day", text: $name)
-                            .padding()
-                            .background(Color.appSurface)
-                            .foregroundStyle(Color.appText)
-                            .cornerRadius(12)
+
+                        Text("Give your routine a name to get started")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
+                            .multilineTextAlignment(.center)
                     }
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Notes (Optional)")
-                            .font(.headline)
-                            .foregroundStyle(Color.appText)
-                        
-                        TextField("Notes", text: $description, axis: .vertical)
-                            .padding()
-                            .background(Color.appSurface)
-                            .foregroundStyle(Color.appText)
-                            .cornerRadius(12)
-                            .lineLimit(3...6)
+                    .padding(.top, 20)
+
+                    // Form fields
+                    VStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Routine Name")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
+                                .padding(.horizontal, 4)
+
+                            TextField("e.g. Push Day, Upper Body", text: $name)
+                                .font(.body)
+                                .padding(14)
+                                .foregroundStyle(Color.appText)
+                                .focused($focusedField, equals: .name)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .strokeBorder(
+                                                    focusedField == .name
+                                                        ? Color.appAccent.opacity(0.5)
+                                                        : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
+                                                    lineWidth: 1
+                                                )
+                                        }
+                                        .shadow(
+                                            color: colorScheme == .light
+                                                ? Color.black.opacity(0.04)
+                                                : Color.clear,
+                                            radius: 6,
+                                            x: 0,
+                                            y: 2
+                                        )
+                                }
+                                .submitLabel(.next)
+                                .onSubmit { focusedField = .notes }
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Notes (Optional)")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
+                                .padding(.horizontal, 4)
+
+                            TextField("Add a description or notes", text: $description, axis: .vertical)
+                                .font(.body)
+                                .padding(14)
+                                .foregroundStyle(Color.appText)
+                                .focused($focusedField, equals: .notes)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .strokeBorder(
+                                                    focusedField == .notes
+                                                        ? Color.appAccent.opacity(0.5)
+                                                        : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
+                                                    lineWidth: 1
+                                                )
+                                        }
+                                        .shadow(
+                                            color: colorScheme == .light
+                                                ? Color.black.opacity(0.04)
+                                                : Color.clear,
+                                            radius: 6,
+                                            x: 0,
+                                            y: 2
+                                        )
+                                }
+                                .lineLimit(3...6)
+                        }
                     }
+                    .padding(.horizontal)
+
+                    // CTA Button
+                    PrimaryCTAButton("Create Routine", icon: "checkmark") {
+                        isCreating = true
+                        Task {
+                            if let newRoutine = await viewModel.createRoutine(name: name, description: description) {
+                                onRoutineCreated(newRoutine)
+                                dismiss()
+                            }
+                            isCreating = false
+                        }
+                    }
+                    .opacity(name.isEmpty ? 0.5 : 1.0)
+                    .disabled(name.isEmpty || isCreating)
+                    .padding(.horizontal)
+
                     Spacer()
                 }
-                .padding()
             }
-            .navigationTitle("Create Routine")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -734,19 +929,9 @@ struct CreateRoutineSheet: View {
                     }
                     .foregroundStyle(Color.appText)
                 }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Create") {
-                        Task {
-                            if let newRoutine = await viewModel.createRoutine(name: name, description: description) {
-                                onRoutineCreated(newRoutine)
-                                    dismiss()
-                            }
-                        }
-                    }
-                    .foregroundStyle(Color(name.isEmpty ? Color.appText.opacity(0.3) : Color.appAccent))
-                    .disabled(name.isEmpty)
-                }
+            }
+            .onAppear {
+                focusedField = .name
             }
         }
         .presentationBackground(Color.appBackground)
@@ -756,33 +941,52 @@ struct CreateRoutineSheet: View {
 struct RoutineCard: View {
     let routine: Routine
     let exerciseCount: Int
-    
+
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 12) {
+            IconBadge(
+                systemName: "figure.strengthtraining.traditional",
+                color: .appAccent,
+                size: 40
+            )
+
+            VStack(alignment: .leading, spacing: 3) {
                 Text(routine.name)
-                    .font(.headline)
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "figure.strengthtraining.traditional")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.appAccent)
-                    Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
-                        .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.6))
-                }
+
+                Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
+                    .font(.caption)
+                    .foregroundStyle(Color.appSecondaryText)
             }
-            
+
             Spacer()
-            
+
             Image(systemName: "chevron.right")
-                .foregroundStyle(Color.appText.opacity(0.3))
-                .font(.system(size: 14))
+                .foregroundStyle(Color.appTertiaryText)
+                .font(.system(size: 13, weight: .semibold))
         }
-        .padding()
-        .background(Color.appSurface)
-        .cornerRadius(12)
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.appSurface)
+                .overlay {
+                    if colorScheme == .dark {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                    }
+                }
+                .shadow(
+                    color: colorScheme == .light
+                        ? Color.black.opacity(0.06)
+                        : Color.clear,
+                    radius: 10,
+                    x: 0,
+                    y: 4
+                )
+        }
     }
 }
 
@@ -792,22 +996,20 @@ struct RoutineRow: View {
     let exerciseCount: Int
     let onTap: () -> Void
     let onDelete: () -> Void
-    
+
     var body: some View {
         HStack(spacing: 12) {
-            // Delete button in edit mode
             if isEditMode {
                 Button {
                     onDelete()
                 } label: {
                     Image(systemName: "minus.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(Color.red)
+                        .foregroundStyle(.red)
                 }
                 .transition(.scale.combined(with: .opacity))
             }
-            
-            // Card - always the same structure, just disable tap in edit mode
+
             Button {
                 if !isEditMode {
                     onTap()
@@ -818,7 +1020,7 @@ struct RoutineRow: View {
                     exerciseCount: exerciseCount
                 )
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(ScalePressStyle())
             .allowsHitTesting(!isEditMode)
         }
         .animation(.spring(response: 0.3), value: isEditMode)
@@ -831,34 +1033,34 @@ struct CalendarGridView: View {
     @ObservedObject var viewModel: ScheduleViewModel
     @Binding var selectedDate: Date
     let onDateSelected: (Date) -> Void
-    
+
     let columns = Array(repeating: GridItem(.flexible()), count: 7)
     let daysOfWeek = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
-    
+
     private var userCalendar: Calendar {
         viewModel.userCalendar
     }
-    
-    // Create identifiable calendar items
+
     private var calendarItems: [CalendarItem] {
         viewModel.calendarDays.enumerated().map { index, date in
             CalendarItem(id: index, date: date)
         }
     }
-    
+
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             // Day headers
-            LazyVGrid(columns: columns, spacing: 8) {
+            LazyVGrid(columns: columns, spacing: 10) {
                 ForEach(daysOfWeek, id: \.self) { day in
                     Text(day)
-                        .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.6))
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(Color.appTertiaryText)
+                        .textCase(.uppercase)
                 }
             }
-            
-            // Calendar days
-            LazyVGrid(columns: columns, spacing: 8) {
+
+            // Calendar days — fixed height for 6 rows so layout doesn't jump between months
+            LazyVGrid(columns: columns, spacing: 10) {
                 ForEach(calendarItems) { item in
                     if let date = item.date {
                         CalendarDayView(
@@ -870,17 +1072,24 @@ struct CalendarGridView: View {
                             isCompleted: viewModel.isWorkoutCompleted(on: date)
                         )
                         .onTapGesture {
-                            selectedDate = date
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                selectedDate = date
+                            }
                             onDateSelected(date)
                         }
                     } else {
                         Color.clear
-                            .frame(height: 44)
+                            .frame(height: 48)
                     }
                 }
             }
+            // 6 rows × 48pt + 5 gaps × 10pt = 338pt
+            .frame(height: 338, alignment: .top)
         }
-        .padding()
+        .padding(.horizontal)
+        .padding(.vertical, 8)
     }
 }
 
@@ -897,29 +1106,40 @@ struct CalendarDayView: View {
     let isToday: Bool
     let hasWorkout: Bool
     let isCompleted: Bool
-    
+
     var body: some View {
-        ZStack {
-            if isSelected {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.appAccent)
-            } else if isToday {
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.appAccent, lineWidth: 2)
-            }
-            
-            VStack(spacing: 2) {
-                Text("\(calendar.component(.day, from: date))")
-                    .font(.system(size: 16, weight: isToday ? .bold : .regular))
-                    .foregroundStyle(isSelected ? Color.appText : Color.appText)
-                
-                if hasWorkout {
+        VStack(spacing: 4) {
+            ZStack {
+                // Selected: filled circle
+                if isSelected {
                     Circle()
-                        .fill(isCompleted ? Color.green : Color.appAccent)
-                        .frame(width: 6, height: 6)
+                        .fill(Color.appAccent)
+                        .frame(width: 36, height: 36)
+                } else if isToday {
+                    // Today (not selected): thin orange ring
+                    Circle()
+                        .strokeBorder(Color.appAccent, lineWidth: 1.5)
+                        .frame(width: 36, height: 36)
                 }
+
+                Text("\(calendar.component(.day, from: date))")
+                    .font(.system(size: 15, weight: isSelected || isToday ? .semibold : .regular))
+                    .foregroundStyle(isSelected ? .white : Color.appText)
+            }
+            .frame(width: 36, height: 36)
+
+            // Workout dot indicator
+            if hasWorkout {
+                Circle()
+                    .fill(isCompleted ? Color.green : (isSelected ? Color.appAccent : Color.appAccent.opacity(0.6)))
+                    .frame(width: 5, height: 5)
+            } else {
+                Color.clear
+                    .frame(width: 5, height: 5)
             }
         }
-        .frame(height: 44)
+        .frame(height: 48)
+        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isSelected)
     }
 }

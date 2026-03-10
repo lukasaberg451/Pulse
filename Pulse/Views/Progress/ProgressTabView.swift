@@ -18,54 +18,30 @@ struct ProgressTabView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground
+                    .ignoresSafeArea()
                 
                 // Pro upgrade prompt
                 if !subscriptionManager.isProUser {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 24) {
                         Spacer()
                         
-                        ZStack {
-                            Circle()
-                                .fill(Color.appAccent.opacity(0.15))
-                                .frame(width: 120, height: 120)
-                            
-                            Circle()
-                                .fill(Color.appAccent.opacity(0.08))
-                                .frame(width: 160, height: 160)
-                            
-                            Image(systemName: "chart.line.uptrend.xyaxis")
-                                .font(.system(size: 50))
-                                .foregroundStyle(Color.appAccent)
-                        }
+                        IconBadge(systemName: "chart.line.uptrend.xyaxis", color: .appAccent, size: 72)
                         
                         Text("Unlock Progress Tracking")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
                         Text("Upgrade to Pro to access detailed analytics, personal records, and training insights.")
-                            .font(.body)
-                            .foregroundStyle(Color.appText.opacity(0.6))
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 32)
                         
-                        Button {
+                        PrimaryCTAButton("Upgrade to Pulse Pro", icon: "star.fill") {
                             let impactLight = UIImpactFeedbackGenerator(style: .light)
                             impactLight.impactOccurred()
                             showingPaywall = true
-                        } label: {
-                            HStack {
-                                Spacer()
-                                Image(systemName: "star.fill")
-                                Text("Upgrade to Pulse Pro")
-                                    .font(.headline)
-                                Spacer()
-                            }
-                            .padding()
-                            .background(Color.appAccent)
-                            .foregroundStyle(Color.appText)
-                            .cornerRadius(12)
                         }
                         .padding(.horizontal)
                         
@@ -79,38 +55,34 @@ struct ProgressTabView: View {
                         MilestonesSection(viewModel: milestoneViewModel)
                         
                         // Current Streak
-                        HStack(spacing: 16) {
-                            Image(systemName: "flame.fill")
-                                .font(.title)
-                                .foregroundStyle(.orange)
+                        HStack(spacing: 14) {
+                            IconBadge(systemName: "flame.fill", color: .orange, size: 44)
                             
-                            VStack(alignment: .leading, spacing: 2) {
+                            VStack(alignment: .leading, spacing: 3) {
                                 Text("Current Streak")
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color.appText.opacity(0.7))
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
                                 
                                 Text("\(viewModel.currentStreak) days")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
+                                    .font(.title2.weight(.bold))
                                     .foregroundStyle(Color.appText)
                             }
                             
                             Spacer()
                         }
-                        .padding()
-                        .background(Color.appSurface)
-                        .cornerRadius(12)
+                        .padding(16)
+                        .background {
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(Color.appSurface)
+                                .modifier(CardShadowModifier())
+                        }
                         .padding(.horizontal)
                         
                         // Monthly Stats
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("This Month")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.appText)
-                                .padding(.horizontal)
+                            DashboardSectionHeader(title: "This Month")
                             
-                            VStack(spacing: 16) {
+                            VStack(spacing: 12) {
                                 StatCard(
                                     title: "Volume",
                                     value: "\(Int(unitManager.displayWeight(Double(viewModel.monthlyVolume))))",
@@ -120,7 +92,7 @@ struct ProgressTabView: View {
                                 )
                                 .padding(.horizontal)
                                 
-                                HStack(spacing: 16) {
+                                HStack(spacing: 12) {
                                     StatCard(
                                         title: "Workouts",
                                         value: "\(viewModel.monthlyWorkouts)",
@@ -148,15 +120,14 @@ struct ProgressTabView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
                                 Text("Personal Records")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
+                                    .font(.title3.weight(.bold))
                                     .foregroundStyle(Color.appText)
                                 
                                 Spacer()
                                 
                                 NavigationLink(destination: AllPRsView()) {
                                     Text("See All")
-                                        .font(.subheadline)
+                                        .font(.subheadline.weight(.medium))
                                         .foregroundStyle(Color.appAccent)
                                 }
                             }
@@ -173,11 +144,7 @@ struct ProgressTabView: View {
                         
                         // Most Trained Muscles
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Most Trained")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.appText)
-                                .padding(.horizontal)
+                            DashboardSectionHeader(title: "Most Trained")
                             
                             VStack(spacing: 8) {
                                 if viewModel.topMuscleGroups.isEmpty {
@@ -192,24 +159,23 @@ struct ProgressTabView: View {
                                     }
                                 }
                             }
-                            .padding()
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
+                            .padding(16)
+                            .background {
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .modifier(CardShadowModifier())
+                            }
                             .padding(.horizontal)
                         }
                         
                         // Lifetime Stats
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Lifetime Stats")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.appText)
-                                .padding(.horizontal)
+                            DashboardSectionHeader(title: "Lifetime Stats")
                             
                             LazyVGrid(columns: [
                                 GridItem(.flexible()),
                                 GridItem(.flexible())
-                            ], spacing: 16) {
+                            ], spacing: 12) {
                                 LifetimeStatCard(
                                     title: "Total Workouts",
                                     value: "\(viewModel.lifetimeWorkouts)",
@@ -241,16 +207,15 @@ struct ProgressTabView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
                                 Text("Recent Workouts")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
+                                    .font(.title3.weight(.bold))
                                     .foregroundStyle(Color.appText)
                                 
                                 Spacer()
                                 
                                 if !viewModel.recentSessions.isEmpty {
                                     NavigationLink(destination: AllRecentWorkoutsView()) {
-                                        Text("See All Workouts")
-                                            .font(.subheadline)
+                                        Text("See All")
+                                            .font(.subheadline.weight(.medium))
                                             .foregroundStyle(Color.appAccent)
                                     }
                                 }
@@ -258,24 +223,25 @@ struct ProgressTabView: View {
                             .padding(.horizontal)
                             
                             if viewModel.recentSessions.isEmpty {
-                                VStack(spacing: 12) {
-                                    Image(systemName: "clock.arrow.circlepath")
-                                        .font(.largeTitle)
-                                        .foregroundStyle(Color.appAccent.opacity(0.4))
+                                VStack(spacing: 14) {
+                                    IconBadge(systemName: "clock.arrow.circlepath", size: 48)
                                     
                                     Text("No workout history yet")
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.appText.opacity(0.6))
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(Color.appText)
                                     
                                     Text("Complete your first workout to see it here")
                                         .font(.caption)
-                                        .foregroundStyle(Color.appText.opacity(0.5))
+                                        .foregroundStyle(Color.appSecondaryText)
                                         .multilineTextAlignment(.center)
                                 }
                                 .frame(maxWidth: .infinity)
-                                .padding(30)
-                                .background(Color.appSurface)
-                                .cornerRadius(12)
+                                .padding(28)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .modifier(CardShadowModifier())
+                                }
                                 .padding(.horizontal)
                             } else {
                                 ForEach(viewModel.recentSessions.prefix(3)) { session in
@@ -294,11 +260,10 @@ struct ProgressTabView: View {
                     await viewModel.loadStats()
                 }
                 .task {
+                    // Data is loaded from HomeView.task — only reload if not yet loaded
+                    // (e.g., when navigating back after a memory warning)
                     if !viewModel.hasLoaded {
                         await viewModel.loadStats()
-                    }
-                    if !milestoneViewModel.hasLoaded {
-                        await milestoneViewModel.loadMilestones()
                     }
                 }
                 } // end else (pro user)
@@ -317,30 +282,33 @@ struct StatCard: View {
     let unit: String
     let icon: String
     let color: Color
-    
+
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.title)
-                .foregroundStyle(color)
-            
+        VStack(spacing: 10) {
+            IconBadge(systemName: icon, color: color, size: 38)
+
             Text(value)
                 .font(.title.weight(.bold))
                 .foregroundStyle(Color.appText)
-            
+
             Text(unit)
                 .font(.caption)
-                .foregroundStyle(Color.appText.opacity(0.6))
-            
+                .foregroundStyle(Color.appSecondaryText)
+
             Text(title)
-                .font(.caption)
-                .foregroundStyle(Color.appText.opacity(0.8))
+                .font(.caption.weight(.medium))
+                .foregroundStyle(Color.appText)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, minHeight: 110)
         .padding()
-        .background(Color.appSurface)
-        .cornerRadius(12)
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.appSurface)
+                .modifier(CardShadowModifier())
+        }
     }
 }
 
@@ -349,56 +317,62 @@ struct PRCard: View {
     let pr: PersonalRecord
     let formattedDate: String
     @EnvironmentObject var unitManager: UnitManager
-    
+
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 12) {
+            IconBadge(systemName: "trophy.fill", color: .yellow, size: 40)
+
+            VStack(alignment: .leading, spacing: 3) {
                 Text(pr.exerciseName)
-                    .font(.headline)
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
-                
+
                 Text("\(unitManager.displayWeight(pr.weight), specifier: "%.1f")\(unitManager.weightUnit) × \(pr.reps) reps")
-                    .font(.subheadline)
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(Color.appAccent)
-                
+
                 Text(formattedDate)
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.6))
+                    .foregroundStyle(Color.appTertiaryText)
             }
-            
+
             Spacer()
-            
-            Image(systemName: "trophy.fill")
-                .font(.title)
-                .foregroundStyle(Color.yellow)
+
+            Image(systemName: "chevron.right")
+                .foregroundStyle(Color.appTertiaryText)
+                .font(.system(size: 13, weight: .semibold))
         }
-        .padding()
-        .background(Color.appSurface)
-        .cornerRadius(12)
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.appSurface)
+                .modifier(CardShadowModifier())
+        }
         .padding(.horizontal)
     }
 }
 
 struct EmptyPRCard: View {
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "trophy")
-                .font(.largeTitle)
-                .foregroundStyle(Color.appAccent.opacity(0.4))
-            
+        VStack(spacing: 14) {
+            IconBadge(systemName: "trophy", size: 48)
+
             Text("No PRs Yet")
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.appText)
-            
+
             Text("Complete workouts to set your first personal record!")
                 .font(.caption)
-                .foregroundStyle(Color.appText.opacity(0.6))
+                .foregroundStyle(Color.appSecondaryText)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(32)
-        .background(Color.appSurface)
-        .cornerRadius(12)
+        .padding(28)
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.appSurface)
+                .modifier(CardShadowModifier())
+        }
         .padding(.horizontal)
     }
 }
@@ -450,58 +424,42 @@ struct MuscleGroupRow: View {
     let name: String
     let sets: Int
     let percentage: Double
-    
+
     var body: some View {
         VStack(spacing: 8) {
             HStack {
                 Text(name)
-                    .font(.subheadline)
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
-                
+
                 Spacer()
-                
+
                 Text("\(sets) sets")
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.6))
+                    .foregroundStyle(Color.appSecondaryText)
             }
-            
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .fill(Color.appBackground)
-                        .frame(height: 8)
-                        .cornerRadius(12)
-                    
-                    Rectangle()
-                        .fill(Color.appAccent)
-                        .frame(width: geometry.size.width * percentage, height: 8)
-                        .cornerRadius(12)
-                }
-            }
-            .frame(height: 8)
+
+            PremiumProgressBar(progress: percentage, height: 8)
         }
     }
 }
 
 struct EmptyMuscleGroupRow: View {
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.largeTitle)
-                .foregroundStyle(Color.appAccent.opacity(0.4))
+        VStack(spacing: 14) {
+            IconBadge(systemName: "clock.arrow.circlepath", size: 48)
+
             Text("No history yet")
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.appText)
+
             Text("Complete your first workout to see data")
                 .font(.caption)
-                .foregroundStyle(Color.appText.opacity(0.5))
+                .foregroundStyle(Color.appSecondaryText)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(32)
-        .background(Color.appSurface)
-        .cornerRadius(12)
-        .padding(.horizontal)
+        .padding(28)
     }
 }
 
@@ -510,61 +468,57 @@ struct LifetimeStatCard: View {
     let title: String
     let value: String
     let icon: String
-    
+
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(Color.appAccent)
-            
+        VStack(spacing: 10) {
+            IconBadge(systemName: icon, color: .appAccent, size: 36)
+
             Text(value)
-                .font(.title2)
-                .fontWeight(.bold)
+                .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
-            
+
             Text(title)
-                .font(.caption)
-                .foregroundStyle(Color.appText.opacity(0.7))
+                .font(.caption.weight(.medium))
+                .foregroundStyle(Color.appSecondaryText)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color.appSurface)
-        .cornerRadius(12)
+        .padding(16)
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.appSurface)
+                .modifier(CardShadowModifier())
+        }
     }
 }
 
 // MARK: - All PR Card
 struct AllPRsView: View {
     @StateObject private var viewModel = ProgressStatsViewModel()
-    
+
     var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
-            
+            LinearGradient.dashboardBackground
+                .ignoresSafeArea()
+
             ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: 12) {
                     if viewModel.recentPRs.isEmpty {
-                        // Empty state
                         VStack(spacing: 16) {
-                            Image(systemName: "trophy")
-                                .font(.largeTitle)
-                                .foregroundStyle(Color.appAccent.opacity(0.4))
-                            
+                            IconBadge(systemName: "trophy", size: 56)
+
                             Text("No Personal Records Yet")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                                .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
-                            
+
                             Text("Complete workouts to set your first personal record!")
                                 .font(.subheadline)
-                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                         }
                         .padding(.top, 100)
                     } else {
-                        // Show all PRs
                         ForEach(viewModel.recentPRs) { pr in
                             PRCard(pr: pr, formattedDate: viewModel.formatDate(pr.date))
                         }
@@ -589,17 +543,16 @@ struct HealthMetricsSection: View {
     @StateObject private var viewModel = ProfileViewModel()
     @EnvironmentObject var unitManager: UnitManager
     @State private var showingEditSheet = false
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Health Metrics")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.title3.weight(.bold))
                     .foregroundStyle(Color.appText)
-                
+
                 Spacer()
-                
+
                 Button {
                     let impactLight = UIImpactFeedbackGenerator(style: .light)
                     impactLight.impactOccurred()
@@ -607,8 +560,10 @@ struct HealthMetricsSection: View {
                 } label: {
                     Image(systemName: "pencil.circle.fill")
                         .font(.title2)
+                        .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(Color.appAccent)
                 }
+                .buttonStyle(ScalePressStyle())
             }
             .padding(.horizontal)
             
@@ -722,41 +677,36 @@ struct HealthMetricsSection: View {
                             .padding(.top, 4)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                        .background(Color.appSurface)
-                        .cornerRadius(12)
+                        .padding(16)
+                        .background {
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(Color.appSurface)
+                                .modifier(CardShadowModifier())
+                        }
                         .padding(.horizontal)
                     } else if profile.weightKg == nil || profile.heightCm == nil {
                         // Empty state - prompt to add data
-                        VStack(spacing: 12) {
-                            Image(systemName: "chart.line.uptrend.xyaxis")
-                                .font(.title)
-                                .foregroundStyle(Color.appAccent.opacity(0.5))
-                            
+                        VStack(spacing: 14) {
+                            IconBadge(systemName: "chart.line.uptrend.xyaxis", size: 48)
+
                             Text("Add your weight and height to calculate BMI")
                                 .font(.subheadline)
-                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
-                            
-                            Button {
+
+                            PrimaryCTAButton("Add Health Metrics", icon: "plus") {
                                 let impactLight = UIImpactFeedbackGenerator(style: .light)
                                 impactLight.impactOccurred()
                                 showingEditSheet = true
-                            } label: {
-                                Text("Add Health Metrics")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.white)
-                                    .padding(.horizontal, 24)
-                                    .padding(.vertical, 12)
-                                    .background(Color.appAccent)
-                                    .cornerRadius(12)
                             }
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 24)
-                        .padding(.horizontal)
-                        .background(Color.appSurface)
-                        .cornerRadius(12)
+                        .padding(20)
+                        .background {
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(Color.appSurface)
+                                .modifier(CardShadowModifier())
+                        }
                         .padding(.horizontal)
                     }
                 }
@@ -807,71 +757,66 @@ struct HealthMetricCard: View {
     let value: String
     let unit: String
     let color: Color
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundStyle(color)
-                Spacer()
-            }
-            
+            IconBadge(systemName: icon, color: color, size: 34)
+
             Text(title)
-                .font(.caption)
-                .foregroundStyle(Color.appText.opacity(0.7))
-            
+                .font(.caption.weight(.medium))
+                .foregroundStyle(Color.appSecondaryText)
+
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(value)
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.title2.weight(.bold))
                     .foregroundStyle(Color.appText)
-                
+
                 Text(unit)
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.6))
+                    .foregroundStyle(Color.appSecondaryText)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 100, alignment: .leading)
-        .padding()
-        .background(Color.appSurface)
-        .cornerRadius(12)
+        .padding(16)
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.appSurface)
+                .modifier(CardShadowModifier())
+        }
     }
 }
 
 // MARK: - Edit Health Metrics Sheet
 struct EditHealthMetricsSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var unitManager: UnitManager
     @ObservedObject var viewModel: ProfileViewModel
-    
+
     @State private var weightText: String
     @State private var heightText: String
     @State private var heightFeet: String
     @State private var heightInches: String
     @State private var showError = false
     @State private var errorMessage = ""
-    
+
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
-        
+
         let weightKg = viewModel.profile?.weightKg ?? 0
         let heightCm = viewModel.profile?.heightCm ?? 0
-        
-        // Convert to display units
+
         let um = UnitManager.shared
         let displayWeight = um.displayWeight(weightKg)
-        
-        // Use locale-aware formatting so the decimal separator matches the keyboard
+
         let nf = NumberFormatter()
         nf.numberStyle = .decimal
         nf.minimumFractionDigits = 1
         nf.maximumFractionDigits = 1
-        
+
         _weightText = State(initialValue: weightKg > 0 ? (nf.string(from: NSNumber(value: displayWeight)) ?? "") : "")
         _heightText = State(initialValue: heightCm > 0 ? String(format: "%.0f", heightCm) : "")
-        
-        // Feet/inches for imperial
+
         if heightCm > 0 {
             _heightFeet = State(initialValue: "\(um.feetFromCm(heightCm))")
             _heightInches = State(initialValue: "\(um.inchesFromCm(heightCm))")
@@ -880,137 +825,210 @@ struct EditHealthMetricsSheet: View {
             _heightInches = State(initialValue: "")
         }
     }
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
-                
+                LinearGradient.dashboardBackground
+                    .ignoresSafeArea()
+
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
+                    VStack(spacing: 28) {
+                        // Header
+                        VStack(spacing: 8) {
+                            IconBadge(systemName: "heart.text.square.fill", color: .red, size: 48)
+
+                            Text("Health Metrics")
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(Color.appText)
+
+                            Text("Update your body measurements")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appSecondaryText)
+                        }
+                        .padding(.top, 20)
+
                         // Error message
                         if showError {
-                            Text(errorMessage)
-                                .foregroundStyle(Color.red)
-                                .font(.caption)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.red.opacity(0.1))
-                                .cornerRadius(12)
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(.red)
+                                Text(errorMessage)
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .padding(.horizontal)
                         }
-                        
-                        // Weight Input
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "scalemass.fill")
-                                    .foregroundStyle(Color.blue)
-                                Text("Weight")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.appText)
-                            }
-                            
-                            HStack {
-                                TextField("0.0", text: $weightText)
-                                    .keyboardType(.decimalPad)
-                                    .textFieldStyle(.plain)
-                                    .font(.title2)
-                                    .foregroundStyle(Color.appText)
-                                    .multilineTextAlignment(.leading)
-                                
-                                Text(unitManager.weightUnit)
-                                    .font(.title3)
-                                    .foregroundStyle(Color.appText.opacity(0.6))
-                            }
-                            .padding()
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
-                        }
-                        
-                        // Height Input
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "ruler.fill")
-                                    .foregroundStyle(Color.green)
-                                Text("Height")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.appText)
-                            }
-                            
-                            if unitManager.unitSystem == .metric {
+
+                        // Form fields
+                        VStack(spacing: 16) {
+                            // Weight Input
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "scalemass.fill")
+                                        .foregroundStyle(Color.blue)
+                                        .font(.caption)
+                                    Text("Weight")
+                                        .font(.caption.weight(.medium))
+                                        .foregroundStyle(Color.appSecondaryText)
+                                }
+                                .padding(.horizontal, 4)
+
                                 HStack {
-                                    TextField("0", text: $heightText)
-                                        .keyboardType(.numberPad)
+                                    TextField("0.0", text: $weightText)
+                                        .keyboardType(.decimalPad)
                                         .textFieldStyle(.plain)
-                                        .font(.title2)
+                                        .font(.title3.weight(.semibold))
                                         .foregroundStyle(Color.appText)
-                                        .multilineTextAlignment(.leading)
-                                    
-                                    Text("cm")
-                                        .font(.title3)
-                                        .foregroundStyle(Color.appText.opacity(0.6))
+
+                                    Text(unitManager.weightUnit)
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.appSecondaryText)
                                 }
-                                .padding()
-                                .background(Color.appSurface)
-                                .cornerRadius(12)
-                            } else {
-                                HStack(spacing: 12) {
+                                .padding(14)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                            }
+                                        }
+                                        .shadow(
+                                            color: colorScheme == .light ? Color.black.opacity(0.04) : Color.clear,
+                                            radius: 6, x: 0, y: 2
+                                        )
+                                }
+                            }
+
+                            // Height Input
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "ruler.fill")
+                                        .foregroundStyle(Color.green)
+                                        .font(.caption)
+                                    Text("Height")
+                                        .font(.caption.weight(.medium))
+                                        .foregroundStyle(Color.appSecondaryText)
+                                }
+                                .padding(.horizontal, 4)
+
+                                if unitManager.unitSystem == .metric {
                                     HStack {
-                                        TextField("0", text: $heightFeet)
+                                        TextField("0", text: $heightText)
                                             .keyboardType(.numberPad)
                                             .textFieldStyle(.plain)
-                                            .font(.title2)
+                                            .font(.title3.weight(.semibold))
                                             .foregroundStyle(Color.appText)
-                                            .multilineTextAlignment(.leading)
-                                        
-                                        Text("ft")
-                                            .font(.title3)
-                                            .foregroundStyle(Color.appText.opacity(0.6))
+
+                                        Text("cm")
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.appSecondaryText)
                                     }
-                                    .padding()
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
-                                    
-                                    HStack {
-                                        TextField("0", text: $heightInches)
-                                            .keyboardType(.numberPad)
-                                            .textFieldStyle(.plain)
-                                            .font(.title2)
-                                            .foregroundStyle(Color.appText)
-                                            .multilineTextAlignment(.leading)
-                                        
-                                        Text("in")
-                                            .font(.title3)
-                                            .foregroundStyle(Color.appText.opacity(0.6))
+                                    .padding(14)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .fill(Color.appSurface)
+                                            .overlay {
+                                                if colorScheme == .dark {
+                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                                }
+                                            }
+                                            .shadow(
+                                                color: colorScheme == .light ? Color.black.opacity(0.04) : Color.clear,
+                                                radius: 6, x: 0, y: 2
+                                            )
                                     }
-                                    .padding()
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                } else {
+                                    HStack(spacing: 12) {
+                                        HStack {
+                                            TextField("0", text: $heightFeet)
+                                                .keyboardType(.numberPad)
+                                                .textFieldStyle(.plain)
+                                                .font(.title3.weight(.semibold))
+                                                .foregroundStyle(Color.appText)
+
+                                            Text("ft")
+                                                .font(.subheadline)
+                                                .foregroundStyle(Color.appSecondaryText)
+                                        }
+                                        .padding(14)
+                                        .background {
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .fill(Color.appSurface)
+                                                .overlay {
+                                                    if colorScheme == .dark {
+                                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                            .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                                    }
+                                                }
+                                        }
+
+                                        HStack {
+                                            TextField("0", text: $heightInches)
+                                                .keyboardType(.numberPad)
+                                                .textFieldStyle(.plain)
+                                                .font(.title3.weight(.semibold))
+                                                .foregroundStyle(Color.appText)
+
+                                            Text("in")
+                                                .font(.subheadline)
+                                                .foregroundStyle(Color.appSecondaryText)
+                                        }
+                                        .padding(14)
+                                        .background {
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .fill(Color.appSurface)
+                                                .overlay {
+                                                    if colorScheme == .dark {
+                                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                            .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                                    }
+                                                }
+                                        }
+                                    }
                                 }
                             }
                         }
-                        
+                        .padding(.horizontal)
+
+                        // CTA
+                        PrimaryCTAButton("Save Changes", icon: "checkmark") {
+                            let notificationFeedback = UINotificationFeedbackGenerator()
+                            notificationFeedback.notificationOccurred(.success)
+                            Task {
+                                await saveHealthMetrics()
+                            }
+                        }
+                        .disabled(viewModel.isSubmitting)
+                        .opacity(viewModel.isSubmitting ? 0.5 : 1.0)
+                        .padding(.horizontal)
+
                         Spacer()
                     }
-                    .padding()
                 }
-                
+
                 // Loading overlay
                 if viewModel.isSubmitting {
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
-                    
-                    VStack(spacing: 20) {
+
+                    VStack(spacing: 16) {
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .tint(.white)
                             .scaleEffect(1.5)
-                        
+
                         Text("Saving...")
-                            .foregroundStyle(Color.white)
-                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .font(.subheadline.weight(.semibold))
                     }
                 }
             }
-            .navigationTitle("Health Metrics")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -1019,19 +1037,6 @@ struct EditHealthMetricsSheet: View {
                         dismiss()
                     }
                     .foregroundStyle(Color.appText)
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        let notificationFeedback = UINotificationFeedbackGenerator()
-                        notificationFeedback.notificationOccurred(.success)
-                        Task {
-                            await saveHealthMetrics()
-                        }
-                    }
-                    .foregroundStyle(Color.appAccent)
-                    .fontWeight(.semibold)
-                    .disabled(viewModel.isSubmitting)
                 }
             }
         }
@@ -1110,73 +1115,80 @@ struct EditHealthMetricsSheet: View {
 struct RecentWorkoutCard: View {
     let session: WorkoutSession
     @ObservedObject var viewModel: ProgressStatsViewModel
-    
+
     var body: some View {
         NavigationLink(destination: WorkoutDetailView(workoutSession: session)) {
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 12) {
+                IconBadge(
+                    systemName: "figure.strengthtraining.traditional",
+                    color: .appAccent,
+                    size: 40
+                )
+
+                VStack(alignment: .leading, spacing: 3) {
                     Text(session.name)
-                        .font(.headline)
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
-                    
-                    HStack(spacing: 12) {
+
+                    HStack(spacing: 10) {
                         Label(viewModel.formatDate(session.startedAt), systemImage: "calendar")
                             .font(.caption)
-                            .foregroundStyle(Color.appText.opacity(0.6))
-                        
+                            .foregroundStyle(Color.appSecondaryText)
+
                         if session.completedAt != nil {
                             Label(viewModel.formatDuration(session.durationSeconds), systemImage: "clock")
                                 .font(.caption)
-                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .foregroundStyle(Color.appSecondaryText)
                         }
                     }
-                    
+
                     if session.completedAt != nil {
                         Label("Completed", systemImage: "checkmark.circle.fill")
-                            .font(.caption)
-                            .foregroundStyle(Color.green)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.green)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(Color.appText.opacity(0.3))
-    .font(.footnote)
+                    .foregroundStyle(Color.appTertiaryText)
+                    .font(.system(size: 13, weight: .semibold))
             }
-            .padding(16)
-            .background(Color.appSurface)
-            .cornerRadius(12)
+            .padding(14)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.appSurface)
+                    .modifier(CardShadowModifier())
+            }
             .padding(.horizontal)
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(ScalePressStyle())
     }
 }
 
 // MARK: - All Recent Workouts View
 struct AllRecentWorkoutsView: View {
     @StateObject private var viewModel = ProgressStatsViewModel()
-    
+
     var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
-            
+            LinearGradient.dashboardBackground
+                .ignoresSafeArea()
+
             ScrollView {
-                LazyVStack(spacing: 16) {
+                LazyVStack(spacing: 12) {
                     if viewModel.allRecentSessions.isEmpty && !viewModel.isLoadingMore {
                         VStack(spacing: 16) {
-                            Image(systemName: "clock.arrow.circlepath")
-                                .font(.largeTitle)
-                                .foregroundStyle(Color.appAccent.opacity(0.4))
-                            
+                            IconBadge(systemName: "clock.arrow.circlepath", size: 56)
+
                             Text("No Workout History Yet")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                                .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
-                            
+
                             Text("Complete your first workout to see it here!")
                                 .font(.subheadline)
-                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                         }
@@ -1195,9 +1207,10 @@ struct AllRecentWorkoutsView: View {
                                 }
                             }
                         }
-                        
+
                         if viewModel.isLoadingMore {
                             ProgressView()
+                                .tint(Color.appAccent)
                                 .padding()
                         }
                     }
@@ -1214,6 +1227,30 @@ struct AllRecentWorkoutsView: View {
         .task {
             await viewModel.loadRecentSessionsPaginated()
         }
+    }
+}
+
+// MARK: - Card Shadow Modifier
+
+private struct CardShadowModifier: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if colorScheme == .dark {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                }
+            }
+            .shadow(
+                color: colorScheme == .light
+                    ? Color.black.opacity(0.08)
+                    : Color.clear,
+                radius: 16,
+                x: 0,
+                y: 6
+            )
     }
 }
 

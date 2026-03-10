@@ -97,6 +97,7 @@ class RoutineDetailViewModel: ObservableObject {
                 orderIndex: routineExercises.count
             )
             routineExercises.append(newExercise)
+            NotificationCenter.default.post(name: .routineDataChanged, object: nil)
         } catch {
             errorMessage = "Failed to add exercise: \(error.localizedDescription)"
         }
@@ -129,6 +130,7 @@ class RoutineDetailViewModel: ObservableObject {
         do {
             try await routineRepository.deleteRoutineExercise(id: routineExercise.id)
             routineExercises.removeAll { $0.id == routineExercise.id }
+            NotificationCenter.default.post(name: .routineDataChanged, object: nil)
         } catch {
             errorMessage = "Failed to delete exercise: \(error.localizedDescription)"
         }
@@ -153,6 +155,7 @@ class RoutineDetailViewModel: ObservableObject {
                 fromRoutineId: routine.id,
                 newName: "\(routine.name) - Copy"
             )
+            NotificationCenter.default.post(name: .routineDataChanged, object: nil)
             return newRoutine
         } catch {
             errorMessage = "Failed to duplicate routine: \(error.localizedDescription)"

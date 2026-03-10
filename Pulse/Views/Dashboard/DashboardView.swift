@@ -16,6 +16,7 @@ struct DashboardView: View {
     @ObservedObject var scheduleViewModel: ScheduleViewModel
     @ObservedObject var routineListViewModel: RoutineListViewModel
     @State private var showingGoalSettings = false
+    @State private var hasAppeared = false
     
     // In-progress workout recovery
     @Environment(\.modelContext) private var modelContext
@@ -29,50 +30,55 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                // Subtle vertical gradient background
+                LinearGradient.dashboardBackground
+                    .ignoresSafeArea()
+
                 ScrollView {
-                    VStack {
-                        VStack{
+                    VStack(spacing: 0) {
+                        // MARK: - Hero Header
+                        VStack(alignment: .leading, spacing: 6) {
                             Text("Welcome \(authViewModel.firstName)!")
-                                .foregroundStyle(Color.appAccent)
-                                .font(.title)
-                            
-                            
+                                .font(.system(size: 30, weight: .bold, design: .rounded))
+                                .foregroundStyle(Color.appText)
+
+                            Text(viewModel.formattedToday)
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appSecondaryText)
+
+                            // Stat pills row
+                            if viewModel.currentStreak > 0 {
+                                StatPill(
+                                    icon: "flame.fill",
+                                    value: "\(viewModel.currentStreak)",
+                                    label: viewModel.currentStreak == 1 ? "day streak" : "day streak"
+                                )
+                                .padding(.top, 8)
+                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.top, 40)
                         .padding(.horizontal)
-                        
-                        VStack {
-                            Text(viewModel.formattedToday)
-                                .foregroundStyle(Color.appText)
+
+                        // MARK: - Smart Insight
+                        if let insight = viewModel.currentInsight {
+                            SmartInsightCard(insight: insight)
+                                .padding(.top, 12)
+                                .onTapGesture {
+                                    viewModel.advanceInsight()
+                                    viewModel.startInsightRotation()
+                                }
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
-                        
-                    
-                    }
-                    // Smart Insight
-                    if let insight = viewModel.currentInsight {
-                        SmartInsightCard(insight: insight)
-                            .padding(.top, 8)
-                            .onTapGesture {
-                                viewModel.advanceInsight()
-                                viewModel.startInsightRotation()
-                            }
-                    }
-                    
-                    VStack(spacing: 20) {
-                        // Today's Workouts Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Today")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.appText)
-                                .padding(.horizontal)
-                            
+
+                        // MARK: - Today Section
+                        VStack(alignment: .leading, spacing: 14) {
+                            DashboardSectionHeader(title: "Today")
+
                             if viewModel.todaysWorkouts.isEmpty {
-                                EmptyTodayCard(scheduleViewModel: scheduleViewModel, routineListViewModel: routineListViewModel)
+                                EmptyTodayCard(
+                                    scheduleViewModel: scheduleViewModel,
+                                    routineListViewModel: routineListViewModel
+                                )
                             } else {
                                 ForEach(viewModel.todaysWorkouts) { scheduled in
                                     if let routineId = scheduled.routineId,
@@ -92,48 +98,46 @@ struct DashboardView: View {
                                 }
                             }
                         }
-                    }
-                    .padding(.top, 20)
-                    .padding(.bottom, 10)
-                    
-                    Divider()
-                        .background(Color.appText.opacity(0.1))
-                        .padding(.horizontal)
-                    
-                    VStack(spacing: 12) {
-                        WeeklyGoalCard(
-                            completedMinutes: viewModel.weeklyWorkoutMinutes,
-                            goalMinutes: viewModel.weeklyGoalMinutes,
-                            onEditGoal: {
-                                let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                impactLight.impactOccurred()
-                                showingGoalSettings = true
+                        .padding(.top, 24)
+
+                        // MARK: - Progress Section
+                        VStack(spacing: 14) {
+                            WeeklyGoalCard(
+                                completedMinutes: viewModel.weeklyWorkoutMinutes,
+                                goalMinutes: viewModel.weeklyGoalMinutes,
+                                onEditGoal: {
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
+                                    showingGoalSettings = true
+                                }
+                            )
+                            .padding(.horizontal)
+
+                            if let nextMilestone = milestoneViewModel.nextMilestone {
+                                MilestoneCard(milestone: nextMilestone)
+                                    .padding(.horizontal)
                             }
-                        )
-                        .padding(.horizontal)
-                        
-                        if let nextMilestone = milestoneViewModel.nextMilestone {
-                            MilestoneCard(milestone: nextMilestone)
-                                .padding(.horizontal)
+
+                            Spacer(minLength: 40)
                         }
-                        
-                        Spacer(minLength: 40)
+                        .padding(.top, 20)
                     }
-                    .padding(.top, 10)
+                    // Card entrance animation
+                    .opacity(hasAppeared ? 1 : 0)
+                    .offset(y: hasAppeared ? 0 : 12)
                 }
             }
             .onAppear {
                 viewModel.loadInsights()
                 viewModel.startInsightRotation()
+                withAnimation(.easeOut(duration: 0.45).delay(0.1)) {
+                    hasAppeared = true
+                }
             }
             .onDisappear {
                 viewModel.stopInsightRotation()
             }
             .task {
-                await viewModel.refreshAll()
-                if !milestoneViewModel.hasLoaded {
-                    await milestoneViewModel.loadMilestones()
-                }
                 await checkForInProgressWorkout()
             }
             .refreshable {
@@ -211,64 +215,62 @@ struct TodayWorkoutCard: View {
     let scheduled: ScheduledWorkout
     let routineExercises: [RoutineExercise]
     let exercises: [Exercise]
-    
+
+    @Environment(\.colorScheme) private var colorScheme
     @State private var showingActiveWorkout = false
-    
+
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: "calendar")
-                        .foregroundStyle(Color.appAccent)
-                    Text("Scheduled")
-                        .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.6))
-                }
-                
-                Text(routine.name)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.appText)
-                
-                if scheduled.completed {
-                    Label("Completed", systemImage: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(Color.green)
-                } else {
-                    Text("Not started")
-                        .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.6))
-                }
-            }
-            
-            Spacer()
-            
-            if !scheduled.completed {
-                Button{
-                    let impactMed = UIImpactFeedbackGenerator(style: .medium)
-                    impactMed.impactOccurred()
-                    showingActiveWorkout = true
-                    PostHogSDK.shared.capture("scheduled_from_dashboard_started")
-                } label: {
-                    VStack(spacing: 4) {
-                        Image(systemName: "play.circle.fill")
-                            .font(.title)
-                        Text("Start")
-                            .font(.caption)
-                            .fontWeight(.semibold)
+        DashboardCard {
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        IconBadge(systemName: "calendar", size: 28)
+                        Text("Scheduled")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.appSecondaryText)
                     }
-                    .foregroundStyle(Color.appAccent)
+
+                    Text(routine.name)
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(Color.appText)
+
+                    if scheduled.completed {
+                        Label("Completed", systemImage: "checkmark.circle.fill")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.green)
+                    } else {
+                        Text("Not started")
+                            .font(.caption)
+                            .foregroundStyle(Color.appSecondaryText)
+                    }
                 }
-            } else {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title)
-                    .foregroundStyle(Color.green)
+
+                Spacer()
+
+                if !scheduled.completed {
+                    Button {
+                        let impactMed = UIImpactFeedbackGenerator(style: .medium)
+                        impactMed.impactOccurred()
+                        showingActiveWorkout = true
+                        PostHogSDK.shared.capture("scheduled_from_dashboard_started")
+                    } label: {
+                        VStack(spacing: 4) {
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 32))
+                                .symbolRenderingMode(.hierarchical)
+                            Text("Start")
+                                .font(.caption.weight(.semibold))
+                        }
+                        .foregroundStyle(Color.appAccent)
+                    }
+                    .buttonStyle(ScalePressStyle())
+                } else {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 32))
+                        .foregroundStyle(.green)
+                }
             }
         }
-        .padding(20)
-        .background(Color.appSurface)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
         .padding(.horizontal)
         .fullScreenCover(isPresented: $showingActiveWorkout) {
             ActiveWorkoutView(
@@ -285,50 +287,46 @@ struct TodayWorkoutCard: View {
 struct DeletedRoutineTodayCard: View {
     let scheduled: ScheduledWorkout
     let workoutName: String
-    
+
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: "calendar")
-                        .foregroundStyle(Color.appAccent)
-                    Text("Scheduled")
-                        .font(.caption)
-                        .foregroundStyle(Color.appText.opacity(0.6))
-                }
-                
-                Text(workoutName)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.appText)
-                
-                if scheduled.completed {
-                    Label("Completed", systemImage: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(Color.green)
-                } else {
-                    HStack(spacing: 4) {
-                        Image(systemName: "trash")
-                            .font(.caption2)
-                        Text("Routine deleted")
-                            .font(.caption)
+        DashboardCard {
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        IconBadge(systemName: "calendar", size: 28)
+                        Text("Scheduled")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.appSecondaryText)
                     }
-                    .foregroundStyle(Color.appText.opacity(0.4))
+
+                    Text(workoutName)
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(Color.appText)
+
+                    if scheduled.completed {
+                        Label("Completed", systemImage: "checkmark.circle.fill")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.green)
+                    } else {
+                        HStack(spacing: 4) {
+                            Image(systemName: "trash")
+                                .font(.caption2)
+                            Text("Routine deleted")
+                                .font(.caption)
+                        }
+                        .foregroundStyle(Color.appTertiaryText)
+                    }
                 }
-            }
-            
-            Spacer()
-            
-            if scheduled.completed {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title)
-                    .foregroundStyle(Color.green)
+
+                Spacer()
+
+                if scheduled.completed {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 32))
+                        .foregroundStyle(.green)
+                }
             }
         }
-        .padding(20)
-        .background(Color.appSurface)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
         .padding(.horizontal)
     }
 }
@@ -336,47 +334,43 @@ struct DeletedRoutineTodayCard: View {
 struct EmptyTodayCard: View {
     @ObservedObject var scheduleViewModel: ScheduleViewModel
     @ObservedObject var routineListViewModel: RoutineListViewModel
-    
+
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "calendar.badge.clock")
-                .font(.largeTitle)
-                .foregroundStyle(Color.appAccent.opacity(0.4))
-            
-            Text("No workouts scheduled today")
-                .font(.subheadline)
-                .foregroundStyle(Color.appText.opacity(0.6))
-            
-            NavigationLink(destination: WorkoutView(scheduleViewModel: scheduleViewModel, routineListViewModel: routineListViewModel)) {
-                Text("Schedule a workout")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.appText)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Color.appAccent)
-                    .cornerRadius(12)
+        DashboardCard {
+            VStack(spacing: 16) {
+                IconBadge(systemName: "calendar.badge.clock", size: 52)
+                    .padding(.top, 4)
+
+                VStack(spacing: 4) {
+                    Text("No workouts scheduled")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.appText)
+                    Text("Plan your training for today")
+                        .font(.caption)
+                        .foregroundStyle(Color.appSecondaryText)
+                }
+
+                PrimaryCTALink("Schedule a workout", icon: "plus") {
+                    WorkoutView(
+                        scheduleViewModel: scheduleViewModel,
+                        routineListViewModel: routineListViewModel
+                    )
+                }
             }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
         }
-        .frame(maxWidth: .infinity)
-        .padding(30)
-        .background(Color.appSurface)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
         .padding(.horizontal)
     }
 }
 
 struct SmartInsightCard: View {
     let insight: SmartInsight
-    
+
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: insight.icon)
-                .font(.callout)
-                .foregroundStyle(insight.accentColor)
-                .frame(width: 24)
-            
+            IconBadge(systemName: insight.icon, color: insight.accentColor, size: 32)
+
             Text(insight.text)
                 .font(.subheadline)
                 .foregroundStyle(Color.appText.opacity(0.8))
@@ -384,7 +378,7 @@ struct SmartInsightCard: View {
         }
         .padding(.horizontal)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(height: 44)
+        .frame(minHeight: 44)
         .clipped()
         .id(insight.id)
         .transition(.asymmetric(

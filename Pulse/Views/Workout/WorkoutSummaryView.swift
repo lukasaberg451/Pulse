@@ -69,54 +69,53 @@ struct WorkoutSummaryView: View {
         return parts.joined(separator: " ")
     }
     
+    @Environment(\.colorScheme) private var colorScheme
+    
     var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
+            LinearGradient.dashboardBackground.ignoresSafeArea()
             
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(spacing: 24) {
                         // Header
-                        VStack(spacing: 8) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 48))
-                                .foregroundStyle(Color.green)
+                        VStack(spacing: 12) {
+                            IconBadge(systemName: "checkmark.circle.fill", color: .green, size: 56)
                             
                             Text("Workout Complete")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                                .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
                             
                             Text(routineName)
                                 .font(.subheadline)
-                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .foregroundStyle(Color.appSecondaryText)
                         }
                         .padding(.top, 32)
                         
                         // Stats Grid
-                        VStack(spacing: 16) {
-                            HStack(spacing: 16) {
-                                statCard(
+                        VStack(spacing: 12) {
+                            HStack(spacing: 12) {
+                                summaryStatCard(
                                     icon: "clock.fill",
                                     title: "Duration",
                                     value: formattedDuration
                                 )
                                 
-                                statCard(
+                                summaryStatCard(
                                     icon: "flame.fill",
                                     title: "Total Sets",
                                     value: "\(totalSets)"
                                 )
                             }
                             
-                            HStack(spacing: 16) {
-                                statCard(
+                            HStack(spacing: 12) {
+                                summaryStatCard(
                                     icon: "scalemass.fill",
                                     title: "Volume",
                                     value: String(format: "%.0f %@", unitManager.displayWeight(totalVolume), unitManager.weightUnit)
                                 )
                                 
-                                statCard(
+                                summaryStatCard(
                                     icon: "figure.strengthtraining.traditional",
                                     title: "Exercises",
                                     value: "\(exerciseCount)"
@@ -138,23 +137,22 @@ struct WorkoutSummaryView: View {
                         shareWorkout()
                     } label: {
                         Image(systemName: "square.and.arrow.up")
-                            .font(.headline)
+                            .font(.body.weight(.semibold))
                             .foregroundStyle(Color.appAccent)
-                            .frame(width: 54, height: 54)
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
+                            .frame(width: 52, height: 52)
+                            .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .overlay {
+                                if colorScheme == .dark {
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                }
+                            }
+                            .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 12, x: 0, y: 4)
                     }
+                    .buttonStyle(ScalePressStyle())
                     
-                    Button {
+                    PrimaryCTAButton("Done") {
                         onDismiss()
-                    } label: {
-                        Text("Done")
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.appAccent)
-                            .cornerRadius(12)
                     }
                 }
                 .padding(.horizontal)
@@ -196,7 +194,7 @@ struct WorkoutSummaryView: View {
     private var exercisesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Exercises")
-                .font(.headline)
+                .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
             
             ForEach(groupedSets, id: \.exercise.id) { group in
@@ -211,11 +209,17 @@ struct WorkoutSummaryView: View {
     
     private func exerciseCard(name: String, sets: [LocalWorkoutSet], isCardio: Bool) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(name)
-                .font(.headline)
-                .foregroundStyle(Color.appText)
+            HStack(spacing: 10) {
+                IconBadge(
+                    systemName: isCardio ? "figure.run" : "dumbbell.fill",
+                    size: 32
+                )
+                Text(name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.appText)
+            }
             
-            VStack(spacing: 8) {
+            VStack(spacing: 4) {
                 // Header
                 HStack {
                     Text("SET")
@@ -236,81 +240,94 @@ struct WorkoutSummaryView: View {
                         .foregroundStyle(Color.clear)
                         .frame(width: 30)
                 }
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.appText.opacity(0.6))
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(Color.appTertiaryText)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Color.appBackground)
-                .cornerRadius(12)
+                .background(Color.appBackground.opacity(0.6))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 
                 ForEach(sets, id: \.id) { set in
                     setRow(set: set, isCardio: isCardio)
                 }
             }
         }
-        .padding()
+        .padding(16)
         .background(Color.appSurface)
-        .cornerRadius(12)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            if colorScheme == .dark {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+            }
+        }
+        .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 16, x: 0, y: 6)
     }
     
     private func setRow(set: LocalWorkoutSet, isCardio: Bool) -> some View {
         HStack {
             Text("\(set.setNumber)")
-                .font(.body)
-                .foregroundStyle(Color.appText.opacity(0.8))
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(set.completed ? Color.appText : Color.appTertiaryText)
+                .frame(width: 28, height: 28)
+                .background(
+                    set.completed ? Color.green.opacity(0.12) : Color.appBackground.opacity(0.5),
+                    in: Circle()
+                )
                 .frame(width: 50, alignment: .leading)
             
             if isCardio {
                 if let duration = set.durationSeconds {
                     Text(formattedSetDuration(duration))
-                        .font(.body)
+                        .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.appText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
-                        .font(.body)
-                        .foregroundStyle(Color.appText.opacity(0.4))
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appTertiaryText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
             } else {
                 if let weight = set.weight {
                     Text(String(format: "%.1f %@", unitManager.displayWeight(weight), unitManager.weightUnit))
-                        .font(.body)
+                        .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.appText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
-                        .font(.body)
-                        .foregroundStyle(Color.appText.opacity(0.4))
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appTertiaryText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
                 
                 if let reps = set.reps {
                     Text("\(reps)")
-                        .font(.body)
+                        .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.appText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
-                        .font(.body)
-                        .foregroundStyle(Color.appText.opacity(0.4))
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appTertiaryText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
             
             if set.completed {
                 Image(systemName: "checkmark.circle.fill")
+                    .font(.subheadline)
                     .foregroundStyle(Color.green)
                     .frame(width: 30)
             } else {
                 Image(systemName: "circle")
-                    .foregroundStyle(Color.appText.opacity(0.3))
+                    .font(.subheadline)
+                    .foregroundStyle(Color.appTertiaryText)
                     .frame(width: 30)
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
     }
     
     private func formattedSetDuration(_ totalSeconds: Int) -> String {
@@ -327,25 +344,29 @@ struct WorkoutSummaryView: View {
     
     // MARK: - Stat Card
     
-    private func statCard(icon: String, title: String, value: String) -> some View {
+    private func summaryStatCard(icon: String, title: String, value: String) -> some View {
         VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(Color.appAccent)
+            IconBadge(systemName: icon, size: 36)
             
             Text(value)
-                .font(.title3)
-                .fontWeight(.bold)
+                .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
             
             Text(title)
-                .font(.caption)
-                .foregroundStyle(Color.appText.opacity(0.6))
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(Color.appSecondaryText)
         }
         .frame(maxWidth: .infinity, minHeight: 100)
-        .padding()
+        .padding(16)
         .background(Color.appSurface)
-        .cornerRadius(12)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            if colorScheme == .dark {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+            }
+        }
+        .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 16, x: 0, y: 6)
     }
 }
 
@@ -365,36 +386,46 @@ struct ShareableWorkoutCard: View {
             
             VStack(spacing: 32) {
                 // Header
-                VStack(spacing: 12) {
+                VStack(spacing: 14) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 56))
                         .foregroundStyle(Color.green)
                     
                     Text("Workout Completed")
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
                     
                     Text(routineName)
-                        .font(.system(size: 18))
-                        .foregroundStyle(.white.opacity(0.7))
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.6))
                 }
                 
                 // Stats
-                VStack(spacing: 24) {
+                VStack(spacing: 0) {
                     shareStatItem(icon: "clock.fill", value: formattedDuration, label: "Duration")
+                        .padding(.vertical, 16)
                     
-                    Divider()
-                        .background(.white.opacity(0.15))
+                    Rectangle()
+                        .fill(.white.opacity(0.08))
+                        .frame(height: 1)
                     
                     shareStatItem(icon: "scalemass.fill", value: totalVolume, label: "Volume")
+                        .padding(.vertical, 16)
                     
-                    Divider()
-                        .background(.white.opacity(0.15))
+                    Rectangle()
+                        .fill(.white.opacity(0.08))
+                        .frame(height: 1)
                     
                     shareStatItem(icon: "figure.strengthtraining.traditional", value: "\(exerciseCount)", label: "Exercises")
+                        .padding(.vertical, 16)
                 }
+                .padding(.horizontal, 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(.white.opacity(0.06))
+                )
             }
-            .padding(.horizontal, 40)
+            .padding(.horizontal, 36)
             
             Spacer()
             
@@ -405,25 +436,32 @@ struct ShareableWorkoutCard: View {
                     .foregroundStyle(accentColor)
                 Text("Workout Tracker")
                     .font(.system(size: 16))
-                    .foregroundStyle(.white.opacity(0.4))
+                    .foregroundStyle(.white.opacity(0.35))
             }
             .padding(.bottom, 48)
         }
         // 1080x1920 at 3x scale = 360x640pt
         .frame(width: 360, height: 640)
-        .background(Color(red: 0.08, green: 0.08, blue: 0.1))
+        .background(
+            LinearGradient(
+                colors: [Color(red: 0.06, green: 0.06, blue: 0.08), Color(red: 0.1, green: 0.1, blue: 0.12)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
     
     private func shareStatItem(icon: String, value: String, label: String) -> some View {
         HStack {
             HStack(spacing: 10) {
                 Image(systemName: icon)
-                    .font(.system(size: 16))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(accentColor)
-                    .frame(width: 24)
+                    .frame(width: 32, height: 32)
+                    .background(accentColor.opacity(0.15), in: Circle())
                 Text(label)
-                    .font(.system(size: 16))
-                    .foregroundStyle(.white.opacity(0.6))
+                    .font(.system(size: 15))
+                    .foregroundStyle(.white.opacity(0.55))
             }
             
             Spacer()
@@ -440,22 +478,28 @@ struct ShareableWorkoutCard: View {
 struct SharePreviewSheet: View {
     let image: UIImage
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
+            LinearGradient.dashboardBackground.ignoresSafeArea()
             
-            VStack(spacing: 24) {
-                Text("Share Preview")
-                    .font(.headline)
-                    .foregroundStyle(Color.appText)
-                    .padding(.top, 20)
+            VStack(spacing: 20) {
+                // Header
+                VStack(spacing: 8) {
+                    IconBadge(systemName: "square.and.arrow.up", size: 48)
+                        .padding(.top, 24)
+                    
+                    Text("Share Preview")
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(Color.appText)
+                }
                 
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .cornerRadius(20)
-                    .shadow(color: Color.black.opacity(0.3), radius: 12, x: 0, y: 6)
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 8)
                     .padding(.horizontal, 32)
                 
                 Spacer()
@@ -465,28 +509,23 @@ struct SharePreviewSheet: View {
                         dismiss()
                     } label: {
                         Text("Cancel")
-                            .font(.headline)
+                            .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appText)
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
+                            .frame(height: 52)
+                            .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .overlay {
+                                if colorScheme == .dark {
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                }
+                            }
                     }
+                    .buttonStyle(ScalePressStyle())
                     
-                    Button {
+                    PrimaryCTAButton("Share", icon: "square.and.arrow.up") {
                         presentShareSheet()
                         PostHogSDK.shared.capture("workout_shared")
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "square.and.arrow.up")
-                            Text("Share")
-                        }
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.appAccent)
-                        .cornerRadius(12)
                     }
                 }
                 .padding(.horizontal)

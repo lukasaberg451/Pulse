@@ -35,246 +35,133 @@ struct ProfileView: View {
         return "Version \(version) (\(build))"
     }
     
+    @Environment(\.colorScheme) private var colorScheme
+    
     var body: some View {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 if viewModel.isLoading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .tint(.appAccent)
+                        Text("Loading profile…")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
+                    }
                 } else {
                     ScrollView {
-                        VStack(spacing: 16) {
-                            // Profile Section
-                            VStack(spacing: 16) {
-                                // Profile Picture (Initials)
+                        VStack(spacing: 20) {
+                            // Profile Header
+                            VStack(spacing: 14) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.appAccent.opacity(0.2))
-                                        .frame(width: 100, height: 100)
+                                        .fill(Color.appAccentSubtle)
+                                        .frame(width: 96, height: 96)
                                     
                                     Text(getUserInitials())
-                                        .font(.title)
-                                        .fontWeight(.semibold)
+                                        .font(.system(size: 34, weight: .bold, design: .rounded))
                                         .foregroundStyle(Color.appAccent)
                                 }
-                                .padding(.top, 30)
+                                .padding(.top, 24)
                                 
-                                // User Full Name
                                 Text("\(viewModel.profile?.firstName ?? "") \(viewModel.profile?.lastName ?? "")")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
+                                    .font(.title2.weight(.bold))
                                     .foregroundStyle(Color.appText)
                                 
-                                // User Email
                                 Text(viewModel.profile?.email ?? "")
-                                    .font(.body)
-                                    .foregroundStyle(Color.appText.opacity(0.6))
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appSecondaryText)
                                 
-                                // Edit Profile Button
                                 Button {
                                     let impactLight = UIImpactFeedbackGenerator(style: .light)
                                     impactLight.impactOccurred()
                                     showingEditNameSheet = true
                                 } label: {
-                                    HStack {
-                                        Spacer()
-                                        Text("Edit Profile")
-                                            .font(.headline)
-                                        Spacer()
-                                    }
-                                    .padding()
-                                    .background(Color.appAccent)
-                                    .foregroundStyle(Color.appText)
-                                    .cornerRadius(12)
+                                    Text("Edit Profile")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(Color.appAccent)
+                                        .padding(.horizontal, 24)
+                                        .padding(.vertical, 10)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color.appAccentSubtle)
+                                        )
                                 }
-                                .padding(.horizontal)
-                                .padding(.top, 8)
+                                .buttonStyle(ScalePressStyle())
+                                .padding(.top, 4)
                             }
                             
                             // Subscription Section
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text("Subscription")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.appText)
+                            VStack(alignment: .leading, spacing: 10) {
+                                DashboardSectionHeader(title: "Subscription")
                                     .padding(.horizontal)
                                 
-                                VStack(spacing: 0) {
-                                    Button {
-                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                        impactLight.impactOccurred()
-                                        showingSubscriptionSheet = true
-                                    } label: {
-                                        HStack(spacing: 16) {
-                                            Image(systemName: "star.fill")
-                                                .font(.title3)
-                                                .foregroundStyle(Color.appAccent)
-                                                .frame(width: 24)
-                                            
-                                            Text("Plan")
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText)
-                                            
-                                            Spacer()
-                                            
-                                            Text(subscriptionManager.isProUser ? "Pro" : "Free")
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
-                                            
-                                            Image(systemName: "chevron.right")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0.3))
-                                        }
-                                        .padding()
+                                Button {
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
+                                    showingSubscriptionSheet = true
+                                } label: {
+                                    HStack(spacing: 14) {
+                                        IconBadge(systemName: "star.fill", size: 32)
+                                        
+                                        Text("Plan")
+                                            .font(.body)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Spacer()
+                                        
+                                        Text(subscriptionManager.isProUser ? "Pro" : "Free")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(Color.appSecondaryText)
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(Color.appTertiaryText)
                                     }
+                                    .padding(14)
+                                    .background(Color.appSurface)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                    .profileCardShadow(colorScheme: colorScheme)
                                 }
-                                .background(Color.appSurface)
-                                .cornerRadius(12)
+                                .buttonStyle(ScalePressStyle())
                                 .padding(.horizontal)
                             }
-                            .padding(.top, 20)
                             
                             // Settings Section
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text("Settings")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.appText)
+                            VStack(alignment: .leading, spacing: 10) {
+                                DashboardSectionHeader(title: "Settings")
                                     .padding(.horizontal)
                                 
                                 VStack(spacing: 0) {
                                     // Appearance
-                                    Button {
-                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                        impactLight.impactOccurred()
+                                    ProfileSettingsRow(icon: "paintbrush.fill", title: "Appearance", value: themeManager.selectedTheme.rawValue) {
                                         showingThemeSheet = true
-                                    } label: {
-                                        HStack(spacing: 16) {
-                                            Image(systemName: "paintbrush.fill")
-                                                .font(.title3)
-                                                .foregroundStyle(Color.appAccent)
-                                                .frame(width: 24)
-                                            
-                                            Text("Appearance")
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText)
-                                            
-                                            Spacer()
-                                            
-                                            Text(themeManager.selectedTheme.rawValue)
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
-                                            
-                                            Image(systemName: "chevron.right")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0.3))
-                                        }
-                                        .padding()
                                     }
                                     
-                                    Divider()
-                                        .background(Color.appText.opacity(0.1))
-                                        .padding(.leading, 56)
+                                    ProfileDivider()
                                     
                                     // Language
-                                    Button {
-                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                        impactLight.impactOccurred()
+                                    ProfileSettingsRow(icon: "globe", title: "Language", value: LanguageManager.shared.getCurrentLanguageName()) {
                                         showingLanguageSheet = true
-                                    } label: {
-                                        HStack(spacing: 16) {
-                                            Image(systemName: "globe")
-                                                .font(.title3)
-                                                .foregroundStyle(Color.appAccent)
-                                                .frame(width: 24)
-                                            
-                                            Text("Language")
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText)
-                                            
-                                            Spacer()
-                                            
-                                            Text(LanguageManager.shared.getCurrentLanguageName())
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
-                                            
-                                            Image(systemName: "chevron.right")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0.3))
-                                        }
-                                        .padding()
                                     }
                                     
-                                    Divider()
-                                        .background(Color.appText.opacity(0.1))
-                                        .padding(.leading, 56)
+                                    ProfileDivider()
                                     
                                     // Units
-                                    Button {
-                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                        impactLight.impactOccurred()
+                                    ProfileSettingsRow(icon: "ruler", title: "Units", value: unitManager.unitSystem.displayName) {
                                         showingUnitSheet = true
-                                    } label: {
-                                        HStack(spacing: 16) {
-                                            Image(systemName: "ruler")
-                                                .font(.title3)
-                                                .foregroundStyle(Color.appAccent)
-                                                .frame(width: 24)
-                                            
-                                            Text("Units")
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText)
-                                            
-                                            Spacer()
-                                            
-                                            Text(unitManager.unitSystem.displayName)
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
-                                            
-                                            Image(systemName: "chevron.right")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0.3))
-                                        }
-                                        .padding()
                                     }
                                     
-                                    Divider()
-                                        .background(Color.appText.opacity(0.1))
-                                        .padding(.leading, 56)
+                                    ProfileDivider()
                                     
                                     // Timezone
-                                    Button {
-                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                        impactLight.impactOccurred()
+                                    ProfileSettingsRow(icon: "clock.badge.checkmark", title: "Timezone", value: viewModel.profile?.timezone ?? TimeZone.current.identifier, lineLimit: 1) {
                                         showingTimezoneSheet = true
-                                    } label: {
-                                        HStack(spacing: 16) {
-                                            Image(systemName: "clock.badge.checkmark")
-                                                .font(.title3)
-                                                .foregroundStyle(Color.appAccent)
-                                                .frame(width: 24)
-                                            
-                                            Text("Timezone")
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText)
-                                            
-                                            Spacer()
-                                            
-                                            Text(viewModel.profile?.timezone ?? TimeZone.current.identifier)
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
-                                                .lineLimit(1)
-                                            
-                                            Image(systemName: "chevron.right")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0.3))
-                                        }
-                                        .padding()
                                     }
                                     
                                     if healthKitManager.isAvailable {
-                                        Divider()
-                                            .background(Color.appText.opacity(0.1))
-                                            .padding(.leading, 56)
+                                        ProfileDivider()
                                         
                                         // Apple Health
                                         Button {
@@ -290,11 +177,8 @@ struct ProfileView: View {
                                                 }
                                             }
                                         } label: {
-                                            HStack(spacing: 16) {
-                                                Image(systemName: "heart.fill")
-                                                    .font(.system(size: 20))
-                                                    .foregroundStyle(Color.appAccent)
-                                                    .frame(width: 24)
+                                            HStack(spacing: 14) {
+                                                IconBadge(systemName: "heart.fill", color: .pink, size: 32)
                                                 
                                                 Text("Apple Health")
                                                     .font(.body)
@@ -304,36 +188,23 @@ struct ProfileView: View {
                                                 
                                                 if healthKitManager.isSyncEnabled {
                                                     Text("Connected")
-                                                        .font(.body)
-                                                        .foregroundStyle(Color.appText.opacity(0.6))
-                                                    
-                                                    Image(systemName: "chevron.right")
-                                                        .font(.caption)
-                                                        .foregroundStyle(Color.appText.opacity(0.3))
+                                                        .font(.subheadline.weight(.medium))
+                                                        .foregroundStyle(.green)
                                                 } else {
                                                     Text("Connect")
-                                                        .font(.body.weight(.medium))
+                                                        .font(.subheadline.weight(.semibold))
                                                         .foregroundStyle(Color.appAccent)
-                                                    
-                                                    Image(systemName: "chevron.right")
-                                                        .font(.caption)
-                                                        .foregroundStyle(Color.appText.opacity(0))
                                                 }
                                             }
-                                            .padding()
+                                            .padding(14)
                                         }
                                     }
                                     
-                                    // Apple Watch
-                                    Divider()
-                                        .background(Color.appText.opacity(0.1))
-                                        .padding(.leading, 56)
+                                    ProfileDivider()
                                     
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "applewatch")
-                                            .font(.system(size: 20))
-                                            .foregroundStyle(Color.appAccent)
-                                            .frame(width: 24)
+                                    // Apple Watch
+                                    HStack(spacing: 14) {
+                                        IconBadge(systemName: "applewatch", size: 32)
                                         
                                         Text("Apple Watch")
                                             .font(.body)
@@ -341,93 +212,58 @@ struct ProfileView: View {
                                         
                                         Spacer()
                                         
-                                        if WorkoutSyncManager.shared.isPaired == true {
-                                            Text("Connected")
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
-                                            
-                                            Image(systemName: "chevron.right")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0))
-                                        } else {
-                                            Text("Not Connected")
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
-                                            
-                                            Image(systemName: "chevron.right")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0))
-                                        }
+                                        Text(WorkoutSyncManager.shared.isPaired == true ? "Connected" : "Not Connected")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(WorkoutSyncManager.shared.isPaired == true ? .green : Color.appSecondaryText)
                                     }
-                                    .padding()
+                                    .padding(14)
                                 }
                                 .background(Color.appSurface)
-                                .cornerRadius(12)
+                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                .profileCardShadow(colorScheme: colorScheme)
                                 .padding(.horizontal)
                             }
-                            .padding(.top, 20)
                             
                             // Support Section
-                            VStack(spacing: 0) {
-                                // Send Feedback
-                                Button {
-                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                    impactLight.impactOccurred()
-                                    showingFeedbackSheet = true
-                                } label: {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "bubble.left.and.exclamationmark.bubble.right")
-                                            .font(.title3)
-                                            .foregroundStyle(Color.appAccent)
-                                            .frame(width: 24)
-                                        
-                                        Text("Send Feedback")
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText)
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appText.opacity(0.3))
-                                    }
-                                    .padding()
-                                }
+                            VStack(alignment: .leading, spacing: 10) {
+                                DashboardSectionHeader(title: "Support")
+                                    .padding(.horizontal)
                                 
-                                Divider()
-                                    .background(Color.appText.opacity(0.1))
-                                    .padding(.leading, 56)
-                                
-                                // Help & Support
-                                Button {
-                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                    impactLight.impactOccurred()
-                                    openSupportEmail()
-                                } label: {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "questionmark.circle")
-                                            .font(.title3)
-                                            .foregroundStyle(Color.appAccent)
-                                            .frame(width: 24)
-                                        
-                                        Text("Help & Support")
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText)
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "envelope")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appText.opacity(0.3))
+                                VStack(spacing: 0) {
+                                    // Send Feedback
+                                    ProfileSettingsRow(icon: "bubble.left.and.exclamationmark.bubble.right", title: "Send Feedback") {
+                                        showingFeedbackSheet = true
                                     }
-                                    .padding()
+                                    
+                                    ProfileDivider()
+                                    
+                                    // Help & Support
+                                    Button {
+                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                        impactLight.impactOccurred()
+                                        openSupportEmail()
+                                    } label: {
+                                        HStack(spacing: 14) {
+                                            IconBadge(systemName: "questionmark.circle", size: 32)
+                                            
+                                            Text("Help & Support")
+                                                .font(.body)
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            Spacer()
+                                            
+                                            Image(systemName: "envelope")
+                                                .font(.caption.weight(.semibold))
+                                                .foregroundStyle(Color.appTertiaryText)
+                                        }
+                                        .padding(14)
+                                    }
                                 }
+                                .background(Color.appSurface)
+                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                .profileCardShadow(colorScheme: colorScheme)
+                                .padding(.horizontal)
                             }
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
-                            .padding(.horizontal)
-                            .padding(.top, 20)
-                            
                             
                             // Sign Out Button
                             Button {
@@ -435,20 +271,20 @@ struct ProfileView: View {
                                 notificationFeedback.notificationOccurred(.warning)
                                 showingSignOutAlert = true
                             } label: {
-                                HStack {
-                                    Spacer()
+                                HStack(spacing: 8) {
                                     Image(systemName: "rectangle.portrait.and.arrow.right")
+                                        .font(.subheadline.weight(.semibold))
                                     Text("Sign Out")
-                                        .font(.headline)
-                                    Spacer()
+                                        .font(.subheadline.weight(.semibold))
                                 }
-                                .padding()
+                                .foregroundStyle(.red)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
                                 .background(Color.red.opacity(0.1))
-                                .foregroundStyle(Color.red)
-                                .cornerRadius(12)
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                             }
+                            .buttonStyle(ScalePressStyle())
                             .padding(.horizontal)
-                            .padding(.top, 20)
                             
                             // Delete Account Button
                             Button {
@@ -456,29 +292,30 @@ struct ProfileView: View {
                                 notificationFeedback.notificationOccurred(.warning)
                                 showingDeleteAccountAlert = true
                             } label: {
-                                HStack {
-                                    Spacer()
+                                HStack(spacing: 8) {
                                     if isDeletingAccount {
                                         ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                                            .tint(.red)
                                     } else {
                                         Image(systemName: "trash")
+                                            .font(.subheadline.weight(.semibold))
                                         Text("Delete Account")
-                                            .font(.headline)
+                                            .font(.subheadline.weight(.semibold))
                                     }
-                                    Spacer()
                                 }
-                                .padding()
-                                .background(Color.red.opacity(0.1))
-                                .foregroundStyle(Color.red)
-                                .cornerRadius(12)
+                                .foregroundStyle(.red.opacity(0.7))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(Color.red.opacity(0.06))
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                             }
+                            .buttonStyle(ScalePressStyle())
                             .disabled(isDeletingAccount)
                             .padding(.horizontal)
-                            .padding(.top, 8)
                         }
-                        .padding(.top, 20)
-                        .padding(.bottom, 25)
+                        .padding(.top, 8)
+                        .padding(.bottom, 16)
+                        
                         // Terms & Privacy
                         HStack(spacing: 16) {
                             Button(action: {
@@ -486,32 +323,28 @@ struct ProfileView: View {
                             }) {
                                 Text("Terms of Service")
                                     .font(.caption)
-                                    .foregroundStyle(Color.appAccent)
-                                    .underline()
+                                    .foregroundStyle(Color.appSecondaryText)
                             }
                             
                             Text("·")
                                 .font(.caption)
-                                .foregroundStyle(Color.appText.opacity(0.7))
+                                .foregroundStyle(Color.appTertiaryText)
                             
                             Button(action: {
                                 safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
                             }) {
                                 Text("Privacy Policy")
                                     .font(.caption)
-                                    .foregroundStyle(Color.appAccent)
-                                    .underline()
+                                    .foregroundStyle(Color.appSecondaryText)
                             }
                         }
-                        .padding(.bottom, 10)
+                        .padding(.bottom, 8)
                         
-                        VStack(spacing: 8) {
-                            Text(appVersion)
-                                .font(.caption)
-                                .foregroundStyle(Color.appText.opacity(0.5))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.bottom, 20)
+                        Text(appVersion)
+                            .font(.caption2)
+                            .foregroundStyle(Color.appTertiaryText)
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 20)
                     }
                 }
             }
@@ -609,38 +442,82 @@ struct ProfileView: View {
 }
 
 
-// MARK: - Profile Row
-struct ProfileRow: View {
+// MARK: - Profile Helpers
+
+private struct ProfileSettingsRow: View {
     let icon: String
     let title: String
-    let value: String
+    var value: String? = nil
+    var lineLimit: Int? = nil
+    let action: () -> Void
     
     var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(Color.appAccent)
-                .frame(width: 24)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.6))
+        Button {
+            let impactLight = UIImpactFeedbackGenerator(style: .light)
+            impactLight.impactOccurred()
+            action()
+        } label: {
+            HStack(spacing: 14) {
+                IconBadge(systemName: icon, size: 32)
                 
-                Text(value)
+                Text(title)
                     .font(.body)
                     .foregroundStyle(Color.appText)
+                
+                Spacer()
+                
+                if let value {
+                    Text(value)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.appSecondaryText)
+                        .lineLimit(lineLimit)
+                }
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.appTertiaryText)
             }
-            
-            Spacer()
+            .padding(14)
         }
-        .padding()
+    }
+}
+
+private struct ProfileDivider: View {
+    var body: some View {
+        Divider()
+            .background(Color.appText.opacity(0.06))
+            .padding(.leading, 60)
+    }
+}
+
+private struct ProfileCardShadowModifier: ViewModifier {
+    let colorScheme: ColorScheme
+    
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if colorScheme == .dark {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                }
+            }
+            .shadow(
+                color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear,
+                radius: 16, x: 0, y: 6
+            )
+    }
+}
+
+private extension View {
+    func profileCardShadow(colorScheme: ColorScheme) -> some View {
+        modifier(ProfileCardShadowModifier(colorScheme: colorScheme))
     }
 }
 
 // MARK: - Edit Name Sheet
 struct EditNameSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var viewModel: ProfileViewModel
     @EnvironmentObject var authViewModel: AuthViewModel
     
@@ -663,137 +540,52 @@ struct EditNameSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 ScrollView {
-                    VStack(spacing: 16) {
-                        // Profile Initials Circle
-                        ZStack {
-                            Circle()
-                                .fill(Color.appAccent.opacity(0.2))
-                                .frame(width: 100, height: 100)
-                            
-                            Text(getUserInitials())
-                                .font(.title)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.appAccent)
-                        }
-                        .padding(.top, 20)
+                    VStack(spacing: 20) {
+                        // Profile Header
+                        IconBadge(systemName: "person.crop.circle.fill", size: 52)
+                            .padding(.top, 24)
                         
-                        // User Details Section
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Account Details")
-                                .font(.headline)
-                                .foregroundStyle(Color.appText)
-                                .padding(.horizontal)
-                            
-                            VStack(spacing: 0) {
-                                // First Name Row
-                                HStack(spacing: 16) {
-                                    Image(systemName: "person.fill")
-                                        .font(.title3)
-                                        .foregroundStyle(Color.appAccent)
-                                        .frame(width: 24)
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("First Name")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appText.opacity(0.6))
-                                        
-                                        Text(viewModel.profile?.firstName ?? "Not set")
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Button {
-                                        showingEditFirstNameSheet = true
-                                    } label: {
-                                        Image(systemName: "pencil")
-                                            .font(.callout)
-                                            .foregroundStyle(Color.appAccent)
-                                    }
-                                }
-                                .padding()
-                                
-                                Divider()
-                                    .background(Color.appText.opacity(0.1))
-                                    .padding(.leading, 56)
-                                
-                                // Last Name Row
-                                HStack(spacing: 16) {
-                                    Image(systemName: "person.fill")
-                                        .font(.title3)
-                                        .foregroundStyle(Color.appAccent)
-                                        .frame(width: 24)
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Last Name")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appText.opacity(0.6))
-                                        
-                                        Text(viewModel.profile?.lastName ?? "Not set")
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Button {
-                                        showingEditLastNameSheet = true
-                                    } label: {
-                                        Image(systemName: "pencil")
-                                            .font(.callout)
-                                            .foregroundStyle(Color.appAccent)
-                                    }
-                                }
-                                .padding()
-                                
-                                Divider()
-                                    .background(Color.appText.opacity(0.1))
-                                    .padding(.leading, 56)
-                                
-                                // Email Row
-                                HStack(spacing: 16) {
-                                    Image(systemName: "envelope")
-                                        .font(.title3)
-                                        .foregroundStyle(Color.appAccent)
-                                        .frame(width: 24)
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Email")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appText.opacity(0.6))
-                                        
-                                        Text(viewModel.profile?.email ?? "Not set")
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Button {
-                                        showingChangeEmailSheet = true
-                                    } label: {
-                                        Image(systemName: "pencil")
-                                            .font(.callout)
-                                            .foregroundStyle(Color.appAccent)
-                                    }
-                                }
-                                .padding()
+                        Text("Edit Profile")
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(Color.appText)
+                        
+                        Text("Manage your account details")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
+                        
+                        // Account Details Card
+                        VStack(spacing: 0) {
+                            // First Name Row
+                            EditNameRow(icon: "person.fill", label: "First Name", value: viewModel.profile?.firstName ?? "Not set") {
+                                showingEditFirstNameSheet = true
                             }
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
-                            .padding(.horizontal)
+                            
+                            ProfileDivider()
+                            
+                            // Last Name Row
+                            EditNameRow(icon: "person.fill", label: "Last Name", value: viewModel.profile?.lastName ?? "Not set") {
+                                showingEditLastNameSheet = true
+                            }
+                            
+                            ProfileDivider()
+                            
+                            // Email Row
+                            EditNameRow(icon: "envelope.fill", label: "Email", value: viewModel.profile?.email ?? "Not set") {
+                                showingChangeEmailSheet = true
+                            }
                         }
-                        .padding(.top, 20)
+                        .background(Color.appSurface)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .profileCardShadow(colorScheme: colorScheme)
+                        .padding(.horizontal)
+                        .padding(.top, 8)
                     }
                 }
             }
-            .navigationTitle("Edit Profile")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
@@ -846,25 +638,48 @@ struct EditNameSheet: View {
             )
         }
     }
+}
+
+private struct EditNameRow: View {
+    let icon: String
+    let label: String
+    let value: String
+    let action: () -> Void
     
-    func getUserInitials() -> String {
-        let firstName = viewModel.profile?.firstName ?? ""
-        let lastName = viewModel.profile?.lastName ?? ""
-        
-        let firstInitial = firstName.first?.uppercased() ?? ""
-        let lastInitial = lastName.first?.uppercased() ?? ""
-        
-        if firstInitial.isEmpty && lastInitial.isEmpty {
-            return "?"
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                IconBadge(systemName: icon, size: 32)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(label)
+                        .font(.caption)
+                        .foregroundStyle(Color.appSecondaryText)
+                    
+                    Text(value)
+                        .font(.body)
+                        .foregroundStyle(Color.appText)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "pencil")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.appAccent)
+                    .padding(8)
+                    .background(Color.appAccentSubtle)
+                    .clipShape(Circle())
+            }
+            .padding(14)
         }
-        
-        return "\(firstInitial)\(lastInitial)"
     }
 }
 
 // MARK: - Edit Field Sheet
 struct EditFieldSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    @FocusState private var isFocused: Bool
     
     let title: String
     let value: String
@@ -886,74 +701,89 @@ struct EditFieldSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
-                VStack(alignment: .leading, spacing: 20) {
-                    // Error message
-                    if showError {
-                        Text(errorMessage)
-                            .foregroundStyle(Color.red)
-                            .font(.caption)
-                            .padding(.horizontal)
-                    }
+                VStack(spacing: 24) {
+                    IconBadge(systemName: "pencil.circle.fill", size: 48)
+                        .padding(.top, 24)
+                    
+                    Text("Edit \(title)")
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(Color.appText)
                     
                     // Text Field
                     VStack(alignment: .leading, spacing: 8) {
                         Text(title)
-                            .font(.headline)
-                            .foregroundStyle(Color.appText)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Color.appSecondaryText)
+                            .textCase(.uppercase)
                         
                         TextField(placeholder, text: $editedValue)
                             .textInputAutocapitalization(.words)
-                            .padding()
+                            .focused($isFocused)
+                            .padding(14)
                             .background(Color.appSurface)
                             .foregroundStyle(Color.appText)
-                            .cornerRadius(12)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(isFocused ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
+                            )
+                            .submitLabel(.done)
+                            .onSubmit { save() }
+                    }
+                    .padding(.horizontal)
+                    
+                    if showError {
+                        Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                            .padding(.horizontal)
+                    }
+                    
+                    PrimaryCTAButton("Save", icon: "checkmark") {
+                        save()
                     }
                     .padding(.horizontal)
                     
                     Spacer()
                 }
-                .padding(.top, 20)
             }
-            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundStyle(Color.appText)
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        if editedValue.trimmingCharacters(in: .whitespaces).isEmpty {
-                            errorMessage = "\(title) cannot be empty"
-                            showError = true
-                        } else {
-                            onSave(editedValue)
-                            dismiss()
-                        }
-                    }
-                    .foregroundStyle(Color.appAccent)
-                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.appSecondaryText)
                 }
             }
         }
         .presentationBackground(Color.appBackground)
+        .onAppear { isFocused = true }
+    }
+    
+    private func save() {
+        if editedValue.trimmingCharacters(in: .whitespaces).isEmpty {
+            errorMessage = "\(title) cannot be empty"
+            showError = true
+        } else {
+            onSave(editedValue)
+            dismiss()
+        }
     }
 }
 
 // MARK: - Feedback
 struct FeedbackSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     var viewModel: ProfileViewModel
     @State private var feedbackType: FeedbackType = .feature
     @State private var title = ""
     @State private var description = ""
     @State private var isChecked = false
+    @FocusState private var focusedField: FeedbackField?
     
     enum FeedbackType: String, CaseIterable {
         case feature = "Feature Request"
@@ -961,101 +791,153 @@ struct FeedbackSheet: View {
         case other = "Other"
     }
     
+    private enum FeedbackField {
+        case title, description
+    }
+    
+    private var isFormValid: Bool {
+        !title.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !description.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
-                VStack(alignment: .leading, spacing: 20) {
-                    // Type picker
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Type")
-                            .font(.headline)
+                ScrollView {
+                    VStack(spacing: 20) {
+                        IconBadge(systemName: "bubble.left.and.exclamationmark.bubble.right.fill", size: 48)
+                            .padding(.top, 24)
+                        
+                        Text("Send Feedback")
+                            .font(.title3.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
-                        Menu {
-                            ForEach(FeedbackType.allCases, id: \.self) { type in
-                                Button(type.rawValue) {
-                                    feedbackType = type
+                        Text("Help us improve Pulse")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
+                        
+                        // Type picker
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("TYPE")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.appSecondaryText)
+                            
+                            Menu {
+                                ForEach(FeedbackType.allCases, id: \.self) { type in
+                                    Button(type.rawValue) {
+                                        feedbackType = type
+                                    }
                                 }
+                            } label: {
+                                HStack {
+                                    Text(feedbackType.rawValue)
+                                        .foregroundStyle(Color.appText)
+                                    Spacer()
+                                    Image(systemName: "chevron.up.chevron.down")
+                                        .foregroundStyle(Color.appSecondaryText)
+                                        .font(.caption)
+                                }
+                                .padding(14)
+                                .background(Color.appSurface)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .strokeBorder(colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear, lineWidth: 1)
+                                )
                             }
-                        } label: {
-                            HStack {
-                                Text(feedbackType.rawValue)
-                                    .foregroundStyle(Color.appText)
-                                Spacer()
-                                Image(systemName: "chevron.down")
-                                    .foregroundStyle(Color.appText.opacity(0.6))
-                                    .font(.caption)
-                            }
-                            .padding()
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
                         }
-                    }
-                    .padding(.horizontal)
-                    
-                    // Title
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Title")
-                            .font(.headline)
-                            .foregroundStyle(Color.appText)
+                        .padding(.horizontal)
                         
-                        TextField("Title", text: $title)
-                            .padding()
-                            .background(Color.appSurface)
-                            .foregroundStyle(Color.appText)
-                            .cornerRadius(12)
-                    }
-                    .padding(.horizontal)
-                    
-                    // Description
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Description")
-                            .font(.headline)
-                            .foregroundStyle(Color.appText)
-                        
-                        ZStack(alignment: .topLeading) {
-                            TextEditor(text: $description)
-                                .frame(minHeight: 120)
-                                .padding(8)
+                        // Title
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("TITLE")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.appSecondaryText)
+                            
+                            TextField("Brief summary", text: $title)
+                                .focused($focusedField, equals: .title)
+                                .padding(14)
                                 .background(Color.appSurface)
                                 .foregroundStyle(Color.appText)
-                                .cornerRadius(12)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .strokeBorder(focusedField == .title ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
+                                )
+                        }
+                        .padding(.horizontal)
+                        
+                        // Description
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("DESCRIPTION")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.appSecondaryText)
+                            
+                            TextEditor(text: $description)
+                                .focused($focusedField, equals: .description)
+                                .frame(minHeight: 120)
+                                .padding(10)
+                                .background(Color.appSurface)
+                                .foregroundStyle(Color.appText)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .strokeBorder(focusedField == .description ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
+                                )
                                 .scrollContentBackground(.hidden)
                         }
+                        .padding(.horizontal)
+                        
+                        Toggle(isOn: $isChecked) {
+                            Text("Receive updates on my feedback")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appText)
+                        }
+                        .tint(Color.appAccent)
+                        .padding(.horizontal)
+                        
+                        PrimaryCTAButton("Submit Feedback", icon: "paperplane.fill") {
+                            Task {
+                                let success = await viewModel.submitFeedback(
+                                    type: feedbackType.rawValue,
+                                    title: title,
+                                    description: description,
+                                    isChecked: isChecked
+                                )
+                                if success {
+                                    dismiss()
+                                }
+                            }
+                        }
+                        .opacity(isFormValid ? 1 : 0.5)
+                        .disabled(!isFormValid)
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
-                    
-                    VStack {
-                        Toggle("I would like to receive updates on my feedback", isOn: $isChecked)
-                            .foregroundStyle(Color.appText)
-                            .tint(Color.appAccent)
-                    }
-                    .padding(.horizontal)
-                    
-                    Spacer()
+                    .padding(.bottom, 24)
                 }
-                .padding(.top, 20)
                 
                 // Loading overlay
                 if viewModel.isSubmittingFeedback {
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
                     
-                    VStack(spacing: 20) {
+                    VStack(spacing: 16) {
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.5)
+                            .tint(.white)
+                            .scaleEffect(1.2)
                         
-                        Text("Submitting feedback...")
-                            .foregroundStyle(Color.appText)
-                            .font(.headline)
+                        Text("Submitting…")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.white)
                     }
+                    .padding(24)
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .transition(.opacity)
                 }
             }
-            .navigationTitle("Send Feedback")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -1063,25 +945,7 @@ struct FeedbackSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundStyle(Color.appText)
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Submit") {
-                        Task {
-                            let success = await viewModel.submitFeedback(
-                                type: feedbackType.rawValue,
-                                title: title,
-                                description: description,
-                                isChecked: isChecked
-                            )
-                            if success {
-                                dismiss()
-                            }
-                        }
-                    }
-                    .foregroundStyle(title.isEmpty || description.isEmpty ? Color.appText.opacity(0.3) : Color.appAccent)
-                    .disabled(title.isEmpty || description.isEmpty)
+                    .foregroundStyle(Color.appSecondaryText)
                 }
             }
         }
@@ -1091,6 +955,7 @@ struct FeedbackSheet: View {
 // MARK: - Language
 struct LanguageSelectionSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var languageManager = LanguageManager.shared
     @State private var selectedLanguage: String
     @State private var showingRestartAlert = false
@@ -1101,79 +966,88 @@ struct LanguageSelectionSheet: View {
     
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .topLeading) {
-                Color.appBackground.ignoresSafeArea()
+            ZStack {
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 16) {
+                    IconBadge(systemName: "globe", size: 48)
+                        .padding(.top, 24)
+                    
+                    Text("Language")
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(Color.appText)
+                    
+                    Text("Choose your preferred language")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
+                    
                     // Info banner
-                    HStack(spacing: 12) {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundStyle(Color.blue)
-                        
-                        Text("App will restart to apply language change")
-                            .font(.caption)
-                            .foregroundStyle(Color.appText.opacity(0.8))
-                        
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(12)
+                    Label("App will restart to apply language change", systemImage: "info.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.blue)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(Color.blue.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .padding(.horizontal)
                     
                     // Language options
                     VStack(spacing: 0) {
                         ForEach(languageManager.supportedLanguages, id: \.0) { code, name in
                             Button {
                                 selectedLanguage = code
+                                if selectedLanguage != languageManager.currentLanguage {
+                                    languageManager.setLanguage(selectedLanguage)
+                                    showingRestartAlert = true
+                                }
                             } label: {
-                                HStack(spacing: 16) {
+                                HStack(spacing: 14) {
+                                    IconBadge(systemName: iconForLanguage(code), size: 32)
+                                    
                                     Text(name)
+                                        .font(.body)
                                         .foregroundStyle(Color.appText)
-                                        .padding(.leading, 15)
                                     
                                     Spacer()
                                     
                                     if selectedLanguage == code {
-                                        Image(systemName: "checkmark")
+                                        Image(systemName: "checkmark.circle.fill")
                                             .foregroundStyle(Color.appAccent)
                                     }
                                 }
-                                .padding()
+                                .padding(14)
                             }
                             
                             if code != languageManager.supportedLanguages.last?.0 {
                                 Divider()
-                                    .background(Color.appText.opacity(0.1))
+                                    .background(Color.appText.opacity(0.06))
+                                    .padding(.leading, 60)
                             }
                         }
-                        .padding(.trailing, 15)
                     }
                     .background(Color.appSurface)
-                    .cornerRadius(12)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay {
+                        if colorScheme == .dark {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        }
+                    }
+                    .shadow(
+                        color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear,
+                        radius: 16, x: 0, y: 6
+                    )
+                    .padding(.horizontal)
                     
                     Spacer()
                 }
-                .padding()
             }
-            .navigationTitle("Language")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button("Done") {
                         dismiss()
-                    }
-                    .foregroundStyle(Color.appText)
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        if selectedLanguage != languageManager.currentLanguage {
-                            languageManager.setLanguage(selectedLanguage)
-                            showingRestartAlert = true
-                        } else {
-                            dismiss()
-                        }
                     }
                     .foregroundStyle(Color.appAccent)
                     .fontWeight(.semibold)
@@ -1191,11 +1065,20 @@ struct LanguageSelectionSheet: View {
         }
         .presentationBackground(Color.appBackground)
     }
+    
+    private func iconForLanguage(_ code: String) -> String {
+        switch code {
+        case "sv": return "textformat.abc"
+        case "en": return "textformat.abc"
+        default: return "character.textbox"
+        }
+    }
 }
 
 // MARK: - Change Email Sheet
 struct ChangeEmailSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var authViewModel: AuthViewModel
     
     @State private var newEmail = ""
@@ -1203,140 +1086,145 @@ struct ChangeEmailSheet: View {
     @State private var isLoading = false
     @State private var showSuccess = false
     @State private var errorMessage: String?
+    @FocusState private var focusedField: EmailField?
     let onEmailChanged: () -> Void
+    
+    private enum EmailField {
+        case email, password
+    }
     
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 if showSuccess {
                     // Success view
-                    VStack(spacing: 24) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 80))
-                            .foregroundStyle(Color.green)
+                    VStack(spacing: 20) {
+                        IconBadge(systemName: "checkmark.circle.fill", color: .green, size: 56)
+                            .padding(.top, 40)
                         
                         Text("Verification Email Sent")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.title3.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
                         Text("We've sent a confirmation email to")
-                            .font(.body)
-                            .foregroundStyle(Color.appText.opacity(0.7))
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
                         
                         Text(newEmail)
-                            .font(.headline)
+                            .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appAccent)
                         
                         Text("Please confirm the change by clicking the link in your inbox. You will be signed out now.")
-                            .font(.body)
-                            .foregroundStyle(Color.appText.opacity(0.7))
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                         
-                        Button("OK") {
+                        PrimaryCTAButton("OK") {
                             Task {
                                 await authViewModel.signOut()
                             }
                         }
-                        .foregroundStyle(Color.appText)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .background(Color.appAccent)
-                        .cornerRadius(12)
-                        .padding(.top, 20)
-                    }
-                    .padding()
-                } else {
-                    // Form view
-                    VStack(alignment: .leading, spacing: 24) {
-                        Text("Change Email Address")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color.appText)
-                        
-                        Text("Enter your new email address and current password to confirm the change. You will be signed out and need to sign back in after confirming.")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.appText.opacity(0.7))
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("New Email")
-                                .font(.caption)
-                                .foregroundStyle(Color.appText)
-                            
-                            TextField("New Email", text: $newEmail)
-                                .textFieldStyle(.plain)
-                                .textInputAutocapitalization(.never)
-                                .foregroundStyle(Color.appText)
-                                .keyboardType(.emailAddress)
-                                .autocorrectionDisabled()
-                                .padding()
-                                .background(Color.appSurface)
-                                .cornerRadius(12)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Current Password")
-                                .font(.caption)
-                                .foregroundStyle(Color.appText)
-                            
-                            SecureField("Current Password", text: $password)
-                                .textFieldStyle(.plain)
-                                .foregroundStyle(Color.appText)
-                                .padding()
-                                .background(Color.appSurface)
-                                .cornerRadius(12)
-                        }
-                        
-                        if let error = errorMessage {
-                            Text(error)
-                                .font(.caption)
-                                .foregroundStyle(Color.red)
-                        }
-                        
-                        Button {
-                            Task {
-                                await changeEmail()
-                            }
-                        } label: {
-                            if isLoading {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                Text("Change Email")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.appText)
-                                    .frame(maxWidth: .infinity)
-                            }
-                        }
-                        .padding()
-                        .background(isValidForm ? Color.appAccent : Color.appAccent)
-                        .cornerRadius(12)
-                        .disabled(!isValidForm || isLoading)
+                        .padding(.horizontal)
+                        .padding(.top, 8)
                         
                         Spacer()
                     }
-                    .padding()
+                } else {
+                    // Form view
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            IconBadge(systemName: "envelope.circle.fill", size: 48)
+                                .padding(.top, 24)
+                            
+                            Text("Change Email")
+                                .font(.title3.weight(.bold))
+                                .foregroundStyle(Color.appText)
+                            
+                            Text("Enter your new email and current password. You will be signed out after confirming.")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appSecondaryText)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("NEW EMAIL")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Color.appSecondaryText)
+                                
+                                TextField("email@example.com", text: $newEmail)
+                                    .textFieldStyle(.plain)
+                                    .textInputAutocapitalization(.never)
+                                    .foregroundStyle(Color.appText)
+                                    .keyboardType(.emailAddress)
+                                    .autocorrectionDisabled()
+                                    .focused($focusedField, equals: .email)
+                                    .padding(14)
+                                    .background(Color.appSurface)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .strokeBorder(focusedField == .email ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
+                                    )
+                            }
+                            .padding(.horizontal)
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("CURRENT PASSWORD")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Color.appSecondaryText)
+                                
+                                SecureField("Password", text: $password)
+                                    .textFieldStyle(.plain)
+                                    .foregroundStyle(Color.appText)
+                                    .focused($focusedField, equals: .password)
+                                    .padding(14)
+                                    .background(Color.appSurface)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .strokeBorder(focusedField == .password ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
+                                    )
+                            }
+                            .padding(.horizontal)
+                            
+                            if let error = errorMessage {
+                                Label(error, systemImage: "exclamationmark.triangle.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                                    .padding(.horizontal)
+                            }
+                            
+                            PrimaryCTAButton(isLoading ? "Changing…" : "Change Email", icon: "envelope.badge") {
+                                Task {
+                                    await changeEmail()
+                                }
+                            }
+                            .opacity(isValidForm ? 1 : 0.5)
+                            .disabled(!isValidForm || isLoading)
+                            .padding(.horizontal)
+                        }
+                        .padding(.bottom, 24)
+                    }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     if !showSuccess {
                         Button("Cancel") {
                             dismiss()
                         }
-                        .foregroundStyle(Color.appText)
+                        .foregroundStyle(Color.appSecondaryText)
                     }
                 }
             }
         }
         .presentationBackground(Color.appBackground)
         .interactiveDismissDisabled(showSuccess)
+        .onAppear { focusedField = .email }
     }
     
     var isValidForm: Bool {
@@ -1365,6 +1253,7 @@ struct ChangeEmailSheet: View {
 // MARK: - Delete Account Confirmation Sheet
 struct DeleteAccountConfirmationSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var isDeletingAccount: Bool
     @ObservedObject var authViewModel: AuthViewModel
     @State private var confirmationText = ""
@@ -1377,40 +1266,37 @@ struct DeleteAccountConfirmationSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 16) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 36))
-                        .foregroundStyle(.red)
-                        .padding(.top, 20)
+                    IconBadge(systemName: "exclamationmark.triangle.fill", color: .red, size: 48)
+                        .padding(.top, 24)
                     
                     Text("This action is irreversible")
-                        .font(.title3)
-                        .fontWeight(.semibold)
+                        .font(.title3.weight(.bold))
                         .foregroundStyle(Color.appText)
                     
                     Text("Your account and all associated data will be permanently deleted.")
                         .font(.subheadline)
-                        .foregroundStyle(Color.appText.opacity(0.7))
+                        .foregroundStyle(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal)
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Type DELETE to confirm")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.appText.opacity(0.7))
+                        Text("TYPE DELETE TO CONFIRM")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Color.appSecondaryText)
                         
                         TextField("DELETE", text: $confirmationText)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
-                            .padding()
+                            .padding(14)
                             .background(Color.appSurface)
-                            .cornerRadius(10)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.appText.opacity(0.1), lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(isTextFieldFocused ? Color.red : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
                             )
                             .focused($isTextFieldFocused)
                     }
@@ -1426,36 +1312,44 @@ struct DeleteAccountConfirmationSheet: View {
                             }
                         }
                     } label: {
-                        HStack {
-                            Spacer()
+                        HStack(spacing: 8) {
                             if isDeletingAccount {
                                 ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .tint(.white)
                             } else {
+                                Image(systemName: "trash.fill")
+                                    .font(.subheadline.weight(.semibold))
                                 Text("Delete Account")
-                                    .font(.headline)
+                                    .font(.subheadline.weight(.bold))
                             }
-                            Spacer()
                         }
-                        .padding()
-                        .background(isDeleteEnabled ? Color.red : Color.red.opacity(0.3))
                         .foregroundStyle(.white)
-                        .cornerRadius(12)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: isDeleteEnabled ? [.red, .red.opacity(0.8)] : [.red.opacity(0.3), .red.opacity(0.2)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
+                    .buttonStyle(ScalePressStyle())
                     .disabled(!isDeleteEnabled || isDeletingAccount)
                     .padding(.horizontal)
                     
                     Spacer()
                 }
             }
-            .navigationTitle("Delete Account")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundStyle(Color.appText)
+                    .foregroundStyle(Color.appSecondaryText)
                 }
             }
             .onAppear {

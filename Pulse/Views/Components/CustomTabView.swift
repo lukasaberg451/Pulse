@@ -10,39 +10,45 @@ import SwiftUI
 struct CustomTabView: View {
     @Binding var selectedTab: Int
     let tabs: [String]
-    
+
+    @Environment(\.colorScheme) private var colorScheme
     @Namespace private var animation
-    
+
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             ForEach(Array(tabs.enumerated()), id: \.offset) { index, tab in
-                VStack(spacing: 8) {
+                Button {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                        selectedTab = index
+                    }
+                } label: {
                     Text(tab)
-                        .font(.subheadline.weight(selectedTab == index ? .semibold : .regular))
-                        .foregroundStyle(selectedTab == index ? Color.appText : Color.appText.opacity(0.6))
+                        .font(.subheadline.weight(selectedTab == index ? .semibold : .medium))
+                        .foregroundStyle(selectedTab == index ? Color.appText : Color.appSecondaryText)
                         .frame(maxWidth: .infinity)
-                        .onTapGesture {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                selectedTab = index
+                        .padding(.vertical, 10)
+                        .background {
+                            if selectedTab == index {
+                                Capsule()
+                                    .fill(Color.appSurface)
+                                    .shadow(
+                                        color: colorScheme == .light
+                                            ? Color.black.opacity(0.08)
+                                            : Color.clear,
+                                        radius: 6,
+                                        x: 0,
+                                        y: 2
+                                    )
+                                    .matchedGeometryEffect(id: "segmentBg", in: animation)
                             }
                         }
-                    
-                    // Underline indicator
-                    if selectedTab == index {
-                        Rectangle()
-                            .fill(Color.appAccent)
-                            .frame(height: 3)
-                            .matchedGeometryEffect(id: "underline", in: animation)
-                    } else {
-                        Rectangle()
-                            .fill(Color.clear)
-                            .frame(height: 3)
-                    }
                 }
+                .buttonStyle(.plain)
             }
         }
+        .padding(4)
+        .background(Color.appText.opacity(0.06), in: Capsule())
         .padding(.horizontal)
         .padding(.top, 8)
-        .background(Color.appBackground)
     }
 }

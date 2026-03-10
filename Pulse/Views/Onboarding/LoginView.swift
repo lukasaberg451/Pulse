@@ -19,6 +19,7 @@ struct LoginView: View {
     @State private var showError = false
     @State private var showingForgotPassword = false
     @State private var safariURL: URL?
+    @Environment(\.colorScheme) private var colorScheme
     
     func isValidEmail(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
@@ -29,7 +30,7 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     // Logo section
@@ -45,33 +46,41 @@ struct LoginView: View {
                     // Form section
                     VStack(alignment: .leading, spacing: 20) {
                         // Error message
-                        VStack {
-                            if showError {
+                        if showError {
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .foregroundStyle(.red)
+                                    .font(.caption)
                                 Text(errorMessage)
-                                    .foregroundStyle(Color.red)
-                                    .font(.caption)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            } else {
-                                Text(" ")
-                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                                    .font(.caption.weight(.medium))
                             }
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                         }
-                        .frame(minHeight: 20)
                         
                         // Email field
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Email")
+                                .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
-                                .font(.headline)
-                                .bold()
                             
                             TextField("Email", text: $email)
                                 .textInputAutocapitalization(.never)
                                 .keyboardType(.emailAddress)
                                 .padding()
-                                .background(Color.appSurface)
                                 .foregroundStyle(Color.appText)
-                                .cornerRadius(12)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                            }
+                                        }
+                                }
                                 .onChange(of: email) {
                                     showError = false
                                 }
@@ -80,15 +89,22 @@ struct LoginView: View {
                         // Password field
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Password")
+                                .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
-                                .font(.headline)
-                                .bold()
                             
                             SecureField("Password", text: $password)
                                 .padding()
-                                .background(Color.appSurface)
                                 .foregroundStyle(Color.appText)
-                                .cornerRadius(12)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                            }
+                                        }
+                                }
                                 .onChange(of: password) {
                                     showError = false
                                 }
@@ -100,12 +116,12 @@ struct LoginView: View {
                             Button("Forgot Password?") {
                                 showingForgotPassword = true
                             }
-                            .font(.caption)
+                            .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appAccent)
                         }
                         
                         // Sign in button
-                        Button(action: {
+                        PrimaryCTAButton("Sign In") {
                             if email.trimmingCharacters(in: .whitespaces).isEmpty {
                                 errorMessage = "Email is required"
                                 showError = true
@@ -128,33 +144,22 @@ struct LoginView: View {
                                     }
                                 }
                             }
-                        }) {
-                            HStack {
-                                Spacer()
-                                Text("Sign In")
-                                Spacer()
-                            }
-                            .font(.headline)
-                            .padding()
-                            .background(Color.appAccent)
-                            .foregroundStyle(Color.appText)
-                            .cornerRadius(12)
                         }
-                        .padding(.top, 10)
+                        .padding(.top, 4)
                         
                         // Divider with "or"
-                        HStack {
-                            Rectangle()
+                        HStack(spacing: 12) {
+                            RoundedRectangle(cornerRadius: 0.5)
+                                .fill(Color.appTertiaryText)
                                 .frame(height: 1)
-                                .foregroundStyle(Color.appText.opacity(0.3))
                             Text("or")
-                                .font(.subheadline)
-                                .foregroundStyle(Color.appText.opacity(0.5))
-                            Rectangle()
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.appTertiaryText)
+                            RoundedRectangle(cornerRadius: 0.5)
+                                .fill(Color.appTertiaryText)
                                 .frame(height: 1)
-                                .foregroundStyle(Color.appText.opacity(0.3))
                         }
-                        .padding(.top, 20)
+                        .padding(.top, 16)
                         
                         // Sign in with Apple button
                         SignInWithAppleButton(.continue) { request in
@@ -175,14 +180,14 @@ struct LoginView: View {
                             }
                         }
                         .signInWithAppleButtonStyle(.white)
-                        .frame(height: 50)
-                        .cornerRadius(12)
+                        .frame(height: 52)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         
                         // Terms & Privacy note
                         HStack(spacing: 4) {
                             Text("By continuing, you agree to the")
                                 .font(.caption2)
-                                .foregroundStyle(Color.appText)
+                                .foregroundStyle(Color.appTertiaryText)
                             
                             Button(action: {
                                 safariURL = URL(string: "https://pulsefitness.io/terms-app.html")
@@ -195,7 +200,7 @@ struct LoginView: View {
                             
                             Text("&")
                                 .font(.caption2)
-                                .foregroundStyle(Color.appText)
+                                .foregroundStyle(Color.appTertiaryText)
                             
                             Button(action: {
                                 safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
@@ -216,17 +221,14 @@ struct LoginView: View {
                 
                 // Fullscreen loading overlay
                 if authViewModel.isLoading {
-                    Color.black.opacity(0.4)
-                        .ignoresSafeArea()
-                    
-                    VStack(spacing: 20) {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.5)
+                    ZStack {
+                        Color.appBackground
+                            .ignoresSafeArea()
                         
-                        Text("Signing in...")
-                            .foregroundStyle(Color.appText)
-                            .font(.headline)
+                        Image("Logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 120, height: 120)
                     }
                     .transition(.opacity)
                 }
@@ -236,9 +238,10 @@ struct LoginView: View {
                     .ignoresSafeArea()
             }
             .animation(.easeInOut, value: authViewModel.isLoading)
-            .navigationBarBackButtonHidden(false)
+            .navigationBarBackButtonHidden(authViewModel.isLoading)
             .toolbar {
             }
+            .toolbar(authViewModel.isLoading ? .hidden : .automatic, for: .navigationBar)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .sheet(isPresented: $showingForgotPassword) {
                 ForgotPasswordView()
@@ -267,48 +270,41 @@ struct ForgotPasswordView: View {
         return emailPredicate.evaluate(with: email)
     }
     
+    @Environment(\.colorScheme) private var colorScheme
+    
     var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
+            LinearGradient.dashboardBackground.ignoresSafeArea()
             
             if resetSuccess {
                 // Success View
-                VStack(spacing: 24) {
-                    Image(systemName: "envelope.circle.fill")
-                        .font(.system(size: 80))
-                        .foregroundStyle(Color.green)
+                VStack(spacing: 20) {
+                    IconBadge(systemName: "envelope.circle.fill", color: .green, size: 64)
                     
                     Text("Check Your Email")
-                        .font(.title)
-                        .fontWeight(.bold)
+                        .font(.title2.weight(.bold))
                         .foregroundStyle(Color.appText)
                     
                     Text("We've sent a password reset link to")
-                        .foregroundStyle(Color.appText.opacity(0.7))
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
                     
                     Text(email)
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appAccent)
-                        .fontWeight(.semibold)
                     
                     Text("Click the link in the email to reset your password, then return here to sign in.")
-                        .foregroundStyle(Color.appText.opacity(0.7))
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
                     
-                    Button(action: {
+                    PrimaryCTAButton("Back to Login") {
                         resetSuccess = false
                         dismiss()
-                    }) {
-                        Text("Back to Login")
-                            .font(.headline)
-                            .foregroundStyle(Color.appText)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.appAccent)
-                            .cornerRadius(12)
                     }
                     .padding(.horizontal, 24)
-                    .padding(.top, 20)
+                    .padding(.top, 12)
                 }
             } else {
                 // Reset Password Form
@@ -328,53 +324,60 @@ struct ForgotPasswordView: View {
                         // Title
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Reset Password")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                                .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
                             
                             Text("Enter your email to receive a reset link")
                                 .font(.subheadline)
-                                .foregroundStyle(Color.appText.opacity(0.7))
+                                .foregroundStyle(Color.appSecondaryText)
                         }
                         .padding(.bottom, 10)
                         
                         // Error message
-                        VStack {
-                            if showError {
-                                Text(errorMessage)
-                                    .foregroundStyle(Color.red)
+                        if showError {
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .foregroundStyle(.red)
                                     .font(.caption)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Text(errorMessage)
+                                    .foregroundStyle(.red)
+                                    .font(.caption.weight(.medium))
                                     .fixedSize(horizontal: false, vertical: true)
                                     .lineLimit(3)
-                            } else {
-                                Text(" ")
-                                    .font(.caption)
                             }
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                         }
-                        .frame(minHeight: 40)
                         
                         // Email field
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Email")
+                                .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
-                                .font(.headline)
-                                .bold()
                             
                             TextField("Email", text: $email)
                                 .textInputAutocapitalization(.never)
                                 .keyboardType(.emailAddress)
                                 .padding()
-                                .background(Color.appSurface)
                                 .foregroundStyle(Color.appText)
-                                .cornerRadius(12)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                            }
+                                        }
+                                }
                                 .onChange(of: email) {
                                     showError = false
                                 }
                         }
                         
                         // Reset Button
-                        Button(action: {
+                        PrimaryCTAButton("Reset Password") {
                             if email.trimmingCharacters(in: .whitespaces).isEmpty {
                                 errorMessage = "Email is required"
                                 showError = true
@@ -396,19 +399,8 @@ struct ForgotPasswordView: View {
                                     isLoading = false
                                 }
                             }
-                        }) {
-                            HStack {
-                                Spacer()
-                                Text("Reset Password")
-                                Spacer()
-                            }
-                            .font(.headline)
-                            .padding()
-                            .background(Color.appAccent)
-                            .foregroundStyle(Color.appText)
-                            .cornerRadius(12)
                         }
-                        .padding(.top, 10)
+                        .padding(.top, 4)
                     }
                     .padding(.horizontal, 24)
                     
@@ -418,21 +410,19 @@ struct ForgotPasswordView: View {
             
             // Fullscreen loading overlay
             if isLoading {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                
-                VStack(spacing: 20) {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(1.5)
+                ZStack {
+                    Color.appBackground
+                        .ignoresSafeArea()
                     
-                    Text("Sending reset link...")
-                        .foregroundStyle(Color.appText)
-                        .font(.headline)
+                    Image("Logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 120, height: 120)
                 }
                 .transition(.opacity)
             }
         }
+        .presentationBackground(LinearGradient.dashboardBackground)
         .animation(.easeInOut, value: isLoading)
         .animation(.easeInOut, value: resetSuccess)
     }

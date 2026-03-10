@@ -16,11 +16,12 @@ struct RegisterSelectionView: View {
     @State private var errorMessage = ""
     @State private var showError = false
     @State private var safariURL: URL?
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     // Logo section
@@ -36,51 +37,45 @@ struct RegisterSelectionView: View {
                     // Content section
                     VStack(spacing: 20) {
                         Text("Create Your Account")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
                         Text("Choose how you'd like to sign up")
                             .font(.subheadline)
-                            .foregroundStyle(Color.appText.opacity(0.7))
+                            .foregroundStyle(Color.appSecondaryText)
                         
                         // Error message
                         if showError {
-                            Text(errorMessage)
-                                .foregroundStyle(Color.red)
-                                .font(.caption)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .foregroundStyle(.red)
+                                    .font(.caption)
+                                Text(errorMessage)
+                                    .foregroundStyle(.red)
+                                    .font(.caption.weight(.medium))
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                         }
                         
                         // Sign up with Email button
-                        NavigationLink {
+                        PrimaryCTALink("Sign Up with Email", icon: "envelope.fill") {
                             RegisterView(authViewModel: authViewModel, showingSignUp: $showingSignUp, showingSignIn: $showingSignIn)
-                        } label: {
-                            HStack {
-                                Image(systemName: "envelope.fill")
-                                    .font(.body)
-                                Text("Sign Up with Email")
-                                    .font(.headline)
-                            }
-                            .foregroundStyle(Color.appText)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.appAccent)
-                            .cornerRadius(12)
                         }
-                        .padding(.top, 10)
+                        .padding(.top, 4)
                         
                         // Divider with "or"
-                        HStack {
-                            Rectangle()
+                        HStack(spacing: 12) {
+                            RoundedRectangle(cornerRadius: 0.5)
+                                .fill(Color.appTertiaryText)
                                 .frame(height: 1)
-                                .foregroundStyle(Color.appText.opacity(0.3))
                             Text("or")
-                                .font(.subheadline)
-                                .foregroundStyle(Color.appText.opacity(0.5))
-                            Rectangle()
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.appTertiaryText)
+                            RoundedRectangle(cornerRadius: 0.5)
+                                .fill(Color.appTertiaryText)
                                 .frame(height: 1)
-                                .foregroundStyle(Color.appText.opacity(0.3))
                         }
                         
                         // Sign up with Apple button
@@ -102,14 +97,14 @@ struct RegisterSelectionView: View {
                             }
                         }
                         .signInWithAppleButtonStyle(.white)
-                        .frame(height: 50)
-                        .cornerRadius(12)
+                        .frame(height: 52)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         
                         // Terms & Privacy note
                         HStack(spacing: 4) {
                             Text("By continuing, you agree to the")
                                 .font(.caption2)
-                                .foregroundStyle(Color.appText)
+                                .foregroundStyle(Color.appTertiaryText)
                             
                             Button(action: {
                                 safariURL = URL(string: "https://pulsefitness.io/terms-app.html")
@@ -122,7 +117,7 @@ struct RegisterSelectionView: View {
                             
                             Text("&")
                                 .font(.caption2)
-                                .foregroundStyle(Color.appText)
+                                .foregroundStyle(Color.appTertiaryText)
                             
                             Button(action: {
                                 safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
@@ -144,17 +139,18 @@ struct RegisterSelectionView: View {
                 
                 // Fullscreen loading overlay
                 if authViewModel.isLoading {
-                    Color.black.opacity(0.4)
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
                         .ignoresSafeArea()
                     
-                    VStack(spacing: 20) {
+                    VStack(spacing: 16) {
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
                             .scaleEffect(1.5)
                         
                         Text("Signing in...")
-                            .foregroundStyle(Color.appText)
-                            .font(.headline)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Color.appSecondaryText)
                     }
                     .transition(.opacity)
                 }

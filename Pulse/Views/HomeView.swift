@@ -131,11 +131,15 @@ private struct HomeTabBar: View {
                 }
             }
         }
-        .padding(.top, 6)
+        .padding(.top, 8)
         .padding(.bottom, 2)
         .padding(.horizontal, 4)
-        .background(Color.appSurface)
-        .shadow(color: .black.opacity(0.06), radius: 8, y: -4)
+        .background(.ultraThinMaterial)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(Color.appText.opacity(0.06))
+                .frame(height: 0.5)
+        }
     }
 }
 

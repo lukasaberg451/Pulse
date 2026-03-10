@@ -681,6 +681,7 @@
       }
     },
     "%lld minutes" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1317,6 +1318,7 @@
       }
     },
     "Account Details" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1396,6 +1398,9 @@
         }
       }
     },
+    "Active" : {
+
+    },
     "Add" : {
       "localizations" : {
         "de" : {
@@ -1435,6 +1440,9 @@
           }
         }
       }
+    },
+    "Add a description or notes" : {
+
     },
     "Add Exercise" : {
       "localizations" : {
@@ -1637,6 +1645,7 @@
       }
     },
     "All Timezones" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1675,6 +1684,9 @@
           }
         }
       }
+    },
+    "ALL TIMEZONES" : {
+
     },
     "All Workouts" : {
 
@@ -2283,6 +2295,9 @@
         }
       }
     },
+    "Brief summary" : {
+
+    },
     "By continuing, you agree to our" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2448,6 +2463,7 @@
       }
     },
     "Change Email Address" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2647,6 +2663,15 @@
           }
         }
       }
+    },
+    "Choose your measurement system" : {
+
+    },
+    "Choose your preferred language" : {
+
+    },
+    "Choose your preferred theme" : {
+
     },
     "Clear" : {
       "localizations" : {
@@ -3089,6 +3114,7 @@
       }
     },
     "Configuration" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3127,6 +3153,9 @@
           }
         }
       }
+    },
+    "CONFIGURATION" : {
+
     },
     "Configure Exercise" : {
       "localizations" : {
@@ -3409,6 +3438,7 @@
       }
     },
     "Create" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3569,6 +3599,7 @@
       }
     },
     "Creating account..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3609,6 +3640,7 @@
       }
     },
     "Current" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3648,7 +3680,11 @@
         }
       }
     },
+    "CURRENT" : {
+
+    },
     "Current Password" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3687,6 +3723,9 @@
           }
         }
       }
+    },
+    "CURRENT PASSWORD" : {
+
     },
     "Current Streak" : {
 
@@ -3732,6 +3771,7 @@
       }
     },
     "Default" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3772,6 +3812,7 @@
       }
     },
     "Default Timezone" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3978,6 +4019,7 @@
       }
     },
     "Description" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4016,6 +4058,15 @@
           }
         }
       }
+    },
+    "DESCRIPTION" : {
+
+    },
+    "Device Default" : {
+
+    },
+    "DEVICE DEFAULT" : {
+
     },
     "Discard" : {
       "localizations" : {
@@ -4217,6 +4268,9 @@
         }
       }
     },
+    "e.g. Push Day, Upper Body" : {
+
+    },
     "Edit" : {
       "localizations" : {
         "de" : {
@@ -4256,6 +4310,9 @@
           }
         }
       }
+    },
+    "Edit %@" : {
+
     },
     "Edit Exercise" : {
       "localizations" : {
@@ -4417,6 +4474,9 @@
         }
       }
     },
+    "email@example.com" : {
+
+    },
     "Enter your email to receive a reset link" : {
       "localizations" : {
         "de" : {
@@ -4498,7 +4558,7 @@
         }
       }
     },
-    "Enter your new email address and current password to confirm the change. You will be signed out and need to sign back in after confirming." : {
+    "Enter your new email and current password. You will be signed out after confirming." : {
 
     },
     "Enter your new password below" : {
@@ -4582,6 +4642,7 @@
       }
     },
     "Error" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4622,6 +4683,7 @@
       }
     },
     "Exercise" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4981,6 +5043,9 @@
         }
       }
     },
+    "Give your routine a name to get started" : {
+
+    },
     "Go to Login" : {
       "localizations" : {
         "de" : {
@@ -5261,6 +5326,9 @@
         }
       }
     },
+    "Help us improve Pulse" : {
+
+    },
     "I agree to the" : {
       "localizations" : {
         "de" : {
@@ -5302,6 +5370,7 @@
       }
     },
     "I would like to receive updates on my feedback" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5621,6 +5690,12 @@
         }
       }
     },
+    "Loading profile…" : {
+
+    },
+    "Loading routine..." : {
+
+    },
     "Loading routines..." : {
       "localizations" : {
         "de" : {
@@ -5704,6 +5779,9 @@
     "Manage Subscription" : {
 
     },
+    "Manage your account details" : {
+
+    },
     "Milestones" : {
       "localizations" : {
         "de" : {
@@ -5785,6 +5863,7 @@
       }
     },
     "Min" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5863,6 +5942,9 @@
           }
         }
       }
+    },
+    "minutes per week" : {
+
     },
     "Mode" : {
       "localizations" : {
@@ -6025,6 +6107,7 @@
       }
     },
     "New Email" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6063,6 +6146,9 @@
           }
         }
       }
+    },
+    "NEW EMAIL" : {
+
     },
     "New Password" : {
       "localizations" : {
@@ -6545,6 +6631,7 @@
       }
     },
     "No workouts scheduled today" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6705,6 +6792,7 @@
       }
     },
     "Notes" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7304,6 +7392,9 @@
         }
       }
     },
+    "Plan your training for today" : {
+
+    },
     "Please confirm the change by clicking the link in your inbox. You will be signed out now." : {
 
     },
@@ -7590,6 +7681,9 @@
         }
       }
     },
+    "Receive updates on my feedback" : {
+
+    },
     "Recent Workouts" : {
       "localizations" : {
         "de" : {
@@ -7710,7 +7804,11 @@
         }
       }
     },
+    "Reorder" : {
+
+    },
     "Reorder Exercises" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7991,6 +8089,7 @@
       }
     },
     "Rest Time" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8029,6 +8128,9 @@
           }
         }
       }
+    },
+    "REST TIME" : {
+
     },
     "Restart Required" : {
       "localizations" : {
@@ -8751,6 +8853,7 @@
       }
     },
     "Sec" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8870,9 +8973,6 @@
         }
       }
     },
-    "See All Workouts" : {
-
-    },
     "Select Routine" : {
       "localizations" : {
         "de" : {
@@ -8954,6 +9054,7 @@
       }
     },
     "Sending reset link..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9034,6 +9135,7 @@
       }
     },
     "Set %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9593,6 +9695,9 @@
         }
       }
     },
+    "Something went wrong" : {
+
+    },
     "Start" : {
       "localizations" : {
         "de" : {
@@ -9714,6 +9819,7 @@
       }
     },
     "Submit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9754,6 +9860,7 @@
       }
     },
     "Submitting feedback..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9792,6 +9899,9 @@
           }
         }
       }
+    },
+    "Submitting…" : {
+
     },
     "Subscription" : {
       "localizations" : {
@@ -9916,7 +10026,11 @@
         }
       }
     },
+    "Swipe" : {
+
+    },
     "Swipe to complete" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -10406,6 +10520,7 @@
       }
     },
     "Title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -10444,6 +10559,9 @@
           }
         }
       }
+    },
+    "TITLE" : {
+
     },
     "To cancel your subscription, go to your Apple ID subscription settings." : {
 
@@ -10489,6 +10607,7 @@
       }
     },
     "Try adjusting your filters" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -10528,7 +10647,11 @@
         }
       }
     },
+    "Try adjusting your search or filters" : {
+
+    },
     "Type" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -10568,7 +10691,10 @@
         }
       }
     },
-    "Type DELETE to confirm" : {
+    "TYPE" : {
+
+    },
+    "TYPE DELETE TO CONFIRM" : {
 
     },
     "Underweight" : {
@@ -10732,6 +10858,12 @@
       }
     },
     "Unlock Progress Tracking" : {
+
+    },
+    "Update your body measurements" : {
+
+    },
+    "Update your routine details" : {
 
     },
     "Upgrade to Pro" : {
@@ -11381,6 +11513,7 @@
       }
     },
     "Workout Time" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -11419,6 +11552,9 @@
           }
         }
       }
+    },
+    "WORKOUT TIME" : {
+
     },
     "Workout Tracker" : {
       "localizations" : {

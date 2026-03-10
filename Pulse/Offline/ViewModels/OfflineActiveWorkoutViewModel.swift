@@ -5,10 +5,9 @@
 //  Created by Lukas Åberg on 2026-02-24.
 //
 
-import Foundation
+import SwiftUI
 import SwiftData
 import Combine
-import UIKit
 import Supabase
 
 @MainActor
@@ -308,7 +307,9 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         restTimer?.invalidate()
         restTimer = nil
         restEndTime = nil
-        isRestTimerActive = false
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+            isRestTimerActive = false
+        }
         restTimeRemaining = 0
     }
     

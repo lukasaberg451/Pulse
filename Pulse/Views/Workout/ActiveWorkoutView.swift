@@ -94,13 +94,15 @@ struct ActiveWorkoutViewContent: View {
         return .upcoming
     }
     
+    @Environment(\.colorScheme) private var colorScheme
+    
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 14) {
                         // Offline Status Banner
                         OfflineStatusBanner()
                             .animation(.easeInOut, value: syncService.isOnline)
@@ -160,29 +162,33 @@ struct ActiveWorkoutViewContent: View {
                 // Watch tip overlay
                 if !hasSeenWatchTip {
                     VStack {
-                        HStack {
-                            Image(systemName: "applewatch")
-                                .foregroundStyle(Color.appAccent)
+                        HStack(spacing: 12) {
+                            IconBadge(systemName: "applewatch", size: 28)
+                            
                             Text("Open Pulse on your Apple Watch to track along")
                                 .font(.caption)
-                                .foregroundStyle(Color.appText)
+                                .foregroundStyle(.white)
                             
                             Spacer()
                             
                             Button {
-                                hasSeenWatchTip = true
+                                withAnimation(.easeOut(duration: 0.2)) {
+                                    hasSeenWatchTip = true
+                                }
                             } label: {
-                                Image(systemName: "xmark")
-                                    .foregroundStyle(Color.appText)
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.body)
+                                    .foregroundStyle(.white.opacity(0.6))
                             }
                         }
-                        .padding()
-                        .background(Color.black.opacity(0.8))
-                        .cornerRadius(12)
-                        .padding()
+                        .padding(14)
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .padding(.horizontal)
                         
                         Spacer()
                     }
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
             .navigationTitle(routine.name)
@@ -193,7 +199,7 @@ struct ActiveWorkoutViewContent: View {
                     Button("Cancel") {
                         alertType = .cancel
                     }
-                    .foregroundStyle(Color.appText)
+                    .foregroundStyle(Color.appSecondaryText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -265,36 +271,50 @@ enum ExerciseCardStatus {
 struct TimerHeaderCard: View {
     let elapsedTimeText: String
     let isOfflineMode: Bool
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Workout Time")
-                    .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.7))
+                Text("WORKOUT TIME")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.appSecondaryText)
                 Text(elapsedTimeText)
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.appAccent)
+                    .contentTransition(.numericText())
             }
             
             Spacer()
             
             if isOfflineMode {
-                VStack(alignment: .trailing, spacing: 2) {
+                VStack(alignment: .trailing, spacing: 4) {
                     Image(systemName: "wifi.slash")
-                        .font(.title3)
+                        .font(.body)
                         .foregroundStyle(.orange)
                     
                     Text("Offline")
-                        .font(.caption2)
+                        .font(.caption2.weight(.medium))
                         .foregroundStyle(.orange)
                 }
+                .padding(10)
+                .background(Color.orange.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
         }
-        .padding(20)
+        .padding(18)
         .background(Color.appSurface)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            if colorScheme == .dark {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+            }
+        }
+        .shadow(
+            color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear,
+            radius: 16, x: 0, y: 6
+        )
     }
 }
 
@@ -302,34 +322,53 @@ struct TimerHeaderCard: View {
 struct RestTimerBanner: View {
     let timeRemaining: Int
     let onSkip: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Rest Time")
-                    .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.7))
-                Text(formatTime(timeRemaining))
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+            HStack(spacing: 12) {
+                // Pulsing rest icon
+                Image(systemName: "bed.double.fill")
+                    .font(.body)
                     .foregroundStyle(Color.appAccent)
+                    .symbolEffect(.pulse, options: .repeating)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("REST TIME")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(Color.appSecondaryText)
+                    Text(formatTime(timeRemaining))
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.appAccent)
+                        .contentTransition(.numericText())
+                }
             }
             
             Spacer()
             
-            Button("Skip") {
+            Button {
                 onSkip()
+            } label: {
+                Text("Skip")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.appAccent)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.appAccentSubtle)
+                    .clipShape(Capsule())
             }
-            .font(.subheadline)
-            .fontWeight(.semibold)
-            .foregroundStyle(Color.appAccent)
+            .buttonStyle(ScalePressStyle())
         }
-        .padding(20)
+        .padding(16)
         .background(Color.appSurface)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.appAccent, lineWidth: 2)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Color.appAccent.opacity(0.3), lineWidth: 1.5)
+        )
+        .shadow(
+            color: colorScheme == .light ? Color.appAccent.opacity(0.12) : Color.clear,
+            radius: 12, x: 0, y: 4
         )
     }
     
@@ -348,6 +387,7 @@ struct ExerciseCard: View {
     let status: ExerciseCardStatus
     let isExpanded: Bool
     let onToggleExpand: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
     
     var sets: [LocalWorkoutSet] {
         viewModel.sets.filter { $0.exerciseId == exercise.id }
@@ -369,8 +409,8 @@ struct ExerciseCard: View {
             // Expanded content (set rows)
             if isExpanded {
                 Divider()
-                    .background(Color.appText.opacity(0.1))
-                    .padding(.horizontal)
+                    .background(Color.appText.opacity(0.06))
+                    .padding(.horizontal, 16)
                 
                 VStack(spacing: 0) {
                     ForEach(sets) { set in
@@ -385,8 +425,8 @@ struct ExerciseCard: View {
                         
                         if set.id != sets.last?.id {
                             Divider()
-                                .background(Color.appText.opacity(0.05))
-                                .padding(.horizontal)
+                                .background(Color.appText.opacity(0.04))
+                                .padding(.horizontal, 16)
                         }
                     }
                     
@@ -396,23 +436,39 @@ struct ExerciseCard: View {
                             await viewModel.addSet(exerciseId: exercise.id, targetSets: routineExercise.sets)
                         }
                     } label: {
-                        HStack {
-                            Image(systemName: "plus.circle")
-                                .font(.subheadline)
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.caption)
                             Text("Add Set")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
+                                .font(.caption.weight(.semibold))
                         }
                         .foregroundStyle(Color.appAccent)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                     }
+                    .buttonStyle(ScalePressStyle())
                 }
             }
         }
         .background(Color.appSurface)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(status == .current ? 0.4 : 0.2), radius: status == .current ? 10 : 6, x: 0, y: status == .current ? 6 : 3)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            if status == .current {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.appAccent.opacity(0.25), lineWidth: 1.5)
+            } else if colorScheme == .dark {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+            }
+        }
+        .shadow(
+            color: colorScheme == .light
+                ? (status == .current ? Color.appAccent.opacity(0.15) : Color.black.opacity(0.08))
+                : Color.clear,
+            radius: status == .current ? 16 : 12,
+            x: 0,
+            y: status == .current ? 6 : 4
+        )
     }
     
     private var exerciseHeader: some View {
@@ -420,21 +476,20 @@ struct ExerciseCard: View {
             // Status icon
             statusIcon
             
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 8) {
                     Text(exercise.name)
-                        .font(.headline)
-                        .foregroundStyle(Color.appText)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(status == .upcoming ? Color.appSecondaryText : Color.appText)
                     
                     if status == .current {
-                        Text("Current")
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color.appText)
+                        Text("Active")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.white)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 2)
-                            .background(Color.appAccent)
-                            .cornerRadius(6)
+                            .background(LinearGradient.accentGradient)
+                            .clipShape(Capsule())
                     }
                 }
                 
@@ -443,14 +498,16 @@ struct ExerciseCard: View {
             
             Spacer()
             
-            // Expand/collapse chevron for completed exercises
             if status == .completed {
                 Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                    .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.4))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.appTertiaryText)
+                    .padding(6)
+                    .background(Color.appText.opacity(0.05))
+                    .clipShape(Circle())
             }
         }
-        .padding(16)
+        .padding(14)
         .contentShape(Rectangle())
         .onTapGesture {
             if status == .completed {
@@ -463,17 +520,18 @@ struct ExerciseCard: View {
     private var statusIcon: some View {
         switch status {
         case .completed:
-            Image(systemName: "checkmark.circle.fill")
-                .font(.title2)
-                .foregroundStyle(Color.green)
+            IconBadge(systemName: "checkmark", color: .green, size: 32)
         case .current:
-            Image(systemName: "figure.strengthtraining.traditional")
-                .font(.title3)
-                .foregroundStyle(Color.appAccent)
+            IconBadge(systemName: exercise.exerciseType == "cardio" ? "figure.run" : "figure.strengthtraining.traditional", size: 32)
         case .upcoming:
-            Image(systemName: "circle.dotted")
-                .font(.title2)
-                .foregroundStyle(Color.appText.opacity(0.3))
+            ZStack {
+                Circle()
+                    .fill(Color.appText.opacity(0.06))
+                    .frame(width: 32, height: 32)
+                Image(systemName: "circle.dotted")
+                    .font(.caption)
+                    .foregroundStyle(Color.appTertiaryText)
+            }
         }
     }
     
@@ -483,32 +541,32 @@ struct ExerciseCard: View {
         case .completed:
             Text("\(completedSetsCount)/\(totalSetsCount) sets completed")
                 .font(.caption)
-                .foregroundStyle(Color.green.opacity(0.8))
+                .foregroundStyle(.green)
         case .current:
             if let reps = routineExercise.repsTarget {
                 Text("\(completedSetsCount)/\(totalSetsCount) sets \u{2022} \(reps) reps \u{2022} \(routineExercise.restSeconds)s rest")
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.5))
+                    .foregroundStyle(Color.appSecondaryText)
             } else if let durationSeconds = routineExercise.durationSeconds {
                 let minutes = durationSeconds / 60
                 let seconds = durationSeconds % 60
                 let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
                 Text("\(completedSetsCount)/\(totalSetsCount) sets \u{2022} \(durationText) \u{2022} \(routineExercise.restSeconds)s rest")
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.5))
+                    .foregroundStyle(Color.appSecondaryText)
             }
         case .upcoming:
             if let reps = routineExercise.repsTarget {
                 Text("\(routineExercise.sets) sets \u{00d7} \(reps) reps")
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.5))
+                    .foregroundStyle(Color.appTertiaryText)
             } else if let durationSeconds = routineExercise.durationSeconds {
                 let minutes = durationSeconds / 60
                 let seconds = durationSeconds % 60
                 let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
                 Text("\(routineExercise.sets) sets \u{00d7} \(durationText)")
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.5))
+                    .foregroundStyle(Color.appTertiaryText)
             }
         }
     }
@@ -576,13 +634,16 @@ struct SwipeableSetRow: View {
             }
             
             // Foreground row content
-            HStack(spacing: 16) {
-                // Set number
+            HStack(spacing: 14) {
+                // Set number pill
                 Text("\(set.setNumber)")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(set.completed ? Color.green : Color.appText)
-                    .frame(width: 30)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(set.completed ? .white : Color.appText)
+                    .frame(width: 28, height: 28)
+                    .background(
+                        Circle()
+                            .fill(set.completed ? Color.green : Color.appText.opacity(0.08))
+                    )
                 
                 if exercise.exerciseType == "strength" {
                     strengthContent
@@ -596,26 +657,25 @@ struct SwipeableSetRow: View {
                 if set.completed {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(Color.green)
-                        .font(.title3)
+                        .font(.body)
                 } else if isFirstIncomplete && isCurrent {
-                    // Swipe hint for the next set to complete
                     HStack(spacing: 4) {
-                        Text("Swipe to complete")
-                            .font(.caption2)
-                            .foregroundStyle(Color.appAccent.opacity(0.7))
+                        Text("Swipe")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(Color.appAccent.opacity(0.6))
                         Image(systemName: "chevron.left")
-                            .font(.caption2)
-                            .foregroundStyle(Color.appAccent.opacity(0.7))
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(Color.appAccent.opacity(0.6))
                     }
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 11)
             .background(
                 ZStack {
                     Color.appSurface
                     if set.completed {
-                        Color.green.opacity(0.05)
+                        Color.green.opacity(0.04)
                     }
                 }
             )
@@ -702,23 +762,23 @@ struct SwipeableSetRow: View {
     
     @ViewBuilder
     private var strengthContent: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Text("\(unitManager.displayWeight(routineExercise.targetWeight ?? 0), specifier: "%.1f")")
-                .font(.body)
+                .font(.subheadline.weight(.medium))
                 .foregroundStyle(Color.appText)
             Text(unitManager.weightUnit)
-                .font(.caption)
-                .foregroundStyle(Color.appText.opacity(0.6))
+                .font(.caption2)
+                .foregroundStyle(Color.appSecondaryText)
         }
         .frame(width: 70, alignment: .leading)
         
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Text(routineExercise.repsTarget ?? "—")
-                .font(.body)
+                .font(.subheadline.weight(.medium))
                 .foregroundStyle(Color.appText)
             Text("reps")
-                .font(.caption)
-                .foregroundStyle(Color.appText.opacity(0.6))
+                .font(.caption2)
+                .foregroundStyle(Color.appSecondaryText)
         }
     }
     
@@ -728,196 +788,25 @@ struct SwipeableSetRow: View {
         let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
         
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             if minutes > 0 {
                 Text("\(minutes)")
-                    .font(.body)
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
                 Text("m")
-                    .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.6))
+                    .font(.caption2)
+                    .foregroundStyle(Color.appSecondaryText)
             }
             if seconds > 0 {
                 Text("\(seconds)")
-                    .font(.body)
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
                 Text("s")
-                    .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.6))
+                    .font(.caption2)
+                    .foregroundStyle(Color.appSecondaryText)
             }
         }
     }
 }
 
-// Keep the old versions for backwards compatibility if needed
-struct ExerciseSetSection: View {
-    @ObservedObject var viewModel: ActiveWorkoutViewModel
-    let routineExercise: RoutineExercise
-    let exercise: Exercise
-    
-    var sets: [WorkoutSet] {
-        viewModel.sets.filter { $0.exerciseId == exercise.id }
-    }
-    
-    var body: some View {
-        ForEach(sets) { set in
-            ExerciseSetRow(
-                viewModel: viewModel,
-                set: set,
-                exercise: exercise,
-                routineExercise: routineExercise
-            )
-        }
-        
-        // Add set button
-        Button {
-            Task {
-                await viewModel.addSet(exerciseId: exercise.id, targetSets: routineExercise.sets)
-            }
-        } label: {
-            Label("Add Set", systemImage: "plus.circle")
-                .font(.caption)
-                .foregroundStyle(Color.appAccent)
-        }
-    }
-}
 
-// ExerciseSetRow comes after this...
-
-struct ExerciseSetRow: View {
-    @ObservedObject var viewModel: ActiveWorkoutViewModel
-    @EnvironmentObject var unitManager: UnitManager
-    let set: WorkoutSet
-    let exercise: Exercise
-    let routineExercise: RoutineExercise
-    
-    var body: some View {
-        HStack {
-            Text("Set \(set.setNumber)")
-                .frame(width: 50, alignment: .leading)
-                .foregroundStyle(Color.appText)
-            if exercise.exerciseType == "strength" {
-                // Weight and reps for strength
-                HStack {
-                    TextField("Weight", value: Binding(
-                        get: { unitManager.displayWeight(set.weight ?? 0) },
-                        set: { newValue in
-                            Task {
-                                await viewModel.updateSet(
-                                    id: set.id,
-                                    reps: set.reps,
-                                    weight: unitManager.toKg(newValue),
-                                    durationSeconds: nil,
-                                    completed: set.completed
-                                )
-                            }
-                        }
-                    ), format: .number)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 80)
-                    
-                    Text(unitManager.weightUnit)
-                        .foregroundStyle(Color.appText.opacity(0.6))
-                }
-                
-                HStack {
-                    TextField("Reps", value: Binding(
-                        get: { set.reps ?? 0 },
-                        set: { newValue in
-                            Task {
-                                await viewModel.updateSet(
-                                    id: set.id,
-                                    reps: newValue,
-                                    weight: set.weight,
-                                    durationSeconds: nil,
-                                    completed: set.completed
-                                )
-                            }
-                        }
-                    ), format: .number)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 60)
-                }
-            } else {
-                // Duration for cardio - split into minutes and seconds
-                HStack(spacing: 8) {
-                    // Minutes
-                    TextField("Min", value: Binding(
-                        get: {
-                            let totalSeconds = set.durationSeconds ?? routineExercise.durationSeconds ?? 0
-                            return totalSeconds / 60
-                        },
-                        set: { newMinutes in
-                            let currentSeconds = (set.durationSeconds ?? routineExercise.durationSeconds ?? 0) % 60
-                            let totalSeconds = (newMinutes * 60) + currentSeconds
-                            Task {
-                                await viewModel.updateSet(
-                                    id: set.id,
-                                    reps: nil,
-                                    weight: nil,
-                                    durationSeconds: totalSeconds,
-                                    completed: set.completed
-                                )
-                            }
-                        }
-                    ), format: .number)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 50)
-                    
-                    Text("m")
-                        .foregroundStyle(Color.appText.opacity(0.6))
-                    
-                    // Seconds
-                    TextField("Sec", value: Binding(
-                        get: {
-                            let totalSeconds = set.durationSeconds ?? routineExercise.durationSeconds ?? 0
-                            return totalSeconds % 60
-                        },
-                        set: { newSeconds in
-                            let currentMinutes = (set.durationSeconds ?? routineExercise.durationSeconds ?? 0) / 60
-                            let totalSeconds = (currentMinutes * 60) + newSeconds
-                            Task {
-                                await viewModel.updateSet(
-                                    id: set.id,
-                                    reps: nil,
-                                    weight: nil,
-                                    durationSeconds: totalSeconds,
-                                    completed: set.completed
-                                )
-                            }
-                        }
-                    ), format: .number)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 50)
-                    
-                    Text("s")
-                        .foregroundStyle(Color.appText.opacity(0.6))
-                }
-            }
-            
-            Spacer()
-            
-            // Checkmark button
-            Button {
-                Task {
-                    await viewModel.updateSet(
-                        id: set.id,
-                        reps: set.reps,
-                        weight: set.weight,
-                        durationSeconds: set.durationSeconds,
-                        completed: !set.completed
-                    )
-                }
-            } label: {
-                Image(systemName: set.completed ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(set.completed ? Color.green : Color.gray)
-                    .font(.title2)
-            }
-        }
-        .opacity(set.completed ? 0.6 : 1.0)
-    }
-}

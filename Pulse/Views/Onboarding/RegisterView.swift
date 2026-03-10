@@ -77,48 +77,41 @@ struct RegisterView: View {
         passwordsMatch
     }
     
+    @Environment(\.colorScheme) private var colorScheme
+    
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 if authViewModel.registrationSuccess {
                     // Success View
-                    VStack(spacing: 24) {
-                        Image(systemName: "envelope.circle.fill")
-                            .font(.system(size: 80))
-                            .foregroundStyle(Color.green)
+                    VStack(spacing: 20) {
+                        IconBadge(systemName: "envelope.circle.fill", color: .green, size: 64)
                         
                         Text("Check Your Email")
-                            .font(.title)
-                            .fontWeight(.bold)
+                            .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
                         Text("We've sent a verification link to")
-                            .foregroundStyle(Color.appText.opacity(0.7))
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
                         
                         Text(email)
+                            .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appAccent)
-                            .fontWeight(.semibold)
                         
                         Text("Please verify your email before signing in")
-                            .foregroundStyle(Color.appText.opacity(0.7))
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 24)
                         
-                        NavigationLink {
+                        PrimaryCTALink("Go to Login") {
                             LoginView(authViewModel: authViewModel, showingSignIn: $showingSignIn)
-                        } label: {
-                            Text("Go to Login")
-                                .font(.headline)
-                                .foregroundStyle(Color.appText)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.appAccent)
-                                .cornerRadius(12)
                         }
                         .padding(.horizontal, 24)
-                        .padding(.top, 20)
+                        .padding(.top, 12)
                     }
                 } else {
                     // Registration Form
@@ -136,77 +129,106 @@ struct RegisterView: View {
                             // Form section
                             VStack(alignment: .leading, spacing: 20) {
                             // Error message
-                            VStack {
-                                if showError {
+                            if showError {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "exclamationmark.circle.fill")
+                                        .foregroundStyle(.red)
+                                        .font(.caption)
                                     Text(errorMessage)
-                                        .foregroundStyle(Color.red)
-                                        .font(.caption)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                } else {
-                                    Text(" ")
-                                        .font(.caption)
+                                        .foregroundStyle(.red)
+                                        .font(.caption.weight(.medium))
                                 }
+                                .padding(12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                             }
-                            .frame(minHeight: 20)
                             
                             // First Name
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("First Name")
+                                    .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
-                                    .font(.headline)
-                                    .bold()
                                 
                                 TextField("First Name", text: $firstName)
                                     .textInputAutocapitalization(.words)
                                     .padding()
-                                    .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)
-                                    .cornerRadius(12)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .fill(Color.appSurface)
+                                            .overlay {
+                                                if colorScheme == .dark {
+                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                                }
+                                            }
+                                    }
                             }
                             
                             // Last Name
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Last Name")
+                                    .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
-                                    .font(.headline)
-                                    .bold()
                                 
                                 TextField("Last Name", text: $lastName)
                                     .textInputAutocapitalization(.words)
                                     .padding()
-                                    .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)
-                                    .cornerRadius(12)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .fill(Color.appSurface)
+                                            .overlay {
+                                                if colorScheme == .dark {
+                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                                }
+                                            }
+                                    }
                             }
                             
                             // Email
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Email")
+                                    .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
-                                    .font(.headline)
-                                    .bold()
                                 
                                 TextField("Email", text: $email)
                                     .textInputAutocapitalization(.never)
                                     .keyboardType(.emailAddress)
                                     .padding()
-                                    .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)
-                                    .cornerRadius(12)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .fill(Color.appSurface)
+                                            .overlay {
+                                                if colorScheme == .dark {
+                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                                }
+                                            }
+                                    }
                             }
                             
                             // Password
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Password")
+                                    .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
-                                    .font(.headline)
-                                    .bold()
                                 
                                 SecureField("Password", text: $password)
                                     .padding()
-                                    .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)
-                                    .cornerRadius(12)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .fill(Color.appSurface)
+                                            .overlay {
+                                                if colorScheme == .dark {
+                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                                }
+                                            }
+                                    }
                                 
                                 // Password strength indicator
                                 if !password.isEmpty {
@@ -214,15 +236,14 @@ struct RegisterView: View {
                                         let strength = passwordStrength(password)
                                         
                                         Text(strength.strength)
-                                            .font(.caption)
-                                            .fontWeight(.medium)
+                                            .font(.caption.weight(.semibold))
                                             .foregroundStyle(strength.color)
                                         
                                         // Strength bars
                                         HStack(spacing: 4) {
                                             ForEach(0..<4) { index in
-                                                RoundedRectangle(cornerRadius: 2)
-                                                    .fill(index < strength.strength.count / 2 ? strength.color : Color.appText.opacity(0.2))
+                                                Capsule()
+                                                    .fill(index < strength.strength.count / 2 ? strength.color : Color.appText.opacity(0.12))
                                                     .frame(height: 4)
                                             }
                                         }
@@ -231,32 +252,39 @@ struct RegisterView: View {
                                     
                                     Text("Must be at least 8 characters with uppercase, lowercase, and number")
                                         .font(.caption2)
-                                        .foregroundStyle(Color.appText.opacity(0.6))
+                                        .foregroundStyle(Color.appTertiaryText)
                                 }
                             }
                             
                             // Confirm Password
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Confirm Password")
+                                    .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
-                                    .font(.headline)
-                                    .bold()
                                 
                                 SecureField("Confirm Password", text: $confirmPassword)
                                     .padding()
-                                    .background(Color.appSurface)
                                     .foregroundStyle(Color.appText)
-                                    .cornerRadius(12)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .fill(Color.appSurface)
+                                            .overlay {
+                                                if colorScheme == .dark {
+                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                                }
+                                            }
+                                    }
                                 
                                 // Password match indicator
                                 if !confirmPassword.isEmpty {
-                                    HStack(spacing: 4) {
+                                    HStack(spacing: 6) {
                                         Image(systemName: passwordsMatch ? "checkmark.circle.fill" : "xmark.circle.fill")
                                             .foregroundStyle(passwordsMatch ? .green : .red)
                                             .font(.caption)
                                         
                                         Text(passwordsMatch ? "Passwords match" : "Passwords don't match")
-                                            .font(.caption)
+                                            .font(.caption.weight(.medium))
                                             .foregroundStyle(passwordsMatch ? .green : .red)
                                     }
                                 }
@@ -264,17 +292,19 @@ struct RegisterView: View {
                             
                                 HStack(alignment: .center, spacing: 8) {
                                 Button(action: {
-                                    agreedToTerms.toggle()
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                        agreedToTerms.toggle()
+                                    }
                                 }) {
                                     Image(systemName: agreedToTerms ? "checkmark.square.fill" : "square")
-                                        .foregroundStyle(agreedToTerms ? Color.appAccent : Color.appText.opacity(0.3))
+                                        .foregroundStyle(agreedToTerms ? Color.appAccent : Color.appTertiaryText)
                                         .font(.title3)
                                 }
                                 
                                 HStack(spacing: 4) {
                                     Text("I agree to the")
                                         .font(.caption)
-                                        .foregroundStyle(Color.appText)
+                                        .foregroundStyle(Color.appSecondaryText)
                                     
                                     Button(action: {
                                         safariURL = URL(string: "https://pulsefitness.io/terms-app.html")
@@ -287,7 +317,7 @@ struct RegisterView: View {
                                     
                                     Text("&")
                                         .font(.caption)
-                                        .foregroundStyle(Color.appText)
+                                        .foregroundStyle(Color.appSecondaryText)
                                     
                                     Button(action: {
                                         safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
@@ -325,39 +355,36 @@ struct RegisterView: View {
                                     }
                                 }
                             }) {
-                                HStack {
-                                    Spacer()
-                                    Text("Sign Up")
-                                    Spacer()
-                                }
-                                .font(.headline)
-                                .padding()
-                                .background(isValid && agreedToTerms ? Color.appAccent : Color.appAccent.opacity(0.5))
-                                .foregroundStyle(Color.appText)
-                                .cornerRadius(12)
+                                Text("Sign Up")
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 52)
+                                    .background(
+                                        LinearGradient.accentGradient.opacity(isValid && agreedToTerms ? 1 : 0.5),
+                                        in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    )
                             }
+                            .buttonStyle(ScalePressStyle())
                             .disabled(!isValid || !agreedToTerms)
                             .padding(.top, 10)
                         }
                         .padding(.horizontal, 24)
-                        .padding(.bottom, 40) // Extra padding at bottom for keyboard
+                        .padding(.bottom, 40)
                     }
                 }
             }
                 
                 // Fullscreen loading overlay
                 if authViewModel.isRegistering {
-                    Color.black.opacity(0.4)
-                        .ignoresSafeArea()
-                    
-                    VStack(spacing: 20) {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .appText))
-                            .scaleEffect(1.5)
+                    ZStack {
+                        Color.appBackground
+                            .ignoresSafeArea()
                         
-                        Text("Creating account...")
-                            .foregroundStyle(Color.appText)
-                            .font(.headline)
+                        Image("Logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 120, height: 120)
                     }
                     .transition(.opacity)
                 }

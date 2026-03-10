@@ -12,6 +12,7 @@ struct WorkoutDetailView: View {
     @StateObject private var viewModel: WorkoutDetailViewModel
     @EnvironmentObject var unitManager: UnitManager
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @State private var showShareSheet = false
     @State private var shareImage: UIImage?
     
@@ -21,7 +22,7 @@ struct WorkoutDetailView: View {
     
     var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
+            LinearGradient.dashboardBackground.ignoresSafeArea()
             
             if viewModel.isLoading {
                 ProgressView()
@@ -32,8 +33,7 @@ struct WorkoutDetailView: View {
                         // Title rendered manually to avoid SwiftUI bug where
                         // the navigation title turns blue on cancelled swipe-back
                         Text(viewModel.workoutSession.name)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
+                            .font(.title.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
                         // Header Stats
@@ -47,7 +47,7 @@ struct WorkoutDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Color.appBackground, for: .navigationBar)
+        .toolbarBackground(LinearGradient.dashboardBackground, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -114,60 +114,66 @@ struct WorkoutDetailView: View {
     var statsSection: some View {
         VStack(spacing: 16) {
             // Date
-            HStack {
-                Image(systemName: "calendar")
-                    .foregroundStyle(Color.appAccent)
+            HStack(spacing: 10) {
+                IconBadge(systemName: "calendar", size: 32)
                 Text(viewModel.formattedDate(viewModel.workoutSession.startedAt))
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
                 Spacer()
                 Text(viewModel.formattedTime(viewModel.workoutSession.completedAt ?? viewModel.workoutSession.startedAt))
-                    .foregroundStyle(Color.appText.opacity(0.6))
+                    .font(.subheadline)
+                    .foregroundStyle(Color.appSecondaryText)
             }
-            .font(.subheadline)
             
             Divider()
-                .background(Color.appText.opacity(0.1))
+                .foregroundStyle(Color.appText.opacity(0.06))
             
             // Stats Grid
-            HStack(spacing: 20) {
-                statCard(
+            HStack(spacing: 16) {
+                detailStatCard(
                     icon: "clock.fill",
                     title: "Duration",
                     value: viewModel.formattedDuration
                 )
                 
-                statCard(
+                detailStatCard(
                     icon: "flame.fill",
                     title: "Total Sets",
                     value: "\(viewModel.totalSets)"
                 )
                 
-                statCard(
+                detailStatCard(
                     icon: "scalemass.fill",
                     title: "Volume",
                     value: String(format: "%.0f %@", unitManager.displayWeight(viewModel.totalVolume), unitManager.weightUnit)
                 )
             }
         }
-        .padding()
+        .padding(16)
         .background(Color.appSurface)
-        .cornerRadius(12)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            if colorScheme == .dark {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+            }
+        }
+        .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 16, x: 0, y: 6)
     }
     
-    func statCard(icon: String, title: String, value: String) -> some View {
+    private func detailStatCard(icon: String, title: String, value: String) -> some View {
         VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(Color.appAccent)
+            IconBadge(systemName: icon, size: 36)
             
             Text(value)
-                .font(.title3)
-                .fontWeight(.bold)
+                .font(.subheadline.weight(.bold))
                 .foregroundStyle(Color.appText)
+                .minimumScaleFactor(0.8)
+                .lineLimit(1)
             
             Text(title)
-                .font(.caption)
-                .foregroundStyle(Color.appText.opacity(0.6))
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(Color.appSecondaryText)
         }
         .frame(maxWidth: .infinity)
     }
@@ -176,7 +182,7 @@ struct WorkoutDetailView: View {
     var exercisesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Exercises")
-                .font(.headline)
+                .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
             
             ForEach(viewModel.groupedSets, id: \.exerciseId) { exercise in
@@ -192,49 +198,44 @@ struct WorkoutDetailView: View {
     func exerciseCard(name: String, sets: [WorkoutSet], isCardio: Bool) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             // Exercise name
-            Text(name)
-                .font(.headline)
-                .foregroundStyle(Color.appText)
+            HStack(spacing: 10) {
+                IconBadge(
+                    systemName: isCardio ? "figure.run" : "dumbbell.fill",
+                    size: 32
+                )
+                Text(name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.appText)
+            }
             
             // Sets table
-            VStack(spacing: 8) {
+            VStack(spacing: 4) {
                 // Header
                 HStack {
                     Text("SET")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.appText.opacity(0.6))
                         .frame(width: 50, alignment: .leading)
                     
                     if isCardio {
                         Text("DURATION")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Color.appText.opacity(0.6))
                             .frame(maxWidth: .infinity, alignment: .center)
                     } else {
                         Text("WEIGHT")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Color.appText.opacity(0.6))
                             .frame(maxWidth: .infinity, alignment: .center)
                         
                         Text("REPS")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Color.appText.opacity(0.6))
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                     
                     Image(systemName: "checkmark")
-                        .font(.caption)
                         .foregroundStyle(Color.clear)
                         .frame(width: 30)
                 }
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(Color.appTertiaryText)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Color.appBackground)
-                .cornerRadius(12)
+                .background(Color.appBackground.opacity(0.6))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 
                 // Sets
                 ForEach(sets) { set in
@@ -242,73 +243,83 @@ struct WorkoutDetailView: View {
                 }
             }
         }
-        .padding()
+        .padding(16)
         .background(Color.appSurface)
-        .cornerRadius(12)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            if colorScheme == .dark {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+            }
+        }
+        .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 16, x: 0, y: 6)
     }
     
     func setRow(set: WorkoutSet, isCardio: Bool) -> some View {
         HStack {
             // Set number
             Text("\(set.setNumber)")
-                .font(.body)
-                .foregroundStyle(Color.appText.opacity(0.8))
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(set.completed ? Color.appText : Color.appTertiaryText)
+                .frame(width: 28, height: 28)
+                .background(
+                    set.completed ? Color.green.opacity(0.12) : Color.appBackground.opacity(0.5),
+                    in: Circle()
+                )
                 .frame(width: 50, alignment: .leading)
             
             if isCardio {
-                // Duration for cardio
                 if let duration = set.durationSeconds {
                     Text(formattedDuration(duration))
-                        .font(.body)
+                        .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.appText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
-                        .font(.body)
-                        .foregroundStyle(Color.appText.opacity(0.4))
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appTertiaryText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
             } else {
-                // Weight
                 if let weight = set.weight {
                     Text(String(format: "%.1f %@", unitManager.displayWeight(weight), unitManager.weightUnit))
-                        .font(.body)
+                        .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.appText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
-                        .font(.body)
-                        .foregroundStyle(Color.appText.opacity(0.4))
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appTertiaryText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
                 
-                // Reps
                 if let reps = set.reps {
                     Text("\(reps)")
-                        .font(.body)
+                        .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.appText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
-                        .font(.body)
-                        .foregroundStyle(Color.appText.opacity(0.4))
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appTertiaryText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
             
-            // Checkmark
             if set.completed {
                 Image(systemName: "checkmark.circle.fill")
+                    .font(.subheadline)
                     .foregroundStyle(Color.green)
                     .frame(width: 30)
             } else {
                 Image(systemName: "circle")
-                    .foregroundStyle(Color.appText.opacity(0.3))
+                    .font(.subheadline)
+                    .foregroundStyle(Color.appTertiaryText)
                     .frame(width: 30)
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
     }
     
     // MARK: - Duration Formatting

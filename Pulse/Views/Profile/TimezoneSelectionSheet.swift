@@ -32,21 +32,23 @@ struct TimezoneSelectionSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 List {
                     // Current timezone
                     Section {
                         HStack {
                             Text(currentTimezone)
+                                .font(.body)
                                 .foregroundStyle(Color.appText)
                             Spacer()
-                            Image(systemName: "checkmark")
+                            Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(Color.appAccent)
                         }
                         .listRowBackground(Color.appSurface)
                     } header: {
-                        Text("Current")
+                        Text("CURRENT")
+                            .font(.caption.weight(.semibold))
                     }
                     
                     // Show device timezone as quick option if different
@@ -60,16 +62,18 @@ struct TimezoneSelectionSheet: View {
                             } label: {
                                 HStack {
                                     Text(TimeZone.current.identifier)
+                                        .font(.body)
                                         .foregroundStyle(Color.appText)
                                     Spacer()
-                                    Text("Default")
-                                        .font(.caption)
+                                    Text("Device Default")
+                                        .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appAccent)
                                 }
                             }
                             .listRowBackground(Color.appSurface)
                         } header: {
-                            Text("Default Timezone")
+                            Text("DEVICE DEFAULT")
+                                .font(.caption.weight(.semibold))
                         }
                     }
                     
@@ -84,10 +88,11 @@ struct TimezoneSelectionSheet: View {
                             } label: {
                                 HStack {
                                     Text(tz)
+                                        .font(.body)
                                         .foregroundStyle(Color.appText)
                                     Spacer()
                                     if tz == currentTimezone {
-                                        Image(systemName: "checkmark")
+                                        Image(systemName: "checkmark.circle.fill")
                                             .foregroundStyle(Color.appAccent)
                                     }
                                 }
@@ -95,21 +100,23 @@ struct TimezoneSelectionSheet: View {
                             .listRowBackground(Color.appSurface)
                         }
                     } header: {
-                        Text("All Timezones")
+                        Text("ALL TIMEZONES")
+                            .font(.caption.weight(.semibold))
                     }
                 }
                 .searchable(text: $searchText, prompt: "Search timezones")
                 .scrollContentBackground(.hidden)
             }
-            .navigationTitle("Timezone")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .navigationTitle("Timezone")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
                         dismiss()
                     }
                     .foregroundStyle(Color.appAccent)
+                    .fontWeight(.semibold)
                 }
             }
         }

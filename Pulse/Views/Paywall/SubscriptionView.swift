@@ -10,6 +10,7 @@ import RevenueCat
 
 struct SubscriptionView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @State private var isPurchasing = false
     @State private var safariURL: URL?
@@ -17,7 +18,7 @@ struct SubscriptionView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
@@ -38,16 +39,16 @@ struct SubscriptionView: View {
                                     .foregroundStyle(Color.appText)
                                 
                                 Text("You're a Pro subscriber")
-                                    .font(.body)
-                                    .foregroundStyle(Color.appText.opacity(0.6))
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appSecondaryText)
                             } else {
                                 Text("Upgrade to Pro")
                                     .font(.title.weight(.bold))
                                     .foregroundStyle(Color.appText)
                                 
                                 Text("Take your training to the next level")
-                                    .font(.body)
-                                    .foregroundStyle(Color.appText.opacity(0.6))
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appSecondaryText)
                             }
                         }
                         .padding(.top, 20)
@@ -62,18 +63,7 @@ struct SubscriptionView: View {
                             )
                             
                             Divider()
-                                .background(Color.appText.opacity(0.1))
-                                .padding(.leading, 60)
-                            
-                           // SubscriptionFeatureRow(
-                             //   icon: "clock.arrow.circlepath",
-                               // title: "Unlimited History",
-                                //subtitle: "Access all your past workouts"
-                            //)
-                            
-                            Divider()
-                                .background(Color.appText.opacity(0.1))
-                                .padding(.leading, 60)
+                                .padding(.leading, 68)
                             
                             SubscriptionFeatureRow(
                                 icon: "list.bullet",
@@ -82,8 +72,7 @@ struct SubscriptionView: View {
                             )
                             
                             Divider()
-                                .background(Color.appText.opacity(0.1))
-                                .padding(.leading, 60)
+                                .padding(.leading, 68)
                             
                             SubscriptionFeatureRow(
                                 icon: "applewatch.and.arrow.forward",
@@ -91,8 +80,17 @@ struct SubscriptionView: View {
                                 subtitle: "Log workouts straight from your wrist"
                             )
                         }
-                        .background(Color.appSurface)
-                        .cornerRadius(12)
+                        .background {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color.appSurface)
+                                .overlay {
+                                    if colorScheme == .dark {
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                    }
+                                }
+                                .shadow(color: colorScheme == .light ? .black.opacity(0.06) : .clear, radius: 12, x: 0, y: 4)
+                        }
                         .padding(.horizontal)
                         
                         if subscriptionManager.isProUser {
@@ -100,25 +98,14 @@ struct SubscriptionView: View {
                             VStack(spacing: 16) {
                                 Text("To cancel your subscription, go to your Apple ID subscription settings.")
                                     .font(.caption)
-                                    .foregroundStyle(Color.appText.opacity(0.6))
+                                    .foregroundStyle(Color.appTertiaryText)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 4)
                                 
-                                Button {
+                                PrimaryCTAButton("Manage Subscription") {
                                     if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
                                         UIApplication.shared.open(url)
                                     }
-                                } label: {
-                                    HStack {
-                                        Spacer()
-                                        Text("Manage Subscription")
-                                            .font(.headline)
-                                        Spacer()
-                                    }
-                                    .padding()
-                                    .background(Color.appAccent)
-                                    .foregroundStyle(Color.appText)
-                                    .cornerRadius(12)
                                 }
                             }
                             .padding(.horizontal)
@@ -126,7 +113,7 @@ struct SubscriptionView: View {
                             .padding(.bottom, 30)
                         } else {
                             // Pricing & CTA
-                            VStack(spacing: 12) {
+                            VStack(spacing: 14) {
                                 if subscriptionManager.isLoading && !isPurchasing {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
@@ -135,13 +122,11 @@ struct SubscriptionView: View {
                                     if subscriptionManager.trialEligible,
                                        let intro = package.storeProduct.introductoryDiscount {
                                         Text("\(intro.subscriptionPeriod.trialDescription) free, then \(package.localizedPriceString)/month")
-                                            .font(.subheadline)
-                                            .fontWeight(.semibold)
+                                            .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appText)
                                     } else {
                                         Text("Unlock Pro for \(package.localizedPriceString)/month")
-                                            .font(.subheadline)
-                                            .fontWeight(.semibold)
+                                            .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appText)
                                     }
                                     
@@ -155,49 +140,57 @@ struct SubscriptionView: View {
                                             }
                                         }
                                     } label: {
-                                        HStack {
-                                            Spacer()
-                                            if isPurchasing {
-                                                ProgressView()
-                                                    .progressViewStyle(CircularProgressViewStyle(tint: .appText))
-                                            } else {
-                                                Text(subscriptionManager.trialEligible ? "Start Free Trial" : "Continue")
-                                                    .font(.headline)
-                                            }
-                                            Spacer()
+                                        if isPurchasing {
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                                .frame(maxWidth: .infinity)
+                                                .frame(height: 52)
+                                                .background(LinearGradient.accentGradient.opacity(0.7), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                        } else {
+                                            Text(subscriptionManager.trialEligible ? "Start Free Trial" : "Continue")
+                                                .font(.subheadline.weight(.bold))
+                                                .foregroundStyle(.white)
+                                                .frame(maxWidth: .infinity)
+                                                .frame(height: 52)
+                                                .background(LinearGradient.accentGradient, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                                         }
-                                        .padding()
-                                        .background(Color.appAccent)
-                                        .foregroundStyle(Color.appText)
-                                        .cornerRadius(12)
                                     }
+                                    .buttonStyle(ScalePressStyle())
                                     .disabled(isPurchasing)
                                     
                                     if subscriptionManager.trialEligible {
                                         Text("Subscription automatically renews unless cancelled at least 24 hours before the end of the current period.")
                                             .font(.caption2)
-                                            .foregroundStyle(Color.appText.opacity(0.7))
+                                            .foregroundStyle(Color.appTertiaryText)
                                             .multilineTextAlignment(.center)
                                             .padding(.horizontal, 4)
                                     } else {
                                         Text("Subscription automatically renews unless canceled.")
                                             .font(.caption2)
-                                            .foregroundStyle(Color.appText.opacity(0.7))
+                                            .foregroundStyle(Color.appTertiaryText)
                                             .multilineTextAlignment(.center)
                                             .padding(.horizontal, 4)
                                     }
                                 }
                             }
                             .padding(.horizontal)
-                            .padding(.top, 24)
+                            .padding(.top, 28)
                             
                             // Error
                             if let error = subscriptionManager.errorMessage {
-                                Text(error)
-                                    .font(.caption)
-                                    .foregroundStyle(.red)
-                                    .padding(.top, 8)
-                                    .padding(.horizontal)
+                                HStack(spacing: 8) {
+                                    Image(systemName: "exclamationmark.circle.fill")
+                                        .foregroundStyle(.red)
+                                        .font(.caption)
+                                    Text(error)
+                                        .foregroundStyle(.red)
+                                        .font(.caption.weight(.medium))
+                                }
+                                .padding(12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .padding(.top, 8)
+                                .padding(.horizontal)
                             }
                             
                             // Restore
@@ -210,7 +203,7 @@ struct SubscriptionView: View {
                                 }
                             } label: {
                                 Text("Restore Purchases")
-                                    .font(.subheadline)
+                                    .font(.subheadline.weight(.medium))
                                     .foregroundStyle(Color.appAccent)
                             }
                             .padding(.top, 16)
@@ -224,7 +217,7 @@ struct SubscriptionView: View {
                                 .foregroundStyle(Color.appAccent)
                                 
                                 Text("·")
-                                    .foregroundStyle(Color.appText.opacity(0.7))
+                                    .foregroundStyle(Color.appTertiaryText)
                                 
                                 Button("Privacy Policy") {
                                     safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
@@ -246,7 +239,8 @@ struct SubscriptionView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .foregroundStyle(Color.appText.opacity(0.6))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.appSecondaryText)
                     }
                 }
             }
@@ -258,7 +252,7 @@ struct SubscriptionView: View {
                     .ignoresSafeArea()
             }
         }
-        .presentationBackground(Color.appBackground)
+        .presentationBackground(LinearGradient.dashboardBackground)
     }
 }
 
@@ -270,32 +264,24 @@ private struct SubscriptionFeatureRow: View {
     let subtitle: String
     
     var body: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.appAccent.opacity(0.15))
-                    .frame(width: 36, height: 36)
-                
-                Image(systemName: icon)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.appAccent)
-            }
+        HStack(spacing: 14) {
+            IconBadge(systemName: icon, size: 40)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
                 
                 Text(subtitle)
                     .font(.caption)
-                    .foregroundStyle(Color.appText.opacity(0.5))
+                    .foregroundStyle(Color.appSecondaryText)
             }
             
             Spacer()
             
-            Image(systemName: "checkmark")
-                .font(.subheadline.weight(.bold))
+            Image(systemName: "checkmark.circle.fill")
+                .font(.body.weight(.semibold))
+                .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(Color.appAccent)
         }
         .padding(.horizontal, 16)

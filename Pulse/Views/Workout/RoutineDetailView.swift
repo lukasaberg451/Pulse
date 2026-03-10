@@ -46,48 +46,64 @@ struct RoutineDetailView: View {
     
     var body: some View {
         ZStack {
-            Color.appBackground.ignoresSafeArea()
+            LinearGradient.dashboardBackground
+                .ignoresSafeArea()
             
             if viewModel.isLoading {
-                ProgressView()
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .tint(Color.appAccent)
+                    Text("Loading routine...")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
+                }
             } else if let error = viewModel.errorMessage {
-                VStack {
-                    Text("Error")
+                VStack(spacing: 14) {
+                    IconBadge(systemName: "exclamationmark.triangle", color: .red, size: 48)
+                    Text("Something went wrong")
                         .font(.headline)
                         .foregroundStyle(Color.appText)
                     Text(error)
-                        .font(.caption)
-                        .foregroundStyle(Color.appText)
-                    Button("Retry") {
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
+                        .multilineTextAlignment(.center)
+                    PrimaryCTAButton("Retry", icon: "arrow.clockwise") {
                         Task {
                             await viewModel.loadRoutineExercises()
                             await viewModel.loadExercises()
                         }
                     }
+                    .frame(width: 160)
                 }
+                .padding()
             } else {
                 VStack(spacing: 0) {
                     // Fixed header
                     VStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 6) {
                             Text(viewModel.routine.name)
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
+                                .font(.title.weight(.bold))
                                 .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                            // Description,  if exists
+                            // Description, if exists
                             if let description = viewModel.routine.description, !description.isEmpty {
                                 Text(description)
                                     .font(.subheadline)
-                                    .foregroundStyle(Color.appText.opacity(0.7))
+                                    .foregroundStyle(Color.appSecondaryText)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
+
+                            // Exercise count pill
+                            Text("\(viewModel.routineExercises.count) exercise\(viewModel.routineExercises.count == 1 ? "" : "s")")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
+                                .padding(.top, 2)
                         }
                         
                         // Action buttons - 2x2 grid
-                        VStack(spacing: 12) {
-                            HStack(spacing: 12) {
+                        VStack(spacing: 10) {
+                            HStack(spacing: 10) {
                                 // Start Workout
                                 Button {
                                     cancelEditMode()
@@ -98,61 +114,45 @@ struct RoutineDetailView: View {
                                 } label: {
                                     HStack(spacing: 8) {
                                         Image(systemName: "play.fill")
-                                            .font(.subheadline)
+                                            .font(.caption.weight(.bold))
                                         Text("Start Workout")
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
+                                            .font(.subheadline.weight(.semibold))
                                     }
-                                    .foregroundStyle(viewModel.routineExercises.isEmpty ? Color.appText.opacity(0.7) : Color.appText)
+                                    .foregroundStyle(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 12)
-                                    .background(viewModel.routineExercises.isEmpty ? Color.appAccent.opacity(0.5) : Color.appAccent)
-                                    .cornerRadius(12)
+                                    .background(
+                                        viewModel.routineExercises.isEmpty
+                                            ? AnyShapeStyle(LinearGradient.accentGradient.opacity(0.5))
+                                            : AnyShapeStyle(LinearGradient.accentGradient),
+                                        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    )
                                 }
+                                .buttonStyle(ScalePressStyle())
                                 .disabled(viewModel.routineExercises.isEmpty)
                                 
                                 // Edit Routine
-                                Button {
+                                DetailActionButton(
+                                    icon: "pencil",
+                                    title: "Edit Routine"
+                                ) {
                                     cancelEditMode()
                                     let impactLight = UIImpactFeedbackGenerator(style: .light)
                                     impactLight.impactOccurred()
                                     showingEditSheet = true
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "pencil")
-                                            .font(.subheadline)
-                                        Text("Edit Routine")
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                    }
-                                    .foregroundStyle(Color.appText)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
                                 }
                             }
                             
-                            HStack(spacing: 12) {
+                            HStack(spacing: 10) {
                                 // Add Exercise
-                                Button {
+                                DetailActionButton(
+                                    icon: "plus",
+                                    title: "Add Exercise"
+                                ) {
                                     cancelEditMode()
                                     let impactLight = UIImpactFeedbackGenerator(style: .light)
                                     impactLight.impactOccurred()
                                     showingExercisePicker = true
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "plus")
-                                            .font(.subheadline)
-                                        Text("Add Exercise")
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                    }
-                                    .foregroundStyle(Color.appText)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
                                 }
                                 
                                 // Copy Routine
@@ -176,26 +176,25 @@ struct RoutineDetailView: View {
                                     HStack(spacing: 8) {
                                         if isCopying {
                                             ProgressView()
+                                                .tint(Color.appText)
                                         } else {
                                             Image(systemName: "doc.on.doc")
-                                                .font(.subheadline)
+                                                .font(.caption.weight(.bold))
                                         }
                                         Text("Copy Routine")
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
+                                            .font(.subheadline.weight(.medium))
                                     }
                                     .foregroundStyle(Color.appText)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 12)
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 }
+                                .buttonStyle(ScalePressStyle())
                                 .disabled(isCopying)
                             }
                         }
                     }
                     .padding()
-                    .background(Color.appBackground)
                     
                     // Edit Order button (only show if there are exercises)
                     if !viewModel.routineExercises.isEmpty {
@@ -203,19 +202,16 @@ struct RoutineDetailView: View {
                             Spacer()
                             Button {
                                 if editMode == .active {
-                                    // Save the reordered exercises when done
                                     let notificationFeedback = UINotificationFeedbackGenerator()
                                     notificationFeedback.notificationOccurred(.success)
                                     Task {
                                         await viewModel.saveExerciseOrder(reorderedExercises)
-                                        // Exit edit mode after save completes
                                         withAnimation {
                                             editMode = .inactive
                                             reorderedExercises = []
                                         }
                                     }
                                 } else {
-                                    // Initialize reordered exercises when entering edit mode
                                     let impactLight = UIImpactFeedbackGenerator(style: .light)
                                     impactLight.impactOccurred()
                                     withAnimation {
@@ -226,21 +222,22 @@ struct RoutineDetailView: View {
                             } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: editMode == .active ? "checkmark.circle.fill" : "arrow.up.arrow.down.circle")
-                                        .font(.subheadline)
-                                    Text(editMode == .active ? "Done" : "Reorder Exercises")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
+                                        .font(.caption.weight(.semibold))
+                                    Text(editMode == .active ? "Done" : "Reorder")
+                                        .font(.subheadline.weight(.medium))
                                 }
                                 .foregroundStyle(editMode == .active ? Color.green : Color.appAccent)
-                                .padding(.horizontal, 16)
+                                .padding(.horizontal, 14)
                                 .padding(.vertical, 8)
-                                .background(editMode == .active ? Color.green.opacity(0.1) : Color.appAccent.opacity(0.1))
-                                .cornerRadius(12)
+                                .background(
+                                    (editMode == .active ? Color.green.opacity(0.1) : Color.appAccentSubtle),
+                                    in: Capsule()
+                                )
                             }
+                            .buttonStyle(ScalePressStyle())
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 8)
-                        .background(Color.appBackground)
                     }
                     
                     // Exercises list
@@ -248,33 +245,34 @@ struct RoutineDetailView: View {
                         ForEach(editMode == .active ? reorderedExercises : viewModel.routineExercises) { routineExercise in
                             if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
                                 HStack(spacing: 12) {
-                                    VStack(alignment: .leading, spacing: 4) {
+                                    IconBadge(
+                                        systemName: exercise.exerciseType == "cardio" ? "figure.run" : "figure.strengthtraining.traditional",
+                                        color: .appAccent,
+                                        size: 40
+                                    )
+
+                                    VStack(alignment: .leading, spacing: 3) {
                                         Text(exercise.name)
-                                            .font(.headline)
+                                            .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appText)
                                         
                                         if let reps = routineExercise.repsTarget {
                                             Text("\(routineExercise.sets) sets × \(reps) reps")
                                                 .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                                .foregroundStyle(Color.appSecondaryText)
                                         } else if let durationSeconds = routineExercise.durationSeconds {
                                             let minutes = durationSeconds / 60
                                             let seconds = durationSeconds % 60
                                             let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
                                             Text("\(routineExercise.sets) sets × \(durationText)")
                                                 .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                                .foregroundStyle(Color.appSecondaryText)
                                         }
                                         
-                                        // Always show rest line to maintain consistent card height
                                         if routineExercise.restSeconds > 0 {
                                             Text("\(routineExercise.restSeconds)s rest")
                                                 .font(.caption)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
-                                        } else {
-                                            Text(" ")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.clear)
+                                                .foregroundStyle(Color.appTertiaryText)
                                         }
                                     }
                                     
@@ -302,21 +300,25 @@ struct RoutineDetailView: View {
                                             }
                                         } label: {
                                             Image(systemName: "ellipsis")
-                                                .font(.title3)
-                                                .foregroundStyle(Color.appText.opacity(0.6))
+                                                .font(.body.weight(.medium))
+                                                .foregroundStyle(Color.appTertiaryText)
                                                 .frame(width: 44, height: 44)
                                         }
                                     }
                                 }
-                                .padding()
-                                .background(Color.appSurface)
-                                .cornerRadius(12)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(editMode == .active ? Color.appAccent.opacity(0.3) : Color.clear, lineWidth: 2)
-                                )
+                                .padding(14)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if editMode == .active {
+                                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                    .strokeBorder(Color.appAccent.opacity(0.3), lineWidth: 1.5)
+                                            }
+                                        }
+                                }
                                 .listRowBackground(Color.clear)
-                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
                                 .listRowSeparator(.hidden)
                             }
                         }
@@ -328,7 +330,6 @@ struct RoutineDetailView: View {
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
-                    .background(Color.appBackground)
                     .environment(\.editMode, $editMode)
                 }
             }
@@ -391,6 +392,7 @@ struct ExercisePickerSheet: View {
     @ObservedObject var routineViewModel: RoutineDetailViewModel
     @StateObject private var viewModel = ExerciseListViewModel()
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var pickerColorScheme
     
     @State private var searchText = ""
     @State private var selectedMuscle: String? = nil
@@ -478,16 +480,18 @@ struct ExercisePickerSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     // Search bar with filter button
-                    HStack(spacing: 12) {
+                    HStack(spacing: 10) {
                         // Search field
-                        HStack {
+                        HStack(spacing: 10) {
                             Image(systemName: "magnifyingglass")
-                                .foregroundStyle(Color.appText.opacity(0.5))
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(Color.appTertiaryText)
                             TextField("Search exercises...", text: $searchText)
+                                .font(.subheadline)
                                 .foregroundStyle(Color.appText)
                                 .onChange(of: searchText) { _, newValue in
                                     searchTask?.cancel()
@@ -508,13 +512,20 @@ struct ExercisePickerSheet: View {
                                     searchText = ""
                                 } label: {
                                     Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(Color.appText.opacity(0.5))
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.appTertiaryText)
                                 }
                             }
                         }
-                        .padding()
-                        .background(Color.appSurface)
-                        .cornerRadius(12)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay {
+                            if pickerColorScheme == .dark {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                            }
+                        }
                         
                         // Filter button
                         Button {
@@ -522,23 +533,28 @@ struct ExercisePickerSheet: View {
                         } label: {
                             ZStack(alignment: .topTrailing) {
                                 Image(systemName: activeFilterCount > 0 ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                                    .font(.title2)
-                                    .foregroundStyle(activeFilterCount > 0 ? Color.appAccent : Color.appText)
+                                    .font(.title3.weight(.medium))
+                                    .foregroundStyle(activeFilterCount > 0 ? Color.appAccent : Color.appSecondaryText)
+                                    .frame(width: 48, height: 48)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                    .overlay {
+                                        if pickerColorScheme == .dark {
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                        }
+                                    }
                                 
                                 if activeFilterCount > 0 {
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: 16, height: 16)
-                                        .overlay(
-                                            Text("\(activeFilterCount)")
-                                                .font(.system(size: 10, weight: .bold))
-                                                .foregroundStyle(Color.white)
-                                        )
-                                        .offset(x: 8, y: -8)
+                                    Text("\(activeFilterCount)")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundStyle(.white)
+                                        .frame(width: 18, height: 18)
+                                        .background(Color.appAccent, in: Circle())
+                                        .offset(x: 4, y: -4)
                                 }
                             }
                         }
-                        .frame(width: 44, height: 44)
+                        .buttonStyle(ScalePressStyle())
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 12)
@@ -564,13 +580,11 @@ struct ExercisePickerSheet: View {
                                     selectedEquipment = nil
                                 } label: {
                                     Text("Clear all")
-                                        .font(.caption)
-                                        .fontWeight(.semibold)
+                                        .font(.caption.weight(.semibold))
                                         .foregroundStyle(Color.red)
                                         .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(Color.red.opacity(0.1))
-                                        .cornerRadius(12)
+                                        .padding(.vertical, 7)
+                                        .background(Color.red.opacity(0.1), in: Capsule())
                                 }
                             }
                             .padding(.horizontal)
@@ -581,33 +595,31 @@ struct ExercisePickerSheet: View {
                     // Results count
                     HStack {
                         Text("\(filteredExercises.count) exercises")
-                            .font(.caption)
-                            .foregroundStyle(Color.appText.opacity(0.6))
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.appTertiaryText)
                         Spacer()
                     }
                     .padding(.horizontal)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 6)
                     
                     // Exercise list
-                    if filteredExercises.isEmpty {
-                        VStack(spacing: 16) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 48))
-                                .foregroundStyle(Color.appText.opacity(0.3))
+                    if filteredExercises.isEmpty && !viewModel.isLoading {
+                        VStack(spacing: 14) {
+                            IconBadge(systemName: "magnifyingglass", size: 48)
                             
                             Text("No exercises found")
-                                .font(.headline)
+                                .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
                             
-                            Text("Try adjusting your filters")
+                            Text("Try adjusting your search or filters")
                                 .font(.caption)
-                                .foregroundStyle(Color.appText.opacity(0.6))
+                                .foregroundStyle(Color.appSecondaryText)
                         }
                         .frame(maxHeight: .infinity)
                         .padding()
                     } else {
                         ScrollView {
-                            LazyVStack(spacing: 12) {
+                            LazyVStack(spacing: 8) {
                                 ForEach(filteredExercises) { exercise in
                                     Button {
                                         selectedExercise = exercise
@@ -616,22 +628,32 @@ struct ExercisePickerSheet: View {
                                         showingConfigSheet = true
                                     } label: {
                                         HStack(spacing: 12) {
-                                            VStack(alignment: .leading, spacing: 6) {
+                                            IconBadge(
+                                                systemName: exercise.exerciseType == "cardio" ? "figure.run" : "dumbbell.fill",
+                                                size: 38
+                                            )
+                                            
+                                            VStack(alignment: .leading, spacing: 4) {
                                                 Text(exercise.name)
-                                                    .font(.headline)
+                                                    .font(.subheadline.weight(.semibold))
                                                     .foregroundStyle(Color.appText)
+                                                    .lineLimit(1)
                                                 
                                                 HStack(spacing: 8) {
                                                     if let muscle = exercise.muscleGroup {
-                                                        Label(muscle.capitalized, systemImage: "figure.arms.open")
+                                                        Text(muscle.capitalized)
                                                             .font(.caption)
-                                                            .foregroundStyle(Color.appText.opacity(0.6))
+                                                            .foregroundStyle(Color.appSecondaryText)
                                                     }
                                                     
                                                     if let equipment = exercise.equipment {
-                                                        Label(equipment.capitalized, systemImage: equipmentIcon(for: equipment))
-                                                            .font(.caption)
-                                                            .foregroundStyle(Color.appAccent.opacity(0.8))
+                                                        HStack(spacing: 3) {
+                                                            Image(systemName: equipmentIcon(for: equipment))
+                                                                .font(.system(size: 9, weight: .semibold))
+                                                            Text(equipment.capitalized)
+                                                        }
+                                                        .font(.caption)
+                                                        .foregroundStyle(Color.appAccent)
                                                     }
                                                 }
                                             }
@@ -639,13 +661,20 @@ struct ExercisePickerSheet: View {
                                             Spacer()
                                             
                                             Image(systemName: "plus.circle.fill")
-                                                .font(.title2)
+                                                .font(.title3)
+                                                .symbolRenderingMode(.hierarchical)
                                                 .foregroundStyle(Color.appAccent)
                                         }
-                                        .padding()
-                                        .background(Color.appSurface)
-                                        .cornerRadius(12)
+                                        .padding(14)
+                                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                        .overlay {
+                                            if pickerColorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                            }
+                                        }
                                     }
+                                    .buttonStyle(ScalePressStyle())
                                     .task {
                                         await viewModel.loadMoreIfNeeded(currentExercise: exercise)
                                     }
@@ -655,7 +684,7 @@ struct ExercisePickerSheet: View {
                                     HStack {
                                         Spacer()
                                         ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
+                                            .tint(Color.appAccent)
                                         Spacer()
                                     }
                                     .padding()
@@ -669,10 +698,11 @@ struct ExercisePickerSheet: View {
                 
                 // Loading overlay
                 if viewModel.isLoading {
-                    Color.appBackground.opacity(0.8)
+                    Color.appBackground.opacity(0.6)
                         .ignoresSafeArea()
+                        .background(.ultraThinMaterial)
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
+                        .tint(Color.appAccent)
                 }
             }
             .navigationTitle("Add Exercise")
@@ -685,7 +715,8 @@ struct ExercisePickerSheet: View {
                         notificationFeedback.notificationOccurred(.success)
                         dismiss()
                     }
-                    .foregroundStyle(Color.appText)
+                    .foregroundStyle(Color.appAccent)
+                    .fontWeight(.semibold)
                 }
             }
             .sheet(isPresented: $showingConfigSheet) {
@@ -714,7 +745,7 @@ struct ExercisePickerSheet: View {
                 await viewModel.resetAndLoad()
             }
         }
-        .presentationBackground(Color.appBackground)
+        .presentationBackground(LinearGradient.dashboardBackground)
     }
 }
 
@@ -727,27 +758,26 @@ struct ActiveFilterChip: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(.system(size: 10, weight: .semibold))
             Text(title)
-                .font(.caption)
-                .fontWeight(.medium)
+                .font(.caption.weight(.semibold))
             
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.caption)
+                    .font(.system(size: 12))
             }
         }
-        .foregroundStyle(Color.white)
+        .foregroundStyle(.white)
         .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color.appAccent)
-        .cornerRadius(12)
+        .padding(.vertical, 7)
+        .background(LinearGradient.accentGradient, in: Capsule())
     }
 }
 
 // MARK: - Filter Sheet
 struct FilterSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var selectedMuscle: String?
     @Binding var selectedEquipment: String?
     let muscleOptions: [String]
@@ -768,87 +798,133 @@ struct FilterSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 ScrollView {
                     VStack(spacing: 20) {
                         // Muscle Group Section
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: 14) {
                             HStack {
-                                Label("Muscle Group", systemImage: "figure.arms.open")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.appText)
+                                HStack(spacing: 8) {
+                                    IconBadge(systemName: "figure.arms.open", size: 28)
+                                    Text("Muscle Group")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(Color.appText)
+                                }
                                 
                                 Spacer()
                                 
                                 if tempMuscle != nil {
                                     Button("Clear") {
-                                        tempMuscle = nil
+                                        withAnimation(.spring(response: 0.3)) {
+                                            tempMuscle = nil
+                                        }
                                     }
-                                    .font(.subheadline)
+                                    .font(.caption.weight(.semibold))
                                     .foregroundStyle(Color.appAccent)
                                 }
                             }
                             
-                            // Muscle options in flowing layout
                             FlowLayout(spacing: 8) {
                                 ForEach(muscleOptions, id: \.self) { muscle in
                                     Button {
-                                        tempMuscle = tempMuscle == muscle ? nil : muscle
+                                        withAnimation(.spring(response: 0.3)) {
+                                            tempMuscle = tempMuscle == muscle ? nil : muscle
+                                        }
                                     } label: {
                                         Text(muscle)
-                                            .font(.subheadline)
-                                            .foregroundStyle(tempMuscle == muscle ? Color.white : Color.appText)
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 10)
-                                            .background(tempMuscle == muscle ? Color.appAccent : Color.appSurface)
-                                            .cornerRadius(12)
+                                            .font(.subheadline.weight(tempMuscle == muscle ? .semibold : .regular))
+                                            .foregroundStyle(tempMuscle == muscle ? .white : Color.appText)
+                                            .padding(.horizontal, 14)
+                                            .padding(.vertical, 9)
+                                            .background(
+                                                tempMuscle == muscle
+                                                    ? AnyShapeStyle(LinearGradient.accentGradient)
+                                                    : AnyShapeStyle(Color.appSurface),
+                                                in: Capsule()
+                                            )
+                                            .overlay {
+                                                if tempMuscle != muscle && colorScheme == .dark {
+                                                    Capsule()
+                                                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                                }
+                                            }
                                     }
+                                    .buttonStyle(ScalePressStyle())
                                 }
                             }
                         }
-                        .padding()
-                        .background(Color.appSurface.opacity(0.3))
-                        .cornerRadius(12)
+                        .padding(16)
+                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay {
+                            if colorScheme == .dark {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                            }
+                        }
+                        .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
                         
                         // Equipment Section
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: 14) {
                             HStack {
-                                Label("Equipment", systemImage: "dumbbell.fill")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.appText)
+                                HStack(spacing: 8) {
+                                    IconBadge(systemName: "dumbbell.fill", size: 28)
+                                    Text("Equipment")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(Color.appText)
+                                }
                                 
                                 Spacer()
                                 
                                 if tempEquipment != nil {
                                     Button("Clear") {
-                                        tempEquipment = nil
+                                        withAnimation(.spring(response: 0.3)) {
+                                            tempEquipment = nil
+                                        }
                                     }
-                                    .font(.subheadline)
+                                    .font(.caption.weight(.semibold))
                                     .foregroundStyle(Color.appAccent)
                                 }
                             }
                             
-                            // Equipment options in flowing layout
                             FlowLayout(spacing: 8) {
                                 ForEach(equipmentOptions, id: \.self) { equipment in
                                     Button {
-                                        tempEquipment = tempEquipment == equipment ? nil : equipment
+                                        withAnimation(.spring(response: 0.3)) {
+                                            tempEquipment = tempEquipment == equipment ? nil : equipment
+                                        }
                                     } label: {
                                         Text(equipment)
-                                            .font(.subheadline)
-                                            .foregroundStyle(tempEquipment == equipment ? Color.white : Color.appText)
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 10)
-                                            .background(tempEquipment == equipment ? Color.appAccent : Color.appSurface)
-                                            .cornerRadius(12)
+                                            .font(.subheadline.weight(tempEquipment == equipment ? .semibold : .regular))
+                                            .foregroundStyle(tempEquipment == equipment ? .white : Color.appText)
+                                            .padding(.horizontal, 14)
+                                            .padding(.vertical, 9)
+                                            .background(
+                                                tempEquipment == equipment
+                                                    ? AnyShapeStyle(LinearGradient.accentGradient)
+                                                    : AnyShapeStyle(Color.appSurface),
+                                                in: Capsule()
+                                            )
+                                            .overlay {
+                                                if tempEquipment != equipment && colorScheme == .dark {
+                                                    Capsule()
+                                                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                                }
+                                            }
                                     }
+                                    .buttonStyle(ScalePressStyle())
                                 }
                             }
                         }
-                        .padding()
-                        .background(Color.appSurface.opacity(0.3))
-                        .cornerRadius(12)
+                        .padding(16)
+                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay {
+                            if colorScheme == .dark {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                            }
+                        }
+                        .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
                     }
                     .padding()
                 }
@@ -861,7 +937,7 @@ struct FilterSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundStyle(Color.appText)
+                    .foregroundStyle(Color.appSecondaryText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -875,7 +951,7 @@ struct FilterSheet: View {
                 }
             }
         }
-        .presentationBackground(Color.appBackground)
+        .presentationBackground(LinearGradient.dashboardBackground)
         .presentationDetents([.medium, .large])
     }
 }
@@ -975,6 +1051,7 @@ struct FilterChip: View {
 
 struct ExerciseConfigSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var unitManager: UnitManager
     let exercise: Exercise
     @ObservedObject var viewModel: RoutineDetailViewModel
@@ -1001,43 +1078,47 @@ struct ExerciseConfigSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         // Exercise Info Card
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Exercise")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.appText.opacity(0.6))
-                                .textCase(.uppercase)
+                        HStack(spacing: 14) {
+                            IconBadge(
+                                systemName: isCardio ? "figure.run" : "dumbbell.fill",
+                                size: 44
+                            )
                             
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: 3) {
                                 Text(exercise.name)
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
+                                    .font(.subheadline.weight(.bold))
                                     .foregroundStyle(Color.appText)
                                 
                                 if let muscle = exercise.muscleGroup {
                                     Text(muscle.capitalized)
-                                        .font(.subheadline)
+                                        .font(.caption)
                                         .foregroundStyle(Color.appAccent)
                                 }
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
+                            
+                            Spacer()
                         }
+                        .padding(16)
+                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay {
+                            if colorScheme == .dark {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                            }
+                        }
+                        .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
                         
                         // Configuration Section
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Configuration")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.appText.opacity(0.6))
-                                .textCase(.uppercase)
+                            Text("CONFIGURATION")
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(Color.appTertiaryText)
+                                .tracking(0.5)
                             
                             VStack(spacing: 12) {
                                 if isCardio {
@@ -1056,8 +1137,7 @@ struct ExerciseConfigSheet: View {
                                         .pickerStyle(.segmented)
                                     }
                                     .padding()
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     
                                     // Only show intervals count if in interval mode
                                     if cardioMode == .intervals {
@@ -1143,8 +1223,7 @@ struct ExerciseConfigSheet: View {
                                         .frame(height: 120)
                                     }
                                     .padding()
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     
                                     // Only show rest for intervals
                                     if cardioMode == .intervals {
@@ -1236,8 +1315,7 @@ struct ExerciseConfigSheet: View {
                                         }
                                         .padding()
                                     }
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     
                                     // Reps
                                     VStack(spacing: 0) {
@@ -1255,13 +1333,11 @@ struct ExerciseConfigSheet: View {
                                                 .multilineTextAlignment(.trailing)
                                                 .frame(width: 80)
                                                 .padding(10)
-                                                .background(Color.appBackground)
-                                                .cornerRadius(12)
+                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     
                                     // Weight
                                     VStack(spacing: 0) {
@@ -1279,13 +1355,11 @@ struct ExerciseConfigSheet: View {
                                                 .multilineTextAlignment(.trailing)
                                                 .frame(width: 80)
                                                 .padding(10)
-                                                .background(Color.appBackground)
-                                                .cornerRadius(12)
+                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     
                                     // Rest
                                     VStack(spacing: 0) {
@@ -1329,8 +1403,7 @@ struct ExerciseConfigSheet: View {
                                         }
                                         .padding()
                                     }
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 }
                             }
                         }
@@ -1346,7 +1419,7 @@ struct ExerciseConfigSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundStyle(Color.appText)
+                    .foregroundStyle(Color.appSecondaryText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -1356,9 +1429,7 @@ struct ExerciseConfigSheet: View {
                         Task {
                             if isCardio {
                                 let totalSeconds = (durationMinutes * 60) + durationSeconds
-                                // For continuous mode, use 1 set; for intervals, use the selected count
                                 let actualSets = cardioMode == .continuous ? 1 : sets
-                                // For continuous mode, no rest between sets
                                 let actualRest = cardioMode == .continuous ? 0 : restSeconds
                                 
                                 await viewModel.addExercise(
@@ -1388,58 +1459,143 @@ struct ExerciseConfigSheet: View {
                 }
             }
         }
-        .presentationBackground(Color.appBackground)
+        .presentationBackground(LinearGradient.dashboardBackground)
     }
 }
 
 struct EditRoutineSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var viewModel: RoutineDetailViewModel
     @State private var name: String
     @State private var description: String
+    @State private var isSaving = false
+    @FocusState private var focusedField: Field?
     let onSaved: () -> Void
-        
+
+    private enum Field { case name, notes }
+
     init(viewModel: RoutineDetailViewModel, onSaved: @escaping () -> Void) {
-            self.viewModel = viewModel
-            self.onSaved = onSaved
-            _name = State(initialValue: viewModel.routine.name)
-            _description = State(initialValue: viewModel.routine.description ?? "")
-        }
-        
+        self.viewModel = viewModel
+        self.onSaved = onSaved
+        _name = State(initialValue: viewModel.routine.name)
+        _description = State(initialValue: viewModel.routine.description ?? "")
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
-                
-                VStack(alignment: .leading, spacing: 20) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Routine Name")
-                            .font(.headline)
+                LinearGradient.dashboardBackground
+                    .ignoresSafeArea()
+
+                VStack(spacing: 28) {
+                    // Header
+                    VStack(spacing: 8) {
+                        IconBadge(systemName: "pencil.circle.fill", color: .appAccent, size: 48)
+
+                        Text("Edit Routine")
+                            .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
-                        
-                        TextField("Push Day", text: $name)
-                            .padding()
-                            .background(Color.appSurface)
-                            .foregroundStyle(Color.appText)
-                            .cornerRadius(12)
+
+                        Text("Update your routine details")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
                     }
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Notes (Optional)")
-                            .font(.headline)
-                            .foregroundStyle(Color.appText)
-                        
-                        TextField("Notes", text: $description, axis: .vertical)
-                            .padding()
-                            .background(Color.appSurface)
-                            .foregroundStyle(Color.appText)
-                            .cornerRadius(12)
-                            .lineLimit(3...6)
+                    .padding(.top, 20)
+
+                    // Form fields
+                    VStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Routine Name")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
+                                .padding(.horizontal, 4)
+
+                            TextField("Push Day", text: $name)
+                                .font(.body)
+                                .padding(14)
+                                .foregroundStyle(Color.appText)
+                                .focused($focusedField, equals: .name)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .strokeBorder(
+                                                    focusedField == .name
+                                                        ? Color.appAccent.opacity(0.5)
+                                                        : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
+                                                    lineWidth: 1
+                                                )
+                                        }
+                                        .shadow(
+                                            color: colorScheme == .light
+                                                ? Color.black.opacity(0.04)
+                                                : Color.clear,
+                                            radius: 6,
+                                            x: 0,
+                                            y: 2
+                                        )
+                                }
+                                .submitLabel(.next)
+                                .onSubmit { focusedField = .notes }
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Notes (Optional)")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
+                                .padding(.horizontal, 4)
+
+                            TextField("Add a description or notes", text: $description, axis: .vertical)
+                                .font(.body)
+                                .padding(14)
+                                .foregroundStyle(Color.appText)
+                                .focused($focusedField, equals: .notes)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .strokeBorder(
+                                                    focusedField == .notes
+                                                        ? Color.appAccent.opacity(0.5)
+                                                        : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
+                                                    lineWidth: 1
+                                                )
+                                        }
+                                        .shadow(
+                                            color: colorScheme == .light
+                                                ? Color.black.opacity(0.04)
+                                                : Color.clear,
+                                            radius: 6,
+                                            x: 0,
+                                            y: 2
+                                        )
+                                }
+                                .lineLimit(3...6)
+                        }
                     }
+                    .padding(.horizontal)
+
+                    // CTA Button
+                    PrimaryCTAButton("Save Changes", icon: "checkmark") {
+                        isSaving = true
+                        let notificationFeedback = UINotificationFeedbackGenerator()
+                        notificationFeedback.notificationOccurred(.success)
+                        Task {
+                            await viewModel.updateRoutine(name: name, description: description)
+                            onSaved()
+                            dismiss()
+                        }
+                    }
+                    .opacity(name.isEmpty ? 0.5 : 1.0)
+                    .disabled(name.isEmpty || isSaving)
+                    .padding(.horizontal)
+
                     Spacer()
                 }
-                .padding()
             }
-            .navigationTitle("Edit Routine")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -1449,29 +1605,16 @@ struct EditRoutineSheet: View {
                     }
                     .foregroundStyle(Color.appText)
                 }
-                    
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        let notificationFeedback = UINotificationFeedbackGenerator()
-                        notificationFeedback.notificationOccurred(.success)
-                        Task {
-                            await viewModel.updateRoutine(name: name, description: description)
-                            onSaved()
-                            dismiss()
-                            }
-                        }
-                    .foregroundStyle(Color.appAccent)
-                    .disabled(name.isEmpty)
-                    }
-                }
             }
-        .presentationBackground(Color.appBackground)
         }
+        .presentationBackground(Color.appBackground)
     }
+}
     
 
 struct EditExerciseSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var unitManager: UnitManager
     let routineExercise: RoutineExercise
     let exercise: Exercise
@@ -1520,43 +1663,47 @@ struct EditExerciseSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.appBackground.ignoresSafeArea()
+                LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         // Exercise Info Card
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Exercise")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.appText.opacity(0.6))
-                                .textCase(.uppercase)
+                        HStack(spacing: 14) {
+                            IconBadge(
+                                systemName: isCardio ? "figure.run" : "dumbbell.fill",
+                                size: 44
+                            )
                             
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: 3) {
                                 Text(exercise.name)
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
+                                    .font(.subheadline.weight(.bold))
                                     .foregroundStyle(Color.appText)
                                 
                                 if let muscle = exercise.muscleGroup {
                                     Text(muscle.capitalized)
-                                        .font(.subheadline)
+                                        .font(.caption)
                                         .foregroundStyle(Color.appAccent)
                                 }
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            .background(Color.appSurface)
-                            .cornerRadius(12)
+                            
+                            Spacer()
                         }
+                        .padding(16)
+                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay {
+                            if colorScheme == .dark {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                            }
+                        }
+                        .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
                         
                         // Configuration Section
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Configuration")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.appText.opacity(0.6))
-                                .textCase(.uppercase)
+                            Text("CONFIGURATION")
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(Color.appTertiaryText)
+                                .tracking(0.5)
                             
                             VStack(spacing: 12) {
                                 if isCardio {
@@ -1575,8 +1722,7 @@ struct EditExerciseSheet: View {
                                         .pickerStyle(.segmented)
                                     }
                                     .padding()
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     
                                     // Only show intervals count if in interval mode
                                     if cardioMode == .intervals {
@@ -1662,8 +1808,7 @@ struct EditExerciseSheet: View {
                                         .frame(height: 120)
                                     }
                                     .padding()
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     
                                     // Only show rest for intervals
                                     if cardioMode == .intervals {
@@ -1755,8 +1900,7 @@ struct EditExerciseSheet: View {
                                         }
                                         .padding()
                                     }
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     
                                     // Reps
                                     VStack(spacing: 0) {
@@ -1774,13 +1918,11 @@ struct EditExerciseSheet: View {
                                                 .multilineTextAlignment(.trailing)
                                                 .frame(width: 80)
                                                 .padding(10)
-                                                .background(Color.appBackground)
-                                                .cornerRadius(12)
+                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     
                                     // Weight
                                     VStack(spacing: 0) {
@@ -1798,13 +1940,11 @@ struct EditExerciseSheet: View {
                                                 .multilineTextAlignment(.trailing)
                                                 .frame(width: 80)
                                                 .padding(10)
-                                                .background(Color.appBackground)
-                                                .cornerRadius(12)
+                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     
                                     // Rest
                                     VStack(spacing: 0) {
@@ -1848,8 +1988,7 @@ struct EditExerciseSheet: View {
                                         }
                                         .padding()
                                     }
-                                    .background(Color.appSurface)
-                                    .cornerRadius(12)
+                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 }
                             }
                         }
@@ -1865,7 +2004,7 @@ struct EditExerciseSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundStyle(Color.appText)
+                    .foregroundStyle(Color.appSecondaryText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -1875,9 +2014,7 @@ struct EditExerciseSheet: View {
                         Task {
                             if isCardio {
                                 let totalSeconds = (durationMinutes * 60) + durationSeconds
-                                // For continuous mode, use 1 set; for intervals, use the selected count
                                 let actualSets = cardioMode == .continuous ? 1 : sets
-                                // For continuous mode, no rest between sets
                                 let actualRest = cardioMode == .continuous ? 0 : restSeconds
                                 
                                 await viewModel.updateExercise(
@@ -1906,7 +2043,31 @@ struct EditExerciseSheet: View {
                     .fontWeight(.semibold)
                 }
             }
-            .presentationBackground(Color.appBackground)
+            .presentationBackground(LinearGradient.dashboardBackground)
         }
+    }
+}
+
+// MARK: - Detail Action Button
+
+private struct DetailActionButton: View {
+    let icon: String
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.caption.weight(.bold))
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+            }
+            .foregroundStyle(Color.appText)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(ScalePressStyle())
     }
 }
