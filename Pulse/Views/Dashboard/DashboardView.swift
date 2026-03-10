@@ -49,7 +49,7 @@ struct DashboardView: View {
                             // Stat pills row
                             if viewModel.currentStreak > 0 {
                                 StatPill(
-                                    icon: "flame.fill",
+                                    icon: "FlameIcon",
                                     value: "\(viewModel.currentStreak)",
                                     label: viewModel.currentStreak == 1 ? "day streak" : "day streak"
                                 )

@@ -175,8 +175,10 @@ struct StatPill: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.caption.weight(.semibold))
+            Image(icon)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 14, height: 14)
                 .foregroundStyle(Color.appAccent)
             Text(value)
                 .font(.caption.weight(.bold))
