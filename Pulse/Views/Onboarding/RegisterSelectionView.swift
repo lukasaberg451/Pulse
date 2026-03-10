@@ -47,9 +47,11 @@ struct RegisterSelectionView: View {
                         // Error message
                         if showError {
                             HStack(spacing: 8) {
-                                Image(systemName: "exclamationmark.circle.fill")
+                                Image("exclamation-circle")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
                                     .foregroundStyle(.red)
-                                    .font(.caption)
                                 Text(errorMessage)
                                     .foregroundStyle(.red)
                                     .font(.caption.weight(.medium))
@@ -60,7 +62,7 @@ struct RegisterSelectionView: View {
                         }
                         
                         // Sign up with Email button
-                        PrimaryCTALink("Sign Up with Email", icon: "envelope.fill") {
+                        PrimaryCTALink("Sign Up with Email", icon: "envelope") {
                             RegisterView(authViewModel: authViewModel, showingSignUp: $showingSignUp, showingSignIn: $showingSignIn)
                         }
                         .padding(.top, 4)

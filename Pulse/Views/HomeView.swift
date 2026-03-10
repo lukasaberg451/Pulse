@@ -134,7 +134,7 @@ private struct HomeTabBar: View {
         .padding(.top, 8)
         .padding(.bottom, 2)
         .padding(.horizontal, 4)
-        .background(.ultraThinMaterial)
+        .background(Color.appBackground.opacity(0.95))
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(Color.appText.opacity(0.06))

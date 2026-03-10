@@ -87,7 +87,7 @@ struct RegisterView: View {
                 if authViewModel.registrationSuccess {
                     // Success View
                     VStack(spacing: 20) {
-                        IconBadge(systemName: "envelope.circle.fill", color: .green, size: 64)
+                        IconBadge(assetName: "envelope", color: .green, size: 64)
                         
                         Text("Check Your Email")
                             .font(.title2.weight(.bold))
@@ -131,9 +131,11 @@ struct RegisterView: View {
                             // Error message
                             if showError {
                                 HStack(spacing: 8) {
-                                    Image(systemName: "exclamationmark.circle.fill")
+                                    Image("exclamation-circle")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 16, height: 16)
                                         .foregroundStyle(.red)
-                                        .font(.caption)
                                     Text(errorMessage)
                                         .foregroundStyle(.red)
                                         .font(.caption.weight(.medium))
@@ -279,9 +281,11 @@ struct RegisterView: View {
                                 // Password match indicator
                                 if !confirmPassword.isEmpty {
                                     HStack(spacing: 6) {
-                                        Image(systemName: passwordsMatch ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                        Image(passwordsMatch ? "check-circle" : "x-mark")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 16, height: 16)
                                             .foregroundStyle(passwordsMatch ? .green : .red)
-                                            .font(.caption)
                                         
                                         Text(passwordsMatch ? "Passwords match" : "Passwords don't match")
                                             .font(.caption.weight(.medium))

@@ -176,8 +176,10 @@ struct ActiveWorkoutViewContent: View {
                                     hasSeenWatchTip = true
                                 }
                             } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.body)
+                                Image("x-mark")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 17, height: 17)
                                     .foregroundStyle(.white.opacity(0.6))
                             }
                         }
@@ -437,8 +439,10 @@ struct ExerciseCard: View {
                         }
                     } label: {
                         HStack(spacing: 6) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.caption)
+                            Image("plus-circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 12, height: 12)
                             Text("Add Set")
                                 .font(.caption.weight(.semibold))
                         }
@@ -520,7 +524,7 @@ struct ExerciseCard: View {
     private var statusIcon: some View {
         switch status {
         case .completed:
-            IconBadge(systemName: "checkmark", color: .green, size: 32)
+            IconBadge(assetName: "check", color: .green, size: 32)
         case .current:
             IconBadge(systemName: exercise.exerciseType == "cardio" ? "figure.run" : "figure.strengthtraining.traditional", size: 32)
         case .upcoming:
@@ -601,9 +605,10 @@ struct SwipeableSetRow: View {
                     // Undo action (swipe right on completed sets)
                     if set.completed {
                         HStack(spacing: 6) {
-                            Image(systemName: "arrow.uturn.backward")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
+                            Image("arrow-uturn-left")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 15, height: 15)
                             Text("Undo")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
@@ -622,8 +627,10 @@ struct SwipeableSetRow: View {
                             Text("Complete")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.subheadline)
+                            Image("check-circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 15, height: 15)
                         }
                         .foregroundStyle(.white)
                         .frame(maxHeight: .infinity)
@@ -655,16 +662,20 @@ struct SwipeableSetRow: View {
                 
                 // Status indicator
                 if set.completed {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image("check-circle")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 17, height: 17)
                         .foregroundStyle(Color.green)
-                        .font(.body)
                 } else if isFirstIncomplete && isCurrent {
                     HStack(spacing: 4) {
                         Text("Swipe")
                             .font(.caption2.weight(.medium))
                             .foregroundStyle(Color.appAccent.opacity(0.6))
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 8, weight: .bold))
+                        Image("chevron-left")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 8, height: 8)
                             .foregroundStyle(Color.appAccent.opacity(0.6))
                     }
                 }

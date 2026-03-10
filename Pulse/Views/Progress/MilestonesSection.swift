@@ -30,7 +30,7 @@ struct MilestonesSection: View {
 
             if viewModel.allMilestones.isEmpty && !viewModel.isLoading {
                 VStack(spacing: 14) {
-                    IconBadge(systemName: "trophy", size: 48)
+                    IconBadge(assetName: "trophy", size: 48)
 
                     Text("No Milestones Yet")
                         .font(.subheadline.weight(.semibold))
@@ -131,7 +131,7 @@ struct MilestoneRow: View {
     var body: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
-                IconBadge(systemName: milestone.icon, color: .appAccent, size: 38)
+                IconBadge(assetName: milestone.icon, color: .appAccent, size: 38)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(milestone.name)
@@ -179,7 +179,7 @@ struct AchievedMilestoneRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            IconBadge(systemName: milestone.icon, color: .green, size: 38)
+            IconBadge(assetName: milestone.icon, color: .green, size: 38)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(milestone.name)
@@ -193,8 +193,10 @@ struct AchievedMilestoneRow: View {
 
             Spacer()
 
-            Image(systemName: "checkmark.circle.fill")
-                .font(.title3)
+            Image("check-circle")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 22, height: 22)
                 .foregroundStyle(.green)
         }
         .padding(14)

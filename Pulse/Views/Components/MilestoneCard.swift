@@ -13,7 +13,7 @@ struct MilestoneCard: View {
         DashboardCard {
             VStack(spacing: 14) {
                 HStack(spacing: 12) {
-                    IconBadge(systemName: milestone.icon, color: .appAccent, size: 38)
+                    IconBadge(assetName: milestone.icon, color: .appAccent, size: 38)
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text("Next Milestone")

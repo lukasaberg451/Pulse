@@ -53,7 +53,10 @@ struct WorkoutDetailView: View {
                 Button {
                     shareWorkout()
                 } label: {
-                    Image(systemName: "square.and.arrow.up")
+                    Image("arrow-up-on-square")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
                         .foregroundStyle(Color.appAccent)
                 }
             }
@@ -61,7 +64,10 @@ struct WorkoutDetailView: View {
                 Button {
                     viewModel.showDeleteConfirmation = true
                 } label: {
-                    Image(systemName: "trash")
+                    Image("trash")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
                         .foregroundStyle(Color.red)
                 }
             }
@@ -115,7 +121,7 @@ struct WorkoutDetailView: View {
         VStack(spacing: 16) {
             // Date
             HStack(spacing: 10) {
-                IconBadge(systemName: "calendar", size: 32)
+                IconBadge(assetName: "calendar-days", size: 32)
                 Text(viewModel.formattedDate(viewModel.workoutSession.startedAt))
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
@@ -131,19 +137,19 @@ struct WorkoutDetailView: View {
             // Stats Grid
             HStack(spacing: 16) {
                 detailStatCard(
-                    icon: "clock.fill",
+                    icon: "clock",
                     title: "Duration",
                     value: viewModel.formattedDuration
                 )
                 
                 detailStatCard(
-                    icon: "flame.fill",
+                    icon: "FlameIcon",
                     title: "Total Sets",
                     value: "\(viewModel.totalSets)"
                 )
                 
                 detailStatCard(
-                    icon: "scalemass.fill",
+                    icon: "scale",
                     title: "Volume",
                     value: String(format: "%.0f %@", unitManager.displayWeight(viewModel.totalVolume), unitManager.weightUnit)
                 )
@@ -163,7 +169,7 @@ struct WorkoutDetailView: View {
     
     private func detailStatCard(icon: String, title: String, value: String) -> some View {
         VStack(spacing: 8) {
-            IconBadge(systemName: icon, size: 36)
+            IconBadge(assetName: icon, size: 36)
             
             Text(value)
                 .font(.subheadline.weight(.bold))
@@ -226,7 +232,10 @@ struct WorkoutDetailView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                     
-                    Image(systemName: "checkmark")
+                    Image("check")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 14, height: 14)
                         .foregroundStyle(Color.clear)
                         .frame(width: 30)
                 }
@@ -307,8 +316,10 @@ struct WorkoutDetailView: View {
             }
             
             if set.completed {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.subheadline)
+                Image("check-circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 15, height: 15)
                     .foregroundStyle(Color.green)
                     .frame(width: 30)
             } else {

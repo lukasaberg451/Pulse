@@ -48,20 +48,27 @@ struct DashboardCard<Content: View>: View {
 struct PrimaryCTAButton: View {
     let title: String
     let icon: String?
+    let systemIcon: String?
     let action: () -> Void
 
-    init(_ title: String, icon: String? = nil, action: @escaping () -> Void) {
+    init(_ title: String, icon: String? = nil, systemIcon: String? = nil, action: @escaping () -> Void) {
         self.title = title
         self.icon = icon
+        self.systemIcon = systemIcon
         self.action = action
     }
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
-                if let icon {
-                    Image(systemName: icon)
+                if let systemIcon {
+                    Image(systemName: systemIcon)
                         .font(.body.weight(.semibold))
+                } else if let icon {
+                    Image(icon)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
                 }
                 Text(title)
                     .font(.subheadline.weight(.bold))
@@ -81,20 +88,27 @@ struct PrimaryCTAButton: View {
 struct PrimaryCTALink<Destination: View>: View {
     let title: String
     let icon: String?
+    let systemIcon: String?
     let destination: () -> Destination
 
-    init(_ title: String, icon: String? = nil, @ViewBuilder destination: @escaping () -> Destination) {
+    init(_ title: String, icon: String? = nil, systemIcon: String? = nil, @ViewBuilder destination: @escaping () -> Destination) {
         self.title = title
         self.icon = icon
+        self.systemIcon = systemIcon
         self.destination = destination
     }
 
     var body: some View {
         NavigationLink(destination: destination) {
             HStack(spacing: 8) {
-                if let icon {
-                    Image(systemName: icon)
+                if let systemIcon {
+                    Image(systemName: systemIcon)
                         .font(.body.weight(.semibold))
+                } else if let icon {
+                    Image(icon)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
                 }
                 Text(title)
                     .font(.subheadline.weight(.bold))
@@ -149,19 +163,44 @@ struct PremiumProgressBar: View {
 
 // MARK: - Icon Badge
 
-/// An SF Symbol inside a subtle tinted circular background.
+/// An icon inside a subtle tinted circular background.
+/// Supports both SF Symbols (`systemName:`) and asset catalog images (`assetName:`).
 struct IconBadge: View {
-    let systemName: String
+    let systemName: String?
+    let assetName: String?
     var color: Color = .appAccent
     var size: CGFloat = 36
 
+    init(systemName: String, color: Color = .appAccent, size: CGFloat = 36) {
+        self.systemName = systemName
+        self.assetName = nil
+        self.color = color
+        self.size = size
+    }
+
+    init(assetName: String, color: Color = .appAccent, size: CGFloat = 36) {
+        self.systemName = nil
+        self.assetName = assetName
+        self.color = color
+        self.size = size
+    }
+
     var body: some View {
-        Image(systemName: systemName)
-            .font(.system(size: size * 0.44, weight: .semibold))
-            .symbolRenderingMode(.hierarchical)
-            .foregroundStyle(color)
-            .frame(width: size, height: size)
-            .background(color.opacity(0.12), in: Circle())
+        Group {
+            if let systemName {
+                Image(systemName: systemName)
+                    .font(.system(size: size * 0.44, weight: .semibold))
+                    .symbolRenderingMode(.hierarchical)
+            } else if let assetName {
+                Image(assetName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size * 0.44, height: size * 0.44)
+            }
+        }
+        .foregroundStyle(color)
+        .frame(width: size, height: size)
+        .background(color.opacity(0.12), in: Circle())
     }
 }
 

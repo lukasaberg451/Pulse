@@ -38,7 +38,11 @@ struct UnitSelectionSheet: View {
                                 }
                             } label: {
                                 HStack(spacing: 14) {
-                                    IconBadge(systemName: iconForSystem(system), size: 32)
+                                    if isSystemIcon(system) {
+                                        IconBadge(systemName: iconForSystem(system), size: 32)
+                                    } else {
+                                        IconBadge(assetName: iconForSystem(system), size: 32)
+                                    }
                                     
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(system.displayName)
@@ -53,7 +57,10 @@ struct UnitSelectionSheet: View {
                                     Spacer()
                                     
                                     if unitManager.unitSystem == system {
-                                        Image(systemName: "checkmark.circle.fill")
+                                        Image("check-circle")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20, height: 20)
                                             .foregroundStyle(Color.appAccent)
                                     }
                                 }
@@ -101,9 +108,16 @@ struct UnitSelectionSheet: View {
     
     private func iconForSystem(_ system: UnitSystem) -> String {
         switch system.displayName {
-        case "Metric": return "scalemass"
-        case "Imperial": return "scalemass.fill"
+        case "Metric": return "scale"
+        case "Imperial": return "scale"
         default: return "ruler"
+        }
+    }
+    
+    private func isSystemIcon(_ system: UnitSystem) -> Bool {
+        switch system.displayName {
+        case "Metric", "Imperial": return false
+        default: return true
         }
     }
 }

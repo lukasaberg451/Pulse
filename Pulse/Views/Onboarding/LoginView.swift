@@ -48,9 +48,11 @@ struct LoginView: View {
                         // Error message
                         if showError {
                             HStack(spacing: 8) {
-                                Image(systemName: "exclamationmark.circle.fill")
+                                Image("exclamation-circle")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
                                     .foregroundStyle(.red)
-                                    .font(.caption)
                                 Text(errorMessage)
                                     .foregroundStyle(.red)
                                     .font(.caption.weight(.medium))
@@ -279,7 +281,7 @@ struct ForgotPasswordView: View {
             if resetSuccess {
                 // Success View
                 VStack(spacing: 20) {
-                    IconBadge(systemName: "envelope.circle.fill", color: .green, size: 64)
+                    IconBadge(assetName: "envelope", color: .green, size: 64)
                     
                     Text("Check Your Email")
                         .font(.title2.weight(.bold))
@@ -336,9 +338,11 @@ struct ForgotPasswordView: View {
                         // Error message
                         if showError {
                             HStack(spacing: 8) {
-                                Image(systemName: "exclamationmark.circle.fill")
+                                Image("exclamation-circle")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
                                     .foregroundStyle(.red)
-                                    .font(.caption)
                                 Text(errorMessage)
                                     .foregroundStyle(.red)
                                     .font(.caption.weight(.medium))

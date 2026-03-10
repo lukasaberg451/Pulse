@@ -46,7 +46,7 @@ struct ResetPasswordInAppView: View {
                 } else if showSuccess {
                     // Success view
                     VStack(spacing: 20) {
-                        IconBadge(systemName: "checkmark.circle.fill", color: .green, size: 64)
+                        IconBadge(assetName: "check-circle", color: .green, size: 64)
                         
                         Text("Password Reset!")
                             .font(.title2.weight(.bold))
@@ -78,9 +78,11 @@ struct ResetPasswordInAppView: View {
                         
                         if showError {
                             HStack(spacing: 8) {
-                                Image(systemName: "exclamationmark.circle.fill")
+                                Image("exclamation-circle")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
                                     .foregroundStyle(.red)
-                                    .font(.caption)
                                 Text(errorMessage)
                                     .foregroundStyle(.red)
                                     .font(.caption.weight(.medium))

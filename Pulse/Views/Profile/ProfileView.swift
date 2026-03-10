@@ -103,7 +103,7 @@ struct ProfileView: View {
                                     showingSubscriptionSheet = true
                                 } label: {
                                     HStack(spacing: 14) {
-                                        IconBadge(systemName: "star.fill", size: 32)
+                                        IconBadge(assetName: "star", size: 32)
                                         
                                         Text("Plan")
                                             .font(.body)
@@ -115,8 +115,10 @@ struct ProfileView: View {
                                             .font(.subheadline.weight(.medium))
                                             .foregroundStyle(Color.appSecondaryText)
                                         
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption.weight(.semibold))
+                                        Image("chevron-right")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 13, height: 13)
                                             .foregroundStyle(Color.appTertiaryText)
                                     }
                                     .padding(14)
@@ -135,28 +137,28 @@ struct ProfileView: View {
                                 
                                 VStack(spacing: 0) {
                                     // Appearance
-                                    ProfileSettingsRow(icon: "paintbrush.fill", title: "Appearance", value: themeManager.selectedTheme.rawValue) {
+                                    ProfileSettingsRow(icon: "paint-brush", title: "Appearance", value: themeManager.selectedTheme.rawValue) {
                                         showingThemeSheet = true
                                     }
                                     
                                     ProfileDivider()
                                     
                                     // Language
-                                    ProfileSettingsRow(icon: "globe", title: "Language", value: LanguageManager.shared.getCurrentLanguageName()) {
+                                    ProfileSettingsRow(icon: "globe-alt", title: "Language", value: LanguageManager.shared.getCurrentLanguageName()) {
                                         showingLanguageSheet = true
                                     }
                                     
                                     ProfileDivider()
                                     
                                     // Units
-                                    ProfileSettingsRow(icon: "ruler", title: "Units", value: unitManager.unitSystem.displayName) {
+                                    ProfileSettingsRow(icon: "ruler", title: "Units", value: unitManager.unitSystem.displayName, isSystemImage: true) {
                                         showingUnitSheet = true
                                     }
                                     
                                     ProfileDivider()
                                     
                                     // Timezone
-                                    ProfileSettingsRow(icon: "clock.badge.checkmark", title: "Timezone", value: viewModel.profile?.timezone ?? TimeZone.current.identifier, lineLimit: 1) {
+                                    ProfileSettingsRow(icon: "clock.badge.checkmark", title: "Timezone", value: viewModel.profile?.timezone ?? TimeZone.current.identifier, lineLimit: 1, isSystemImage: true) {
                                         showingTimezoneSheet = true
                                     }
                                     
@@ -178,7 +180,7 @@ struct ProfileView: View {
                                             }
                                         } label: {
                                             HStack(spacing: 14) {
-                                                IconBadge(systemName: "heart.fill", color: .pink, size: 32)
+                                                IconBadge(assetName: "heart", color: .pink, size: 32)
                                                 
                                                 Text("Apple Health")
                                                     .font(.body)
@@ -231,7 +233,7 @@ struct ProfileView: View {
                                 
                                 VStack(spacing: 0) {
                                     // Send Feedback
-                                    ProfileSettingsRow(icon: "bubble.left.and.exclamationmark.bubble.right", title: "Send Feedback") {
+                                    ProfileSettingsRow(icon: "question-mark-circle", title: "Send Feedback") {
                                         showingFeedbackSheet = true
                                     }
                                     
@@ -244,7 +246,7 @@ struct ProfileView: View {
                                         openSupportEmail()
                                     } label: {
                                         HStack(spacing: 14) {
-                                            IconBadge(systemName: "questionmark.circle", size: 32)
+                                            IconBadge(assetName: "question-mark-circle", size: 32)
                                             
                                             Text("Help & Support")
                                                 .font(.body)
@@ -252,8 +254,10 @@ struct ProfileView: View {
                                             
                                             Spacer()
                                             
-                                            Image(systemName: "envelope")
-                                                .font(.caption.weight(.semibold))
+                                            Image("envelope")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 14, height: 14)
                                                 .foregroundStyle(Color.appTertiaryText)
                                         }
                                         .padding(14)
@@ -272,8 +276,6 @@ struct ProfileView: View {
                                 showingSignOutAlert = true
                             } label: {
                                 HStack(spacing: 8) {
-                                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                                        .font(.subheadline.weight(.semibold))
                                     Text("Sign Out")
                                         .font(.subheadline.weight(.semibold))
                                 }
@@ -297,7 +299,10 @@ struct ProfileView: View {
                                         ProgressView()
                                             .tint(.red)
                                     } else {
-                                        Image(systemName: "trash")
+                                        Image("trash")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 16, height: 16)
                                             .font(.subheadline.weight(.semibold))
                                         Text("Delete Account")
                                             .font(.subheadline.weight(.semibold))
@@ -449,6 +454,7 @@ private struct ProfileSettingsRow: View {
     let title: String
     var value: String? = nil
     var lineLimit: Int? = nil
+    var isSystemImage: Bool = false
     let action: () -> Void
     
     var body: some View {
@@ -458,7 +464,11 @@ private struct ProfileSettingsRow: View {
             action()
         } label: {
             HStack(spacing: 14) {
-                IconBadge(systemName: icon, size: 32)
+                if isSystemImage {
+                    IconBadge(systemName: icon, size: 32)
+                } else {
+                    IconBadge(assetName: icon, size: 32)
+                }
                 
                 Text(title)
                     .font(.body)
@@ -473,8 +483,10 @@ private struct ProfileSettingsRow: View {
                         .lineLimit(lineLimit)
                 }
                 
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
+                Image("chevron-right")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 13, height: 13)
                     .foregroundStyle(Color.appTertiaryText)
             }
             .padding(14)
@@ -545,7 +557,7 @@ struct EditNameSheet: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         // Profile Header
-                        IconBadge(systemName: "person.crop.circle.fill", size: 52)
+                        IconBadge(assetName: "user-circle", size: 52)
                             .padding(.top, 24)
                         
                         Text("Edit Profile")
@@ -559,21 +571,21 @@ struct EditNameSheet: View {
                         // Account Details Card
                         VStack(spacing: 0) {
                             // First Name Row
-                            EditNameRow(icon: "person.fill", label: "First Name", value: viewModel.profile?.firstName ?? "Not set") {
+                            EditNameRow(icon: "user-circle", label: "First Name", value: viewModel.profile?.firstName ?? "Not set") {
                                 showingEditFirstNameSheet = true
                             }
                             
                             ProfileDivider()
                             
                             // Last Name Row
-                            EditNameRow(icon: "person.fill", label: "Last Name", value: viewModel.profile?.lastName ?? "Not set") {
+                            EditNameRow(icon: "user-circle", label: "Last Name", value: viewModel.profile?.lastName ?? "Not set") {
                                 showingEditLastNameSheet = true
                             }
                             
                             ProfileDivider()
                             
                             // Email Row
-                            EditNameRow(icon: "envelope.fill", label: "Email", value: viewModel.profile?.email ?? "Not set") {
+                            EditNameRow(icon: "envelope", label: "Email", value: viewModel.profile?.email ?? "Not set") {
                                 showingChangeEmailSheet = true
                             }
                         }
@@ -649,7 +661,7 @@ private struct EditNameRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 14) {
-                IconBadge(systemName: icon, size: 32)
+                IconBadge(assetName: icon, size: 32)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(label)
@@ -663,8 +675,10 @@ private struct EditNameRow: View {
                 
                 Spacer()
                 
-                Image(systemName: "pencil")
-                    .font(.caption.weight(.semibold))
+                Image("pencil")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 12, height: 12)
                     .foregroundStyle(Color.appAccent)
                     .padding(8)
                     .background(Color.appAccentSubtle)
@@ -704,7 +718,7 @@ struct EditFieldSheet: View {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 24) {
-                    IconBadge(systemName: "pencil.circle.fill", size: 48)
+                    IconBadge(assetName: "pencil-square", size: 48)
                         .padding(.top, 24)
                     
                     Text("Edit \(title)")
@@ -735,13 +749,19 @@ struct EditFieldSheet: View {
                     .padding(.horizontal)
                     
                     if showError {
-                        Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                        HStack(spacing: 4) {
+                            Image("exclamation-triangle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
+                            Text(errorMessage)
+                        }
                             .font(.caption)
                             .foregroundStyle(.red)
                             .padding(.horizontal)
                     }
                     
-                    PrimaryCTAButton("Save", icon: "checkmark") {
+                    PrimaryCTAButton("Save", icon: "check") {
                         save()
                     }
                     .padding(.horizontal)
@@ -807,7 +827,7 @@ struct FeedbackSheet: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
-                        IconBadge(systemName: "bubble.left.and.exclamationmark.bubble.right.fill", size: 48)
+                        IconBadge(assetName: "question-mark-circle", size: 48)
                             .padding(.top, 24)
                         
                         Text("Send Feedback")
@@ -835,7 +855,10 @@ struct FeedbackSheet: View {
                                     Text(feedbackType.rawValue)
                                         .foregroundStyle(Color.appText)
                                     Spacer()
-                                    Image(systemName: "chevron.up.chevron.down")
+                                    Image("arrows-up-down")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 14, height: 14)
                                         .foregroundStyle(Color.appSecondaryText)
                                         .font(.caption)
                                 }
@@ -898,7 +921,7 @@ struct FeedbackSheet: View {
                         .tint(Color.appAccent)
                         .padding(.horizontal)
                         
-                        PrimaryCTAButton("Submit Feedback", icon: "paperplane.fill") {
+                        PrimaryCTAButton("Submit Feedback", icon: "envelope") {
                             Task {
                                 let success = await viewModel.submitFeedback(
                                     type: feedbackType.rawValue,
@@ -970,7 +993,7 @@ struct LanguageSelectionSheet: View {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 16) {
-                    IconBadge(systemName: "globe", size: 48)
+                    IconBadge(assetName: "globe-alt", size: 48)
                         .padding(.top, 24)
                     
                     Text("Language")
@@ -982,7 +1005,13 @@ struct LanguageSelectionSheet: View {
                         .foregroundStyle(Color.appSecondaryText)
                     
                     // Info banner
-                    Label("App will restart to apply language change", systemImage: "info.circle.fill")
+                    HStack(spacing: 4) {
+                        Image("information-circle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 14, height: 14)
+                        Text("App will restart to apply language change")
+                    }
                         .font(.caption)
                         .foregroundStyle(.blue)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1011,7 +1040,10 @@ struct LanguageSelectionSheet: View {
                                     Spacer()
                                     
                                     if selectedLanguage == code {
-                                        Image(systemName: "checkmark.circle.fill")
+                                        Image("check-circle")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20, height: 20)
                                             .foregroundStyle(Color.appAccent)
                                     }
                                 }
@@ -1101,7 +1133,7 @@ struct ChangeEmailSheet: View {
                 if showSuccess {
                     // Success view
                     VStack(spacing: 20) {
-                        IconBadge(systemName: "checkmark.circle.fill", color: .green, size: 56)
+                        IconBadge(assetName: "check-circle", color: .green, size: 56)
                             .padding(.top, 40)
                         
                         Text("Verification Email Sent")
@@ -1136,7 +1168,7 @@ struct ChangeEmailSheet: View {
                     // Form view
                     ScrollView {
                         VStack(spacing: 20) {
-                            IconBadge(systemName: "envelope.circle.fill", size: 48)
+                            IconBadge(assetName: "envelope", size: 48)
                                 .padding(.top, 24)
                             
                             Text("Change Email")
@@ -1191,13 +1223,19 @@ struct ChangeEmailSheet: View {
                             .padding(.horizontal)
                             
                             if let error = errorMessage {
-                                Label(error, systemImage: "exclamationmark.triangle.fill")
+                                HStack(spacing: 4) {
+                                    Image("exclamation-triangle")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 14, height: 14)
+                                    Text(error)
+                                }
                                     .font(.caption)
                                     .foregroundStyle(.red)
                                     .padding(.horizontal)
                             }
                             
-                            PrimaryCTAButton(isLoading ? "Changing…" : "Change Email", icon: "envelope.badge") {
+                            PrimaryCTAButton(isLoading ? "Changing…" : "Change Email", icon: "envelope") {
                                 Task {
                                     await changeEmail()
                                 }
@@ -1269,7 +1307,7 @@ struct DeleteAccountConfirmationSheet: View {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 16) {
-                    IconBadge(systemName: "exclamationmark.triangle.fill", color: .red, size: 48)
+                    IconBadge(assetName: "exclamation-triangle", color: .red, size: 48)
                         .padding(.top, 24)
                     
                     Text("This action is irreversible")
@@ -1317,7 +1355,10 @@ struct DeleteAccountConfirmationSheet: View {
                                 ProgressView()
                                     .tint(.white)
                             } else {
-                                Image(systemName: "trash.fill")
+                                Image("trash")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
                                     .font(.subheadline.weight(.semibold))
                                 Text("Delete Account")
                                     .font(.subheadline.weight(.bold))

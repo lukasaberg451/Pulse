@@ -66,8 +66,10 @@ struct ScheduleContentView: View {
                                 viewModel.previousMonth()
                             }
                         } label: {
-                            Image(systemName: "chevron.left")
-                                .font(.body.weight(.medium))
+                            Image("chevron-left")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .frame(width: 36, height: 36)
                                 .contentShape(Rectangle())
@@ -90,8 +92,10 @@ struct ScheduleContentView: View {
                                 viewModel.nextMonth()
                             }
                         } label: {
-                            Image(systemName: "chevron.right")
-                                .font(.body.weight(.medium))
+                            Image("chevron-right")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 13, height: 13)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .frame(width: 36, height: 36)
                                 .contentShape(Rectangle())
@@ -208,7 +212,7 @@ private struct ScheduledSectionCard: View {
             if workouts.isEmpty {
                 // Empty state
                 VStack(spacing: 14) {
-                    IconBadge(systemName: "calendar.badge.plus", size: 44)
+                    IconBadge(assetName: "calendar-days", size: 44)
 
                     Text("No workouts scheduled")
                         .font(.subheadline)
@@ -262,9 +266,10 @@ private struct ScheduledSectionCard: View {
                         showingRoutinePicker = true
                     } label: {
                         HStack(spacing: 8) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.body)
-                                .symbolRenderingMode(.hierarchical)
+                            Image("plus-circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
                             Text("Add Workout")
                                 .font(.subheadline.weight(.semibold))
                         }
@@ -319,8 +324,10 @@ struct ScheduledWorkoutCard: View {
                 Button {
                     onDelete()
                 } label: {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.title2)
+                    Image("minus-circle")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 22, height: 22)
                         .foregroundStyle(.red)
                 }
                 .transition(.scale.combined(with: .opacity))
@@ -366,9 +373,15 @@ struct ScheduledWorkoutCard: View {
                     .foregroundStyle(Color.appSecondaryText)
 
                 if scheduled.completed {
-                    Label("Completed", systemImage: "checkmark.circle.fill")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.green)
+                    HStack(spacing: 4) {
+                        Image("check-circle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 14, height: 14)
+                        Text("Completed")
+                    }
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.green)
                 }
             }
 
@@ -388,9 +401,11 @@ struct ScheduledWorkoutCard: View {
                 }
                 .buttonStyle(ScalePressStyle())
             } else {
-                Image(systemName: "chevron.right")
+                Image("chevron-right")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 13, height: 13)
                     .foregroundStyle(Color.appTertiaryText)
-                    .font(.system(size: 13, weight: .semibold))
             }
         }
         .padding(14)
@@ -429,8 +444,10 @@ struct DeletedRoutineWorkoutCard: View {
                 Button {
                     onDelete()
                 } label: {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.title2)
+                    Image("minus-circle")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 22, height: 22)
                         .foregroundStyle(.red)
                 }
                 .transition(.scale.combined(with: .opacity))
@@ -451,7 +468,7 @@ struct DeletedRoutineWorkoutCard: View {
 
     private var cardContent: some View {
         HStack(spacing: 12) {
-            IconBadge(systemName: "trash", color: Color.appTertiaryText, size: 38)
+            IconBadge(assetName: "trash", color: Color.appTertiaryText, size: 38)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(sessionName)
@@ -463,18 +480,26 @@ struct DeletedRoutineWorkoutCard: View {
                     .foregroundStyle(Color.appTertiaryText)
 
                 if scheduled.completed {
-                    Label("Completed", systemImage: "checkmark.circle.fill")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.green)
+                    HStack(spacing: 4) {
+                        Image("check-circle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 14, height: 14)
+                        Text("Completed")
+                    }
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.green)
                 }
             }
 
             Spacer()
 
             if scheduled.completed {
-                Image(systemName: "chevron.right")
+                Image("chevron-right")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 13, height: 13)
                     .foregroundStyle(Color.appTertiaryText)
-                    .font(.system(size: 13, weight: .semibold))
             }
         }
         .padding(14)
@@ -579,9 +604,10 @@ struct RoutinePickerRow: View {
 
                 Spacer()
 
-                Image(systemName: "plus.circle.fill")
-                    .font(.title3)
-                    .symbolRenderingMode(.hierarchical)
+                Image("plus-circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 22, height: 22)
                     .foregroundStyle(Color.appAccent)
             }
             .padding(14)
@@ -642,7 +668,7 @@ struct RoutineContentView: View {
                     }
                 } else if let error = viewModel.errorMessage {
                     VStack(spacing: 14) {
-                        IconBadge(systemName: "exclamationmark.triangle", color: .red, size: 48)
+                        IconBadge(assetName: "exclamation-triangle", color: .red, size: 48)
                         Text("Something went wrong")
                             .font(.headline)
                             .foregroundStyle(Color.appText)
@@ -650,7 +676,7 @@ struct RoutineContentView: View {
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
-                        PrimaryCTAButton("Retry", icon: "arrow.clockwise") {
+                        PrimaryCTAButton("Retry", systemIcon: "arrow.clockwise") {
                             Task { await viewModel.loadRoutines() }
                         }
                         .frame(width: 160)
@@ -698,8 +724,10 @@ struct RoutineContentView: View {
                                 }
                             } label: {
                                 HStack(spacing: 6) {
-                                    Image(systemName: "plus")
-                                        .font(.caption.weight(.bold))
+                                    Image("plus")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 12, height: 12)
                                     Text("New Routine")
                                         .font(.subheadline.weight(.semibold))
                                 }
@@ -814,7 +842,7 @@ struct CreateRoutineSheet: View {
                 VStack(spacing: 28) {
                     // Header
                     VStack(spacing: 8) {
-                        IconBadge(systemName: "plus.circle.fill", color: .appAccent, size: 48)
+                        IconBadge(assetName: "plus-circle", color: .appAccent, size: 48)
 
                         Text("New Routine")
                             .font(.title2.weight(.bold))
@@ -903,7 +931,7 @@ struct CreateRoutineSheet: View {
                     .padding(.horizontal)
 
                     // CTA Button
-                    PrimaryCTAButton("Create Routine", icon: "checkmark") {
+                    PrimaryCTAButton("Create Routine", icon: "check") {
                         isCreating = true
                         Task {
                             if let newRoutine = await viewModel.createRoutine(name: name, description: description) {
@@ -964,9 +992,11 @@ struct RoutineCard: View {
 
             Spacer()
 
-            Image(systemName: "chevron.right")
+            Image("chevron-right")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 13, height: 13)
                 .foregroundStyle(Color.appTertiaryText)
-                .font(.system(size: 13, weight: .semibold))
         }
         .padding(14)
         .background {
@@ -1003,8 +1033,10 @@ struct RoutineRow: View {
                 Button {
                     onDelete()
                 } label: {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.title2)
+                    Image("minus-circle")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 22, height: 22)
                         .foregroundStyle(.red)
                 }
                 .transition(.scale.combined(with: .opacity))

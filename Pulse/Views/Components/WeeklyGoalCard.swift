@@ -28,7 +28,7 @@ struct WeeklyGoalCard: View {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(spacing: 8) {
-                            IconBadge(systemName: "flame.fill", color: .appAccent, size: 28)
+                            IconBadge(assetName: "FlameIcon", color: .appAccent, size: 28)
                             Text("Weekly Goal")
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(Color.appSecondaryText)
@@ -51,8 +51,10 @@ struct WeeklyGoalCard: View {
                         Button {
                             onEditGoal()
                         } label: {
-                            Image(systemName: "slider.horizontal.3")
-                                .font(.body)
+                            Image("adjustments-horizontal")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
                                 .foregroundStyle(Color.appTertiaryText)
                         }
                         .buttonStyle(ScalePressStyle())
@@ -73,7 +75,13 @@ struct WeeklyGoalCard: View {
                 // Footer
                 HStack {
                     if goalReached {
-                        Label("Goal reached!", systemImage: "checkmark.circle.fill")
+                        HStack(spacing: 4) {
+                            Image("check-circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
+                            Text("Goal reached!")
+                        }
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.green)
                     }

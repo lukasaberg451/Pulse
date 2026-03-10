@@ -469,61 +469,64 @@ class DashboardViewModel: ObservableObject {
         [
             SmartInsight(
                 type: .consistencyPattern,
-                icon: "calendar.badge.checkmark",
+                icon: "calendar-days",
                 text: "Consistency beats intensity. Show up today and results will follow",
                 accentColor: .blue
             ),
             SmartInsight(
                 type: .streakProtection,
-                icon: "flame.fill",
+                icon: "FlameIcon",
                 text: "Even a short session counts. Keep your momentum going today",
                 accentColor: .orange
             ),
             SmartInsight(
                 type: .progressiveOverload,
-                icon: "arrow.up.circle.fill",
+                icon: "arrow-up-circle",
                 text: "Try adding a little more weight or one extra rep today",
                 accentColor: .green
             ),
             SmartInsight(
                 type: .recoveryIntelligence,
                 icon: "bed.double.fill",
+                isSystemImage: true,
                 text: "Rest days build muscle too. Listen to your body",
                 accentColor: .purple
             ),
             SmartInsight(
                 type: .momentumHighlight,
-                icon: "bolt.fill",
+                icon: "FlameIcon",
                 text: "Every rep brings you closer to your goals. Keep pushing",
                 accentColor: .yellow
             ),
             SmartInsight(
                 type: .habitTimeDetection,
-                icon: "clock.fill",
+                icon: "clock",
                 text: "The best time to work out is the time you'll actually do it",
                 accentColor: .cyan
             ),
             SmartInsight(
                 type: .weakPointDetection,
                 icon: "figure.strengthtraining.traditional",
+                isSystemImage: true,
                 text: "A balanced routine builds a stronger body. Mix it up",
                 accentColor: .red
             ),
             SmartInsight(
                 type: .microGoalMotivation,
                 icon: "figure.walk",
+                isSystemImage: true,
                 text: "Small steps lead to big results. Start with what feels easy",
                 accentColor: .mint
             ),
             SmartInsight(
                 type: .performanceTrend,
-                icon: "chart.line.uptrend.xyaxis",
+                icon: "arrow-trending-up",
                 text: "Progress isn't always visible. Trust the process",
                 accentColor: .green
             ),
             SmartInsight(
                 type: .returnMotivation,
-                icon: "hand.wave.fill",
+                icon: "FlameIcon",
                 text: "The hardest part is starting. You've got this",
                 accentColor: .orange
             ),

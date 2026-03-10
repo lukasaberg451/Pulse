@@ -42,7 +42,10 @@ struct TimezoneSelectionSheet: View {
                                 .font(.body)
                                 .foregroundStyle(Color.appText)
                             Spacer()
-                            Image(systemName: "checkmark.circle.fill")
+                            Image("check-circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20, height: 20)
                                 .foregroundStyle(Color.appAccent)
                         }
                         .listRowBackground(Color.appSurface)
@@ -92,7 +95,10 @@ struct TimezoneSelectionSheet: View {
                                         .foregroundStyle(Color.appText)
                                     Spacer()
                                     if tz == currentTimezone {
-                                        Image(systemName: "checkmark.circle.fill")
+                                        Image("check-circle")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20, height: 20)
                                             .foregroundStyle(Color.appAccent)
                                     }
                                 }

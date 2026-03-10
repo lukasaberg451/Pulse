@@ -128,7 +128,6 @@ struct DashboardView: View {
                 }
             }
             .onAppear {
-                viewModel.loadInsights()
                 viewModel.startInsightRotation()
                 withAnimation(.easeOut(duration: 0.45).delay(0.1)) {
                     hasAppeared = true
@@ -138,6 +137,7 @@ struct DashboardView: View {
                 viewModel.stopInsightRotation()
             }
             .task {
+                await viewModel.refreshAll(includeInsights: true)
                 await checkForInProgressWorkout()
             }
             .refreshable {
@@ -224,7 +224,7 @@ struct TodayWorkoutCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        IconBadge(systemName: "calendar", size: 28)
+                        IconBadge(assetName: "calendar-days", size: 28)
                         Text("Scheduled")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appSecondaryText)
@@ -235,7 +235,13 @@ struct TodayWorkoutCard: View {
                         .foregroundStyle(Color.appText)
 
                     if scheduled.completed {
-                        Label("Completed", systemImage: "checkmark.circle.fill")
+                        HStack(spacing: 4) {
+                            Image("check-circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
+                            Text("Completed")
+                        }
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.green)
                     } else {
@@ -255,9 +261,10 @@ struct TodayWorkoutCard: View {
                         PostHogSDK.shared.capture("scheduled_from_dashboard_started")
                     } label: {
                         VStack(spacing: 4) {
-                            Image(systemName: "play.circle.fill")
-                                .font(.system(size: 32))
-                                .symbolRenderingMode(.hierarchical)
+                            Image("play-circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 32, height: 32)
                             Text("Start")
                                 .font(.caption.weight(.semibold))
                         }
@@ -265,8 +272,10 @@ struct TodayWorkoutCard: View {
                     }
                     .buttonStyle(ScalePressStyle())
                 } else {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 32))
+                    Image("check-circle")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 32, height: 32)
                         .foregroundStyle(.green)
                 }
             }
@@ -293,7 +302,7 @@ struct DeletedRoutineTodayCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        IconBadge(systemName: "calendar", size: 28)
+                        IconBadge(assetName: "calendar-days", size: 28)
                         Text("Scheduled")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appSecondaryText)
@@ -304,13 +313,21 @@ struct DeletedRoutineTodayCard: View {
                         .foregroundStyle(Color.appText)
 
                     if scheduled.completed {
-                        Label("Completed", systemImage: "checkmark.circle.fill")
+                        HStack(spacing: 4) {
+                            Image("check-circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
+                            Text("Completed")
+                        }
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.green)
                     } else {
                         HStack(spacing: 4) {
-                            Image(systemName: "trash")
-                                .font(.caption2)
+                            Image("trash")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 12, height: 12)
                             Text("Routine deleted")
                                 .font(.caption)
                         }
@@ -321,8 +338,10 @@ struct DeletedRoutineTodayCard: View {
                 Spacer()
 
                 if scheduled.completed {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 32))
+                    Image("check-circle")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 32, height: 32)
                         .foregroundStyle(.green)
                 }
             }
@@ -338,7 +357,7 @@ struct EmptyTodayCard: View {
     var body: some View {
         DashboardCard {
             VStack(spacing: 16) {
-                IconBadge(systemName: "calendar.badge.clock", size: 52)
+                IconBadge(assetName: "calendar-days", size: 52)
                     .padding(.top, 4)
 
                 VStack(spacing: 4) {
@@ -369,7 +388,11 @@ struct SmartInsightCard: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            IconBadge(systemName: insight.icon, color: insight.accentColor, size: 32)
+            if insight.isSystemImage {
+                IconBadge(systemName: insight.icon, color: insight.accentColor, size: 32)
+            } else {
+                IconBadge(assetName: insight.icon, color: insight.accentColor, size: 32)
+            }
 
             Text(insight.text)
                 .font(.subheadline)

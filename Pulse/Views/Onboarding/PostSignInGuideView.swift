@@ -70,7 +70,8 @@ struct PostSignInGuideView: View {
             highlightTab: "Profile"
         ),
         GuideStep(
-            icon: "checkmark.circle.fill",
+            icon: "check-circle",
+            isAssetIcon: true,
             title: "You're All Set!",
             description: "That's everything you need to know. Ready to crush your first workout?",
             actionTitle: "Let's Go!"
@@ -81,20 +82,19 @@ struct PostSignInGuideView: View {
     
     var body: some View {
         ZStack {
-            // Semi-transparent background
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .ignoresSafeArea()
-                .onTapGesture {
-                }
-            
             // Guide card
             VStack(spacing: 0) {
                
                 // Content
                 VStack(spacing: 20) {
                     // Icon
-                    IconBadge(systemName: steps[currentStep].icon, size: 56)
+                    Group {
+                        if steps[currentStep].isAssetIcon {
+                            IconBadge(assetName: steps[currentStep].icon, size: 56)
+                        } else {
+                            IconBadge(systemName: steps[currentStep].icon, size: 56)
+                        }
+                    }
                         .id(currentStep)
                         .transition(.scale.combined(with: .opacity))
                     
@@ -119,8 +119,10 @@ struct PostSignInGuideView: View {
                     // Highlight info (if applicable)
                     if let highlightTab = steps[currentStep].highlightTab {
                         HStack(spacing: 8) {
-                            Image(systemName: "arrow.down.circle.fill")
-                                .font(.subheadline.weight(.semibold))
+                            Image("arrow-down-circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
                                 .foregroundStyle(Color.appAccent)
                             Text("Check the \(highlightTab) tab")
                                 .font(.subheadline.weight(.medium))
@@ -198,13 +200,15 @@ struct PostSignInGuideView: View {
 struct GuideStep: Identifiable {
     let id = UUID()
     let icon: String
+    let isAssetIcon: Bool
     let title: String
     let description: String
     let actionTitle: String
     let highlightTab: String?
     
-    init(icon: String, title: String, description: String, actionTitle: String, highlightTab: String? = nil) {
+    init(icon: String, isAssetIcon: Bool = false, title: String, description: String, actionTitle: String, highlightTab: String? = nil) {
         self.icon = icon
+        self.isAssetIcon = isAssetIcon
         self.title = title
         self.description = description
         self.actionTitle = actionTitle

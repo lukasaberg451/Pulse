@@ -37,8 +37,10 @@ struct WatchWorkoutView: View {
                 if workoutComplete {
                     // WORKOUT COMPLETE VIEW
                     VStack(spacing: 12) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 60))
+                        Image("check-circle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 60, height: 60)
                             .foregroundStyle(.green)
                             .padding(.top, 20)
                         
@@ -172,8 +174,10 @@ struct WatchWorkoutView: View {
                 } else if !syncManager.isProUser {
                     // Upgrade required
                     VStack(spacing: 8) {
-                        Image(systemName: "lock.fill")
-                            .font(.title)
+                        Image("lock-closed")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
                             .foregroundStyle(Color.appAccent)
                             .padding(.top, 20)
                         

@@ -11,7 +11,7 @@ struct SplashOverlay: View {
     @State private var isVisible = true
     @State private var appearTime = Date()
     
-    private let minimumDisplayTime: TimeInterval = 1.5
+    private let minimumDisplayTime: TimeInterval = 2.0
     
     var body: some View {
         if isVisible {

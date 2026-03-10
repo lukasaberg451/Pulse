@@ -90,8 +90,10 @@ struct SyncStatusIndicator: View {
                     .font(.caption.weight(.medium))
                     .foregroundStyle(Color.appSecondaryText)
             } else if let lastSync = syncService.lastSyncDate {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.caption)
+                Image("check-circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
                     .foregroundStyle(.green)
                 
                 Text("Synced \(lastSync, style: .relative) ago")

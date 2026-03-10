@@ -18,7 +18,7 @@ struct ThemeSelectionSheet: View {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 16) {
-                    IconBadge(systemName: "paintbrush.fill", size: 48)
+                    IconBadge(assetName: "paint-brush", size: 48)
                         .padding(.top, 24)
                     
                     Text("Appearance")
@@ -44,7 +44,10 @@ struct ThemeSelectionSheet: View {
                                     Spacer()
                                     
                                     if themeManager.selectedTheme == theme {
-                                        Image(systemName: "checkmark.circle.fill")
+                                        Image("check-circle")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20, height: 20)
                                             .foregroundStyle(Color.appAccent)
                                     }
                                 }

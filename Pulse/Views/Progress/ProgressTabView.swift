@@ -26,7 +26,7 @@ struct ProgressTabView: View {
                     VStack(spacing: 24) {
                         Spacer()
                         
-                        IconBadge(systemName: "chart.line.uptrend.xyaxis", color: .appAccent, size: 72)
+                        IconBadge(assetName: "arrow-trending-up", color: .appAccent, size: 72)
                         
                         Text("Unlock Progress Tracking")
                             .font(.title2.weight(.bold))
@@ -38,7 +38,7 @@ struct ProgressTabView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 32)
                         
-                        PrimaryCTAButton("Upgrade to Pulse Pro", icon: "star.fill") {
+                        PrimaryCTAButton("Upgrade to Pulse Pro", icon: "star") {
                             let impactLight = UIImpactFeedbackGenerator(style: .light)
                             impactLight.impactOccurred()
                             showingPaywall = true
@@ -56,7 +56,7 @@ struct ProgressTabView: View {
                         
                         // Current Streak
                         HStack(spacing: 14) {
-                            IconBadge(systemName: "flame.fill", color: .orange, size: 44)
+                            IconBadge(assetName: "FlameIcon", color: .orange, size: 44)
                             
                             VStack(alignment: .leading, spacing: 3) {
                                 Text("Current Streak")
@@ -179,13 +179,14 @@ struct ProgressTabView: View {
                                 LifetimeStatCard(
                                     title: "Total Workouts",
                                     value: "\(viewModel.lifetimeWorkouts)",
-                                    icon: "figure.run"
+                                    icon: "figure.run",
+                                    isSystemImage: true
                                 )
                                 
                                 LifetimeStatCard(
                                     title: "Total Volume",
                                     value: "\(Int(unitManager.displayWeight(Double(viewModel.lifetimeVolume))))\(unitManager.weightUnit)",
-                                    icon: "scalemass"
+                                    icon: "scale"
                                 )
                                 
                                 LifetimeStatCard(
@@ -197,7 +198,7 @@ struct ProgressTabView: View {
                                 LifetimeStatCard(
                                     title: "Best Streak",
                                     value: "\(viewModel.bestStreak) days",
-                                    icon: "flame"
+                                    icon: "FlameIcon"
                                 )
                             }
                             .padding(.horizontal)
@@ -282,12 +283,17 @@ struct StatCard: View {
     let unit: String
     let icon: String
     let color: Color
+    var isSystemImage: Bool = true
 
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 10) {
-            IconBadge(systemName: icon, color: color, size: 38)
+            if isSystemImage {
+                IconBadge(systemName: icon, color: color, size: 38)
+            } else {
+                IconBadge(assetName: icon, color: color, size: 38)
+            }
 
             Text(value)
                 .font(.title.weight(.bold))
@@ -320,7 +326,7 @@ struct PRCard: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            IconBadge(systemName: "trophy.fill", color: .yellow, size: 40)
+            IconBadge(assetName: "trophy", color: .yellow, size: 40)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(pr.exerciseName)
@@ -338,9 +344,11 @@ struct PRCard: View {
 
             Spacer()
 
-            Image(systemName: "chevron.right")
+            Image("chevron-right")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 13, height: 13)
                 .foregroundStyle(Color.appTertiaryText)
-                .font(.system(size: 13, weight: .semibold))
         }
         .padding(14)
         .background {
@@ -355,7 +363,7 @@ struct PRCard: View {
 struct EmptyPRCard: View {
     var body: some View {
         VStack(spacing: 14) {
-            IconBadge(systemName: "trophy", size: 48)
+            IconBadge(assetName: "trophy", size: 48)
 
             Text("No PRs Yet")
                 .font(.subheadline.weight(.semibold))
@@ -468,10 +476,15 @@ struct LifetimeStatCard: View {
     let title: String
     let value: String
     let icon: String
+    var isSystemImage: Bool = false
 
     var body: some View {
         VStack(spacing: 10) {
-            IconBadge(systemName: icon, color: .appAccent, size: 36)
+            if isSystemImage {
+                IconBadge(systemName: icon, color: .appAccent, size: 36)
+            } else {
+                IconBadge(assetName: icon, color: .appAccent, size: 36)
+            }
 
             Text(value)
                 .font(.title3.weight(.bold))
@@ -505,7 +518,7 @@ struct AllPRsView: View {
                 VStack(spacing: 12) {
                     if viewModel.recentPRs.isEmpty {
                         VStack(spacing: 16) {
-                            IconBadge(systemName: "trophy", size: 56)
+                            IconBadge(assetName: "trophy", size: 56)
 
                             Text("No Personal Records Yet")
                                 .font(.title3.weight(.bold))
@@ -558,9 +571,10 @@ struct HealthMetricsSection: View {
                     impactLight.impactOccurred()
                     showingEditSheet = true
                 } label: {
-                    Image(systemName: "pencil.circle.fill")
-                        .font(.title2)
-                        .symbolRenderingMode(.hierarchical)
+                    Image("pencil-square")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24, height: 24)
                         .foregroundStyle(Color.appAccent)
                 }
                 .buttonStyle(ScalePressStyle())
@@ -573,7 +587,7 @@ struct HealthMetricsSection: View {
                     HStack(spacing: 16) {
                         // Weight Card
                         HealthMetricCard(
-                            icon: "scalemass.fill",
+                            icon: "scale",
                             title: "Weight",
                             value: profile.weightKg != nil ? String(format: "%.1f", unitManager.displayWeight(profile.weightKg!)) : "--",
                             unit: unitManager.weightUnit,
@@ -586,7 +600,8 @@ struct HealthMetricsSection: View {
                             title: "Height",
                             value: profile.heightCm != nil ? unitManager.displayHeightFormatted(profile.heightCm!) : "--",
                             unit: unitManager.unitSystem == .metric ? "cm" : "",
-                            color: .green
+                            color: .green,
+                            isSystemImage: true
                         )
                     }
                     .padding(.horizontal)
@@ -687,7 +702,7 @@ struct HealthMetricsSection: View {
                     } else if profile.weightKg == nil || profile.heightCm == nil {
                         // Empty state - prompt to add data
                         VStack(spacing: 14) {
-                            IconBadge(systemName: "chart.line.uptrend.xyaxis", size: 48)
+                            IconBadge(assetName: "arrow-trending-up", size: 48)
 
                             Text("Add your weight and height to calculate BMI")
                                 .font(.subheadline)
@@ -757,10 +772,15 @@ struct HealthMetricCard: View {
     let value: String
     let unit: String
     let color: Color
+    var isSystemImage: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            IconBadge(systemName: icon, color: color, size: 34)
+            if isSystemImage {
+                IconBadge(systemName: icon, color: color, size: 34)
+            } else {
+                IconBadge(assetName: icon, color: color, size: 34)
+            }
 
             Text(title)
                 .font(.caption.weight(.medium))
@@ -851,7 +871,10 @@ struct EditHealthMetricsSheet: View {
                         // Error message
                         if showError {
                             HStack(spacing: 8) {
-                                Image(systemName: "exclamationmark.triangle.fill")
+                                Image("exclamation-triangle")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
                                     .foregroundStyle(.red)
                                 Text(errorMessage)
                                     .font(.caption)
@@ -868,9 +891,11 @@ struct EditHealthMetricsSheet: View {
                             // Weight Input
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack(spacing: 6) {
-                                    Image(systemName: "scalemass.fill")
+                                    Image("scale")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 14, height: 14)
                                         .foregroundStyle(Color.blue)
-                                        .font(.caption)
                                     Text("Weight")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
@@ -998,7 +1023,7 @@ struct EditHealthMetricsSheet: View {
                         .padding(.horizontal)
 
                         // CTA
-                        PrimaryCTAButton("Save Changes", icon: "checkmark") {
+                        PrimaryCTAButton("Save Changes", icon: "check") {
                             let notificationFeedback = UINotificationFeedbackGenerator()
                             notificationFeedback.notificationOccurred(.success)
                             Task {
@@ -1131,19 +1156,37 @@ struct RecentWorkoutCard: View {
                         .foregroundStyle(Color.appText)
 
                     HStack(spacing: 10) {
-                        Label(viewModel.formatDate(session.startedAt), systemImage: "calendar")
+                        HStack(spacing: 4) {
+                            Image("calendar-days")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 12, height: 12)
+                            Text(viewModel.formatDate(session.startedAt))
+                        }
                             .font(.caption)
                             .foregroundStyle(Color.appSecondaryText)
 
                         if session.completedAt != nil {
-                            Label(viewModel.formatDuration(session.durationSeconds), systemImage: "clock")
+                            HStack(spacing: 4) {
+                                Image("clock")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 12, height: 12)
+                                Text(viewModel.formatDuration(session.durationSeconds))
+                            }
                                 .font(.caption)
                                 .foregroundStyle(Color.appSecondaryText)
                         }
                     }
 
                     if session.completedAt != nil {
-                        Label("Completed", systemImage: "checkmark.circle.fill")
+                        HStack(spacing: 4) {
+                            Image("check-circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 14)
+                            Text("Completed")
+                        }
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.green)
                     }
@@ -1151,9 +1194,11 @@ struct RecentWorkoutCard: View {
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
+                Image("chevron-right")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 13, height: 13)
                     .foregroundStyle(Color.appTertiaryText)
-                    .font(.system(size: 13, weight: .semibold))
             }
             .padding(14)
             .background {

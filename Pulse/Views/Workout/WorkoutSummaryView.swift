@@ -80,7 +80,7 @@ struct WorkoutSummaryView: View {
                     VStack(spacing: 24) {
                         // Header
                         VStack(spacing: 12) {
-                            IconBadge(systemName: "checkmark.circle.fill", color: .green, size: 56)
+                            IconBadge(assetName: "check-circle", color: .green, size: 56)
                             
                             Text("Workout Complete")
                                 .font(.title2.weight(.bold))
@@ -96,13 +96,13 @@ struct WorkoutSummaryView: View {
                         VStack(spacing: 12) {
                             HStack(spacing: 12) {
                                 summaryStatCard(
-                                    icon: "clock.fill",
+                                    icon: "clock",
                                     title: "Duration",
                                     value: formattedDuration
                                 )
                                 
                                 summaryStatCard(
-                                    icon: "flame.fill",
+                                    icon: "FlameIcon",
                                     title: "Total Sets",
                                     value: "\(totalSets)"
                                 )
@@ -110,7 +110,7 @@ struct WorkoutSummaryView: View {
                             
                             HStack(spacing: 12) {
                                 summaryStatCard(
-                                    icon: "scalemass.fill",
+                                    icon: "scale",
                                     title: "Volume",
                                     value: String(format: "%.0f %@", unitManager.displayWeight(totalVolume), unitManager.weightUnit)
                                 )
@@ -118,7 +118,8 @@ struct WorkoutSummaryView: View {
                                 summaryStatCard(
                                     icon: "figure.strengthtraining.traditional",
                                     title: "Exercises",
-                                    value: "\(exerciseCount)"
+                                    value: "\(exerciseCount)",
+                                    isSystemImage: true
                                 )
                             }
                         }
@@ -136,8 +137,10 @@ struct WorkoutSummaryView: View {
                     Button {
                         shareWorkout()
                     } label: {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.body.weight(.semibold))
+                        Image("arrow-up-on-square")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 17, height: 17)
                             .foregroundStyle(Color.appAccent)
                             .frame(width: 52, height: 52)
                             .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -236,7 +239,10 @@ struct WorkoutSummaryView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                     
-                    Image(systemName: "checkmark")
+                    Image("check")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 12, height: 12)
                         .foregroundStyle(Color.clear)
                         .frame(width: 30)
                 }
@@ -315,8 +321,10 @@ struct WorkoutSummaryView: View {
             }
             
             if set.completed {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.subheadline)
+                Image("check-circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 15, height: 15)
                     .foregroundStyle(Color.green)
                     .frame(width: 30)
             } else {
@@ -344,9 +352,13 @@ struct WorkoutSummaryView: View {
     
     // MARK: - Stat Card
     
-    private func summaryStatCard(icon: String, title: String, value: String) -> some View {
+    private func summaryStatCard(icon: String, title: String, value: String, isSystemImage: Bool = false) -> some View {
         VStack(spacing: 8) {
-            IconBadge(systemName: icon, size: 36)
+            if isSystemImage {
+                IconBadge(systemName: icon, size: 36)
+            } else {
+                IconBadge(assetName: icon, size: 36)
+            }
             
             Text(value)
                 .font(.title3.weight(.bold))
@@ -387,8 +399,10 @@ struct ShareableWorkoutCard: View {
             VStack(spacing: 32) {
                 // Header
                 VStack(spacing: 14) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 56))
+                    Image("check-circle")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 56, height: 56)
                         .foregroundStyle(Color.green)
                     
                     Text("Workout Completed")
@@ -402,21 +416,21 @@ struct ShareableWorkoutCard: View {
                 
                 // Stats
                 VStack(spacing: 0) {
-                    shareStatItem(icon: "clock.fill", value: formattedDuration, label: "Duration")
+                    shareStatItem(icon: "clock", value: formattedDuration, label: "Duration")
                         .padding(.vertical, 16)
                     
                     Rectangle()
                         .fill(.white.opacity(0.08))
                         .frame(height: 1)
                     
-                    shareStatItem(icon: "scalemass.fill", value: totalVolume, label: "Volume")
+                    shareStatItem(icon: "scale", value: totalVolume, label: "Volume")
                         .padding(.vertical, 16)
                     
                     Rectangle()
                         .fill(.white.opacity(0.08))
                         .frame(height: 1)
                     
-                    shareStatItem(icon: "figure.strengthtraining.traditional", value: "\(exerciseCount)", label: "Exercises")
+                    shareStatItem(icon: "figure.strengthtraining.traditional", value: "\(exerciseCount)", label: "Exercises", isSystemImage: true)
                         .padding(.vertical, 16)
                 }
                 .padding(.horizontal, 20)
@@ -451,11 +465,20 @@ struct ShareableWorkoutCard: View {
         )
     }
     
-    private func shareStatItem(icon: String, value: String, label: String) -> some View {
+    private func shareStatItem(icon: String, value: String, label: String, isSystemImage: Bool = false) -> some View {
         HStack {
             HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.system(size: 15, weight: .semibold))
+                Group {
+                    if isSystemImage {
+                        Image(systemName: icon)
+                            .font(.system(size: 15, weight: .semibold))
+                    } else {
+                        Image(icon)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 15, height: 15)
+                    }
+                }
                     .foregroundStyle(accentColor)
                     .frame(width: 32, height: 32)
                     .background(accentColor.opacity(0.15), in: Circle())
@@ -487,7 +510,7 @@ struct SharePreviewSheet: View {
             VStack(spacing: 20) {
                 // Header
                 VStack(spacing: 8) {
-                    IconBadge(systemName: "square.and.arrow.up", size: 48)
+                    IconBadge(assetName: "arrow-up-on-square", size: 48)
                         .padding(.top, 24)
                     
                     Text("Share Preview")
@@ -523,7 +546,7 @@ struct SharePreviewSheet: View {
                     }
                     .buttonStyle(ScalePressStyle())
                     
-                    PrimaryCTAButton("Share", icon: "square.and.arrow.up") {
+                    PrimaryCTAButton("Share", icon: "arrow-up-on-square") {
                         presentShareSheet()
                         PostHogSDK.shared.capture("workout_shared")
                     }

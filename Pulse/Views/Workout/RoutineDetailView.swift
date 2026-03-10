@@ -59,7 +59,7 @@ struct RoutineDetailView: View {
                 }
             } else if let error = viewModel.errorMessage {
                 VStack(spacing: 14) {
-                    IconBadge(systemName: "exclamationmark.triangle", color: .red, size: 48)
+                    IconBadge(assetName: "exclamation-triangle", color: .red, size: 48)
                     Text("Something went wrong")
                         .font(.headline)
                         .foregroundStyle(Color.appText)
@@ -67,7 +67,7 @@ struct RoutineDetailView: View {
                         .font(.subheadline)
                         .foregroundStyle(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
-                    PrimaryCTAButton("Retry", icon: "arrow.clockwise") {
+                    PrimaryCTAButton("Retry", systemIcon: "arrow.clockwise") {
                         Task {
                             await viewModel.loadRoutineExercises()
                             await viewModel.loadExercises()
@@ -113,8 +113,10 @@ struct RoutineDetailView: View {
                                     PostHogSDK.shared.capture("workout​_started")
                                 } label: {
                                     HStack(spacing: 8) {
-                                        Image(systemName: "play.fill")
-                                            .font(.caption.weight(.bold))
+                                        Image("play")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 12, height: 12)
                                         Text("Start Workout")
                                             .font(.subheadline.weight(.semibold))
                                     }
@@ -178,8 +180,10 @@ struct RoutineDetailView: View {
                                             ProgressView()
                                                 .tint(Color.appText)
                                         } else {
-                                            Image(systemName: "doc.on.doc")
-                                                .font(.caption.weight(.bold))
+                                            Image("document-duplicate")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 12, height: 12)
                                         }
                                         Text("Copy Routine")
                                             .font(.subheadline.weight(.medium))
@@ -221,8 +225,17 @@ struct RoutineDetailView: View {
                                 }
                             } label: {
                                 HStack(spacing: 6) {
-                                    Image(systemName: editMode == .active ? "checkmark.circle.fill" : "arrow.up.arrow.down.circle")
-                                        .font(.caption.weight(.semibold))
+                                    if editMode == .active {
+                                        Image("check-circle")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 12, height: 12)
+                                    } else {
+                                        Image("arrows-up-down")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 12, height: 12)
+                                    }
                                     Text(editMode == .active ? "Done" : "Reorder")
                                         .font(.subheadline.weight(.medium))
                                 }
@@ -286,7 +299,7 @@ struct RoutineDetailView: View {
                                                 let impactLight = UIImpactFeedbackGenerator(style: .light)
                                                 impactLight.impactOccurred()
                                             } label: {
-                                                Label("Edit Exercise", systemImage: "pencil")
+                                                Label { Text("Edit Exercise") } icon: { Image("pencil").resizable().scaledToFit().frame(width: 16, height: 16) }
                                             }
                                             
                                             Button(role: .destructive) {
@@ -296,11 +309,13 @@ struct RoutineDetailView: View {
                                                     await viewModel.deleteExercise(routineExercise)
                                                 }
                                             } label: {
-                                                Label("Delete Exercise", systemImage: "trash")
+                                                Label { Text("Delete Exercise") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
                                             }
                                         } label: {
-                                            Image(systemName: "ellipsis")
-                                                .font(.body.weight(.medium))
+                                            Image("ellipsis-horizontal")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 17, height: 17)
                                                 .foregroundStyle(Color.appTertiaryText)
                                                 .frame(width: 44, height: 44)
                                         }
@@ -441,39 +456,39 @@ struct ExercisePickerSheet: View {
     private func equipmentIcon(for equipment: String) -> String {
         switch equipment.lowercased() {
         case "barbell":
-            return "dumbbell.fill"
+            return "dumbbell"
         case "dumbbell":
-            return "dumbbell.fill"
+            return "dumbbell"
         case "kettlebell":
-            return "scalemass.fill"
+            return "dumbbell"
         case "cable":
-            return "figure.strengthtraining.traditional"
+            return "dumbbell"
         case "machine":
-            return "gearshape.fill"
+            return "dumbbell"
         case "bodyweight":
-            return "figure.arms.open"
+            return "dumbbell"
         case "resistance band":
-            return "arrow.left.and.right.circle"
+            return "dumbbell"
         case "medicine ball":
-            return "circle.circle.fill"
+            return "dumbbell"
         case "bike":
-            return "bicycle"
+            return "cardio"
         case "stairmaster":
-            return "figure.stair.stepper"
+            return "cardio"
         case "treadmill":
-            return "figure.run"
+            return "cardio"
         case "trx":
-            return "figure.strengthtraining.traditional"
+            return "dumbbell"
         case "smith machine":
-            return "figure.strengthtraining.traditional"
+            return "dumbbell"
         case "sled":
-            return "figure.run"
+            return "cardio"
         case "sandbag":
-            return "bag.fill"
+            return "dumbbell"
         case "outdoors":
-            return "figure.walk.motion"
+            return "cardio"
         default:
-            return "dumbbell.fill"
+            return "equipment-dumbbell"
         }
     }
     
@@ -487,8 +502,10 @@ struct ExercisePickerSheet: View {
                     HStack(spacing: 10) {
                         // Search field
                         HStack(spacing: 10) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.subheadline.weight(.medium))
+                            Image("magnifying-glass")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 15, height: 15)
                                 .foregroundStyle(Color.appTertiaryText)
                             TextField("Search exercises...", text: $searchText)
                                 .font(.subheadline)
@@ -511,8 +528,10 @@ struct ExercisePickerSheet: View {
                                 Button {
                                     searchText = ""
                                 } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.subheadline)
+                                    Image("x-mark")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 15, height: 15)
                                         .foregroundStyle(Color.appTertiaryText)
                                 }
                             }
@@ -532,8 +551,10 @@ struct ExercisePickerSheet: View {
                             showingFilterSheet = true
                         } label: {
                             ZStack(alignment: .topTrailing) {
-                                Image(systemName: activeFilterCount > 0 ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                                    .font(.title3.weight(.medium))
+                                Image("adjustments-horizontal")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 22, height: 22)
                                     .foregroundStyle(activeFilterCount > 0 ? Color.appAccent : Color.appSecondaryText)
                                     .frame(width: 48, height: 48)
                                     .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -605,7 +626,7 @@ struct ExercisePickerSheet: View {
                     // Exercise list
                     if filteredExercises.isEmpty && !viewModel.isLoading {
                         VStack(spacing: 14) {
-                            IconBadge(systemName: "magnifyingglass", size: 48)
+                            IconBadge(assetName: "magnifying-glass", size: 48)
                             
                             Text("No exercises found")
                                 .font(.subheadline.weight(.semibold))
@@ -648,8 +669,10 @@ struct ExercisePickerSheet: View {
                                                     
                                                     if let equipment = exercise.equipment {
                                                         HStack(spacing: 3) {
-                                                            Image(systemName: equipmentIcon(for: equipment))
-                                                                .font(.system(size: 9, weight: .semibold))
+                                                            Image(equipmentIcon(for: equipment))
+                                                                .resizable()
+                                                                .scaledToFit()
+                                                                .frame(width: 9, height: 9)
                                                             Text(equipment.capitalized)
                                                         }
                                                         .font(.caption)
@@ -660,9 +683,10 @@ struct ExercisePickerSheet: View {
                                             
                                             Spacer()
                                             
-                                            Image(systemName: "plus.circle.fill")
-                                                .font(.title3)
-                                                .symbolRenderingMode(.hierarchical)
+                                            Image("plus-circle")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 20, height: 20)
                                                 .foregroundStyle(Color.appAccent)
                                         }
                                         .padding(14)
@@ -763,8 +787,10 @@ struct ActiveFilterChip: View {
                 .font(.caption.weight(.semibold))
             
             Button(action: onRemove) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 12))
+                Image("x-mark")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 12, height: 12)
             }
         }
         .foregroundStyle(.white)
@@ -1156,8 +1182,10 @@ struct ExerciseConfigSheet: View {
                                                             sets -= 1
                                                         }
                                                     } label: {
-                                                        Image(systemName: "minus.circle.fill")
-                                                            .font(.title2)
+                                                        Image("minus-circle")
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(width: 22, height: 22)
                                                             .foregroundStyle(sets > 1 ? Color.appAccent : Color.appText.opacity(0.3))
                                                     }
                                                     .disabled(sets <= 1)
@@ -1173,8 +1201,10 @@ struct ExerciseConfigSheet: View {
                                                             sets += 1
                                                         }
                                                     } label: {
-                                                        Image(systemName: "plus.circle.fill")
-                                                            .font(.title2)
+                                                        Image("plus-circle")
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(width: 22, height: 22)
                                                             .foregroundStyle(sets < 20 ? Color.appAccent : Color.appText.opacity(0.3))
                                                     }
                                                     .disabled(sets >= 20)
@@ -1242,8 +1272,10 @@ struct ExerciseConfigSheet: View {
                                                             restSeconds -= 15
                                                         }
                                                     } label: {
-                                                        Image(systemName: "minus.circle.fill")
-                                                            .font(.title2)
+                                                        Image("minus-circle")
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(width: 22, height: 22)
                                                             .foregroundStyle(restSeconds > 0 ? Color.appAccent : Color.appText.opacity(0.3))
                                                     }
                                                     .disabled(restSeconds <= 0)
@@ -1259,8 +1291,10 @@ struct ExerciseConfigSheet: View {
                                                             restSeconds += 15
                                                         }
                                                     } label: {
-                                                        Image(systemName: "plus.circle.fill")
-                                                            .font(.title2)
+                                                        Image("plus-circle")
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(width: 22, height: 22)
                                                             .foregroundStyle(restSeconds < 300 ? Color.appAccent : Color.appText.opacity(0.3))
                                                     }
                                                     .disabled(restSeconds >= 300)
@@ -1289,8 +1323,10 @@ struct ExerciseConfigSheet: View {
                                                         sets -= 1
                                                     }
                                                 } label: {
-                                                    Image(systemName: "minus.circle.fill")
-                                                        .font(.title2)
+                                                    Image("minus-circle")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 22, height: 22)
                                                         .foregroundStyle(sets > 1 ? Color.appAccent : Color.appText.opacity(0.3))
                                                 }
                                                 .disabled(sets <= 1)
@@ -1306,8 +1342,10 @@ struct ExerciseConfigSheet: View {
                                                         sets += 1
                                                     }
                                                 } label: {
-                                                    Image(systemName: "plus.circle.fill")
-                                                        .font(.title2)
+                                                    Image("plus-circle")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 22, height: 22)
                                                         .foregroundStyle(sets < 10 ? Color.appAccent : Color.appText.opacity(0.3))
                                                 }
                                                 .disabled(sets >= 10)
@@ -1377,8 +1415,10 @@ struct ExerciseConfigSheet: View {
                                                         restSeconds -= 15
                                                     }
                                                 } label: {
-                                                    Image(systemName: "minus.circle.fill")
-                                                        .font(.title2)
+                                                    Image("minus-circle")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 22, height: 22)
                                                         .foregroundStyle(restSeconds > 0 ? Color.appAccent : Color.appText.opacity(0.3))
                                                 }
                                                 .disabled(restSeconds <= 0)
@@ -1394,8 +1434,10 @@ struct ExerciseConfigSheet: View {
                                                         restSeconds += 15
                                                     }
                                                 } label: {
-                                                    Image(systemName: "plus.circle.fill")
-                                                        .font(.title2)
+                                                    Image("plus-circle")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 22, height: 22)
                                                         .foregroundStyle(restSeconds < 300 ? Color.appAccent : Color.appText.opacity(0.3))
                                                 }
                                                 .disabled(restSeconds >= 300)
@@ -1491,7 +1533,7 @@ struct EditRoutineSheet: View {
                 VStack(spacing: 28) {
                     // Header
                     VStack(spacing: 8) {
-                        IconBadge(systemName: "pencil.circle.fill", color: .appAccent, size: 48)
+                        IconBadge(assetName: "pencil-square", color: .appAccent, size: 48)
 
                         Text("Edit Routine")
                             .font(.title2.weight(.bold))
@@ -1579,7 +1621,7 @@ struct EditRoutineSheet: View {
                     .padding(.horizontal)
 
                     // CTA Button
-                    PrimaryCTAButton("Save Changes", icon: "checkmark") {
+                    PrimaryCTAButton("Save Changes", icon: "check") {
                         isSaving = true
                         let notificationFeedback = UINotificationFeedbackGenerator()
                         notificationFeedback.notificationOccurred(.success)
@@ -1741,8 +1783,10 @@ struct EditExerciseSheet: View {
                                                             sets -= 1
                                                         }
                                                     } label: {
-                                                        Image(systemName: "minus.circle.fill")
-                                                            .font(.title2)
+                                                        Image("minus-circle")
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(width: 22, height: 22)
                                                             .foregroundStyle(sets > 1 ? Color.appAccent : Color.appText.opacity(0.3))
                                                     }
                                                     .disabled(sets <= 1)
@@ -1758,8 +1802,10 @@ struct EditExerciseSheet: View {
                                                             sets += 1
                                                         }
                                                     } label: {
-                                                        Image(systemName: "plus.circle.fill")
-                                                            .font(.title2)
+                                                        Image("plus-circle")
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(width: 22, height: 22)
                                                             .foregroundStyle(sets < 20 ? Color.appAccent : Color.appText.opacity(0.3))
                                                     }
                                                     .disabled(sets >= 20)
@@ -1827,8 +1873,10 @@ struct EditExerciseSheet: View {
                                                             restSeconds -= 15
                                                         }
                                                     } label: {
-                                                        Image(systemName: "minus.circle.fill")
-                                                            .font(.title2)
+                                                        Image("minus-circle")
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(width: 22, height: 22)
                                                             .foregroundStyle(restSeconds > 0 ? Color.appAccent : Color.appText.opacity(0.3))
                                                     }
                                                     .disabled(restSeconds <= 0)
@@ -1844,8 +1892,10 @@ struct EditExerciseSheet: View {
                                                             restSeconds += 15
                                                         }
                                                     } label: {
-                                                        Image(systemName: "plus.circle.fill")
-                                                            .font(.title2)
+                                                        Image("plus-circle")
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(width: 22, height: 22)
                                                             .foregroundStyle(restSeconds < 300 ? Color.appAccent : Color.appText.opacity(0.3))
                                                     }
                                                     .disabled(restSeconds >= 300)
@@ -1874,8 +1924,10 @@ struct EditExerciseSheet: View {
                                                         sets -= 1
                                                     }
                                                 } label: {
-                                                    Image(systemName: "minus.circle.fill")
-                                                        .font(.title2)
+                                                    Image("minus-circle")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 22, height: 22)
                                                         .foregroundStyle(sets > 1 ? Color.appAccent : Color.appText.opacity(0.3))
                                                 }
                                                 .disabled(sets <= 1)
@@ -1891,8 +1943,10 @@ struct EditExerciseSheet: View {
                                                         sets += 1
                                                     }
                                                 } label: {
-                                                    Image(systemName: "plus.circle.fill")
-                                                        .font(.title2)
+                                                    Image("plus-circle")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 22, height: 22)
                                                         .foregroundStyle(sets < 10 ? Color.appAccent : Color.appText.opacity(0.3))
                                                 }
                                                 .disabled(sets >= 10)
@@ -1962,8 +2016,10 @@ struct EditExerciseSheet: View {
                                                         restSeconds -= 15
                                                     }
                                                 } label: {
-                                                    Image(systemName: "minus.circle.fill")
-                                                        .font(.title2)
+                                                    Image("minus-circle")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 22, height: 22)
                                                         .foregroundStyle(restSeconds > 0 ? Color.appAccent : Color.appText.opacity(0.3))
                                                 }
                                                 .disabled(restSeconds <= 0)
@@ -1979,8 +2035,10 @@ struct EditExerciseSheet: View {
                                                         restSeconds += 15
                                                     }
                                                 } label: {
-                                                    Image(systemName: "plus.circle.fill")
-                                                        .font(.title2)
+                                                    Image("plus-circle")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 22, height: 22)
                                                         .foregroundStyle(restSeconds < 300 ? Color.appAccent : Color.appText.opacity(0.3))
                                                 }
                                                 .disabled(restSeconds >= 300)
@@ -2058,8 +2116,10 @@ private struct DetailActionButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.caption.weight(.bold))
+                Image(icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 14, height: 14)
                 Text(title)
                     .font(.subheadline.weight(.medium))
             }

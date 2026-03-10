@@ -57,7 +57,7 @@ struct SubscriptionView: View {
                         // Features
                         VStack(spacing: 0) {
                             SubscriptionFeatureRow(
-                                icon: "chart.line.uptrend.xyaxis",
+                                icon: "arrow-trending-up",
                                 title: "Advanced Analytics",
                                 subtitle: "Detailed progress insights and trends"
                             )
@@ -68,7 +68,8 @@ struct SubscriptionView: View {
                             SubscriptionFeatureRow(
                                 icon: "list.bullet",
                                 title: "Unlimited Routines",
-                                subtitle: "Create and track your own routines"
+                                subtitle: "Create and track your own routines",
+                                isSystemImage: true
                             )
                             
                             Divider()
@@ -77,7 +78,8 @@ struct SubscriptionView: View {
                             SubscriptionFeatureRow(
                                 icon: "applewatch.and.arrow.forward",
                                 title: "Apple Watch",
-                                subtitle: "Log workouts straight from your wrist"
+                                subtitle: "Log workouts straight from your wrist",
+                                isSystemImage: true
                             )
                         }
                         .background {
@@ -179,9 +181,11 @@ struct SubscriptionView: View {
                             // Error
                             if let error = subscriptionManager.errorMessage {
                                 HStack(spacing: 8) {
-                                    Image(systemName: "exclamationmark.circle.fill")
+                                    Image("exclamation-circle")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 14, height: 14)
                                         .foregroundStyle(.red)
-                                        .font(.caption)
                                     Text(error)
                                         .foregroundStyle(.red)
                                         .font(.caption.weight(.medium))
@@ -238,8 +242,10 @@ struct SubscriptionView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark")
-                            .font(.subheadline.weight(.semibold))
+                        Image("x-mark")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
                             .foregroundStyle(Color.appSecondaryText)
                     }
                 }
@@ -262,10 +268,15 @@ private struct SubscriptionFeatureRow: View {
     let icon: String
     let title: String
     let subtitle: String
+    var isSystemImage: Bool = false
     
     var body: some View {
         HStack(spacing: 14) {
-            IconBadge(systemName: icon, size: 40)
+            if isSystemImage {
+                IconBadge(systemName: icon, size: 40)
+            } else {
+                IconBadge(assetName: icon, size: 40)
+            }
             
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
@@ -279,9 +290,10 @@ private struct SubscriptionFeatureRow: View {
             
             Spacer()
             
-            Image(systemName: "checkmark.circle.fill")
-                .font(.body.weight(.semibold))
-                .symbolRenderingMode(.hierarchical)
+            Image("check-circle")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
                 .foregroundStyle(Color.appAccent)
         }
         .padding(.horizontal, 16)
