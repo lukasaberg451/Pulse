@@ -27,6 +27,7 @@ struct DashboardView: View {
     @State private var showingResumeWorkout = false
     @State private var showingResumeAlert = false
     @Environment(\.tabBarBottomInset) private var tabBarBottomInset
+    @EnvironmentObject var syncService: WorkoutSyncService
     
     var body: some View {
         NavigationStack {
@@ -37,6 +38,10 @@ struct DashboardView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
+                        // MARK: - Offline Banner
+                        OfflineStatusBanner(subtitle: "Workouts can only be started from the routine during offline mode. Your workout will sync when you're back online.")
+                            .animation(.easeInOut, value: syncService.isOnline)
+                        
                         // MARK: - Hero Header
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Welcome \(authViewModel.firstName)!")

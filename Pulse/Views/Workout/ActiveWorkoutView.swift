@@ -109,8 +109,7 @@ struct ActiveWorkoutViewContent: View {
                         
                         // Workout Timer Header Card
                         TimerHeaderCard(
-                            elapsedTimeText: viewModel.formatElapsedTime(),
-                            isOfflineMode: viewModel.isOfflineMode
+                            elapsedTimeText: viewModel.formatElapsedTime()
                         )
                         .padding(.horizontal)
                         
@@ -272,7 +271,6 @@ enum ExerciseCardStatus {
 // MARK: - Timer Header Card
 struct TimerHeaderCard: View {
     let elapsedTimeText: String
-    let isOfflineMode: Bool
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
@@ -288,21 +286,6 @@ struct TimerHeaderCard: View {
             }
             
             Spacer()
-            
-            if isOfflineMode {
-                VStack(alignment: .trailing, spacing: 4) {
-                    Image(systemName: "wifi.slash")
-                        .font(.body)
-                        .foregroundStyle(.orange)
-                    
-                    Text("Offline")
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(.orange)
-                }
-                .padding(10)
-                .background(Color.orange.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            }
         }
         .padding(18)
         .background(Color.appSurface)

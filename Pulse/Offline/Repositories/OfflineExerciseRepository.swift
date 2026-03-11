@@ -97,7 +97,19 @@ class OfflineExerciseRepository {
         
         debugLog("✅ Fetched \(routines.count) routines from Supabase")
         
-        // Cache them locally
+        let remoteRoutineIds = Set(routines.map { $0.id })
+        
+        // Delete local routines that no longer exist on the server
+        let allLocalDescriptor = FetchDescriptor<LocalRoutine>()
+        let allLocalRoutines = try modelContext.fetch(allLocalDescriptor)
+        for localRoutine in allLocalRoutines {
+            if !remoteRoutineIds.contains(localRoutine.id) {
+                debugLog("🗑️ Removing deleted routine from cache: \(localRoutine.name)")
+                modelContext.delete(localRoutine)
+            }
+        }
+        
+        // Cache/update routines from server
         for routine in routines {
             let descriptor = FetchDescriptor<LocalRoutine>(
                 predicate: #Predicate { $0.id == routine.id }
@@ -133,7 +145,21 @@ class OfflineExerciseRepository {
         
         debugLog("✅ Fetched \(routineExercises.count) routine exercises")
         
-        // Cache them locally
+        let remoteExerciseIds = Set(routineExercises.map { $0.id })
+        
+        // Delete local routine exercises for this routine that no longer exist on the server
+        let allLocalDescriptor = FetchDescriptor<LocalRoutineExercise>(
+            predicate: #Predicate { $0.routineId == routineId }
+        )
+        let allLocalRoutineExercises = try modelContext.fetch(allLocalDescriptor)
+        for localRE in allLocalRoutineExercises {
+            if !remoteExerciseIds.contains(localRE.id) {
+                debugLog("🗑️ Removing deleted routine exercise from cache: \(localRE.id)")
+                modelContext.delete(localRE)
+            }
+        }
+        
+        // Cache/update routine exercises from server
         for routineExercise in routineExercises {
             let descriptor = FetchDescriptor<LocalRoutineExercise>(
                 predicate: #Predicate { $0.id == routineExercise.id }

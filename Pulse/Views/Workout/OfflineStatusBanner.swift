@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OfflineStatusBanner: View {
+    var subtitle: String = "Your workouts will sync when you're back online"
     @EnvironmentObject var syncService: WorkoutSyncService
     @Environment(\.colorScheme) private var colorScheme
     
@@ -20,7 +21,7 @@ struct OfflineStatusBanner: View {
                     Text("Offline Mode")
                         .font(.subheadline.weight(.semibold))
                     
-                    Text("Your workouts will sync when you're back online")
+                    Text(subtitle)
                         .font(.caption)
                         .opacity(0.8)
                 }

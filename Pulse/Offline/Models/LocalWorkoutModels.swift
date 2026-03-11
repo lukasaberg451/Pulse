@@ -13,6 +13,7 @@ final class LocalWorkoutSession {
     var id: UUID
     var userId: UUID?
     var routineId: UUID?
+    var scheduledWorkoutId: UUID?
     var name: String
     var startedAt: Date
     var completedAt: Date?
@@ -29,6 +30,7 @@ final class LocalWorkoutSession {
         id: UUID = UUID(),
         userId: UUID? = nil,
         routineId: UUID? = nil,
+        scheduledWorkoutId: UUID? = nil,
         name: String,
         startedAt: Date = Date(),
         completedAt: Date? = nil,
@@ -41,6 +43,7 @@ final class LocalWorkoutSession {
         self.id = id
         self.userId = userId
         self.routineId = routineId
+        self.scheduledWorkoutId = scheduledWorkoutId
         self.name = name
         self.startedAt = startedAt
         self.completedAt = completedAt

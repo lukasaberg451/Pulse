@@ -215,6 +215,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             session = LocalWorkoutSession(
                 id: existingSessionId,
                 routineId: routine.id,
+                scheduledWorkoutId: scheduledWorkoutId,
                 name: routine.name,
                 needsSync: false  // Session already exists in Supabase from scheduling
             )

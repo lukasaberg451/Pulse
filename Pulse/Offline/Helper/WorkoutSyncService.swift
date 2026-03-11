@@ -38,20 +38,26 @@ class WorkoutSyncService: ObservableObject {
     private func setupNetworkMonitoring() {
         monitor.pathUpdateHandler = { [weak self] path in
             Task { @MainActor in
+                let isNowOnline = path.status == .satisfied
                 let wasOffline = self?.isOnline == false
-                self?.isOnline = path.status == .satisfied
+                
+                debugLog("🌐 Network path update: status=\(path.status), isNowOnline=\(isNowOnline), wasOffline=\(wasOffline)")
+                
+                self?.isOnline = isNowOnline
                 
                 // If we just came back online, trigger sync
-                if wasOffline && self?.isOnline == true {
+                if wasOffline && isNowOnline {
+                    debugLog("🌐 Back online - triggering sync...")
                     await self?.syncPendingWorkouts()
                     await self?.syncExercisesAndRoutines()
-                    await self?.syncFromServer() // Pull changes from server
+                    await self?.syncFromServer()
+                    debugLog("🌐 Post-reconnect sync complete")
                 }
             }
         }
         monitor.start(queue: queue)
         
-        // Set up periodic sync every 5 minutes
+        // Set up periodic sync every 30 seconds
         startPeriodicSync()
     }
     
@@ -62,15 +68,40 @@ class WorkoutSyncService: ObservableObject {
         // Start new periodic sync task
         periodicSyncTask = Task { @MainActor in
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 5 * 60 * 1_000_000_000) // 5 minutes
-                if !Task.isCancelled && isOnline {
-                    debugLog("⏰ Running periodic sync from server...")
+                try? await Task.sleep(nanoseconds: 30 * 1_000_000_000) // 30 seconds
+                guard !Task.isCancelled else { break }
+                
+                // Always check connectivity with a real network probe,
+                // since NWPathMonitor can report stale status in some environments
+                let reachable = await checkRealConnectivity()
+                
+                if reachable && !isOnline {
+                    debugLog("⏰ Periodic check detected connectivity restored (monitor was stale)")
+                    isOnline = true
+                } else if !reachable && isOnline {
+                    isOnline = false
+                }
+                
+                if isOnline {
+                    debugLog("⏰ Running periodic sync...")
+                    await syncPendingWorkouts()
                     await syncFromServer()
                 }
             }
         }
         
-        debugLog("✅ Periodic sync started (every 5 minutes)")
+        debugLog("✅ Periodic sync started (every 30 seconds)")
+    }
+    
+    /// Perform a lightweight network request to verify actual connectivity
+    private func checkRealConnectivity() async -> Bool {
+        do {
+            let url = URL(string: "https://apple.com/library/test/success.html")!
+            let (_, response) = try await URLSession.shared.data(from: url)
+            return (response as? HTTPURLResponse)?.statusCode == 200
+        } catch {
+            return false
+        }
     }
     
     /// Sync changes FROM the server TO local storage
@@ -212,6 +243,27 @@ class WorkoutSyncService: ObservableObject {
                     durationSeconds: duration
                 )
                 debugLog("✅ Marked session as completed in Supabase")
+                
+                // Create/update scheduled workout entry
+                if let scheduledWorkoutId = session.scheduledWorkoutId {
+                    // This was a scheduled workout — mark it as completed
+                    try await repository.completeScheduledWorkout(
+                        id: scheduledWorkoutId,
+                        sessionId: session.id
+                    )
+                    debugLog("✅ Marked scheduled workout \(scheduledWorkoutId) as completed")
+                } else if let routineId = session.routineId {
+                    // Non-scheduled workout — create a completed scheduled entry for the calendar
+                    try await repository.createCompletedScheduledWorkout(
+                        routineId: routineId,
+                        sessionId: session.id,
+                        date: session.startedAt
+                    )
+                    debugLog("✅ Created completed scheduled entry for offline workout")
+                }
+                
+                // Post notification to refresh UI
+                NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
             }
             
             // Mark as synced
