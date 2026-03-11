@@ -416,6 +416,8 @@ struct ExercisePickerSheet: View {
     @State private var showingConfigSheet = false
     @State private var showingCreateCustomSheet = false
     @State private var selectedExercise: Exercise?
+    @State private var showMyExercises = true
+    @State private var addedExerciseName: String?
     
     // Search debounce
     @State private var searchTask: Task<Void, Never>?
@@ -656,67 +658,62 @@ struct ExercisePickerSheet: View {
                     } else {
                         ScrollView {
                             LazyVStack(spacing: 8) {
-                                ForEach(filteredExercises) { exercise in
-                                    Button {
-                                        selectedExercise = exercise
-                                        let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                        impactLight.impactOccurred()
-                                        showingConfigSheet = true
-                                    } label: {
-                                        HStack(spacing: 12) {
-                                            IconBadge(
-                                                systemName: exercise.exerciseType == "cardio" ? "figure.run" : "dumbbell.fill",
-                                                size: 38
-                                            )
-                                            
-                                            VStack(alignment: .leading, spacing: 4) {
-                                                Text(exercise.name)
+                                // My Exercises section - only when no search/filters active
+                                if searchText.isEmpty && activeFilterCount == 0 && !viewModel.customExercises.isEmpty {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Button {
+                                            withAnimation(.spring(response: 0.3)) {
+                                                showMyExercises.toggle()
+                                            }
+                                        } label: {
+                                            HStack(spacing: 8) {
+                                                Image(systemName: "person.fill")
+                                                    .font(.system(size: 12, weight: .semibold))
+                                                    .foregroundStyle(Color.appAccent)
+                                                Text("My Exercises")
                                                     .font(.subheadline.weight(.semibold))
                                                     .foregroundStyle(Color.appText)
-                                                    .lineLimit(1)
                                                 
-                                                HStack(spacing: 8) {
-                                                    if let muscle = exercise.muscleGroup {
-                                                        Text(muscle.capitalized)
-                                                            .font(.caption)
-                                                            .foregroundStyle(Color.appSecondaryText)
-                                                    }
-                                                    
-                                                    if let equipment = exercise.equipment {
-                                                        HStack(spacing: 3) {
-                                                            Image(equipmentIcon(for: equipment))
-                                                                .resizable()
-                                                                .scaledToFit()
-                                                                .frame(width: 9, height: 9)
-                                                            Text(equipment.capitalized)
-                                                        }
-                                                        .font(.caption)
-                                                        .foregroundStyle(Color.appAccent)
-                                                    }
-                                                }
+                                                Text("\(viewModel.customExercises.count)")
+                                                    .font(.caption2.weight(.bold))
+                                                    .foregroundStyle(Color.appAccent)
+                                                    .padding(.horizontal, 7)
+                                                    .padding(.vertical, 2)
+                                                    .background(Color.appAccentSubtle, in: Capsule())
+                                                
+                                                Spacer()
+                                                
+                                                Image(systemName: "chevron.right")
+                                                    .font(.caption.weight(.semibold))
+                                                    .foregroundStyle(Color.appTertiaryText)
+                                                    .rotationEffect(.degrees(showMyExercises ? 90 : 0))
                                             }
-                                            
-                                            Spacer()
-                                            
-                                            Image("plus-circle")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 20, height: 20)
-                                                .foregroundStyle(Color.appAccent)
                                         }
-                                        .padding(14)
-                                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                        .overlay {
-                                            if pickerColorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                        .buttonStyle(.plain)
+                                        
+                                        if showMyExercises {
+                                            ForEach(viewModel.customExercises) { exercise in
+                                                exerciseRow(exercise)
                                             }
                                         }
                                     }
-                                    .buttonStyle(ScalePressStyle())
-                                    .task {
-                                        await viewModel.loadMoreIfNeeded(currentExercise: exercise)
+                                    .padding(.bottom, 8)
+                                    
+                                    // Divider between sections
+                                    HStack {
+                                        Text("All Exercises")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(Color.appText)
+                                        Spacer()
                                     }
+                                    .padding(.bottom, 4)
+                                }
+                                
+                                ForEach(filteredExercises) { exercise in
+                                    exerciseRow(exercise)
+                                        .task {
+                                            await viewModel.loadMoreIfNeeded(currentExercise: exercise)
+                                        }
                                 }
                                 
                                 if viewModel.isLoadingMore {
@@ -744,6 +741,23 @@ struct ExercisePickerSheet: View {
                         .tint(Color.appAccent)
                 }
             }
+            .overlay(alignment: .top) {
+                if let name = addedExerciseName {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("\(name) added")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.appText)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .padding(.top, 8)
+                }
+            }
             .navigationTitle("Add Exercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
@@ -757,12 +771,32 @@ struct ExercisePickerSheet: View {
                     .foregroundStyle(Color.appAccent)
                     .fontWeight(.semibold)
                 }
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showingCreateCustomSheet = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(Color.appAccent)
+                    }
+                }
             }
             .sheet(isPresented: $showingConfigSheet) {
                 if let exercise = selectedExercise {
                     ExerciseConfigSheet(
                         exercise: exercise,
-                        viewModel: routineViewModel
+                        viewModel: routineViewModel,
+                        onAdded: {
+                            withAnimation(.spring(response: 0.4)) {
+                                addedExerciseName = exercise.name
+                            }
+                            Task {
+                                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                                withAnimation(.easeOut(duration: 0.3)) {
+                                    addedExerciseName = nil
+                                }
+                            }
+                        }
                     )
                 }
             }
@@ -778,6 +812,9 @@ struct ExercisePickerSheet: View {
                 CreateCustomExerciseSheet { exercise in
                     selectedExercise = exercise
                     showingConfigSheet = true
+                    Task {
+                        await viewModel.loadCustomExercises()
+                    }
                 }
             }
             .onChange(of: selectedMuscle) { _, _ in
@@ -787,10 +824,82 @@ struct ExercisePickerSheet: View {
                 applyFilters()
             }
             .task {
+                await viewModel.loadCustomExercises()
                 await viewModel.resetAndLoad()
             }
         }
         .presentationBackground(LinearGradient.dashboardBackground)
+    }
+    
+    private func exerciseRow(_ exercise: Exercise) -> some View {
+        Button {
+            selectedExercise = exercise
+            let impactLight = UIImpactFeedbackGenerator(style: .light)
+            impactLight.impactOccurred()
+            showingConfigSheet = true
+        } label: {
+            HStack(spacing: 12) {
+                IconBadge(
+                    systemName: exercise.exerciseType == "cardio" ? "figure.run" : "dumbbell.fill",
+                    size: 38
+                )
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text(exercise.name)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.appText)
+                            .lineLimit(1)
+                        
+                        if exercise.isCustom == true {
+                            Text("Custom")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(Color.appAccent)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.appAccentSubtle, in: Capsule())
+                        }
+                    }
+                    
+                    HStack(spacing: 8) {
+                        if let muscle = exercise.muscleGroup {
+                            Text(muscle.capitalized)
+                                .font(.caption)
+                                .foregroundStyle(Color.appSecondaryText)
+                        }
+                        
+                        if let equipment = exercise.equipment {
+                            HStack(spacing: 3) {
+                                Image(equipmentIcon(for: equipment))
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 9, height: 9)
+                                Text(equipment.capitalized)
+                            }
+                            .font(.caption)
+                            .foregroundStyle(Color.appAccent)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                Image("plus-circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                    .foregroundStyle(Color.appAccent)
+            }
+            .padding(14)
+            .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay {
+                if pickerColorScheme == .dark {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                }
+            }
+        }
+        .buttonStyle(ScalePressStyle())
     }
 }
 
@@ -1245,6 +1354,7 @@ struct ExerciseConfigSheet: View {
     @EnvironmentObject var unitManager: UnitManager
     let exercise: Exercise
     @ObservedObject var viewModel: RoutineDetailViewModel
+    var onAdded: (() -> Void)?
     
     @State private var sets = 3
     @State private var repsTarget = "8"
@@ -1657,6 +1767,7 @@ struct ExerciseConfigSheet: View {
                                     restSeconds: restSeconds
                                 )
                             }
+                            onAdded?()
                             dismiss()
                         }
                     }

@@ -100,6 +100,23 @@ class ExerciseRepository {
         return exercise
     }
     
+    func fetchCustomExercises() async throws -> [Exercise] {
+        guard let userId = supabase.auth.currentUser?.id else {
+            return []
+        }
+        
+        let exercises: [Exercise] = try await supabase
+            .from("exercises")
+            .select()
+            .eq("is_custom", value: true)
+            .eq("created_by", value: userId.uuidString)
+            .order("name")
+            .execute()
+            .value
+        
+        return exercises
+    }
+    
     func fetchExercise(id: UUID) async throws -> Exercise {
         let supabase = SupabaseManager.shared.client
         

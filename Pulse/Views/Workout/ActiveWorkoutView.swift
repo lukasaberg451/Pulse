@@ -72,7 +72,7 @@ struct ActiveWorkoutViewContent: View {
     
     /// Determines the status of an exercise based on its sets
     private func exerciseStatus(_ routineExercise: RoutineExercise) -> ExerciseCardStatus {
-        let setsForExercise = viewModel.sets.filter { $0.exerciseId == routineExercise.exerciseId }
+        let setsForExercise = viewModel.sets.filter { $0.exerciseId == routineExercise.exerciseId && $0.orderIndex == routineExercise.orderIndex }
         
         // If no sets exist yet, it's upcoming
         if setsForExercise.isEmpty {
@@ -85,7 +85,7 @@ struct ActiveWorkoutViewContent: View {
         }
         
         let hasAnyCompleted = setsForExercise.contains { $0.completed }
-        let isCurrentInVM = viewModel.routineExercises.first?.exerciseId == routineExercise.exerciseId
+        let isCurrentInVM = viewModel.routineExercises.first?.exerciseId == routineExercise.exerciseId && viewModel.routineExercises.first?.orderIndex == routineExercise.orderIndex
         
         if isCurrentInVM || hasAnyCompleted {
             return .current
@@ -375,7 +375,7 @@ struct ExerciseCard: View {
     @Environment(\.colorScheme) private var colorScheme
     
     var sets: [LocalWorkoutSet] {
-        viewModel.sets.filter { $0.exerciseId == exercise.id }
+        viewModel.sets.filter { $0.exerciseId == exercise.id && $0.orderIndex == routineExercise.orderIndex }
     }
     
     private var completedSetsCount: Int {

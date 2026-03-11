@@ -11,6 +11,7 @@ import Combine
 @MainActor
 class ExerciseListViewModel: ObservableObject {
     @Published var exercises: [Exercise] = []
+    @Published var customExercises: [Exercise] = []
     @Published var isLoading = false
     @Published var isLoadingMore = false
     @Published var errorMessage: String?
@@ -62,6 +63,14 @@ class ExerciseListViewModel: ObservableObject {
         }
         
         isLoadingMore = false
+    }
+    
+    func loadCustomExercises() async {
+        do {
+            customExercises = try await repository.fetchCustomExercises()
+        } catch {
+            // Custom exercises are non-critical, don't show error
+        }
     }
     
     func resetAndLoad(equipment: String? = nil, muscle: String? = nil, search: String = "") async {

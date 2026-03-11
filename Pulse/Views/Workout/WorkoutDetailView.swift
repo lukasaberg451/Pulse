@@ -98,7 +98,7 @@ struct WorkoutDetailView: View {
     }
     
     private func shareWorkout() {
-        let exerciseCount = Set(viewModel.groupedSets.map { $0.exerciseId }).count
+        let exerciseCount = viewModel.groupedSets.count
         
         let card = ShareableWorkoutCard(
             routineName: viewModel.workoutSession.name,
@@ -191,7 +191,7 @@ struct WorkoutDetailView: View {
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
             
-            ForEach(viewModel.groupedSets, id: \.exerciseId) { exercise in
+            ForEach(viewModel.groupedSets, id: \.orderIndex) { exercise in
                 exerciseCard(
                     name: exercise.exerciseName,
                     sets: exercise.sets,

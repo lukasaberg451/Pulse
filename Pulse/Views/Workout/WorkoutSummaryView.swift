@@ -9,6 +9,11 @@ import SwiftUI
 import UIKit
 import PostHog
 
+private struct ExerciseKey: Hashable {
+    let exerciseId: UUID
+    let orderIndex: Int?
+}
+
 struct WorkoutSummaryView: View {
     let routineName: String
     let elapsedTime: TimeInterval
@@ -39,21 +44,21 @@ struct WorkoutSummaryView: View {
     }
     
     private var exerciseCount: Int {
-        Set(completedSets.map { $0.exerciseId }).count
+        Set(completedSets.map { ExerciseKey(exerciseId: $0.exerciseId, orderIndex: $0.orderIndex) }).count
     }
     
-    private var groupedSets: [(exercise: Exercise, sets: [LocalWorkoutSet])] {
+    private var groupedSets: [(exercise: Exercise, orderIndex: Int, sets: [LocalWorkoutSet])] {
         var seen: [(id: UUID, orderIndex: Int)] = []
         for set in sets {
-            if !seen.contains(where: { $0.id == set.exerciseId }) {
+            if !seen.contains(where: { $0.id == set.exerciseId && $0.orderIndex == (set.orderIndex ?? Int.max) }) {
                 seen.append((id: set.exerciseId, orderIndex: set.orderIndex ?? Int.max))
             }
         }
         let sorted = seen.sorted { $0.orderIndex < $1.orderIndex }
         return sorted.compactMap { item in
             guard let exercise = exercises.first(where: { $0.id == item.id }) else { return nil }
-            let exerciseSets = sets.filter { $0.exerciseId == item.id }.sorted { $0.setNumber < $1.setNumber }
-            return (exercise: exercise, sets: exerciseSets)
+            let exerciseSets = sets.filter { $0.exerciseId == item.id && $0.orderIndex == item.orderIndex }.sorted { $0.setNumber < $1.setNumber }
+            return (exercise: exercise, orderIndex: item.orderIndex, sets: exerciseSets)
         }
     }
     
@@ -201,7 +206,7 @@ struct WorkoutSummaryView: View {
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
             
-            ForEach(groupedSets, id: \.exercise.id) { group in
+            ForEach(groupedSets, id: \.orderIndex) { group in
                 exerciseCard(
                     name: group.exercise.name,
                     sets: group.sets,

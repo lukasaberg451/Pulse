@@ -99,17 +99,24 @@ class WorkoutDetailViewModel: ObservableObject {
         isLoading = false
     }
     
-    // Group sets by exercise
-    var groupedSets: [(exerciseId: UUID, exerciseName: String, exerciseType: String?, sets: [WorkoutSet])] {
-        let grouped = Dictionary(grouping: workoutSets, by: { $0.exerciseId })
-        return grouped.map { (exerciseId, sets) in
-            let name = exerciseNames[exerciseId] ?? "Unknown Exercise"
-            let type = exerciseTypes[exerciseId]
-            let sortedSets = sets.sorted { $0.setNumber < $1.setNumber }
-            let orderIndex = sets.first?.orderIndex ?? Int.max
-            return (exerciseId, name, type, sortedSets, orderIndex)
-        }.sorted { $0.4 < $1.4 }
-        .map { ($0.0, $0.1, $0.2, $0.3) }
+    // Group sets by exercise and orderIndex to keep duplicate exercises separate
+    var groupedSets: [(exerciseId: UUID, exerciseName: String, exerciseType: String?, orderIndex: Int, sets: [WorkoutSet])] {
+        // Group by both exerciseId and orderIndex
+        var groups: [(exerciseId: UUID, orderIndex: Int, sets: [WorkoutSet])] = []
+        for set in workoutSets {
+            let oi = set.orderIndex ?? Int.max
+            if let idx = groups.firstIndex(where: { $0.exerciseId == set.exerciseId && $0.orderIndex == oi }) {
+                groups[idx].sets.append(set)
+            } else {
+                groups.append((exerciseId: set.exerciseId, orderIndex: oi, sets: [set]))
+            }
+        }
+        return groups.sorted { $0.orderIndex < $1.orderIndex }.map { group in
+            let name = exerciseNames[group.exerciseId] ?? "Unknown Exercise"
+            let type = exerciseTypes[group.exerciseId]
+            let sortedSets = group.sets.sorted { $0.setNumber < $1.setNumber }
+            return (group.exerciseId, name, type, group.orderIndex, sortedSets)
+        }
     }
     
     // Calculate total volume (weight × reps)

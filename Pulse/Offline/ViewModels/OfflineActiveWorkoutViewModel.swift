@@ -127,8 +127,10 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             return
         }
         
+        let currentOrderIndex = currentRoutineExercise.orderIndex
         if let setIndex = sets.firstIndex(where: {
             $0.exerciseId == exerciseId &&
+            $0.orderIndex == currentOrderIndex &&
             $0.setNumber == setNumber &&
             !$0.completed
         }) {
@@ -168,7 +170,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             
             // Advance routineExercises past completed exercises
             while let first = routineExercises.first {
-                let setsForExercise = sets.filter { $0.exerciseId == first.exerciseId }
+                let setsForExercise = sets.filter { $0.exerciseId == first.exerciseId && $0.orderIndex == first.orderIndex }
                 let allCompleted = !setsForExercise.isEmpty && setsForExercise.allSatisfy { $0.completed }
                 if allCompleted {
                     routineExercises.removeFirst()
@@ -354,7 +356,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             // Check if this was the last set of current exercise
             let currentRoutineExercise = routineExercises.first
             let setsForCurrentExercise = sets.filter {
-                $0.exerciseId == currentRoutineExercise?.exerciseId
+                $0.exerciseId == currentRoutineExercise?.exerciseId && $0.orderIndex == currentRoutineExercise?.orderIndex
             }
             let completedSetsCount = setsForCurrentExercise.filter { $0.completed }.count
             let allSetsCompleted = setsForCurrentExercise.allSatisfy { $0.completed }
@@ -386,7 +388,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     func addSet(exerciseId: UUID, targetSets: Int, orderIndex: Int? = nil) async {
         guard let session = currentSession else { return }
         
-        let existingSets = sets.filter { $0.exerciseId == exerciseId }
+        let existingSets = sets.filter { $0.exerciseId == exerciseId && $0.orderIndex == orderIndex }
         let nextSetNumber = existingSets.count + 1
         
         let newSet = offlineRepository.createSet(
