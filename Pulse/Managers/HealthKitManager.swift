@@ -47,7 +47,7 @@ class HealthKitManager: ObservableObject {
                 isSyncEnabled = true
             }
         } catch {
-            print("❌ HealthKit authorization error: \(error.localizedDescription)")
+            debugLog("❌ HealthKit authorization error: \(error.localizedDescription)")
             isAuthorized = false
             isSyncEnabled = false
         }
@@ -84,9 +84,9 @@ class HealthKitManager: ObservableObject {
             ])
             try await builder.endCollection(at: endDate)
             try await builder.finishWorkout()
-            print("✅ Workout saved to HealthKit: \(name)")
+            debugLog("✅ Workout saved to HealthKit: \(name)")
         } catch {
-            print("❌ Failed to save workout to HealthKit: \(error.localizedDescription)")
+            debugLog("❌ Failed to save workout to HealthKit: \(error.localizedDescription)")
         }
     }
     

@@ -36,9 +36,9 @@ class OfflineWorkoutRepository {
             try modelContext.save()
             
             // Don't sync immediately - only sync when workout is completed
-            print("📝 Created local session: \(name)")
+            debugLog("📝 Created local session: \(name)")
         } catch {
-            print("❌ Failed to save session: \(error)")
+            debugLog("❌ Failed to save session: \(error)")
         }
         
         return session
@@ -49,7 +49,8 @@ class OfflineWorkoutRepository {
         exerciseId: UUID,
         setNumber: Int,
         reps: Int?,
-        weight: Double?
+        weight: Double?,
+        orderIndex: Int? = nil
     ) -> LocalWorkoutSet {
         let set = LocalWorkoutSet(
             sessionId: session.id,
@@ -57,6 +58,7 @@ class OfflineWorkoutRepository {
             setNumber: setNumber,
             reps: reps,
             weight: weight,
+            orderIndex: orderIndex,
             needsSync: true
         )
         
@@ -69,7 +71,7 @@ class OfflineWorkoutRepository {
             
             // Don't sync immediately - only sync when workout is completed
         } catch {
-            print("❌ Failed to save set: \(error)")
+            debugLog("❌ Failed to save set: \(error)")
         }
         
         return set
@@ -118,7 +120,7 @@ class OfflineWorkoutRepository {
                 }
             }
         } catch {
-            print("❌ Failed to update set: \(error)")
+            debugLog("❌ Failed to update set: \(error)")
         }
     }
     
@@ -137,7 +139,7 @@ class OfflineWorkoutRepository {
                 }
             }
         } catch {
-            print("❌ Failed to complete session: \(error)")
+            debugLog("❌ Failed to complete session: \(error)")
         }
     }
     
@@ -149,7 +151,7 @@ class OfflineWorkoutRepository {
         do {
             try modelContext.save()
         } catch {
-            print("❌ Failed to delete session: \(error)")
+            debugLog("❌ Failed to delete session: \(error)")
         }
     }
     
@@ -198,22 +200,22 @@ class OfflineWorkoutRepository {
     
     /// Prefetch all data needed for offline use
     func prefetchOfflineData() async throws {
-        print("🔄 Prefetching data for offline use...")
+        debugLog("🔄 Prefetching data for offline use...")
         
         do {
             // Fetch and cache all routines
             let routines = try await exerciseRepository.fetchAndCacheRoutines()
-            print("✅ Cached \(routines.count) routines")
+            debugLog("✅ Cached \(routines.count) routines")
             
             // Fetch routine exercises for all routines (this also caches the exercises)
             for routine in routines {
                 let routineExercises = try await exerciseRepository.fetchAndCacheRoutineExercises(routineId: routine.id)
-                print("✅ Cached \(routineExercises.count) exercises for routine: \(routine.name)")
+                debugLog("✅ Cached \(routineExercises.count) exercises for routine: \(routine.name)")
             }
             
-            print("✅ Offline prefetch complete!")
+            debugLog("✅ Offline prefetch complete!")
         } catch {
-            print("❌ Failed to prefetch offline data: \(error)")
+            debugLog("❌ Failed to prefetch offline data: \(error)")
             throw error
         }
     }

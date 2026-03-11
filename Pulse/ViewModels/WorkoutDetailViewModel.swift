@@ -37,7 +37,7 @@ class WorkoutDetailViewModel: ObservableObject {
                 .value
             userProfile = profile
         } catch {
-            print("Failed to fetch user profile: \(error)")
+            debugLog("Failed to fetch user profile: \(error)")
         }
     }
     
@@ -106,8 +106,10 @@ class WorkoutDetailViewModel: ObservableObject {
             let name = exerciseNames[exerciseId] ?? "Unknown Exercise"
             let type = exerciseTypes[exerciseId]
             let sortedSets = sets.sorted { $0.setNumber < $1.setNumber }
-            return (exerciseId, name, type, sortedSets)
-        }.sorted { $0.exerciseName < $1.exerciseName }
+            let orderIndex = sets.first?.orderIndex ?? Int.max
+            return (exerciseId, name, type, sortedSets, orderIndex)
+        }.sorted { $0.4 < $1.4 }
+        .map { ($0.0, $0.1, $0.2, $0.3) }
     }
     
     // Calculate total volume (weight × reps)

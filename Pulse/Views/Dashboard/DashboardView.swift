@@ -200,7 +200,7 @@ struct DashboardView: View {
             self.resumeExercises = exercises
             self.showingResumeAlert = true
         } catch {
-            print("⚠️ Failed to load data for in-progress workout: \(error)")
+            debugLog("⚠️ Failed to load data for in-progress workout: \(error)")
         }
     }
     

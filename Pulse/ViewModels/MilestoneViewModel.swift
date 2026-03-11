@@ -67,7 +67,7 @@ class MilestoneViewModel: ObservableObject {
             } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
                 // Ignore URL session cancellation
             } catch {
-                print("Failed to load milestones: \(error)")
+                debugLog("Failed to load milestones: \(error)")
             }
             if !Task.isCancelled {
                 isLoading = false
@@ -101,7 +101,7 @@ class MilestoneViewModel: ObservableObject {
             } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
                 // Ignore URL session cancellation
             } catch {
-                print("Failed to refresh milestones: \(error)")
+                debugLog("Failed to refresh milestones: \(error)")
             }
         }
         loadTask = task

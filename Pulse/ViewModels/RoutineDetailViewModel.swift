@@ -56,7 +56,7 @@ class RoutineDetailViewModel: ObservableObject {
                             let exercise = try await offlineRepo.getExercise(id: routineExercise.exerciseId)
                             exercises.append(exercise)
                         } catch {
-                            print("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
+                            debugLog("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
                         }
                     }
                 }
@@ -72,7 +72,7 @@ class RoutineDetailViewModel: ObservableObject {
                             let exercise = try await exerciseRepository.fetchExercise(id: routineExercise.exerciseId)
                             exercises.append(exercise)
                         } catch {
-                            print("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
+                            debugLog("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
                         }
                     }
                 }

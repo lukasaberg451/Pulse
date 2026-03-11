@@ -160,15 +160,15 @@ struct HomeView: View {
     private func prefetchOfflineData() async {
         guard !hasPrefetched else { return }
         
-        print("🔄 Starting offline data prefetch...")
+        debugLog("🔄 Starting offline data prefetch...")
         syncService.modelContext = modelContext
         let repository = OfflineWorkoutRepository(modelContext: modelContext)
         
         do {
             try await repository.prefetchOfflineData()
-            print("✅ Offline data ready")
+            debugLog("✅ Offline data ready")
         } catch {
-            print("⚠️ Failed to prefetch offline data: \(error)")
+            debugLog("⚠️ Failed to prefetch offline data: \(error)")
         }
         
         hasPrefetched = true

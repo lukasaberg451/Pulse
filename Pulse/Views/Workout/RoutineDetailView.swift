@@ -414,6 +414,7 @@ struct ExercisePickerSheet: View {
     @State private var selectedEquipment: String? = nil
     @State private var showingFilterSheet = false
     @State private var showingConfigSheet = false
+    @State private var showingCreateCustomSheet = false
     @State private var selectedExercise: Exercise?
     
     // Search debounce
@@ -632,9 +633,23 @@ struct ExercisePickerSheet: View {
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
                             
-                            Text("Try adjusting your search or filters")
+                            Text("Try adjusting your search or filters, or create a custom exercise")
                                 .font(.caption)
                                 .foregroundStyle(Color.appSecondaryText)
+                                .multilineTextAlignment(.center)
+                            
+                            Button {
+                                showingCreateCustomSheet = true
+                            } label: {
+                                Text("Create Custom Exercise")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(Color.appAccent)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 12)
+                                    .background(Color.appAccentSubtle, in: Capsule())
+                            }
+                            .buttonStyle(ScalePressStyle())
+                            .padding(.top, 4)
                         }
                         .frame(maxHeight: .infinity)
                         .padding()
@@ -758,6 +773,12 @@ struct ExercisePickerSheet: View {
                     muscleOptions: muscleOptions,
                     equipmentOptions: equipmentOptions
                 )
+            }
+            .sheet(isPresented: $showingCreateCustomSheet) {
+                CreateCustomExerciseSheet { exercise in
+                    selectedExercise = exercise
+                    showingConfigSheet = true
+                }
             }
             .onChange(of: selectedMuscle) { _, _ in
                 applyFilters()
@@ -979,6 +1000,149 @@ struct FilterSheet: View {
         }
         .presentationBackground(LinearGradient.dashboardBackground)
         .presentationDetents([.medium, .large])
+    }
+}
+
+// MARK: - Create Custom Exercise Sheet
+struct CreateCustomExerciseSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    
+    @State private var exerciseName = ""
+    @State private var exerciseType: ExerciseType = .strength
+    @State private var isCreating = false
+    @State private var errorMessage: String?
+    
+    let onCreated: (Exercise) -> Void
+    
+    private let repository = ExerciseRepository()
+    
+    enum ExerciseType: String, CaseIterable {
+        case strength = "Strength"
+        case cardio = "Cardio"
+        
+        var databaseValue: String {
+            switch self {
+            case .strength: return "strength"
+            case .cardio: return "cardio"
+            }
+        }
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                LinearGradient.dashboardBackground.ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    // Exercise name
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Exercise Name")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.appText)
+                        
+                        TextField("e.g. Reverse Nordic Curl", text: $exerciseName)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appText)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
+                            .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .overlay {
+                                if colorScheme == .dark {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                }
+                            }
+                    }
+                    
+                    // Exercise type
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Type")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.appText)
+                        
+                        Picker("Type", selection: $exerciseType) {
+                            ForEach(ExerciseType.allCases, id: \.self) { type in
+                                Text(type.rawValue).tag(type)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    
+                    if let error = errorMessage {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                    
+                    Spacer()
+                    
+                    // Create button
+                    Button {
+                        createExercise()
+                    } label: {
+                        HStack(spacing: 8) {
+                            if isCreating {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.subheadline)
+                            }
+                            Text("Create Exercise")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            exerciseName.trimmingCharacters(in: .whitespaces).isEmpty
+                                ? AnyShapeStyle(LinearGradient.accentGradient.opacity(0.5))
+                                : AnyShapeStyle(LinearGradient.accentGradient),
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        )
+                    }
+                    .buttonStyle(ScalePressStyle())
+                    .disabled(exerciseName.trimmingCharacters(in: .whitespaces).isEmpty || isCreating)
+                }
+                .padding()
+            }
+            .navigationTitle("Custom Exercise")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundStyle(Color.appSecondaryText)
+                }
+            }
+        }
+        .presentationBackground(LinearGradient.dashboardBackground)
+        .presentationDetents([.medium])
+    }
+    
+    private func createExercise() {
+        let name = exerciseName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return }
+        
+        isCreating = true
+        errorMessage = nil
+        
+        Task {
+            do {
+                let exercise = try await repository.createCustomExercise(
+                    name: name,
+                    exerciseType: exerciseType.databaseValue
+                )
+                dismiss()
+                onCreated(exercise)
+            } catch {
+                errorMessage = "Failed to create exercise. Please try again."
+            }
+            isCreating = false
+        }
     }
 }
 

@@ -64,40 +64,40 @@ class WorkoutSyncService: ObservableObject {
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 5 * 60 * 1_000_000_000) // 5 minutes
                 if !Task.isCancelled && isOnline {
-                    print("⏰ Running periodic sync from server...")
+                    debugLog("⏰ Running periodic sync from server...")
                     await syncFromServer()
                 }
             }
         }
         
-        print("✅ Periodic sync started (every 5 minutes)")
+        debugLog("✅ Periodic sync started (every 5 minutes)")
     }
     
     /// Sync changes FROM the server TO local storage
     private func syncFromServer() async {
         guard isOnline, let modelContext = modelContext else {
-            print("🔽 Cannot sync from server: isOnline=\(isOnline), modelContext=\(modelContext != nil)")
+            debugLog("🔽 Cannot sync from server: isOnline=\(isOnline), modelContext=\(modelContext != nil)")
             return
         }
         
-        print("🔽 Syncing from server...")
+        debugLog("🔽 Syncing from server...")
         
         do {
             // Fetch all remote sessions
             let remoteSessions = try await WorkoutRepository().fetchSessions()
-            print("🔽 Found \(remoteSessions.count) remote sessions")
+            debugLog("🔽 Found \(remoteSessions.count) remote sessions")
             let remoteSessionIds = Set(remoteSessions.map { $0.id })
             
             // Fetch all local sessions
             let localDescriptor = FetchDescriptor<LocalWorkoutSession>()
             let localSessions = try modelContext.fetch(localDescriptor)
-            print("🔽 Found \(localSessions.count) local sessions")
+            debugLog("🔽 Found \(localSessions.count) local sessions")
             
             // Delete local sessions that don't exist remotely
             var deletedCount = 0
             for localSession in localSessions {
                 if !remoteSessionIds.contains(localSession.id) {
-                    print("🗑️ Deleting local session that was removed remotely: \(localSession.name) (ID: \(localSession.id))")
+                    debugLog("🗑️ Deleting local session that was removed remotely: \(localSession.name) (ID: \(localSession.id))")
                     modelContext.delete(localSession)
                     deletedCount += 1
                 }
@@ -105,15 +105,15 @@ class WorkoutSyncService: ObservableObject {
             
             if deletedCount > 0 {
                 try modelContext.save()
-                print("✅ Server sync complete - deleted \(deletedCount) local sessions")
+                debugLog("✅ Server sync complete - deleted \(deletedCount) local sessions")
                 
                 // Post notification to refresh UI
                 NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
             } else {
-                print("✅ Server sync complete - no changes")
+                debugLog("✅ Server sync complete - no changes")
             }
         } catch {
-            print("❌ Failed to sync from server: \(error.localizedDescription)")
+            debugLog("❌ Failed to sync from server: \(error.localizedDescription)")
         }
     }
     
@@ -121,28 +121,28 @@ class WorkoutSyncService: ObservableObject {
     func syncExercisesAndRoutines() async {
         guard isOnline, let modelContext = modelContext else { return }
         
-        print("🔄 Syncing routines and exercises...")
+        debugLog("🔄 Syncing routines and exercises...")
         
         let exerciseRepo = OfflineExerciseRepository(modelContext: modelContext)
         
         do {
             // Fetch and cache all routines
             let routines = try await exerciseRepo.fetchAndCacheRoutines()
-            print("✅ Cached \(routines.count) routines")
+            debugLog("✅ Cached \(routines.count) routines")
             
             // Fetch and cache exercises for each routine
             for routine in routines {
                 do {
                     let exercises = try await exerciseRepo.fetchAndCacheRoutineExercises(routineId: routine.id)
-                    print("✅ Cached \(exercises.count) exercises for routine: \(routine.name)")
+                    debugLog("✅ Cached \(exercises.count) exercises for routine: \(routine.name)")
                 } catch {
-                    print("⚠️ Failed to cache exercises for routine \(routine.name): \(error)")
+                    debugLog("⚠️ Failed to cache exercises for routine \(routine.name): \(error)")
                 }
             }
             
-            print("✅ Routine and exercise sync complete")
+            debugLog("✅ Routine and exercise sync complete")
         } catch {
-            print("❌ Failed to sync routines/exercises: \(error)")
+            debugLog("❌ Failed to sync routines/exercises: \(error)")
         }
     }
     
@@ -162,7 +162,7 @@ class WorkoutSyncService: ObservableObject {
             )
             let unsyncedSessions = try modelContext.fetch(descriptor)
             
-            print("🔄 Found \(unsyncedSessions.count) completed sessions to sync")
+            debugLog("🔄 Found \(unsyncedSessions.count) completed sessions to sync")
             
             for session in unsyncedSessions {
                 await syncSession(session, context: modelContext)
@@ -170,16 +170,16 @@ class WorkoutSyncService: ObservableObject {
             
             lastSyncDate = Date()
             if unsyncedSessions.count > 0 {
-                print("✅ Sync completed successfully - synced \(unsyncedSessions.count) sessions")
+                debugLog("✅ Sync completed successfully - synced \(unsyncedSessions.count) sessions")
             }
         } catch {
-            print("❌ Sync error: \(error)")
+            debugLog("❌ Sync error: \(error)")
         }
     }
     
     private func syncSession(_ session: LocalWorkoutSession, context: ModelContext) async {
         do {
-            print("🔄 Syncing completed session: \(session.name) (ID: \(session.id))")
+            debugLog("🔄 Syncing completed session: \(session.name) (ID: \(session.id))")
             
             // Check if this is a new session that needs to be created in Supabase
             // (sessions from scheduled workouts already exist in Supabase)
@@ -187,7 +187,7 @@ class WorkoutSyncService: ObservableObject {
             
             if !sessionExistsInSupabase {
                 // Create the session in Supabase first
-                print("📝 Creating new session in Supabase")
+                debugLog("📝 Creating new session in Supabase")
                 try await repository.createSessionWithId(
                     id: session.id,
                     name: session.name,
@@ -195,7 +195,7 @@ class WorkoutSyncService: ObservableObject {
                     startedAt: session.startedAt
                 )
             } else {
-                print("✅ Session already exists in Supabase (from scheduling)")
+                debugLog("✅ Session already exists in Supabase (from scheduling)")
             }
             
             // Sync all sets for this session
@@ -211,7 +211,7 @@ class WorkoutSyncService: ObservableObject {
                     id: session.id,
                     durationSeconds: duration
                 )
-                print("✅ Marked session as completed in Supabase")
+                debugLog("✅ Marked session as completed in Supabase")
             }
             
             // Mark as synced
@@ -227,9 +227,9 @@ class WorkoutSyncService: ObservableObject {
             
             try context.save()
             
-            print("✅ Successfully synced session: \(session.name)")
+            debugLog("✅ Successfully synced session: \(session.name)")
         } catch {
-            print("❌ Failed to sync session: \(error)")
+            debugLog("❌ Failed to sync session: \(error)")
         }
     }
     
@@ -262,12 +262,13 @@ class WorkoutSyncService: ObservableObject {
                     reps: set.reps,
                     weight: set.weight,
                     durationSeconds: set.durationSeconds,
-                    completed: set.completed
+                    completed: set.completed,
+                    orderIndex: set.orderIndex
                 )
-                print("✅ Created set in Supabase: Set \(set.setNumber) for exercise \(set.exerciseId)")
+                debugLog("✅ Created set in Supabase: Set \(set.setNumber) for exercise \(set.exerciseId)")
             } catch {
                 // If creation failed (e.g., set already exists), try updating
-                print("⚠️ Set creation failed, attempting update: \(error.localizedDescription)")
+                debugLog("⚠️ Set creation failed, attempting update: \(error.localizedDescription)")
                 try await repository.updateSet(
                     id: set.id,
                     reps: set.reps,
@@ -275,10 +276,10 @@ class WorkoutSyncService: ObservableObject {
                     durationSeconds: set.durationSeconds,
                     completed: set.completed
                 )
-                print("✅ Updated existing set in Supabase: Set \(set.setNumber)")
+                debugLog("✅ Updated existing set in Supabase: Set \(set.setNumber)")
             }
         } catch {
-            print("❌ Failed to sync set: \(error)")
+            debugLog("❌ Failed to sync set: \(error)")
         }
     }
     

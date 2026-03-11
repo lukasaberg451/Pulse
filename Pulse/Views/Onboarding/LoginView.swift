@@ -123,7 +123,10 @@ struct LoginView: View {
                         }
                         
                         // Sign in button
-                        PrimaryCTAButton("Sign In") {
+                        PrimaryCTAButton(authViewModel.rateLimitSecondsRemaining > 0
+                            ? "Wait \(authViewModel.rateLimitSecondsRemaining)s"
+                            : "Sign In"
+                        ) {
                             if email.trimmingCharacters(in: .whitespaces).isEmpty {
                                 errorMessage = "Email is required"
                                 showError = true
@@ -147,6 +150,7 @@ struct LoginView: View {
                                 }
                             }
                         }
+                        .disabled(authViewModel.rateLimitSecondsRemaining > 0)
                         .padding(.top, 4)
                         
                         // Divider with "or"
@@ -381,7 +385,10 @@ struct ForgotPasswordView: View {
                         }
                         
                         // Reset Button
-                        PrimaryCTAButton("Reset Password") {
+                        PrimaryCTAButton(authViewModel.rateLimitSecondsRemaining > 0
+                            ? "Wait \(authViewModel.rateLimitSecondsRemaining)s"
+                            : "Reset Password"
+                        ) {
                             if email.trimmingCharacters(in: .whitespaces).isEmpty {
                                 errorMessage = "Email is required"
                                 showError = true
@@ -393,17 +400,18 @@ struct ForgotPasswordView: View {
                                 errorMessage = ""
                                 Task {
                                     isLoading = true
-                                    do {
-                                        try await sendPasswordReset(email: email)
+                                    let success = await authViewModel.resetPassword(email: email)
+                                    if success {
                                         resetSuccess = true
-                                    } catch {
-                                        errorMessage = "Failed to send reset email. Please try again."
+                                    } else {
+                                        errorMessage = authViewModel.errorMessage ?? "Failed to send reset email. Please try again."
                                         showError = true
                                     }
                                     isLoading = false
                                 }
                             }
                         }
+                        .disabled(authViewModel.rateLimitSecondsRemaining > 0)
                         .padding(.top, 4)
                     }
                     .padding(.horizontal, 24)

@@ -35,9 +35,9 @@
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>
-		<string>AppBack</string>
+		<string>LoadingBackground</string>
+		<key>UIImageName</key>
+		<string>Logo</string>
 	</dict>
-	<key>UIUserInterfaceStyle</key>
-	<string>Dark</string>
 </dict>
 </plist>

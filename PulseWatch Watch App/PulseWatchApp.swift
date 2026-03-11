@@ -25,9 +25,9 @@ class WatchWorkoutSessionManager: NSObject, ObservableObject, HKWorkoutSessionDe
         
         do {
             try await healthStore.requestAuthorization(toShare: typesToShare, read: [])
-            print("⌚ HealthKit authorization granted")
+            debugLog("⌚ HealthKit authorization granted")
         } catch {
-            print("⌚ HealthKit authorization failed: \(error.localizedDescription)")
+            debugLog("⌚ HealthKit authorization failed: \(error.localizedDescription)")
         }
     }
     
@@ -41,9 +41,9 @@ class WatchWorkoutSessionManager: NSObject, ObservableObject, HKWorkoutSessionDe
             session.delegate = self
             session.startActivity(with: Date())
             workoutSession = session
-            print("⌚ HKWorkoutSession started with activity type: \(configuration.activityType.rawValue)")
+            debugLog("⌚ HKWorkoutSession started with activity type: \(configuration.activityType.rawValue)")
         } catch {
-            print("⌚ Failed to start workout session: \(error)")
+            debugLog("⌚ Failed to start workout session: \(error)")
         }
     }
     
@@ -55,17 +55,17 @@ class WatchWorkoutSessionManager: NSObject, ObservableObject, HKWorkoutSessionDe
     // MARK: - HKWorkoutSessionDelegate
     
     nonisolated func workoutSession(_ workoutSession: HKWorkoutSession, didChangeTo toState: HKWorkoutSessionState, from fromState: HKWorkoutSessionState, date: Date) {
-        print("⌚ Workout session state changed: \(fromState.rawValue) -> \(toState.rawValue)")
+        debugLog("⌚ Workout session state changed: \(fromState.rawValue) -> \(toState.rawValue)")
     }
     
     nonisolated func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: any Error) {
-        print("⌚ Workout session failed: \(error.localizedDescription)")
+        debugLog("⌚ Workout session failed: \(error.localizedDescription)")
     }
 }
 
 class WatchAppDelegate: NSObject, WKApplicationDelegate {
     func handle(_ workoutConfiguration: HKWorkoutConfiguration) {
-        print("⌚ handle(_:) called from iPhone with activity: \(workoutConfiguration.activityType.rawValue)")
+        debugLog("⌚ handle(_:) called from iPhone with activity: \(workoutConfiguration.activityType.rawValue)")
         // Start the HKWorkoutSession immediately — this brings the app to the foreground
         WatchWorkoutSessionManager.shared.startSession(configuration: workoutConfiguration)
     }

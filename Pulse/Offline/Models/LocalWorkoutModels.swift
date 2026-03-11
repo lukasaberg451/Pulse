@@ -79,6 +79,7 @@ final class LocalWorkoutSet {
     var weight: Double?
     var durationSeconds: Int?
     var completed: Bool
+    var orderIndex: Int?
     var createdAt: Date
     var needsSync: Bool
     var syncedAt: Date?
@@ -95,6 +96,7 @@ final class LocalWorkoutSet {
         weight: Double? = nil,
         durationSeconds: Int? = nil,
         completed: Bool = false,
+        orderIndex: Int? = nil,
         createdAt: Date = Date(),
         needsSync: Bool = true,
         syncedAt: Date? = nil
@@ -107,6 +109,7 @@ final class LocalWorkoutSet {
         self.weight = weight
         self.durationSeconds = durationSeconds
         self.completed = completed
+        self.orderIndex = orderIndex
         self.createdAt = createdAt
         self.needsSync = needsSync
         self.syncedAt = syncedAt
@@ -123,6 +126,7 @@ final class LocalWorkoutSet {
             weight: set.weight,
             durationSeconds: set.durationSeconds,
             completed: set.completed,
+            orderIndex: set.orderIndex,
             createdAt: set.createdAt,
             needsSync: false,
             syncedAt: Date()

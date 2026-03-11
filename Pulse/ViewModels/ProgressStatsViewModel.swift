@@ -70,7 +70,7 @@ class ProgressStatsViewModel: ObservableObject {
                 .value
             userProfile = profile
         } catch {
-            print("Failed to fetch user profile: \(error)")
+            debugLog("Failed to fetch user profile: \(error)")
         }
     }
     
@@ -144,7 +144,7 @@ class ProgressStatsViewModel: ObservableObject {
             }
             
         } catch {
-            print("Failed to load monthly stats: \(error)")
+            debugLog("Failed to load monthly stats: \(error)")
         }
     }
     
@@ -203,7 +203,7 @@ class ProgressStatsViewModel: ObservableObject {
             }
             
         } catch {
-            print("Failed to load last month stats: \(error)")
+            debugLog("Failed to load last month stats: \(error)")
         }
     }
     
@@ -291,7 +291,7 @@ class ProgressStatsViewModel: ObservableObject {
             monthlyPRs = recentPRs.filter { $0.date >= monthStart }.count
             
         } catch {
-            print("Failed to load PRs: \(error)")
+            debugLog("Failed to load PRs: \(error)")
             monthlyPRs = 0
             recentPRs = []
         }
@@ -380,7 +380,7 @@ class ProgressStatsViewModel: ObservableObject {
             topMuscleGroups = Array(stats.prefix(5))
             
         } catch {
-            print("Failed to load muscle group stats: \(error)")
+            debugLog("Failed to load muscle group stats: \(error)")
             topMuscleGroups = []
         }
     }
@@ -423,7 +423,7 @@ class ProgressStatsViewModel: ObservableObject {
             }
             
         } catch {
-            print("Failed to load lifetime stats: \(error)")
+            debugLog("Failed to load lifetime stats: \(error)")
         }
     }
     
@@ -518,7 +518,7 @@ class ProgressStatsViewModel: ObservableObject {
             bestStreak = maxStreak
             
         } catch {
-            print("Failed to calculate streak: \(error)")
+            debugLog("Failed to calculate streak: \(error)")
             currentStreak = 0
             bestStreak = 0
         }
@@ -528,7 +528,7 @@ class ProgressStatsViewModel: ObservableObject {
         do {
             recentSessions = try await workoutRepository.fetchCompletedSessions(limit: 3, offset: 0)
         } catch {
-            print("Failed to load recent sessions: \(error)")
+            debugLog("Failed to load recent sessions: \(error)")
             recentSessions = []
         }
     }
@@ -547,7 +547,7 @@ class ProgressStatsViewModel: ObservableObject {
         } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
             // Ignore URL session cancellation
         } catch {
-            print("Failed to load paginated sessions: \(error)")
+            debugLog("Failed to load paginated sessions: \(error)")
             allRecentSessions = []
             hasMoreSessions = false
         }
@@ -567,7 +567,7 @@ class ProgressStatsViewModel: ObservableObject {
         } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
             // Ignore URL session cancellation
         } catch {
-            print("Failed to load more sessions: \(error)")
+            debugLog("Failed to load more sessions: \(error)")
         }
         isLoadingMore = false
     }

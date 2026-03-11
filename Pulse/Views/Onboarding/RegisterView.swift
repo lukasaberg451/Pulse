@@ -359,18 +359,20 @@ struct RegisterView: View {
                                     }
                                 }
                             }) {
-                                Text("Sign Up")
+                                Text(authViewModel.rateLimitSecondsRemaining > 0
+                                    ? "Wait \(authViewModel.rateLimitSecondsRemaining)s"
+                                    : "Sign Up")
                                     .font(.subheadline.weight(.bold))
                                     .foregroundStyle(.white)
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 52)
                                     .background(
-                                        LinearGradient.accentGradient.opacity(isValid && agreedToTerms ? 1 : 0.5),
+                                        LinearGradient.accentGradient.opacity(isValid && agreedToTerms && authViewModel.rateLimitSecondsRemaining == 0 ? 1 : 0.5),
                                         in: RoundedRectangle(cornerRadius: 16, style: .continuous)
                                     )
                             }
                             .buttonStyle(ScalePressStyle())
-                            .disabled(!isValid || !agreedToTerms)
+                            .disabled(!isValid || !agreedToTerms || authViewModel.rateLimitSecondsRemaining > 0)
                             .padding(.top, 10)
                         }
                         .padding(.horizontal, 24)

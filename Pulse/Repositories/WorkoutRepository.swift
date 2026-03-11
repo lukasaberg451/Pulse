@@ -95,7 +95,8 @@ class WorkoutRepository {
         exerciseId: UUID,
         setNumber: Int,
         reps: Int?,
-        weight: Double?
+        weight: Double?,
+        orderIndex: Int? = nil
     ) async throws -> WorkoutSet {
         struct InsertData: Encodable {
             let session_id: String
@@ -104,6 +105,7 @@ class WorkoutRepository {
             let reps: Int?
             let weight: Double?
             let completed: Bool
+            let order_index: Int?
         }
         
         let data = InsertData(
@@ -112,7 +114,8 @@ class WorkoutRepository {
             set_number: setNumber,
             reps: reps,
             weight: weight,
-            completed: false
+            completed: false,
+            order_index: orderIndex
         )
         
         let workoutSet: WorkoutSet = try await supabase
@@ -135,7 +138,8 @@ class WorkoutRepository {
         reps: Int?,
         weight: Double?,
         durationSeconds: Int?,
-        completed: Bool
+        completed: Bool,
+        orderIndex: Int? = nil
     ) async throws -> WorkoutSet {
         struct InsertData: Encodable {
             let id: String
@@ -146,6 +150,7 @@ class WorkoutRepository {
             let weight: Double?
             let duration_seconds: Int?
             let completed: Bool
+            let order_index: Int?
         }
         
         let data = InsertData(
@@ -156,7 +161,8 @@ class WorkoutRepository {
             reps: reps,
             weight: weight,
             duration_seconds: durationSeconds,
-            completed: completed
+            completed: completed,
+            order_index: orderIndex
         )
         
         let workoutSet: WorkoutSet = try await supabase
@@ -291,7 +297,7 @@ class WorkoutRepository {
         
         // Post notification to refresh UI
         NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
-        print("📅 Scheduled workout created and notification posted")
+        debugLog("📅 Scheduled workout created and notification posted")
         
         return scheduled
     }
@@ -338,14 +344,14 @@ class WorkoutRepository {
             try await deleteSession(id: sessionId)
         }
         
-        print("✅ Deleted scheduled workout and associated session")
+        debugLog("✅ Deleted scheduled workout and associated session")
     }
     
     // Delete local workout session from SwiftData
     @MainActor
     private func deleteLocalSession(id: UUID) async {
         guard let modelContext = WorkoutSyncService.shared.modelContext else {
-            print("⚠️ No model context available to delete local session")
+            debugLog("⚠️ No model context available to delete local session")
             return
         }
         
@@ -358,7 +364,7 @@ class WorkoutRepository {
             
             let sessions = try modelContext.fetch(descriptor)
             for session in sessions {
-                print("🗑️ Deleting local session: \(session.name) (ID: \(session.id))")
+                debugLog("🗑️ Deleting local session: \(session.name) (ID: \(session.id))")
                 modelContext.delete(session)
             }
             
@@ -366,9 +372,9 @@ class WorkoutRepository {
             
             // Post notification to refresh UI
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
-            print("📢 Posted workoutDataChanged notification")
+            debugLog("📢 Posted workoutDataChanged notification")
         } catch {
-            print("❌ Failed to delete local session: \(error)")
+            debugLog("❌ Failed to delete local session: \(error)")
         }
     }
 

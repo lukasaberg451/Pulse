@@ -52,7 +52,7 @@ class SubscriptionManager: ObservableObject {
             self.customerInfo = customerInfo
             updateProStatus(from: customerInfo)
         } catch {
-            print("RevenueCat login error: \(error.localizedDescription)")
+            debugLog("RevenueCat login error: \(error.localizedDescription)")
         }
     }
     
@@ -63,7 +63,7 @@ class SubscriptionManager: ObservableObject {
             self.customerInfo = customerInfo
             updateProStatus(from: customerInfo)
         } catch {
-            print("RevenueCat logout error: \(error.localizedDescription)")
+            debugLog("RevenueCat logout error: \(error.localizedDescription)")
         }
     }
     
@@ -82,7 +82,7 @@ class SubscriptionManager: ObservableObject {
             }
         } catch {
             errorMessage = error.localizedDescription
-            print("Error fetching offerings: \(error.localizedDescription)")
+            debugLog("Error fetching offerings: \(error.localizedDescription)")
         }
         isLoading = false
     }
@@ -100,7 +100,7 @@ class SubscriptionManager: ObservableObject {
             return !result.userCancelled
         } catch {
             errorMessage = error.localizedDescription
-            print("Purchase error: \(error.localizedDescription)")
+            debugLog("Purchase error: \(error.localizedDescription)")
             isLoading = false
             return false
         }
@@ -115,7 +115,7 @@ class SubscriptionManager: ObservableObject {
             updateProStatus(from: customerInfo)
         } catch {
             errorMessage = error.localizedDescription
-            print("Restore error: \(error.localizedDescription)")
+            debugLog("Restore error: \(error.localizedDescription)")
         }
         isLoading = false
     }
@@ -128,7 +128,7 @@ class SubscriptionManager: ObservableObject {
             self.customerInfo = customerInfo
             updateProStatus(from: customerInfo)
         } catch {
-            print("Error fetching customer info: \(error.localizedDescription)")
+            debugLog("Error fetching customer info: \(error.localizedDescription)")
         }
     }
     

@@ -435,7 +435,7 @@ struct ExerciseCard: View {
                     // Add set button
                     Button {
                         Task {
-                            await viewModel.addSet(exerciseId: exercise.id, targetSets: routineExercise.sets)
+                            await viewModel.addSet(exerciseId: exercise.id, targetSets: routineExercise.sets, orderIndex: routineExercise.orderIndex)
                         }
                     } label: {
                         HStack(spacing: 6) {

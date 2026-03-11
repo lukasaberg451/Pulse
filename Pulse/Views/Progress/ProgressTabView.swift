@@ -345,12 +345,6 @@ struct PRCard: View {
             }
 
             Spacer()
-
-            Image("chevron-right")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 13, height: 13)
-                .foregroundStyle(Color.appTertiaryText)
         }
         .padding(14)
         .background {

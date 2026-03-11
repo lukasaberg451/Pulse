@@ -30,9 +30,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             SentrySDK.start { options in
                 options.dsn = sentryDSN
                 options.debug = false
-                options.tracesSampleRate = 1.0
-                options.attachScreenshot = true
-                options.attachViewHierarchy = true
+                options.tracesSampleRate = 0.2
+                options.attachScreenshot = false
+                options.attachViewHierarchy = false
             }
         }
 
@@ -68,9 +68,12 @@ struct PulseApp: App {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var healthKitManager = HealthKitManager.shared
     @StateObject private var unitManager = UnitManager.shared
+
     @State private var showPasswordReset = false
     @State private var recoveryCode: IdentifiableString?
     @State private var showPostSignInGuide = false
+    @State private var showPostLoginLoading = false
+    @State private var showPostLogoutLoading = false
     @State private var selectedTab: HomeTab = .dashboard
     
     // SwiftData model container for offline support
@@ -117,9 +120,17 @@ struct PulseApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if authViewModel.isAuthenticated {
+                if authViewModel.isInitializing {
+                    Color("LoadingBackground")
+                        .ignoresSafeArea()
+                } else if authViewModel.isAuthenticated {
                     HomeView(authViewModel: authViewModel, selectedTab: $selectedTab)
                         .environmentObject(authViewModel)
+                        .overlay {
+                            if showPostLoginLoading {
+                                PostLoginLoadingView(isVisible: $showPostLoginLoading)
+                            }
+                        }
                         .overlay {
                             if showPostSignInGuide {
                                 PostSignInGuideView(isPresented: $showPostSignInGuide, selectedTab: $selectedTab)
@@ -144,10 +155,12 @@ struct PulseApp: App {
                 } else {
                     AuthSelectionView(authViewModel: authViewModel)
                         .environmentObject(authViewModel)
+                        .overlay {
+                            if showPostLogoutLoading {
+                                PostLoginLoadingView(isVisible: $showPostLogoutLoading)
+                            }
+                        }
                 }
-            }
-            .overlay {
-                SplashOverlay(isInitializing: authViewModel.isInitializing)
             }
             .id(authViewModel.isAuthenticated)
             .environmentObject(themeManager)
@@ -156,7 +169,17 @@ struct PulseApp: App {
             .environmentObject(healthKitManager)
             .environmentObject(unitManager)
             .preferredColorScheme(themeManager.selectedTheme.colorScheme)
-            .onChange(of: authViewModel.isAuthenticated) { _, isAuthenticated in
+            .onChange(of: authViewModel.isAuthenticated) { oldValue, isAuthenticated in
+                if !authViewModel.isInitializing {
+                    if isAuthenticated && !oldValue {
+                        // User just signed in
+                        selectedTab = .dashboard
+                        showPostLoginLoading = true
+                    } else if !isAuthenticated && oldValue {
+                        // User just signed out
+                        showPostLogoutLoading = true
+                    }
+                }
                 Task {
                     if isAuthenticated {
                         await subscriptionManager.syncUser()
@@ -184,9 +207,15 @@ struct PulseApp: App {
     }
     
     func handleDeepLink(_ url: URL) {
+        // Only process deep links from the expected host
+        guard url.host == "pulsefitness.io" || url.scheme == "Pulse" else { return }
+        
         if url.path.contains("reset-password") {
             let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-            if let code = components?.queryItems?.first(where: { $0.name == "code" })?.value {
+            if let code = components?.queryItems?.first(where: { $0.name == "code" })?.value,
+               !code.isEmpty,
+               code.count <= 256,
+               code.range(of: "^[A-Za-z0-9_\\-]+$", options: .regularExpression) != nil {
                 
                 // Mark that we're in recovery mode
                 UserDefaults.standard.set(true, forKey: "pendingPasswordReset")

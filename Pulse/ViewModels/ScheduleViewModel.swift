@@ -39,7 +39,7 @@ class ScheduleViewModel: ObservableObject {
             .sink { [weak self] _ in
                 Task { @MainActor [weak self] in
                     guard let self, !self.isSelfPosting else { return }
-                    print("📅 Schedule: Received workout data change notification, reloading...")
+                    debugLog("📅 Schedule: Received workout data change notification, reloading...")
                     await self.loadData()
                 }
             }
@@ -49,7 +49,7 @@ class ScheduleViewModel: ObservableObject {
         NotificationCenter.default.publisher(for: .routineDataChanged)
             .sink { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    print("📅 Schedule: Received routine data change notification, reloading...")
+                    debugLog("📅 Schedule: Received routine data change notification, reloading...")
                     await self?.loadData()
                 }
             }
@@ -106,7 +106,7 @@ class ScheduleViewModel: ObservableObject {
                 .value
             userProfile = profile
         } catch {
-            print("Failed to fetch user profile: \(error)")
+            debugLog("Failed to fetch user profile: \(error)")
         }
     }
     
@@ -136,7 +136,7 @@ class ScheduleViewModel: ObservableObject {
                             let exercise = try await exerciseRepository.fetchExercise(id: routineExercise.exerciseId)
                             exercises.append(exercise)
                         } catch {
-                            print("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
+                            debugLog("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
                         }
                     }
                 }

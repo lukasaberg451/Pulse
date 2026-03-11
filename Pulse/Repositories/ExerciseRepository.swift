@@ -63,6 +63,43 @@ class ExerciseRepository {
         return exercises
     }
     
+    private struct CreateCustomExercisePayload: Encodable {
+        let name: String
+        let exerciseType: String
+        let isCustom: Bool
+        let createdBy: String
+        
+        enum CodingKeys: String, CodingKey {
+            case name
+            case exerciseType = "exercise_type"
+            case isCustom = "is_custom"
+            case createdBy = "created_by"
+        }
+    }
+    
+    func createCustomExercise(name: String, exerciseType: String) async throws -> Exercise {
+        guard let userId = supabase.auth.currentUser?.id else {
+            throw NSError(domain: "ExerciseRepository", code: 401, userInfo: [NSLocalizedDescriptionKey: "Not authenticated"])
+        }
+        
+        let payload = CreateCustomExercisePayload(
+            name: name,
+            exerciseType: exerciseType,
+            isCustom: true,
+            createdBy: userId.uuidString
+        )
+        
+        let exercise: Exercise = try await supabase
+            .from("exercises")
+            .insert(payload)
+            .select()
+            .single()
+            .execute()
+            .value
+        
+        return exercise
+    }
+    
     func fetchExercise(id: UUID) async throws -> Exercise {
         let supabase = SupabaseManager.shared.client
         

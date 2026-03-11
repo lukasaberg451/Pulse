@@ -148,7 +148,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         
         // Check if we're resuming an interrupted session
         if let session = resumingSession {
-            print("📱 Resuming interrupted workout session: \(session.id)")
+            debugLog("📱 Resuming interrupted workout session: \(session.id)")
             currentSession = session
             startTime = session.startedAt
             
@@ -157,7 +157,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 let loadedSets = try offlineRepository.fetchSets(for: session)
                 sets = loadedSets
             } catch {
-                print("❌ Failed to load sets for resumed session: \(error)")
+                debugLog("❌ Failed to load sets for resumed session: \(error)")
             }
             
             // Filter routineExercises to only those that have sets in this session
@@ -211,7 +211,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             // Use the existing session ID from the scheduled workout
             // The session already exists in Supabase, so we just create a local copy
             // and mark it as already synced (no need to create it again in Supabase)
-            print("📱 Using existing workout session: \(existingSessionId)")
+            debugLog("📱 Using existing workout session: \(existingSessionId)")
             session = LocalWorkoutSession(
                 id: existingSessionId,
                 routineId: routine.id,
@@ -222,7 +222,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             try? modelContext.save()
         } else {
             // Create a new session (needs to be synced to Supabase)
-            print("📱 Creating new workout session")
+            debugLog("📱 Creating new workout session")
             session = offlineRepository.createSession(
                 name: routine.name,
                 routineId: routine.id
@@ -238,7 +238,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                     exerciseId: routineExercise.exerciseId,
                     setNumber: setNumber,
                     reps: nil,
-                    weight: nil
+                    weight: nil,
+                    orderIndex: routineExercise.orderIndex
                 )
                 sets.append(set)
             }
@@ -381,7 +382,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         sendCurrentExerciseToWatch()
     }
     
-    func addSet(exerciseId: UUID, targetSets: Int) async {
+    func addSet(exerciseId: UUID, targetSets: Int, orderIndex: Int? = nil) async {
         guard let session = currentSession else { return }
         
         let existingSets = sets.filter { $0.exerciseId == exerciseId }
@@ -392,7 +393,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             exerciseId: exerciseId,
             setNumber: nextSetNumber,
             reps: nil,
-            weight: nil
+            weight: nil,
+            orderIndex: orderIndex
         )
         sets.append(newSet)
     }
@@ -407,11 +409,11 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         let durationSeconds = Int(Date().timeIntervalSince(startTime))
         
         offlineRepository.completeSession(session, durationSeconds: durationSeconds)
-        print("✅ Workout completed locally")
+        debugLog("✅ Workout completed locally")
         
         // Sync completed workout to Supabase if online
         if syncService.isOnline {
-            print("🔄 Syncing completed workout to Supabase...")
+            debugLog("🔄 Syncing completed workout to Supabase...")
             
             // Wait for any in-progress sync to finish before starting ours
             // (completeSession may have triggered a background sync)
@@ -427,9 +429,9 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                         id: scheduledWorkoutId,
                         sessionId: session.id
                     )
-                    print("✅ Marked scheduled workout \(scheduledWorkoutId) as completed")
+                    debugLog("✅ Marked scheduled workout \(scheduledWorkoutId) as completed")
                 } catch {
-                    print("❌ Failed to mark scheduled workout as completed: \(error)")
+                    debugLog("❌ Failed to mark scheduled workout as completed: \(error)")
                 }
             } else {
                 // Non-scheduled workout: create a completed scheduled entry so it appears on the calendar
@@ -443,22 +445,22 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                         date: Date(),
                         timeZone: userTimeZone
                     )
-                    print("✅ Created completed scheduled entry for non-scheduled workout")
+                    debugLog("✅ Created completed scheduled entry for non-scheduled workout")
                 } catch {
-                    print("❌ Failed to create scheduled entry: \(error)")
+                    debugLog("❌ Failed to create scheduled entry: \(error)")
                 }
             }
             
             // Post notification to refresh UI
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
-            print("📢 Posted workoutDataChanged notification")
+            debugLog("📢 Posted workoutDataChanged notification")
         } else {
             // If offline, mark scheduled workout locally to be synced later
             if let scheduledWorkoutId = scheduledWorkoutId {
-                print("📱 Offline - will mark scheduled workout \(scheduledWorkoutId) as completed when back online")
+                debugLog("📱 Offline - will mark scheduled workout \(scheduledWorkoutId) as completed when back online")
                 // TODO: Add offline scheduled workout completion tracking
             }
-            print("📱 Offline - workout will sync when back online")
+            debugLog("📱 Offline - workout will sync when back online")
         }
         
         // Save to HealthKit
@@ -482,7 +484,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         
         // Delete the session - no need to sync cancelled workouts
         offlineRepository.deleteSession(session)
-        print("🗑️ Cancelled workout - deleted local session without syncing")
+        debugLog("🗑️ Cancelled workout - deleted local session without syncing")
         
         WorkoutSyncManager.shared.sendWorkoutEnded()
     }
@@ -517,7 +519,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
               }) else {
             // No more exercises - send completion signal to watch
             // We'll send the last exercise data but with currentSet > totalSets
-            print("📱 All exercises completed - sending completion signal to watch")
+            debugLog("📱 All exercises completed - sending completion signal to watch")
             
             // Get the last exercise from the original list
             if let lastRoutineExercise = originalRoutineExercises.last,

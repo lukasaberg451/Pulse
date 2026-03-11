@@ -111,6 +111,12 @@ struct ResetPasswordInAppView: View {
                                         }
                                 }
                                 .textContentType(.newPassword)
+                            
+                            if !newPassword.isEmpty {
+                                Text("Must be at least 8 characters with uppercase, lowercase, and number")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.appTertiaryText)
+                            }
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
@@ -190,7 +196,11 @@ struct ResetPasswordInAppView: View {
     }
     
     var isValid: Bool {
-        !newPassword.isEmpty && newPassword.count >= 6 && newPassword == confirmPassword
+        newPassword.count >= 8 &&
+        newPassword.range(of: "[A-Z]", options: .regularExpression) != nil &&
+        newPassword.range(of: "[a-z]", options: .regularExpression) != nil &&
+        newPassword.range(of: "[0-9]", options: .regularExpression) != nil &&
+        newPassword == confirmPassword
     }
     
     func exchangeCodeForSession() async {

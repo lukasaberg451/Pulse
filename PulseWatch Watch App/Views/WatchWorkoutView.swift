@@ -171,25 +171,6 @@ struct WatchWorkoutView: View {
                         }
                         .padding(.horizontal, 8)
                     }
-                } else if !syncManager.isProUser {
-                    // Upgrade required
-                    VStack(spacing: 8) {
-                        Image("lock-closed")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 28, height: 28)
-                            .foregroundStyle(Color.appAccent)
-                            .padding(.top, 20)
-                        
-                        Text("Pro Feature")
-                            .font(.footnote)
-                            .fontWeight(.semibold)
-                        
-                        Text("Upgrade to Pro in the Pulse app on iPhone to use Apple Watch.")
-                            .font(.caption2)
-                            .foregroundStyle(.gray)
-                            .multilineTextAlignment(.center)
-                    }
                 } else {
                     // Not connected or no workout
                     VStack(spacing: 8) {
@@ -213,30 +194,30 @@ struct WatchWorkoutView: View {
             .padding(.horizontal, 8)
         }
         .onAppear {
-            print("⌚ WatchWorkoutView appeared")
+            debugLog("⌚ WatchWorkoutView appeared")
             let context = WCSession.default.applicationContext
             if !context.isEmpty {
-                print("⌚ Found existing context: \(context)")
+                debugLog("⌚ Found existing context: \(context)")
                 updateWorkoutData(context)
             }
         }
         .onDisappear {
-            print("⌚ WatchWorkoutView disappeared")
+            debugLog("⌚ WatchWorkoutView disappeared")
             stopRestTimer()
             stopDurationTimer()
         }
         .onChange(of: syncManager.isReachable) { oldValue, newValue in
-            print("⌚ Reachability changed to: \(newValue)")
+            debugLog("⌚ Reachability changed to: \(newValue)")
             if newValue {
                 let context = WCSession.default.applicationContext
                 if !context.isEmpty {
-                    print("⌚ Updating from context after reachability change")
+                    debugLog("⌚ Updating from context after reachability change")
                     updateWorkoutData(context)
                 }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("WorkoutDataReceived"))) { notification in
-            print("⌚ Received WorkoutDataReceived notification")
+            debugLog("⌚ Received WorkoutDataReceived notification")
             if let data = notification.userInfo as? [String: Any] {
                 updateWorkoutData(data)
             }
@@ -252,7 +233,7 @@ struct WatchWorkoutView: View {
         }
         .onChange(of: syncManager.restTimerStoppedFromPhone) { _, newValue in
             if newValue {
-                print("⌚ Rest timer stopped from phone (via @Published)")
+                debugLog("⌚ Rest timer stopped from phone (via @Published)")
                 stopRestTimer()
                 syncManager.restTimerStoppedFromPhone = false
             }
@@ -260,26 +241,26 @@ struct WatchWorkoutView: View {
     }
     
     func updateWorkoutData(_ data: [String: Any]) {
-        print("⌚ ========== UPDATE WORKOUT DATA ==========")
-        print("⌚ Received data keys: \(data.keys.sorted())")
-        print("⌚ Full data: \(data)")
+        debugLog("⌚ ========== UPDATE WORKOUT DATA ==========")
+        debugLog("⌚ Received data keys: \(data.keys.sorted())")
+        debugLog("⌚ Full data: \(data)")
         
         // Check if rest was started from phone
         if data["restStarted"] as? Bool == true, let duration = data["restDuration"] as? Int {
-            print("⌚ Rest started from phone - starting rest timer for \(duration)s")
+            debugLog("⌚ Rest started from phone - starting rest timer for \(duration)s")
             restSeconds = duration
             startRestTimer()
         }
         
         // Check if rest was stopped from phone
         if data["restStopped"] as? Bool == true {
-            print("⌚ Rest stopped from phone - dismissing rest timer")
+            debugLog("⌚ Rest stopped from phone - dismissing rest timer")
             stopRestTimer()
         }
         
         // Check if workout ended
         if data["workoutEnded"] as? Bool == true {
-            print("⌚ Workout ended - resetting all data")
+            debugLog("⌚ Workout ended - resetting all data")
             currentExerciseName = "No active workout"
             totalSets = 0
             targetReps = ""
@@ -295,66 +276,66 @@ struct WatchWorkoutView: View {
         
         // Update exercise details
         if let exerciseName = data["currentExercise"] as? String {
-            print("⌚ Setting exercise name: \(exerciseName)")
+            debugLog("⌚ Setting exercise name: \(exerciseName)")
             currentExerciseName = exerciseName
         } else {
-            print("⌚ WARNING: No currentExercise in data")
+            debugLog("⌚ WARNING: No currentExercise in data")
         }
         
         if let sets = data["sets"] as? Int {
-            print("⌚ Setting total sets: \(sets)")
+            debugLog("⌚ Setting total sets: \(sets)")
             totalSets = sets
         } else {
-            print("⌚ WARNING: No sets in data")
+            debugLog("⌚ WARNING: No sets in data")
         }
         
         if let reps = data["reps"] as? String {
-            print("⌚ Setting target reps: '\(reps)'")
+            debugLog("⌚ Setting target reps: '\(reps)'")
             targetReps = reps
         } else if let repsInt = data["reps"] as? Int {
-            print("⌚ Setting target reps from Int: '\(repsInt)'")
+            debugLog("⌚ Setting target reps from Int: '\(repsInt)'")
             targetReps = "\(repsInt)"
         } else {
-            print("⌚ WARNING: No reps in data or wrong type, value: \(String(describing: data["reps"]))")
+            debugLog("⌚ WARNING: No reps in data or wrong type, value: \(String(describing: data["reps"]))")
         }
         
         if let weight = data["weight"] as? Double {
-            print("⌚ Setting target weight: \(weight)")
+            debugLog("⌚ Setting target weight: \(weight)")
             targetWeight = weight
         } else if let weightInt = data["weight"] as? Int {
-            print("⌚ Setting target weight from Int: \(weightInt)")
+            debugLog("⌚ Setting target weight from Int: \(weightInt)")
             targetWeight = Double(weightInt)
         } else {
-            print("⌚ WARNING: No weight in data or wrong type, value: \(String(describing: data["weight"]))")
+            debugLog("⌚ WARNING: No weight in data or wrong type, value: \(String(describing: data["weight"]))")
         }
         
         if let type = data["exerciseType"] as? String {
-            print("⌚ Setting exercise type: \(type)")
+            debugLog("⌚ Setting exercise type: \(type)")
             exerciseType = type
         } else {
-            print("⌚ WARNING: No exerciseType in data, defaulting to strength")
+            debugLog("⌚ WARNING: No exerciseType in data, defaulting to strength")
             exerciseType = "strength"
         }
         
         if let duration = data["durationSeconds"] as? Int {
-            print("⌚ Setting target duration: \(duration)s")
+            debugLog("⌚ Setting target duration: \(duration)s")
             targetDuration = duration
         } else {
             targetDuration = 0
         }
         
         if let rest = data["rest"] as? Int {
-            print("⌚ Setting rest seconds: \(rest)")
+            debugLog("⌚ Setting rest seconds: \(rest)")
             restSeconds = rest
         } else {
-            print("⌚ WARNING: No rest in data")
+            debugLog("⌚ WARNING: No rest in data")
         }
         
         if let setNumber = data["currentSet"] as? Int {
-            print("⌚ Setting current set: \(setNumber)")
+            debugLog("⌚ Setting current set: \(setNumber)")
             currentSet = setNumber
         } else {
-            print("⌚ WARNING: No currentSet in data, defaulting to 1")
+            debugLog("⌚ WARNING: No currentSet in data, defaulting to 1")
             currentSet = 1
         }
         
@@ -362,26 +343,26 @@ struct WatchWorkoutView: View {
         if let startTimeInterval = data["workoutStartTime"] as? TimeInterval {
             // Use the phone's actual start time so timers stay in sync
             let phoneStartTime = Date(timeIntervalSince1970: startTimeInterval)
-            print("⌚ Setting workout start time from phone: \(phoneStartTime)")
+            debugLog("⌚ Setting workout start time from phone: \(phoneStartTime)")
             workoutStartTime = phoneStartTime
             workoutDuration = Date().timeIntervalSince(phoneStartTime)
             startDurationTimer()
         } else if let workoutStarted = data["workoutStarted"] as? Bool, workoutStarted {
             // Fallback if no start time provided
-            print("⌚ New workout detected without start time - using current time")
+            debugLog("⌚ New workout detected without start time - using current time")
             workoutStartTime = Date()
             workoutDuration = 0
             startDurationTimer()
         }
         
-        print("⌚ ========== STATE AFTER UPDATE ==========")
-        print("⌚ Exercise: '\(currentExerciseName)'")
-        print("⌚ Set: \(currentSet)/\(totalSets)")
-        print("⌚ Weight: \(targetWeight) kg")
-        print("⌚ Reps: '\(targetReps)'")
-        print("⌚ Rest: \(restSeconds) seconds")
-        print("⌚ UI should show: \(syncManager.isReachable && totalSets > 0 ? "WORKOUT VIEW" : "NO WORKOUT")")
-        print("⌚ ========================================")
+        debugLog("⌚ ========== STATE AFTER UPDATE ==========")
+        debugLog("⌚ Exercise: '\(currentExerciseName)'")
+        debugLog("⌚ Set: \(currentSet)/\(totalSets)")
+        debugLog("⌚ Weight: \(targetWeight) kg")
+        debugLog("⌚ Reps: '\(targetReps)'")
+        debugLog("⌚ Rest: \(restSeconds) seconds")
+        debugLog("⌚ UI should show: \(syncManager.isReachable && totalSets > 0 ? "WORKOUT VIEW" : "NO WORKOUT")")
+        debugLog("⌚ ========================================")
     }
     
     func logSetAndStartRest() {
@@ -429,13 +410,13 @@ struct WatchWorkoutView: View {
     
     func sendSetCompleted() {
         guard let session = WCSession.default as WCSession?, session.isReachable else {
-            print("⌚ Cannot send - not reachable")
+            debugLog("⌚ Cannot send - not reachable")
             return
         }
         
         guard let workoutData = WorkoutSyncManager.shared.currentWorkoutData,
               let exerciseIdString = workoutData["exerciseId"] as? String else {
-            print("⌚ No exercise ID available")
+            debugLog("⌚ No exercise ID available")
             return
         }
         
@@ -450,10 +431,10 @@ struct WatchWorkoutView: View {
             message["completedSet_durationSeconds"] = targetDuration
         }
         
-        print("⌚ Sending completed set: \(message)")
+        debugLog("⌚ Sending completed set: \(message)")
         
         session.sendMessage(message, replyHandler: nil) { error in
-            print("⌚ Error sending set: \(error.localizedDescription)")
+            debugLog("⌚ Error sending set: \(error.localizedDescription)")
         }
     }
     
@@ -469,7 +450,7 @@ struct WatchWorkoutView: View {
         // Stop any existing timer first
         stopDurationTimer()
         
-        print("⌚ Starting duration timer")
+        debugLog("⌚ Starting duration timer")
         
         // Update immediately first
         if let startTime = workoutStartTime {
@@ -479,7 +460,7 @@ struct WatchWorkoutView: View {
         // Then schedule regular updates
         durationTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [self] _ in
             guard let startTime = self.workoutStartTime else {
-                print("⌚ Warning: No start time available")
+                debugLog("⌚ Warning: No start time available")
                 return
             }
             self.workoutDuration = Date().timeIntervalSince(startTime)
@@ -487,7 +468,7 @@ struct WatchWorkoutView: View {
     }
 
     func stopDurationTimer() {
-        print("⌚ Stopping duration timer")
+        debugLog("⌚ Stopping duration timer")
         durationTimer?.invalidate()
         durationTimer = nil
     }

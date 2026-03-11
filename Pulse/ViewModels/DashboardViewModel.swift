@@ -44,7 +44,7 @@ class DashboardViewModel: ObservableObject {
         NotificationCenter.default.publisher(for: .workoutDataChanged)
             .sink { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    print("📢 Received workout data change notification, reloading...")
+                    debugLog("📢 Received workout data change notification, reloading...")
                     await self?.refreshAll(includeInsights: true)
                 }
             }
@@ -99,7 +99,7 @@ class DashboardViewModel: ObservableObject {
                             let exercise = try await exerciseRepository.fetchExercise(id: routineExercise.exerciseId)
                             exercises.append(exercise)
                         } catch {
-                            print("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
+                            debugLog("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
                         }
                     }
                 }
@@ -123,7 +123,7 @@ class DashboardViewModel: ObservableObject {
             
             //Load recently completed (last 5)
             let allSessions = try await workoutRepository.fetchSessions()
-            print("📊 Loaded \(allSessions.count) total sessions from server")
+            debugLog("📊 Loaded \(allSessions.count) total sessions from server")
             
             // Build session lookup for today's workouts
             let todaySessionIds = Set(todaysWorkouts.compactMap { $0.workoutSessionId })
@@ -132,9 +132,9 @@ class DashboardViewModel: ObservableObject {
             }
             
             recentSessions = Array(allSessions.filter { $0.completedAt != nil}.prefix(5))
-            print("📊 Filtered to \(recentSessions.count) recent completed sessions")
+            debugLog("📊 Filtered to \(recentSessions.count) recent completed sessions")
             if !recentSessions.isEmpty {
-                print("📊 Recent sessions: \(recentSessions.map { "\($0.name) (ID: \($0.id))" }.joined(separator: ", "))")
+                debugLog("📊 Recent sessions: \(recentSessions.map { "\($0.name) (ID: \($0.id))" }.joined(separator: ", "))")
             }
             
         } catch {
@@ -209,7 +209,7 @@ class DashboardViewModel: ObservableObject {
             
             userProfile = profile
         } catch {
-            print("Failed to fetch user profile: \(error)")
+            debugLog("Failed to fetch user profile: \(error)")
         }
     }
     
@@ -246,7 +246,7 @@ class DashboardViewModel: ObservableObject {
                 weeklyGoalMinutes = profile.weeklyGoalMinutes ?? 150
             }
         } catch {
-            print("Failed to load weekly progress: \(error)")
+            debugLog("Failed to load weekly progress: \(error)")
         }
     }
 
@@ -331,7 +331,7 @@ class DashboardViewModel: ObservableObject {
             bestStreak = maxStreak
             
         } catch {
-            print("Failed to calculate streak: \(error)")
+            debugLog("Failed to calculate streak: \(error)")
             currentStreak = 0
             bestStreak = 0
         }
@@ -404,7 +404,7 @@ class DashboardViewModel: ObservableObject {
             latestPR = personalRecords.sorted { $0.date > $1.date }.first
             
         } catch {
-            print("Failed to load latest PR: \(error)")
+            debugLog("Failed to load latest PR: \(error)")
             latestPR = nil
         }
     }
@@ -429,7 +429,7 @@ class DashboardViewModel: ObservableObject {
             // Reload profile
             await fetchUserProfile()
         } catch {
-            print("Failed to update weekly goal: \(error)")
+            debugLog("Failed to update weekly goal: \(error)")
         }
     }
     

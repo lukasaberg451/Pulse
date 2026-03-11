@@ -43,15 +43,16 @@ struct WorkoutSummaryView: View {
     }
     
     private var groupedSets: [(exercise: Exercise, sets: [LocalWorkoutSet])] {
-        var seen: [UUID] = []
+        var seen: [(id: UUID, orderIndex: Int)] = []
         for set in sets {
-            if !seen.contains(set.exerciseId) {
-                seen.append(set.exerciseId)
+            if !seen.contains(where: { $0.id == set.exerciseId }) {
+                seen.append((id: set.exerciseId, orderIndex: set.orderIndex ?? Int.max))
             }
         }
-        return seen.compactMap { exerciseId in
-            guard let exercise = exercises.first(where: { $0.id == exerciseId }) else { return nil }
-            let exerciseSets = sets.filter { $0.exerciseId == exerciseId }.sorted { $0.setNumber < $1.setNumber }
+        let sorted = seen.sorted { $0.orderIndex < $1.orderIndex }
+        return sorted.compactMap { item in
+            guard let exercise = exercises.first(where: { $0.id == item.id }) else { return nil }
+            let exerciseSets = sets.filter { $0.exerciseId == item.id }.sorted { $0.setNumber < $1.setNumber }
             return (exercise: exercise, sets: exerciseSets)
         }
     }

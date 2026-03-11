@@ -62,7 +62,7 @@ class OfflineExerciseRepository {
             do {
                 return try await fetchAndCacheRoutines()
             } catch {
-                print("⚠️ Failed to fetch routines from Supabase, falling back to cache: \(error)")
+                debugLog("⚠️ Failed to fetch routines from Supabase, falling back to cache: \(error)")
                 return try fetchLocalRoutines()
             }
         }
@@ -76,7 +76,7 @@ class OfflineExerciseRepository {
             do {
                 return try await fetchAndCacheRoutineExercises(routineId: routineId)
             } catch {
-                print("⚠️ Failed to fetch routine exercises from Supabase, falling back to cache: \(error)")
+                debugLog("⚠️ Failed to fetch routine exercises from Supabase, falling back to cache: \(error)")
                 return try fetchLocalRoutineExercises(routineId: routineId)
             }
         }
@@ -86,7 +86,7 @@ class OfflineExerciseRepository {
     
     /// Fetch routines from Supabase and cache them
     func fetchAndCacheRoutines() async throws -> [Routine] {
-        print("🔄 Fetching routines from Supabase...")
+        debugLog("🔄 Fetching routines from Supabase...")
         
         let routines: [Routine] = try await supabase
             .from("routines")
@@ -95,7 +95,7 @@ class OfflineExerciseRepository {
             .execute()
             .value
         
-        print("✅ Fetched \(routines.count) routines from Supabase")
+        debugLog("✅ Fetched \(routines.count) routines from Supabase")
         
         // Cache them locally
         for routine in routines {
@@ -114,14 +114,14 @@ class OfflineExerciseRepository {
         }
         
         try modelContext.save()
-        print("✅ Cached \(routines.count) routines locally")
+        debugLog("✅ Cached \(routines.count) routines locally")
         
         return routines
     }
     
     /// Fetch routine exercises from Supabase and cache them
     func fetchAndCacheRoutineExercises(routineId: UUID) async throws -> [RoutineExercise] {
-        print("🔄 Fetching routine exercises for \(routineId)...")
+        debugLog("🔄 Fetching routine exercises for \(routineId)...")
         
         let routineExercises: [RoutineExercise] = try await supabase
             .from("routine_exercises")
@@ -131,7 +131,7 @@ class OfflineExerciseRepository {
             .execute()
             .value
         
-        print("✅ Fetched \(routineExercises.count) routine exercises")
+        debugLog("✅ Fetched \(routineExercises.count) routine exercises")
         
         // Cache them locally
         for routineExercise in routineExercises {
@@ -154,13 +154,13 @@ class OfflineExerciseRepository {
                 do {
                     _ = try await getExercise(id: routineExercise.exerciseId)
                 } catch {
-                    print("⚠️ Failed to cache exercise \(routineExercise.exerciseId): \(error)")
+                    debugLog("⚠️ Failed to cache exercise \(routineExercise.exerciseId): \(error)")
                 }
             }
         }
         
         try modelContext.save()
-        print("✅ Cached \(routineExercises.count) routine exercises locally")
+        debugLog("✅ Cached \(routineExercises.count) routine exercises locally")
         
         return routineExercises
     }

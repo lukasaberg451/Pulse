@@ -23,18 +23,18 @@ class DataMigrationHelper {
         // Check if we've already migrated
         let hasMigrated = UserDefaults.standard.bool(forKey: "hasMigratedWorkoutsToSwiftData")
         guard !hasMigrated else {
-            print("ℹ️ Workouts already migrated")
+            debugLog("ℹ️ Workouts already migrated")
             return
         }
         
-        print("🔄 Starting workout migration...")
+        debugLog("🔄 Starting workout migration...")
         
         do {
             // Fetch recent sessions from Supabase (limit to last 30 days to avoid long migration)
             let sessions = try await repository.fetchSessions()
             let recentSessions = Array(sessions.prefix(50)) // Only migrate 50 most recent
             
-            print("🔄 Migrating \(recentSessions.count) workouts...")
+            debugLog("🔄 Migrating \(recentSessions.count) workouts...")
             
             for session in recentSessions {
                 // Check if session already exists locally
@@ -63,9 +63,9 @@ class DataMigrationHelper {
             // Mark as migrated
             UserDefaults.standard.set(true, forKey: "hasMigratedWorkoutsToSwiftData")
             
-            print("✅ Successfully migrated \(recentSessions.count) workouts")
+            debugLog("✅ Successfully migrated \(recentSessions.count) workouts")
         } catch {
-            print("❌ Migration failed: \(error)")
+            debugLog("❌ Migration failed: \(error)")
             throw error
         }
     }
@@ -84,7 +84,7 @@ class DataMigrationHelper {
         // Reset migration flag
         UserDefaults.standard.set(false, forKey: "hasMigratedWorkoutsToSwiftData")
         
-        print("🗑️ Cleared all local workout data")
+        debugLog("🗑️ Cleared all local workout data")
     }
     
     /// Get migration status for debugging

@@ -23,8 +23,12 @@ class AuthViewModel: ObservableObject{
     @Published var registrationSuccess = false
     @Published var errorMessage: String?
     @Published var showRecoveryPrompt = false
+    @Published var rateLimitSecondsRemaining: Int = 0
     
     private let supabase = SupabaseManager.shared.client
+    private var failedAttempts = 0
+    private var lockedUntil: Date?
+    private var rateLimitTimer: Task<Void, Never>?
     
     init() {
             // Restore session on init
@@ -49,7 +53,7 @@ class AuthViewModel: ObservableObject{
                 
                 // Check if session is expired
                 if session.isExpired {
-                    print("⚠️ Session is expired, signing out")
+                    debugLog("⚠️ Session is expired, signing out")
                     self.session = nil
                     self.isAuthenticated = false
                     try? await supabase.auth.signOut()
@@ -60,7 +64,7 @@ class AuthViewModel: ObservableObject{
                 self.isAuthenticated = true
                 await fetchUserProfile()
             } catch {
-                print("❌ No existing session: \(error.localizedDescription)")
+                debugLog("❌ No existing session: \(error.localizedDescription)")
                 self.isAuthenticated = false
             }
         }
@@ -71,7 +75,7 @@ class AuthViewModel: ObservableObject{
             
             // Check if session is expired
             if current.isExpired {
-                print("⚠️ Session is expired")
+                debugLog("⚠️ Session is expired")
                 self.session = nil
                 self.isAuthenticated = false
                 return
@@ -80,13 +84,54 @@ class AuthViewModel: ObservableObject{
             self.session = current
             self.isAuthenticated = true
         } catch {
-            print("No active session: \(error.localizedDescription)")
+            debugLog("No active session: \(error.localizedDescription)")
             self.session = nil
             self.isAuthenticated = false
         }
     }
     
+    // MARK: - Rate Limiting
+    
+    /// Returns true if the user is currently locked out due to too many failed attempts.
+    var isRateLimited: Bool {
+        if let lockedUntil, Date() < lockedUntil {
+            return true
+        }
+        return false
+    }
+    
+    /// Call after a failed auth attempt to enforce progressive backoff.
+    private func recordFailedAttempt() {
+        failedAttempts += 1
+        // Backoff: 2s, 4s, 8s, 16s, capped at 30s
+        let delay = min(Int(pow(2.0, Double(failedAttempts))), 30)
+        lockedUntil = Date().addingTimeInterval(TimeInterval(delay))
+        rateLimitSecondsRemaining = delay
+        
+        rateLimitTimer?.cancel()
+        rateLimitTimer = Task { @MainActor in
+            while rateLimitSecondsRemaining > 0 {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                if Task.isCancelled { return }
+                rateLimitSecondsRemaining -= 1
+            }
+            lockedUntil = nil
+        }
+    }
+    
+    /// Call after a successful auth to reset the counter.
+    private func resetRateLimit() {
+        failedAttempts = 0
+        lockedUntil = nil
+        rateLimitSecondsRemaining = 0
+        rateLimitTimer?.cancel()
+    }
+    
     func signUp(email: String, password: String, firstName: String, lastName: String) async {
+        guard !isRateLimited else {
+            errorMessage = "Too many attempts. Please wait \(rateLimitSecondsRemaining)s."
+            return
+        }
         
         isRegistering = true
         registrationSuccess = false
@@ -105,27 +150,21 @@ class AuthViewModel: ObservableObject{
             
             self.session = result.session
             registrationSuccess = true
+            resetRateLimit()
             
             // Track successful sign-up with PostHog
             PostHogSDK.shared.capture("sign_up_successful", properties: [
                 "user_id": result.user.id.uuidString as Any,
-                "email": email as Any,
-                "first_name": firstName as Any,
-                "last_name": lastName as Any,
                 "timestamp": Date().ISO8601Format() as Any
             ])
-            PostHogSDK.shared.identify(result.user.id.uuidString, userProperties: [
-                "email": email as Any,
-                "first_name": firstName as Any,
-                "last_name": lastName as Any
-            ])
+            PostHogSDK.shared.identify(result.user.id.uuidString)
             
         } catch let error as AuthError {
-            
+            recordFailedAttempt()
             errorMessage = error.localizedDescription
             registrationSuccess = false
         } catch {
-    
+            recordFailedAttempt()
             errorMessage = "Registration failed: \(error.localizedDescription)"
             registrationSuccess = false
         }
@@ -134,6 +173,11 @@ class AuthViewModel: ObservableObject{
     }
     
     func signIn(email: String, password: String) async {
+        guard !isRateLimited else {
+            errorMessage = "Too many attempts. Please wait \(rateLimitSecondsRemaining)s."
+            return
+        }
+        
         isLoading = true
         errorMessage = nil
         
@@ -152,6 +196,7 @@ class AuthViewModel: ObservableObject{
             
             self.session = result
             self.isAuthenticated = true
+            resetRateLimit()
             
             // Sync RevenueCat user identity
             await SubscriptionManager.shared.syncUser()
@@ -159,23 +204,24 @@ class AuthViewModel: ObservableObject{
             // Track successful sign-in with PostHog
             PostHogSDK.shared.capture("sign_in_successful", properties: [
                 "user_id": result.user.id.uuidString as Any,
-                "email": email as Any,
                 "timestamp": Date().ISO8601Format() as Any
             ])
             PostHogSDK.shared.identify(result.user.id.uuidString)
             
             await fetchUserProfile()
         } catch let error as AuthError {
+            recordFailedAttempt()
             // Generic error message to prevent email enumeration
             self.errorMessage = "Invalid email or password. Please try again."
             self.session = nil
             self.isAuthenticated = false
-            print("Sign in failed: \(error.localizedDescription)")
+            debugLog("Sign in failed: \(error.localizedDescription)")
         } catch {
+            recordFailedAttempt()
             self.errorMessage = "An error occurred. Please try again."
             self.session = nil
             self.isAuthenticated = false
-            print("Sign in failed: \(error.localizedDescription)")
+            debugLog("Sign in failed: \(error.localizedDescription)")
         }
         
         isLoading = false
@@ -188,7 +234,7 @@ class AuthViewModel: ObservableObject{
             self.isAuthenticated = false
             self.userProfile = nil
         } catch{
-            print("Sign-out failed: \(error.localizedDescription)")
+            debugLog("Sign-out failed: \(error.localizedDescription)")
         }
     }
     
@@ -202,7 +248,7 @@ class AuthViewModel: ObservableObject{
             return true
         } catch {
             errorMessage = "Failed to delete account: \(error.localizedDescription)"
-            print("Account deletion failed: \(error.localizedDescription)")
+            debugLog("Account deletion failed: \(error.localizedDescription)")
             return false
         }
     }
@@ -232,7 +278,7 @@ class AuthViewModel: ObservableObject{
                     .execute()
             }
         } catch {
-            print("Failed to fetch profile: \(error.localizedDescription)")
+            debugLog("Failed to fetch profile: \(error.localizedDescription)")
         }
     }
     var firstName: String {
@@ -242,22 +288,35 @@ class AuthViewModel: ObservableObject{
     
     func changeEmail(newEmail: String, password: String) async -> Bool {
         do {
+            // Re-authenticate with current password before allowing email change
+            guard let currentEmail = session?.user.email else {
+                errorMessage = "Unable to verify current session."
+                return false
+            }
+            _ = try await supabase.auth.signIn(email: currentEmail, password: password)
+            
             try await supabase.auth.update(
                 user: UserAttributes(email: newEmail)
             )
             
             return true
         } catch {
-            errorMessage = "Failed to change email: \(error.localizedDescription)"
+            errorMessage = "Incorrect password or failed to change email."
             return false
         }
     }
     
     func resetPassword(email: String) async -> Bool {
+        guard !isRateLimited else {
+            errorMessage = "Too many attempts. Please wait \(rateLimitSecondsRemaining)s."
+            return false
+        }
+        
         do {
             try await supabase.auth.resetPasswordForEmail(email)
             return true
         } catch {
+            recordFailedAttempt()
             errorMessage = "Failed to send reset email: \(error.localizedDescription)"
             return false
         }
@@ -337,7 +396,7 @@ class AuthViewModel: ObservableObject{
             self.errorMessage = "Sign in with Apple failed. Please try again."
             self.session = nil
             self.isAuthenticated = false
-            print("Sign in with Apple failed: \(error.localizedDescription)")
+            debugLog("Sign in with Apple failed: \(error.localizedDescription)")
         }
         
         isLoading = false

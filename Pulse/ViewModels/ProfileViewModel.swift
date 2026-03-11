@@ -56,7 +56,7 @@ class ProfileViewModel: ObservableObject {
                 await updateTimezone(TimeZone.current.identifier)
             }
         } catch {
-            print("Failed to load profile: \(error)")
+            debugLog("Failed to load profile: \(error)")
         }
         
         isLoading = false
@@ -87,7 +87,7 @@ class ProfileViewModel: ObservableObject {
             
             self.profile = updatedProfile
         } catch {
-            print("Failed to update timezone: \(error)")
+            debugLog("Failed to update timezone: \(error)")
         }
     }
     
@@ -109,7 +109,7 @@ class ProfileViewModel: ObservableObject {
             
             await loadProfile()
         } catch {
-            print("Failed to update unit system: \(error)")
+            debugLog("Failed to update unit system: \(error)")
         }
     }
     
@@ -131,7 +131,7 @@ class ProfileViewModel: ObservableObject {
             // Reload profile
             await loadProfile()
         } catch {
-            print("Failed to update profile: \(error)")
+            debugLog("Failed to update profile: \(error)")
         }
     }
     

@@ -19,7 +19,7 @@ struct ProfileView: View {
     @State private var showingDeleteConfirmation = false
     @State private var isDeletingAccount = false
     @State private var showingFeedbackSheet = false
-    @State private var showingLanguageSheet = false
+
     @State private var showingChangeEmailSheet = false
     @State private var showingSubscriptionSheet = false
     @State private var showingTimezoneSheet = false
@@ -156,13 +156,6 @@ struct ProfileView: View {
                                     // Appearance
                                     ProfileSettingsRow(icon: "paint-brush", title: "Appearance", value: themeManager.selectedTheme.rawValue) {
                                         showingThemeSheet = true
-                                    }
-                                    
-                                    ProfileDivider()
-                                    
-                                    // Language
-                                    ProfileSettingsRow(icon: "globe-alt", title: "Language", value: LanguageManager.shared.getCurrentLanguageName()) {
-                                        showingLanguageSheet = true
                                     }
                                     
                                     ProfileDivider()
@@ -400,9 +393,6 @@ struct ProfileView: View {
             .sheet(isPresented: $showingFeedbackSheet) {
                 FeedbackSheet(viewModel: viewModel)
             }
-            .sheet(isPresented: $showingLanguageSheet) {
-                LanguageSelectionSheet()
-            }
             .sheet(isPresented: $showingChangeEmailSheet) {
                 ChangeEmailSheet(
                         authViewModel: authViewModel,
@@ -616,6 +606,7 @@ struct EditNameSheet: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
@@ -788,6 +779,7 @@ struct EditFieldSheet: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -993,138 +985,6 @@ struct FeedbackSheet: View {
         .presentationBackground(Color.appBackground)
     }
 }
-// MARK: - Language
-struct LanguageSelectionSheet: View {
-    @Environment(\.dismiss) var dismiss
-    @Environment(\.colorScheme) private var colorScheme
-    @StateObject private var languageManager = LanguageManager.shared
-    @State private var selectedLanguage: String
-    @State private var showingRestartAlert = false
-    
-    init() {
-        _selectedLanguage = State(initialValue: LanguageManager.shared.currentLanguage)
-    }
-    
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                LinearGradient.dashboardBackground.ignoresSafeArea()
-                
-                VStack(spacing: 16) {
-                    IconBadge(assetName: "globe-alt", size: 48)
-                        .padding(.top, 24)
-                    
-                    Text("Language")
-                        .font(.title3.weight(.bold))
-                        .foregroundStyle(Color.appText)
-                    
-                    Text("Choose your preferred language")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.appSecondaryText)
-                    
-                    // Info banner
-                    HStack(spacing: 4) {
-                        Image("information-circle")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 14, height: 14)
-                        Text("App will restart to apply language change")
-                    }
-                        .font(.caption)
-                        .foregroundStyle(.blue)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12)
-                        .background(Color.blue.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .padding(.horizontal)
-                    
-                    // Language options
-                    VStack(spacing: 0) {
-                        ForEach(languageManager.supportedLanguages, id: \.0) { code, name in
-                            Button {
-                                selectedLanguage = code
-                                if selectedLanguage != languageManager.currentLanguage {
-                                    languageManager.setLanguage(selectedLanguage)
-                                    showingRestartAlert = true
-                                }
-                            } label: {
-                                HStack(spacing: 14) {
-                                    IconBadge(systemName: iconForLanguage(code), size: 32)
-                                    
-                                    Text(name)
-                                        .font(.body)
-                                        .foregroundStyle(Color.appText)
-                                    
-                                    Spacer()
-                                    
-                                    if selectedLanguage == code {
-                                        Image("check-circle")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 20, height: 20)
-                                            .foregroundStyle(Color.appAccent)
-                                    }
-                                }
-                                .padding(14)
-                            }
-                            
-                            if code != languageManager.supportedLanguages.last?.0 {
-                                Divider()
-                                    .background(Color.appText.opacity(0.06))
-                                    .padding(.leading, 60)
-                            }
-                        }
-                    }
-                    .background(Color.appSurface)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay {
-                        if colorScheme == .dark {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                        }
-                    }
-                    .shadow(
-                        color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear,
-                        radius: 16, x: 0, y: 6
-                    )
-                    .padding(.horizontal)
-                    
-                    Spacer()
-                }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .foregroundStyle(Color.appAccent)
-                    .fontWeight(.semibold)
-                }
-            }
-            .alert("Restart Required", isPresented: $showingRestartAlert) {
-                Button("OK") {
-                    dismiss()
-                    // Force restart
-                    exit(0)
-                }
-            } message: {
-                Text("The app will now restart to apply the language change.")
-            }
-        }
-        .presentationBackground(Color.appBackground)
-    }
-    
-    private func iconForLanguage(_ code: String) -> String {
-        switch code {
-        case "sv": return "textformat.abc"
-        case "en": return "textformat.abc"
-        default: return "character.textbox"
-        }
-    }
-}
-
 // MARK: - Change Email Sheet
 struct ChangeEmailSheet: View {
     @Environment(\.dismiss) var dismiss
@@ -1267,6 +1127,7 @@ struct ChangeEmailSheet: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     if !showSuccess {
@@ -1345,7 +1206,7 @@ struct DeleteAccountConfirmationSheet: View {
                             .foregroundStyle(Color.appSecondaryText)
                         
                         TextField("DELETE", text: $confirmationText)
-                            .textInputAutocapitalization(.never)
+                            .textInputAutocapitalization(.characters)
                             .autocorrectionDisabled()
                             .padding(14)
                             .background(Color.appSurface)
@@ -1419,4 +1280,3 @@ struct DeleteAccountConfirmationSheet: View {
         .presentationBackground(Color.appBackground)
     }
 }
-
