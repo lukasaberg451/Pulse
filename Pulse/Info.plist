@@ -37,7 +37,7 @@
 		<key>UIColorName</key>
 		<string>LoadingBackground</string>
 		<key>UIImageName</key>
-		<string>Logo</string>
+		<string>LoadingLogo</string>
 	</dict>
 </dict>
 </plist>

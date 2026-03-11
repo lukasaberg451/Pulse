@@ -74,6 +74,7 @@ struct PulseApp: App {
     @State private var showPostSignInGuide = false
     @State private var showPostLoginLoading = false
     @State private var showPostLogoutLoading = false
+    @State private var showSplash = true
     @State private var selectedTab: HomeTab = .dashboard
     
     // SwiftData model container for offline support
@@ -120,20 +121,17 @@ struct PulseApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if authViewModel.isInitializing {
-                    Color("LoadingBackground")
-                        .ignoresSafeArea()
-                } else if authViewModel.isAuthenticated {
+                if authViewModel.isAuthenticated {
                     HomeView(authViewModel: authViewModel, selectedTab: $selectedTab)
                         .environmentObject(authViewModel)
                         .overlay {
-                            if showPostLoginLoading {
-                                PostLoginLoadingView(isVisible: $showPostLoginLoading)
+                            if showPostSignInGuide {
+                                PostSignInGuideView(isPresented: $showPostSignInGuide, selectedTab: $selectedTab)
                             }
                         }
                         .overlay {
-                            if showPostSignInGuide {
-                                PostSignInGuideView(isPresented: $showPostSignInGuide, selectedTab: $selectedTab)
+                            if showPostLoginLoading {
+                                PostLoginLoadingView(isVisible: $showPostLoginLoading)
                             }
                         }
                         .onChange(of: authViewModel.isAuthenticated) { _, newValue in
@@ -169,6 +167,15 @@ struct PulseApp: App {
             .environmentObject(healthKitManager)
             .environmentObject(unitManager)
             .preferredColorScheme(themeManager.selectedTheme.colorScheme)
+            .overlay {
+                if showSplash {
+                    SplashOverlay(
+                        isInitializing: authViewModel.isInitializing,
+                        isVisible: $showSplash
+                    )
+                    .ignoresSafeArea()
+                }
+            }
             .onChange(of: authViewModel.isAuthenticated) { oldValue, isAuthenticated in
                 if !authViewModel.isInitializing {
                     if isAuthenticated && !oldValue {

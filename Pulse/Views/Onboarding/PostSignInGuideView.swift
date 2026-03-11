@@ -59,7 +59,7 @@ struct PostSignInGuideView: View {
         GuideStep(
             icon: "person.circle.fill",
             title: "Personalize Your Experience",
-            description: "Connect Apple Health, pick a theme, change language, set your preferred units, and more, Make Pulse truly yours.",
+            description: "Connect Apple Health, pick a theme, set your preferred units, and more, Make Pulse truly yours.",
             actionTitle: "Super!",
             highlightTab: "Profile"
         ),

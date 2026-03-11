@@ -58,7 +58,7 @@ struct SubscriptionView: View {
                         VStack(spacing: 0) {
                             SubscriptionFeatureRow(
                                 icon: "arrow-trending-up",
-                                title: "Advanced Analytics",
+                                title: "Analytics",
                                 subtitle: "Detailed progress insights and trends"
                             )
                             

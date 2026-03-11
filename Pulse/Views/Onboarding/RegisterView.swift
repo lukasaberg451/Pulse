@@ -99,7 +99,7 @@ struct RegisterView: View {
                         
                         Text(email)
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Color.appAccent)
+
                         
                         Text("Please verify your email before signing in")
                             .font(.subheadline)
@@ -390,7 +390,8 @@ struct RegisterView: View {
                         Image("Logo")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 120, height: 120)
+                            .frame(width: 80, height: 80)
+                            .foregroundStyle(Color.appAccent)
                     }
                     .transition(.opacity)
                 }

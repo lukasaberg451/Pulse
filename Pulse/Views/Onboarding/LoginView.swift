@@ -234,7 +234,7 @@ struct LoginView: View {
                         Image("Logo")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 120, height: 120)
+                            .frame(width: 80, height: 80)
                     }
                     .transition(.opacity)
                 }
@@ -429,7 +429,7 @@ struct ForgotPasswordView: View {
                     Image("Logo")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 120, height: 120)
+                        .frame(width: 80, height: 80)
                 }
                 .transition(.opacity)
             }
