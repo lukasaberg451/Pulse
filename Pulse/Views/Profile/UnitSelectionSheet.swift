@@ -19,7 +19,7 @@ struct UnitSelectionSheet: View {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 16) {
-                    IconBadge(systemName: "ruler", size: 48)
+                    IconBadge(assetName: "ruler", size: 48)
                         .padding(.top, 24)
                     
                     Text("Units")
@@ -108,8 +108,8 @@ struct UnitSelectionSheet: View {
     
     private func iconForSystem(_ system: UnitSystem) -> String {
         switch system.displayName {
-        case "Metric": return "scale"
-        case "Imperial": return "scale"
+        case "Metric": return "ruler"
+        case "Imperial": return "ruler"
         default: return "ruler"
         }
     }

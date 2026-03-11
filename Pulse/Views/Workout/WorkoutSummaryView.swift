@@ -116,7 +116,7 @@ struct WorkoutSummaryView: View {
                             
                             HStack(spacing: 12) {
                                 summaryStatCard(
-                                    icon: "scale",
+                                    icon: "chart-bar",
                                     title: "Volume",
                                     value: String(format: "%.0f %@", unitManager.displayWeight(totalVolume), unitManager.weightUnit)
                                 )
@@ -429,14 +429,14 @@ struct ShareableWorkoutCard: View {
                         .fill(.white.opacity(0.08))
                         .frame(height: 1)
                     
-                    shareStatItem(icon: "scale", value: totalVolume, label: "Volume")
+                    shareStatItem(icon: "chart-bar", value: totalVolume, label: "Volume")
                         .padding(.vertical, 16)
                     
                     Rectangle()
                         .fill(.white.opacity(0.08))
                         .frame(height: 1)
                     
-                    shareStatItem(icon: "figure.strengthtraining.traditional", value: "\(exerciseCount)", label: "Exercises", isSystemImage: true)
+                    shareStatItem(icon: "list-bullet", value: "\(exerciseCount)", label: "Exercises")
                         .padding(.vertical, 16)
                 }
                 .padding(.horizontal, 20)
@@ -471,20 +471,13 @@ struct ShareableWorkoutCard: View {
         )
     }
     
-    private func shareStatItem(icon: String, value: String, label: String, isSystemImage: Bool = false) -> some View {
+    private func shareStatItem(icon: String, value: String, label: String) -> some View {
         HStack {
             HStack(spacing: 10) {
-                Group {
-                    if isSystemImage {
-                        Image(systemName: icon)
-                            .font(.system(size: 15, weight: .semibold))
-                    } else {
-                        Image(icon)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 15, height: 15)
-                    }
-                }
+                Image(icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 15, height: 15)
                     .foregroundStyle(accentColor)
                     .frame(width: 32, height: 32)
                     .background(accentColor.opacity(0.15), in: Circle())

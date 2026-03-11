@@ -361,7 +361,7 @@ struct ScheduledWorkoutCard: View {
     private var scheduledWorkoutContent: some View {
         HStack(spacing: 12) {
             IconBadge(
-                systemName: "figure.strengthtraining.traditional",
+                assetName: "bolt",
                 color: .appAccent,
                 size: 38
             )
@@ -534,7 +534,7 @@ struct RoutinePickerSheet: View {
                 if viewModel.routines.isEmpty {
                     VStack(spacing: 16) {
                         IconBadge(
-                            systemName: "figure.strengthtraining.traditional",
+                            assetName: "arrow-path-rounded-square",
                             size: 56
                         )
                         Text("No Routines Yet")
@@ -689,7 +689,7 @@ struct RoutineContentView: View {
                 } else if viewModel.routines.isEmpty {
                     VStack(spacing: 16) {
                         IconBadge(
-                            systemName: "figure.strengthtraining.traditional",
+                            assetName: "arrow-path-rounded-square",
                             size: 56
                         )
                         Text("No Routines Yet")
@@ -847,7 +847,7 @@ struct CreateRoutineSheet: View {
                 VStack(spacing: 28) {
                     // Header
                     VStack(spacing: 8) {
-                        IconBadge(assetName: "plus-circle", color: .appAccent, size: 48)
+                        IconBadge(assetName: "arrow-path-rounded-square", color: .appAccent, size: 48)
 
                         Text("New Routine")
                             .font(.title2.weight(.bold))
@@ -980,7 +980,7 @@ struct RoutineCard: View {
     var body: some View {
         HStack(spacing: 12) {
             IconBadge(
-                systemName: "figure.strengthtraining.traditional",
+                assetName: "arrow-path-rounded-square",
                 color: .appAccent,
                 size: 40
             )

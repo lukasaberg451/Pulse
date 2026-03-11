@@ -149,7 +149,7 @@ struct WorkoutDetailView: View {
                 )
                 
                 detailStatCard(
-                    icon: "scale",
+                    icon: "chart-bar",
                     title: "Volume",
                     value: String(format: "%.0f %@", unitManager.displayWeight(viewModel.totalVolume), unitManager.weightUnit)
                 )
@@ -206,7 +206,7 @@ struct WorkoutDetailView: View {
             // Exercise name
             HStack(spacing: 10) {
                 IconBadge(
-                    systemName: isCardio ? "figure.run" : "dumbbell.fill",
+                    assetName: isCardio ? "heart" : "shield-check",
                     size: 32
                 )
                 Text(name)

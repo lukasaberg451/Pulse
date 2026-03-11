@@ -106,16 +106,16 @@ struct TimezoneSelectionSheet: View {
                             .listRowBackground(Color.appSurface)
                         }
                     } header: {
-                        Text("ALL TIMEZONES")
+                        Text("ALL TIME ZONES")
                             .font(.caption.weight(.semibold))
                     }
                 }
-                .searchable(text: $searchText, prompt: "Search timezones")
+                .searchable(text: $searchText, prompt: "Search time zones")
                 .scrollContentBackground(.hidden)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .navigationTitle("Timezone")
+            .navigationTitle("Time Zone")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {

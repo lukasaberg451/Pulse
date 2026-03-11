@@ -487,8 +487,7 @@ class DashboardViewModel: ObservableObject {
             ),
             SmartInsight(
                 type: .recoveryIntelligence,
-                icon: "bed.double.fill",
-                isSystemImage: true,
+                icon: "moon",
                 text: "Rest days build muscle too. Listen to your body",
                 accentColor: .purple
             ),
@@ -506,15 +505,13 @@ class DashboardViewModel: ObservableObject {
             ),
             SmartInsight(
                 type: .weakPointDetection,
-                icon: "figure.strengthtraining.traditional",
-                isSystemImage: true,
+                icon: "scale",
                 text: "A balanced routine builds a stronger body. Mix it up",
                 accentColor: .red
             ),
             SmartInsight(
                 type: .microGoalMotivation,
-                icon: "figure.walk",
-                isSystemImage: true,
+                icon: "sparkle",
                 text: "Small steps lead to big results. Start with what feels easy",
                 accentColor: .mint
             ),
@@ -526,7 +523,7 @@ class DashboardViewModel: ObservableObject {
             ),
             SmartInsight(
                 type: .returnMotivation,
-                icon: "FlameIcon",
+                icon: "hand-thumb-up",
                 text: "The hardest part is starting. You've got this",
                 accentColor: .orange
             ),

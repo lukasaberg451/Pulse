@@ -15,7 +15,7 @@ struct OfflineStatusBanner: View {
     var body: some View {
         if !syncService.isOnline {
             HStack(spacing: 12) {
-                IconBadge(systemName: "wifi.slash", color: .white, size: 36)
+                IconBadge(assetName: "signal-slash", color: .white, size: 36)
                 
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Offline Mode")
@@ -76,8 +76,10 @@ struct SyncStatusIndicator: View {
     var body: some View {
         HStack(spacing: 6) {
             if !syncService.isOnline {
-                Image(systemName: "wifi.slash")
-                    .font(.caption.weight(.semibold))
+                Image("signal-slash")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 14, height: 14)
                     .foregroundStyle(.orange)
                 
                 Text("Offline")

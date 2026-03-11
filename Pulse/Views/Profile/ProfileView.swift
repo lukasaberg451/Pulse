@@ -161,14 +161,14 @@ struct ProfileView: View {
                                     ProfileDivider()
                                     
                                     // Units
-                                    ProfileSettingsRow(icon: "ruler", title: "Units", value: unitManager.unitSystem.displayName, isSystemImage: true) {
+                                    ProfileSettingsRow(icon: "ruler", title: "Units", value: unitManager.unitSystem.displayName) {
                                         showingUnitSheet = true
                                     }
                                     
                                     ProfileDivider()
                                     
                                     // Timezone
-                                    ProfileSettingsRow(icon: "clock.badge.checkmark", title: "Timezone", value: viewModel.profile?.timezone ?? TimeZone.current.identifier, lineLimit: 1, isSystemImage: true) {
+                                    ProfileSettingsRow(icon: "clock", title: "Time Zone", value: viewModel.profile?.timezone ?? TimeZone.current.identifier, lineLimit: 1, isSystemImage: true) {
                                         showingTimezoneSheet = true
                                     }
                                     
@@ -243,7 +243,7 @@ struct ProfileView: View {
                                 
                                 VStack(spacing: 0) {
                                     // Send Feedback
-                                    ProfileSettingsRow(icon: "question-mark-circle", title: "Send Feedback") {
+                                    ProfileSettingsRow(icon: "clipboard-document-list", title: "Send Feedback") {
                                         showingFeedbackSheet = true
                                     }
                                     
@@ -837,7 +837,7 @@ struct FeedbackSheet: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
-                        IconBadge(assetName: "question-mark-circle", size: 48)
+                        IconBadge(assetName: "clipboard-document-list", size: 48)
                             .padding(.top, 24)
                         
                         Text("Send Feedback")
@@ -931,7 +931,7 @@ struct FeedbackSheet: View {
                         .tint(Color.appAccent)
                         .padding(.horizontal)
                         
-                        PrimaryCTAButton("Submit Feedback", icon: "envelope") {
+                        PrimaryCTAButton("Submit Feedback", icon: "paper-airplane") {
                             Task {
                                 let success = await viewModel.submitFeedback(
                                     type: feedbackType.rawValue,
@@ -1113,7 +1113,7 @@ struct ChangeEmailSheet: View {
                                     .padding(.horizontal)
                             }
                             
-                            PrimaryCTAButton(isLoading ? "Changing…" : "Change Email", icon: "envelope") {
+                            PrimaryCTAButton(isLoading ? "Changing…" : "Change Email", icon: "check") {
                                 Task {
                                     await changeEmail()
                                 }

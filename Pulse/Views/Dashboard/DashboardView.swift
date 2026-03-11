@@ -396,11 +396,7 @@ struct SmartInsightCard: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            if insight.isSystemImage {
-                IconBadge(systemName: insight.icon, color: insight.accentColor, size: 32)
-            } else {
-                IconBadge(assetName: insight.icon, color: insight.accentColor, size: 32)
-            }
+            IconBadge(assetName: insight.icon, color: insight.accentColor, size: 32)
 
             Text(insight.text)
                 .font(.subheadline)

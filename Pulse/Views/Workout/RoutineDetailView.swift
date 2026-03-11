@@ -254,98 +254,116 @@ struct RoutineDetailView: View {
                     }
                     
                     // Exercises list
-                    List {
-                        ForEach(editMode == .active ? reorderedExercises : viewModel.routineExercises) { routineExercise in
-                            if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
-                                HStack(spacing: 12) {
-                                    IconBadge(
-                                        systemName: exercise.exerciseType == "cardio" ? "figure.run" : "figure.strengthtraining.traditional",
-                                        color: .appAccent,
-                                        size: 40
-                                    )
+                    if viewModel.routineExercises.isEmpty {
+                        VStack(spacing: 16) {
+                            Spacer()
+                            IconBadge(
+                                assetName: "clipboard-document-list",
+                                size: 56
+                            )
+                            Text("No Exercises Yet")
+                                .font(.title3.weight(.semibold))
+                                .foregroundStyle(Color.appText)
+                            Text("Add exercises to build your routine")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appSecondaryText)
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        List {
+                            ForEach(editMode == .active ? reorderedExercises : viewModel.routineExercises) { routineExercise in
+                                if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
+                                    HStack(spacing: 12) {
+                                        IconBadge(
+                                            assetName: exercise.exerciseType == "cardio" ? "heart" : "shield-check",
+                                            color: .appAccent,
+                                            size: 40
+                                        )
 
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(exercise.name)
-                                            .font(.subheadline.weight(.semibold))
-                                            .foregroundStyle(Color.appText)
-                                        
-                                        if let reps = routineExercise.repsTarget {
-                                            Text("\(routineExercise.sets) sets × \(reps) reps")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appSecondaryText)
-                                        } else if let durationSeconds = routineExercise.durationSeconds {
-                                            let minutes = durationSeconds / 60
-                                            let seconds = durationSeconds % 60
-                                            let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
-                                            Text("\(routineExercise.sets) sets × \(durationText)")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appSecondaryText)
-                                        }
-                                        
-                                        if routineExercise.restSeconds > 0 {
-                                            Text("\(routineExercise.restSeconds)s rest")
-                                                .font(.caption)
-                                                .foregroundStyle(Color.appTertiaryText)
-                                        }
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    // Three-dot menu - hide in edit mode
-                                    if editMode != .active {
-                                        Menu {
-                                            Button {
-                                                editingExercise = routineExercise
-                                                let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                                impactLight.impactOccurred()
-                                            } label: {
-                                                Label { Text("Edit Exercise") } icon: { Image("pencil").resizable().scaledToFit().frame(width: 16, height: 16) }
+                                        VStack(alignment: .leading, spacing: 3) {
+                                            Text(exercise.name)
+                                                .font(.subheadline.weight(.semibold))
+                                                .foregroundStyle(Color.appText)
+                                            
+                                            if let reps = routineExercise.repsTarget {
+                                                Text("\(routineExercise.sets) sets × \(reps) reps")
+                                                    .font(.caption)
+                                                    .foregroundStyle(Color.appSecondaryText)
+                                            } else if let durationSeconds = routineExercise.durationSeconds {
+                                                let minutes = durationSeconds / 60
+                                                let seconds = durationSeconds % 60
+                                                let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
+                                                Text("\(routineExercise.sets) sets × \(durationText)")
+                                                    .font(.caption)
+                                                    .foregroundStyle(Color.appSecondaryText)
                                             }
                                             
-                                            Button(role: .destructive) {
-                                                let notificationFeedback = UINotificationFeedbackGenerator()
-                                                notificationFeedback.notificationOccurred(.warning)
-                                                Task {
-                                                    await viewModel.deleteExercise(routineExercise)
+                                            if routineExercise.restSeconds > 0 {
+                                                Text("\(routineExercise.restSeconds)s rest")
+                                                    .font(.caption)
+                                                    .foregroundStyle(Color.appTertiaryText)
+                                            }
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        // Three-dot menu - hide in edit mode
+                                        if editMode != .active {
+                                            Menu {
+                                                Button {
+                                                    editingExercise = routineExercise
+                                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                                    impactLight.impactOccurred()
+                                                } label: {
+                                                    Label { Text("Edit Exercise") } icon: { Image("pencil").resizable().scaledToFit().frame(width: 16, height: 16) }
+                                                }
+                                                
+                                                Button(role: .destructive) {
+                                                    let notificationFeedback = UINotificationFeedbackGenerator()
+                                                    notificationFeedback.notificationOccurred(.warning)
+                                                    Task {
+                                                        await viewModel.deleteExercise(routineExercise)
+                                                    }
+                                                } label: {
+                                                    Label { Text("Delete Exercise") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
                                                 }
                                             } label: {
-                                                Label { Text("Delete Exercise") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
+                                                Image("ellipsis-horizontal")
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 17, height: 17)
+                                                    .foregroundStyle(Color.appTertiaryText)
+                                                    .frame(width: 44, height: 44)
                                             }
-                                        } label: {
-                                            Image("ellipsis-horizontal")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 17, height: 17)
-                                                .foregroundStyle(Color.appTertiaryText)
-                                                .frame(width: 44, height: 44)
                                         }
                                     }
-                                }
-                                .padding(14)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if editMode == .active {
-                                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                                    .strokeBorder(Color.appAccent.opacity(0.3), lineWidth: 1.5)
+                                    .padding(14)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .fill(Color.appSurface)
+                                            .overlay {
+                                                if editMode == .active {
+                                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                        .strokeBorder(Color.appAccent.opacity(0.3), lineWidth: 1.5)
+                                                }
                                             }
-                                        }
+                                    }
+                                    .listRowBackground(Color.clear)
+                                    .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
+                                    .listRowSeparator(.hidden)
                                 }
-                                .listRowBackground(Color.clear)
-                                .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
-                                .listRowSeparator(.hidden)
+                            }
+                            .onMove { source, destination in
+                                if editMode == .active {
+                                    moveItems(from: source, to: destination)
+                                }
                             }
                         }
-                        .onMove { source, destination in
-                            if editMode == .active {
-                                moveItems(from: source, to: destination)
-                            }
-                        }
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                        .environment(\.editMode, $editMode)
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
-                    .environment(\.editMode, $editMode)
                 }
             }
         }
@@ -459,21 +477,21 @@ struct ExercisePickerSheet: View {
     private func equipmentIcon(for equipment: String) -> String {
         switch equipment.lowercased() {
         case "barbell":
-            return "dumbbell"
+            return "shield-check"
         case "dumbbell":
-            return "dumbbell"
+            return "shield-check"
         case "kettlebell":
-            return "dumbbell"
+            return "shield-check"
         case "cable":
-            return "dumbbell"
+            return "shield-check"
         case "machine":
-            return "dumbbell"
+            return "shield-check"
         case "bodyweight":
-            return "dumbbell"
+            return "shield-check"
         case "resistance band":
-            return "dumbbell"
+            return "shield-check"
         case "medicine ball":
-            return "dumbbell"
+            return "shield-check"
         case "bike":
             return "cardio"
         case "stairmaster":
@@ -481,17 +499,17 @@ struct ExercisePickerSheet: View {
         case "treadmill":
             return "cardio"
         case "trx":
-            return "dumbbell"
+            return "shield-check"
         case "smith machine":
-            return "dumbbell"
+            return "shield-check"
         case "sled":
             return "cardio"
         case "sandbag":
-            return "dumbbell"
+            return "shield-check"
         case "outdoors":
             return "cardio"
         default:
-            return "equipment-dumbbell"
+            return "cardio"
         }
     }
     
@@ -588,13 +606,13 @@ struct ExercisePickerSheet: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 if let muscle = selectedMuscle {
-                                    ActiveFilterChip(title: muscle, icon: "figure.arms.open") {
+                                    ActiveFilterChip(title: muscle, icon: "cube-transparent") {
                                         selectedMuscle = nil
                                     }
                                 }
                                 
                                 if let equipment = selectedEquipment {
-                                    ActiveFilterChip(title: equipment, icon: "dumbbell.fill") {
+                                    ActiveFilterChip(title: equipment, icon: "wrench") {
                                         selectedEquipment = nil
                                     }
                                 }
@@ -667,8 +685,10 @@ struct ExercisePickerSheet: View {
                                             }
                                         } label: {
                                             HStack(spacing: 8) {
-                                                Image(systemName: "person.fill")
-                                                    .font(.system(size: 12, weight: .semibold))
+                                                Image("ProfileTabIcon")
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 14, height: 14)
                                                     .foregroundStyle(Color.appAccent)
                                                 Text("My Exercises")
                                                     .font(.subheadline.weight(.semibold))
@@ -840,7 +860,7 @@ struct ExercisePickerSheet: View {
         } label: {
             HStack(spacing: 12) {
                 IconBadge(
-                    systemName: exercise.exerciseType == "cardio" ? "figure.run" : "dumbbell.fill",
+                    assetName: exercise.exerciseType == "cardio" ? "bolt" : "bicep",
                     size: 38
                 )
                 
@@ -911,8 +931,10 @@ struct ActiveFilterChip: View {
     
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 10, weight: .semibold))
+            Image(icon)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 12, height: 12)
             Text(title)
                 .font(.caption.weight(.semibold))
             
@@ -962,7 +984,7 @@ struct FilterSheet: View {
                         VStack(alignment: .leading, spacing: 14) {
                             HStack {
                                 HStack(spacing: 8) {
-                                    IconBadge(systemName: "figure.arms.open", size: 28)
+                                    IconBadge(assetName: "cube-transparent", size: 28)
                                     Text("Muscle Group")
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundStyle(Color.appText)
@@ -1024,7 +1046,7 @@ struct FilterSheet: View {
                         VStack(alignment: .leading, spacing: 14) {
                             HStack {
                                 HStack(spacing: 8) {
-                                    IconBadge(systemName: "dumbbell.fill", size: 28)
+                                    IconBadge(assetName: "wrench", size: 28)
                                     Text("Equipment")
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundStyle(Color.appText)
