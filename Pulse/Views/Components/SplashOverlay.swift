@@ -58,10 +58,7 @@ struct PostLoginLoadingView: View {
             Color.appBackground
             LinearGradient.dashboardBackground
             
-            Image("Logo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 80, height: 80)
+            Image("LoadingLogo")
         }
         .ignoresSafeArea()
         .task {

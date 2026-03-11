@@ -35,10 +35,10 @@ struct LoginView: View {
                 VStack(spacing: 0) {
                     // Logo section
                     VStack {
-                        Image(.logo)
+                        Image("LoadingLogo")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 140, height: 80)
+                            .frame(width: 180, height: 100)
                     }
                     .frame(maxHeight: .infinity, alignment: .top)
                     .padding(.top, 50)
@@ -231,10 +231,7 @@ struct LoginView: View {
                         Color.appBackground
                             .ignoresSafeArea()
                         
-                        Image("Logo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 80, height: 80)
+                        Image("LoadingLogo")
                     }
                     .transition(.opacity)
                 }
@@ -317,10 +314,10 @@ struct ForgotPasswordView: View {
                 VStack(spacing: 0) {
                     // Logo section
                     VStack {
-                        Image(.logo)
+                        Image("LoadingLogo")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 140, height: 80)
+                            .frame(width: 180, height: 100)
                     }
                     .frame(maxHeight: .infinity, alignment: .top)
                     .padding(.top, 100)
@@ -426,10 +423,7 @@ struct ForgotPasswordView: View {
                     Color.appBackground
                         .ignoresSafeArea()
                     
-                    Image("Logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 80, height: 80)
+                    Image("LoadingLogo")
                 }
                 .transition(.opacity)
             }

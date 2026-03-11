@@ -119,12 +119,13 @@ struct RegisterView: View {
                         VStack(spacing: 0) {
                             // Logo section
                             VStack {
-                                Image(.logo)
+                                Image("LoadingLogo")
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: 100, height: 40)
+                                    .frame(width: 180, height: 100)
                             }
-                            .padding(.top, 20)
+                            //.padding(.top, 15)
+                            .padding(.bottom, 15)
                             
                             // Form section
                             VStack(alignment: .leading, spacing: 20) {
@@ -387,10 +388,7 @@ struct RegisterView: View {
                         Color.appBackground
                             .ignoresSafeArea()
                         
-                        Image("Logo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 80, height: 80)
+                        Image("LoadingLogo")
                             .foregroundStyle(Color.appAccent)
                     }
                     .transition(.opacity)

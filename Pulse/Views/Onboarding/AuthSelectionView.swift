@@ -28,10 +28,10 @@ struct AuthSelectionView: View {
                         
                         // App branding
                         VStack(spacing: 20) {
-                            Image(.logo)
+                            Image("LoadingLogo")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 140, height: 80)
+                                .frame(width: 180, height: 100)
                         
                             Text("Your Fitness Journey Starts Here")
                                 .font(.subheadline.weight(.medium))
