@@ -24,11 +24,10 @@ struct SplashOverlay: View {
                     .scaledToFit()
                     .frame(width: 120, height: 120)
             }
+            .preferredColorScheme(.dark)
             .transition(.opacity)
             .onAppear {
                 appearTime = Date()
-                // If initialization already finished (e.g. view recreated after sign-in),
-                // dismiss immediately
                 if !isInitializing {
                     dismiss()
                 }

@@ -35,6 +35,7 @@ struct WorkoutView: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .navigationDestination(item: $routineToNavigateTo) { routine in
                 RoutineDetailView(routine: routine)
+                    .hidesTabBar()
             }
         }
     }
@@ -50,6 +51,7 @@ struct ScheduleContentView: View {
     @State private var scheduledToDelete: ScheduledWorkout?
     @State private var showingDeleteAlert = false
     @State private var monthChangeDirection: Edge = .trailing
+    @Environment(\.tabBarBottomInset) private var tabBarBottomInset
 
     var body: some View {
         ZStack {
@@ -131,6 +133,7 @@ struct ScheduleContentView: View {
                     .padding(.bottom, 24)
                 }
             }
+            .contentMargins(.bottom, tabBarBottomInset, for: .scrollContent)
         }
         .sheet(isPresented: $showingRoutinePicker) {
             RoutinePickerSheet(
@@ -335,7 +338,7 @@ struct ScheduledWorkoutCard: View {
 
             if scheduled.completed, let sessionId = scheduled.workoutSessionId,
                let session = viewModel.workoutSession(for: sessionId) {
-                NavigationLink(destination: WorkoutDetailView(workoutSession: session)) {
+                NavigationLink(destination: WorkoutDetailView(workoutSession: session).hidesTabBar()) {
                     scheduledWorkoutContent
                 }
                 .buttonStyle(.plain)
@@ -455,7 +458,7 @@ struct DeletedRoutineWorkoutCard: View {
 
             if scheduled.completed, let sessionId = scheduled.workoutSessionId,
                let session = viewModel.workoutSession(for: sessionId) {
-                NavigationLink(destination: WorkoutDetailView(workoutSession: session)) {
+                NavigationLink(destination: WorkoutDetailView(workoutSession: session).hidesTabBar()) {
                     cardContent
                 }
                 .buttonStyle(.plain)
@@ -647,6 +650,7 @@ struct RoutineContentView: View {
     @State private var routineToDelete: Routine?
     @State private var showingDeleteAlert = false
     @Binding var routineToNavigateTo: Routine?
+    @Environment(\.tabBarBottomInset) private var tabBarBottomInset
 
     private var canCreateRoutine: Bool {
         subscriptionManager.isProUser || viewModel.routines.count < SubscriptionManager.freeRoutineLimit
@@ -773,6 +777,7 @@ struct RoutineContentView: View {
                             }
                             .padding(16)
                         }
+                        .contentMargins(.bottom, tabBarBottomInset, for: .scrollContent)
                     }
                 }
             }

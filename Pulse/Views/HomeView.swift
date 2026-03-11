@@ -7,6 +7,61 @@
 
 import SwiftUI
 
+// MARK: - Tab Bar Visibility
+
+@Observable
+final class TabBarVisibility {
+    var navigationDepth: Int = 0
+    var isVisible: Bool { navigationDepth == 0 }
+}
+
+struct HideTabBarModifier: ViewModifier {
+    @Environment(TabBarVisibility.self) private var tabBarVisibility
+    @Environment(\.isPresented) private var isPresented
+    @State private var didHide = false
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear {
+                if !didHide {
+                    tabBarVisibility.navigationDepth += 1
+                    didHide = true
+                }
+            }
+            .onDisappear {
+                if didHide {
+                    tabBarVisibility.navigationDepth = max(0, tabBarVisibility.navigationDepth - 1)
+                    didHide = false
+                }
+            }
+            .onChange(of: isPresented) { _, presented in
+                if !presented && didHide {
+                    tabBarVisibility.navigationDepth = max(0, tabBarVisibility.navigationDepth - 1)
+                    didHide = false
+                }
+            }
+    }
+}
+
+extension View {
+    func hidesTabBar() -> some View {
+        modifier(HideTabBarModifier())
+    }
+}
+
+// MARK: - Tab Bar Bottom Inset Environment Key
+
+private struct TabBarBottomInsetKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 0
+}
+
+extension EnvironmentValues {
+    var tabBarBottomInset: CGFloat {
+        get { self[TabBarBottomInsetKey.self] }
+        set { self[TabBarBottomInsetKey.self] = newValue }
+    }
+}
+
 // MARK: - Tab Definition
 
 enum HomeTab: Int, CaseIterable {
@@ -38,7 +93,7 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var syncService: WorkoutSyncService
     @State private var hasPrefetched = false
-    @State private var selectedTab: HomeTab = .dashboard
+    @Binding var selectedTab: HomeTab
     
     @StateObject private var scheduleViewModel = ScheduleViewModel()
     @StateObject private var routineListViewModel = RoutineListViewModel()
@@ -46,6 +101,7 @@ struct HomeView: View {
     @StateObject private var milestoneViewModel = MilestoneViewModel()
     
     @State private var tabBarHeight: CGFloat = 0
+    @State private var tabBarVisibility = TabBarVisibility()
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -77,15 +133,17 @@ struct HomeView: View {
                 .offset(x: -CGFloat(selectedTab.rawValue) * geo.size.width)
                 .animation(.spring(response: 0.4, dampingFraction: 0.82), value: selectedTab)
             }
-            .padding(.bottom, tabBarHeight)
-
             HomeTabBar(selectedTab: $selectedTab)
                 .background(
                     GeometryReader { geo in
                         Color.clear.onAppear { tabBarHeight = geo.size.height }
                     }
                 )
+                .offset(y: tabBarVisibility.isVisible ? 0 : tabBarHeight + 34)
+                .animation(.easeInOut(duration: 0.25), value: tabBarVisibility.isVisible)
         }
+        .environment(tabBarVisibility)
+        .environment(\.tabBarBottomInset, tabBarHeight)
         .background(Color.appBackground)
         .ignoresSafeArea(.keyboard)
         .task {

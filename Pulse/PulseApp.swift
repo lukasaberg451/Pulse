@@ -71,6 +71,7 @@ struct PulseApp: App {
     @State private var showPasswordReset = false
     @State private var recoveryCode: IdentifiableString?
     @State private var showPostSignInGuide = false
+    @State private var selectedTab: HomeTab = .dashboard
     
     // SwiftData model container for offline support
     let modelContainer: ModelContainer
@@ -117,11 +118,11 @@ struct PulseApp: App {
         WindowGroup {
             Group {
                 if authViewModel.isAuthenticated {
-                    HomeView(authViewModel: authViewModel)
+                    HomeView(authViewModel: authViewModel, selectedTab: $selectedTab)
                         .environmentObject(authViewModel)
                         .overlay {
                             if showPostSignInGuide {
-                                PostSignInGuideView(isPresented: $showPostSignInGuide)
+                                PostSignInGuideView(isPresented: $showPostSignInGuide, selectedTab: $selectedTab)
                             }
                         }
                         .onChange(of: authViewModel.isAuthenticated) { _, newValue in

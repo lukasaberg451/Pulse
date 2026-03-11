@@ -19,7 +19,7 @@ struct MilestonesSection: View {
                 Spacer()
 
                 if !viewModel.allMilestones.isEmpty {
-                    NavigationLink(destination: AllMilestonesView(viewModel: viewModel)) {
+                    NavigationLink(destination: AllMilestonesView(viewModel: viewModel).hidesTabBar()) {
                         Text("See All")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.appAccent)

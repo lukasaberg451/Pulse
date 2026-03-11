@@ -14,6 +14,7 @@ struct ProgressTabView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @EnvironmentObject var unitManager: UnitManager
     @State private var showingPaywall = false
+    @Environment(\.tabBarBottomInset) private var tabBarBottomInset
     
     var body: some View {
         NavigationStack {
@@ -125,7 +126,7 @@ struct ProgressTabView: View {
                                 
                                 Spacer()
                                 
-                                NavigationLink(destination: AllPRsView()) {
+                                NavigationLink(destination: AllPRsView().hidesTabBar()) {
                                     Text("See All")
                                         .font(.subheadline.weight(.medium))
                                         .foregroundStyle(Color.appAccent)
@@ -214,7 +215,7 @@ struct ProgressTabView: View {
                                 Spacer()
                                 
                                 if !viewModel.recentSessions.isEmpty {
-                                    NavigationLink(destination: AllRecentWorkoutsView()) {
+                                    NavigationLink(destination: AllRecentWorkoutsView().hidesTabBar()) {
                                         Text("See All")
                                             .font(.subheadline.weight(.medium))
                                             .foregroundStyle(Color.appAccent)
@@ -257,6 +258,7 @@ struct ProgressTabView: View {
                     .padding(.top, 30)
                     .padding(.bottom)
                 }
+                .contentMargins(.bottom, tabBarBottomInset, for: .scrollContent)
                 .refreshable {
                     await viewModel.loadStats()
                 }
@@ -1142,7 +1144,7 @@ struct RecentWorkoutCard: View {
     @ObservedObject var viewModel: ProgressStatsViewModel
 
     var body: some View {
-        NavigationLink(destination: WorkoutDetailView(workoutSession: session)) {
+        NavigationLink(destination: WorkoutDetailView(workoutSession: session).hidesTabBar()) {
             HStack(spacing: 12) {
                 IconBadge(
                     systemName: "figure.strengthtraining.traditional",

@@ -10,6 +10,7 @@ import PostHog
 
 struct PostSignInGuideView: View {
     @Binding var isPresented: Bool
+    @Binding var selectedTab: HomeTab
     @State private var currentStep = 0
     @AppStorage("hasCompletedFirstLaunchGuide") private var hasCompletedGuide = false
     
@@ -19,6 +20,13 @@ struct PostSignInGuideView: View {
             title: "Great to have you here!",
             description: "Let's take a quick moment to show you around and get you started on your fitness journey.",
             actionTitle: "Show Me Around"
+        ),
+        GuideStep(
+            icon: "chart.bar.fill",
+            title: "Your Day at a Glance",
+            description: "See today's scheduled workouts, your weekly progress and jump straight into training. All from one place.",
+            actionTitle: "Cool!",
+            highlightTab: "Dashboard"
         ),
         GuideStep(
             icon: "dumbbell.fill",
@@ -40,13 +48,6 @@ struct PostSignInGuideView: View {
             description: "When you're ready to train, tap a scheduled workout or start it directly from the routine to begin. Log your sets, track rest times, and stay focused.",
             actionTitle: "Nice!",
             highlightTab: "Workout"
-        ),
-        GuideStep(
-            icon: "chart.bar.fill",
-            title: "Your Day at a Glance",
-            description: "See today's scheduled workouts, your weekly progress and jump straight into training. All from one place.",
-            actionTitle: "Cool!",
-            highlightTab: "Dashboard"
         ),
         GuideStep(
             icon: "chart.xyaxis.line",
@@ -74,7 +75,8 @@ struct PostSignInGuideView: View {
             isAssetIcon: true,
             title: "You're All Set!",
             description: "That's everything you need to know. Ready to crush your first workout?",
-            actionTitle: "Let's Go!"
+            actionTitle: "Let's Go!",
+            navigateToTab: "Dashboard"
         )
     ]
     
@@ -194,6 +196,15 @@ struct PostSignInGuideView: View {
             }
             .padding(32)
         }
+        .onChange(of: currentStep) { _, newStep in
+            let tabName = steps[newStep].highlightTab ?? steps[newStep].navigateToTab
+            if let tabName,
+               let tab = HomeTab.allCases.first(where: { $0.title == tabName }) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                    selectedTab = tab
+                }
+            }
+        }
     }
 }
 
@@ -205,18 +216,20 @@ struct GuideStep: Identifiable {
     let description: String
     let actionTitle: String
     let highlightTab: String?
+    let navigateToTab: String?
     
-    init(icon: String, isAssetIcon: Bool = false, title: String, description: String, actionTitle: String, highlightTab: String? = nil) {
+    init(icon: String, isAssetIcon: Bool = false, title: String, description: String, actionTitle: String, highlightTab: String? = nil, navigateToTab: String? = nil) {
         self.icon = icon
         self.isAssetIcon = isAssetIcon
         self.title = title
         self.description = description
         self.actionTitle = actionTitle
         self.highlightTab = highlightTab
+        self.navigateToTab = navigateToTab
     }
 }
 
 #Preview {
-    PostSignInGuideView(isPresented: .constant(true))
+    PostSignInGuideView(isPresented: .constant(true), selectedTab: .constant(.dashboard))
         .preferredColorScheme(.dark)
 }

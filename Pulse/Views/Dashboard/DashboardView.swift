@@ -26,6 +26,7 @@ struct DashboardView: View {
     @State private var resumeExercises: [Exercise] = []
     @State private var showingResumeWorkout = false
     @State private var showingResumeAlert = false
+    @Environment(\.tabBarBottomInset) private var tabBarBottomInset
     
     var body: some View {
         NavigationStack {
@@ -126,6 +127,7 @@ struct DashboardView: View {
                     .opacity(hasAppeared ? 1 : 0)
                     .offset(y: hasAppeared ? 0 : 12)
                 }
+                .contentMargins(.bottom, tabBarBottomInset, for: .scrollContent)
             }
             .onAppear {
                 viewModel.startInsightRotation()
@@ -374,6 +376,7 @@ struct EmptyTodayCard: View {
                         scheduleViewModel: scheduleViewModel,
                         routineListViewModel: routineListViewModel
                     )
+                    .hidesTabBar()
                 }
             }
             .frame(maxWidth: .infinity)

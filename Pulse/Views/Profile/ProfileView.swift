@@ -28,16 +28,33 @@ struct ProfileView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @EnvironmentObject var healthKitManager: HealthKitManager
     @EnvironmentObject var unitManager: UnitManager
+    @Environment(\.tabBarBottomInset) private var tabBarBottomInset
     
     var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
-        return "Version \(version) (\(build))"
+        
+        if Self.isTestBuild {
+            return "Version \(version) (\(build))"
+        } else {
+            return "Version \(version)"
+        }
     }
+    
+    #if DEBUG
+    private static let isTestBuild = true
+    #else
+    private static let isTestBuild: Bool = {
+        // TestFlight and Xcode builds use a sandbox receipt
+        guard let receiptURL = Bundle.main.appStoreReceiptURL else { return false }
+        return receiptURL.lastPathComponent == "sandboxReceipt"
+    }()
+    #endif
     
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
+        NavigationStack {
             ZStack {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
@@ -349,7 +366,7 @@ struct ProfileView: View {
                             .font(.caption2)
                             .foregroundStyle(Color.appTertiaryText)
                             .frame(maxWidth: .infinity)
-                            .padding(.bottom, 20)
+                            .padding(.bottom, 20 + tabBarBottomInset)
                     }
                 }
             }
@@ -420,6 +437,7 @@ struct ProfileView: View {
             .task {
                 await viewModel.loadProfile()
             }
+        }
         }
     
     private func openSupportEmail() {
