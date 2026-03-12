@@ -22,7 +22,6 @@ class AuthViewModel: ObservableObject{
     @Published var isRegistering = false
     @Published var registrationSuccess = false
     @Published var errorMessage: String?
-    @Published var showRecoveryPrompt = false
     @Published var rateLimitSecondsRemaining: Int = 0
     
     private let supabase = SupabaseManager.shared.client
@@ -34,17 +33,9 @@ class AuthViewModel: ObservableObject{
             // Restore session on init
             Task {
                 await restoreSession()
-                
-                if UserDefaults.standard.bool(forKey: "pendingPasswordReset") {
-                            UserDefaults.standard.removeObject(forKey: "pendingPasswordReset")
-                            DispatchQueue.main.async {
-                                self.showRecoveryPrompt = true
-                            }
-                        }
-                
                 self.isInitializing = false
-                    }
-                }
+            }
+        }
     
     private func restoreSession() async {
             do {
@@ -306,21 +297,7 @@ class AuthViewModel: ObservableObject{
         }
     }
     
-    func resetPassword(email: String) async -> Bool {
-        guard !isRateLimited else {
-            errorMessage = "Too many attempts. Please wait \(rateLimitSecondsRemaining)s."
-            return false
-        }
-        
-        do {
-            try await supabase.auth.resetPasswordForEmail(email)
-            return true
-        } catch {
-            recordFailedAttempt()
-            errorMessage = "Failed to send reset email: \(error.localizedDescription)"
-            return false
-        }
-    }
+
     
     // MARK: - Sign in with Apple
     

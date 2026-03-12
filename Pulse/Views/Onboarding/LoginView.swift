@@ -248,7 +248,6 @@ struct LoginView: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .sheet(isPresented: $showingForgotPassword) {
                 ForgotPasswordView()
-                    .environmentObject(authViewModel)
                     .presentationDragIndicator(.visible)
             }
         }
@@ -257,15 +256,9 @@ struct LoginView: View {
 
 struct ForgotPasswordView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var email = ""
-    @State private var isLoading = false
-    @State private var resetSuccess = false
-    @State private var showError = false
-    @State private var errorMessage = ""
-    @Environment(\.dismissAllSheets) var dismissAllSheets
-    @EnvironmentObject var authViewModel: AuthViewModel
-    
-    private let supabase = SupabaseManager.shared.client
+    @StateObject private var viewModel = PwResetViewModel()
+    @Environment(\.colorScheme) private var colorScheme
+    @FocusState private var focusedOTPField: Int?
     
     func isValidEmail(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
@@ -273,163 +266,464 @@ struct ForgotPasswordView: View {
         return emailPredicate.evaluate(with: email)
     }
     
-    @Environment(\.colorScheme) private var colorScheme
+    func passwordStrength(_ password: String) -> (label: String, color: Color, level: Int) {
+        if password.isEmpty { return ("", .clear, 0) }
+        
+        var strength = 0
+        if password.count >= 8 { strength += 1 }
+        if password.count >= 12 { strength += 1 }
+        if password.range(of: "[A-Z]", options: .regularExpression) != nil { strength += 1 }
+        if password.range(of: "[a-z]", options: .regularExpression) != nil { strength += 1 }
+        if password.range(of: "[0-9]", options: .regularExpression) != nil { strength += 1 }
+        if password.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil { strength += 1 }
+        
+        switch strength {
+        case 0...2: return ("Weak", .red, 1)
+        case 3...4: return ("Fair", .orange, 2)
+        case 5:     return ("Good", .yellow, 3)
+        default:    return ("Strong", .green, 4)
+        }
+    }
     
     var body: some View {
         ZStack {
             LinearGradient.dashboardBackground.ignoresSafeArea()
             
-            if resetSuccess {
-                // Success View
-                VStack(spacing: 20) {
-                    IconBadge(assetName: "envelope", color: .green, size: 64)
-                    
-                    Text("Check Your Email")
-                        .font(.title2.weight(.bold))
-                        .foregroundStyle(Color.appText)
-                    
-                    Text("We've sent a password reset link to")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.appSecondaryText)
-                    
-                    Text(email)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color.appAccent)
-                    
-                    Text("Click the link in the email to reset your password, then return here to sign in.")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.appSecondaryText)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                    
-                    PrimaryCTAButton("Back to Login") {
-                        resetSuccess = false
-                        dismiss()
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 12)
-                }
-            } else {
-                // Reset Password Form
-                VStack(spacing: 0) {
-                    // Logo section
-                    VStack {
-                        Image("LoadingLogo")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 180, height: 100)
-                    }
-                    .frame(maxHeight: .infinity, alignment: .top)
-                    .padding(.top, 100)
-                    
-                    // Form section
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Title
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Reset Password")
-                                .font(.title2.weight(.bold))
-                                .foregroundStyle(Color.appText)
-                            
-                            Text("Enter your email to receive a reset link")
-                                .font(.subheadline)
-                                .foregroundStyle(Color.appSecondaryText)
-                        }
-                        .padding(.bottom, 10)
-                        
-                        // Error message
-                        if showError {
-                            HStack(spacing: 8) {
-                                Image("exclamation-circle")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 16, height: 16)
-                                    .foregroundStyle(.red)
-                                Text(errorMessage)
-                                    .foregroundStyle(.red)
-                                    .font(.caption.weight(.medium))
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .lineLimit(3)
-                            }
-                            .padding(12)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                        }
-                        
-                        // Email field
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Email")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(Color.appText)
-                            
-                            TextField("Email", text: $email)
-                                .textInputAutocapitalization(.never)
-                                .keyboardType(.emailAddress)
-                                .padding()
-                                .foregroundStyle(Color.appText)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                            }
-                                        }
-                                }
-                                .onChange(of: email) {
-                                    showError = false
-                                }
-                        }
-                        
-                        // Reset Button
-                        PrimaryCTAButton(authViewModel.rateLimitSecondsRemaining > 0
-                            ? "Wait \(authViewModel.rateLimitSecondsRemaining)s"
-                            : "Reset Password"
-                        ) {
-                            if email.trimmingCharacters(in: .whitespaces).isEmpty {
-                                errorMessage = "Email is required"
-                                showError = true
-                            } else if !isValidEmail(email) {
-                                errorMessage = "Please enter a valid email address"
-                                showError = true
-                            } else {
-                                showError = false
-                                errorMessage = ""
-                                Task {
-                                    isLoading = true
-                                    let success = await authViewModel.resetPassword(email: email)
-                                    if success {
-                                        resetSuccess = true
-                                    } else {
-                                        errorMessage = authViewModel.errorMessage ?? "Failed to send reset email. Please try again."
-                                        showError = true
-                                    }
-                                    isLoading = false
-                                }
-                            }
-                        }
-                        .disabled(authViewModel.rateLimitSecondsRemaining > 0)
-                        .padding(.top, 4)
-                    }
-                    .padding(.horizontal, 24)
-                    
-                    Spacer()
-                }
+            switch viewModel.step {
+            case .enterEmail:
+                emailStepView
+            case .enterOTP:
+                otpStepView
+            case .setNewPassword:
+                newPasswordStepView
+            case .success:
+                successView
             }
             
-            // Fullscreen loading overlay
-            if isLoading {
+            if viewModel.isLoading {
                 ZStack {
                     Color.appBackground
                         .ignoresSafeArea()
-                    
                     Image("LoadingLogo")
                 }
                 .transition(.opacity)
             }
         }
         .presentationBackground(LinearGradient.dashboardBackground)
-        .animation(.easeInOut, value: isLoading)
-        .animation(.easeInOut, value: resetSuccess)
+        .animation(.easeInOut, value: viewModel.isLoading)
+        .animation(.easeInOut, value: viewModel.step)
+        .onDisappear {
+            viewModel.reset()
+        }
+    }
+    
+    // MARK: - Step 1: Enter Email
+    
+    private var emailStepView: some View {
+        VStack(spacing: 0) {
+            VStack {
+                Image("LoadingLogo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 180, height: 100)
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+            .padding(.top, 100)
+            
+            VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Reset Password")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(Color.appText)
+                    
+                    Text("Enter your email to receive a verification code")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
+                }
+                .padding(.bottom, 10)
+                
+                errorBox
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Email")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.appText)
+                    
+                    TextField("Email", text: $viewModel.email)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.emailAddress)
+                        .padding()
+                        .foregroundStyle(Color.appText)
+                        .background {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(Color.appSurface)
+                                .overlay {
+                                    if colorScheme == .dark {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                    }
+                                }
+                        }
+                        .onChange(of: viewModel.email) {
+                            viewModel.showError = false
+                        }
+                }
+                
+                PrimaryCTAButton("Send Code") {
+                    let trimmed = viewModel.email.trimmingCharacters(in: .whitespaces)
+                    if trimmed.isEmpty {
+                        viewModel.errorMessage = "Email is required"
+                        viewModel.showError = true
+                    } else if !isValidEmail(trimmed) {
+                        viewModel.errorMessage = "Please enter a valid email address"
+                        viewModel.showError = true
+                    } else {
+                        Task {
+                            await viewModel.sendOTP()
+                        }
+                    }
+                }
+                .padding(.top, 4)
+            }
+            .padding(.horizontal, 24)
+            
+            Spacer()
+        }
+    }
+    
+    // MARK: - Step 2: Enter OTP
+    
+    private var otpStepView: some View {
+        VStack(spacing: 0) {
+            VStack {
+                Image("LoadingLogo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 180, height: 100)
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+            .padding(.top, 100)
+            
+            VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Enter Code")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(Color.appText)
+                    
+                    Text("We sent an 8-digit code to")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
+                    
+                    Text(viewModel.email)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.appAccent)
+                }
+                .padding(.bottom, 10)
+                
+                errorBox
+                
+                // OTP input boxes
+                HStack(spacing: 8) {
+                    ForEach(0..<8, id: \.self) { index in
+                        OTPDigitField(
+                            index: index,
+                            code: $viewModel.otpCode,
+                            focusedField: $focusedOTPField
+                        )
+                    }
+                }
+                .padding(.vertical, 4)
+                .onAppear {
+                    focusedOTPField = 0
+                }
+                
+                PrimaryCTAButton("Verify Code") {
+                    Task {
+                        await viewModel.verifyOTP()
+                    }
+                }
+                .opacity(viewModel.otpCode.count == 8 ? 1 : 0.5)
+                .disabled(viewModel.otpCode.count != 8)
+                .padding(.top, 4)
+                
+                // Resend code
+                HStack {
+                    Spacer()
+                    if viewModel.resendCooldown > 0 {
+                        Text("Resend code in \(viewModel.resendCooldown)s")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.appTertiaryText)
+                    } else {
+                        Button("Resend Code") {
+                            Task {
+                                await viewModel.resendOTP()
+                            }
+                        }
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(Color.appAccent)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 4)
+                
+                // Back button
+                HStack {
+                    Spacer()
+                    Button("Use a different email") {
+                        viewModel.otpCode = ""
+                        viewModel.showError = false
+                        viewModel.step = .enterEmail
+                    }
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Color.appSecondaryText)
+                    Spacer()
+                }
+            }
+            .padding(.horizontal, 24)
+            
+            Spacer()
+        }
+    }
+    
+    // MARK: - Step 3: Set New Password
+    
+    private var newPasswordStepView: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Set New Password")
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(Color.appText)
+                
+                Text("Enter your new password below")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.appSecondaryText)
+            }
+            
+            errorBox
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("New Password")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.appText)
+                
+                SecureField("New Password", text: $viewModel.newPassword)
+                    .padding()
+                    .foregroundStyle(Color.appText)
+                    .background {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color.appSurface)
+                            .overlay {
+                                if colorScheme == .dark {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                }
+                            }
+                    }
+                    .textContentType(.newPassword)
+                
+                // Password strength indicator
+                if !viewModel.newPassword.isEmpty {
+                    HStack(spacing: 8) {
+                        let strength = passwordStrength(viewModel.newPassword)
+                        
+                        Text(strength.label)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(strength.color)
+                        
+                        HStack(spacing: 4) {
+                            ForEach(0..<4) { index in
+                                Capsule()
+                                    .fill(index < strength.level ? strength.color : Color.appText.opacity(0.12))
+                                    .frame(height: 4)
+                            }
+                        }
+                        .frame(maxWidth: 100)
+                    }
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Confirm Password")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.appText)
+                
+                SecureField("Confirm Password", text: $viewModel.confirmPassword)
+                    .padding()
+                    .foregroundStyle(Color.appText)
+                    .background {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color.appSurface)
+                            .overlay {
+                                if colorScheme == .dark {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                }
+                            }
+                    }
+                    .textContentType(.newPassword)
+                
+                // Password match indicator
+                if !viewModel.confirmPassword.isEmpty {
+                    HStack(spacing: 6) {
+                        Image(viewModel.passwordsMatch ? "check-circle" : "x-mark")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                            .foregroundStyle(viewModel.passwordsMatch ? .green : .red)
+                        
+                        Text(viewModel.passwordsMatch ? "Passwords match" : "Passwords don't match")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(viewModel.passwordsMatch ? .green : .red)
+                    }
+                }
+            }
+            
+            Button {
+                Task {
+                    await viewModel.updatePassword()
+                }
+            } label: {
+                Text("Reset Password")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(
+                        LinearGradient.accentGradient.opacity(viewModel.canSetPassword ? 1 : 0.5),
+                        in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    )
+            }
+            .buttonStyle(ScalePressStyle())
+            .disabled(!viewModel.canSetPassword || viewModel.isLoading)
+            .padding(.top, 4)
+            
+            Spacer()
+        }
+        .padding(24)
+    }
+    
+    // MARK: - Success
+    
+    private var successView: some View {
+        VStack(spacing: 20) {
+            IconBadge(assetName: "check-circle", color: .green, size: 64)
+            
+            Text("Password Reset!")
+                .font(.title2.weight(.bold))
+                .foregroundStyle(Color.appText)
+            
+            Text("You can now sign in with your new password.")
+                .font(.subheadline)
+                .foregroundStyle(Color.appSecondaryText)
+                .multilineTextAlignment(.center)
+            
+            PrimaryCTAButton("Go to Login") {
+                dismiss()
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 12)
+        }
+    }
+    
+    // MARK: - Error Box
+    
+    @ViewBuilder
+    private var errorBox: some View {
+        if viewModel.showError {
+            HStack(spacing: 8) {
+                Image("exclamation-circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
+                    .foregroundStyle(.red)
+                Text(viewModel.errorMessage)
+                    .foregroundStyle(.red)
+                    .font(.caption.weight(.medium))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(3)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+    }
+}
+
+// MARK: - OTP Digit Field
+
+private struct OTPDigitField: View {
+    let index: Int
+    @Binding var code: String
+    @FocusState.Binding var focusedField: Int?
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private var digit: String {
+        guard index < code.count else { return "" }
+        return String(code[code.index(code.startIndex, offsetBy: index)])
+    }
+    
+    var body: some View {
+        TextField("", text: Binding(
+            get: { digit },
+            set: { newValue in
+                handleInput(newValue)
+            }
+        ))
+        .keyboardType(.numberPad)
+        .textContentType(.oneTimeCode)
+        .multilineTextAlignment(.center)
+        .font(.title3.weight(.bold))
+        .foregroundStyle(Color.appText)
+        .frame(width: 38, height: 48)
+        .background {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.appSurface)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(
+                            focusedField == index ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.08) : Color.clear),
+                            lineWidth: focusedField == index ? 2 : 1
+                        )
+                }
+        }
+        .focused($focusedField, equals: index)
+    }
+    
+    private func handleInput(_ newValue: String) {
+        let filtered = newValue.filter { $0.isNumber }
+        
+        // Handle paste of full code
+        if filtered.count >= 8 {
+            code = String(filtered.prefix(8))
+            focusedField = nil
+            return
+        }
+        
+        if filtered.isEmpty {
+            // Deletion
+            if index < code.count {
+                var chars = Array(code)
+                chars.remove(at: index)
+                code = String(chars)
+            }
+            if index > 0 {
+                focusedField = index - 1
+            }
+        } else {
+            // Single digit typed
+            let char = filtered.last!
+            if index < code.count {
+                var chars = Array(code)
+                chars[index] = char
+                code = String(chars)
+            } else {
+                code.append(char)
+            }
+            if index < 7 {
+                focusedField = index + 1
+            } else {
+                focusedField = nil
+            }
+        }
     }
 }

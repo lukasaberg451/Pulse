@@ -40,10 +40,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 }
 
-struct IdentifiableString: Identifiable {
-    let id = UUID()
-    let value: String
-}
+
 
 struct DismissAllSheetsKey: EnvironmentKey {
     static let defaultValue: () -> Void = {}
@@ -69,8 +66,6 @@ struct PulseApp: App {
     @StateObject private var healthKitManager = HealthKitManager.shared
     @StateObject private var unitManager = UnitManager.shared
 
-    @State private var showPasswordReset = false
-    @State private var recoveryCode: IdentifiableString?
     @State private var showPostSignInGuide = false
     @State private var showPostLoginLoading = false
     @State private var showPostLogoutLoading = false
@@ -196,47 +191,10 @@ struct PulseApp: App {
                     WorkoutSyncManager.shared.syncProStatus(subscriptionManager.isProUser)
                 }
             }
-            .onOpenURL { url in
-                handleDeepLink(url)
-            }
-            .sheet(item: $recoveryCode) { codeWrapper in
-                        ResetPasswordInAppView(recoveryCode: codeWrapper.value)
-                            .onAppear {
-                                // Clear the flag since the reset flow is now being handled
-                                UserDefaults.standard.removeObject(forKey: "pendingPasswordReset")
-                            }
-            }
-            .sheet(isPresented: $authViewModel.showRecoveryPrompt) {
-                ResetPasswordInAppView(recoveryCode: nil)
-            }
+
         }
         .modelContainer(modelContainer)
     }
     
-    func handleDeepLink(_ url: URL) {
-        // Only process deep links from the expected host
-        guard url.host == "pulsefitness.io" || url.scheme == "Pulse" else { return }
-        
-        if url.path.contains("reset-password") {
-            let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-            if let code = components?.queryItems?.first(where: { $0.name == "code" })?.value,
-               !code.isEmpty,
-               code.count <= 256,
-               code.range(of: "^[A-Za-z0-9_\\-]+$", options: .regularExpression) != nil {
-                
-                // Mark that we're in recovery mode
-                UserDefaults.standard.set(true, forKey: "pendingPasswordReset")
-                
-                recoveryCode = IdentifiableString(value: code)
-                
-                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                   let window = windowScene.windows.first,
-                   let rootViewController = window.rootViewController {
-                    rootViewController.dismiss(animated: false)
-                }
-                
-                showPasswordReset = true
-            }
-        }
-    }
+
 }
