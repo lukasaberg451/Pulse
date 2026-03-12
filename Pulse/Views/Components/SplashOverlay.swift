@@ -12,17 +12,30 @@ struct SplashOverlay: View {
     @Binding var isVisible: Bool
     
     @State private var appearTime = Date()
-    private let minimumDisplayTime: TimeInterval = 2.0
+    private let minimumDisplayTime: TimeInterval = 3.5
+    
+    // Breathe animation
+    @State private var breatheScale: CGFloat = 1.0
+    
+    // Exit animation
+    @State private var isDismissing = false
+    @State private var exitScale: CGFloat = 1.0
+    @State private var logoOpacity: Double = 1
+    @State private var backgroundOpacity: Double = 1
     
     var body: some View {
         ZStack {
             Color("LoadingBackground")
+                .opacity(backgroundOpacity)
             
             Image("LoadingLogo")
+                .scaleEffect(isDismissing ? exitScale : breatheScale)
+                .opacity(logoOpacity)
         }
         .ignoresSafeArea()
         .onAppear {
             appearTime = Date()
+            startLoadingAnimations()
             if !isInitializing {
                 dismiss()
             }
@@ -34,15 +47,45 @@ struct SplashOverlay: View {
         }
     }
     
+    private func startLoadingAnimations() {
+        // Start breathe after 0.3s delay
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.3))
+            guard !isDismissing else { return }
+            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
+                breatheScale = 1.06
+            }
+        }
+    }
+    
     private func dismiss() {
         let elapsed = Date().timeIntervalSince(appearTime)
         let remaining = max(minimumDisplayTime - elapsed, 0)
         
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(remaining))
-            withAnimation(.easeOut(duration: 0.4)) {
-                isVisible = false
+            
+            // Stop breathe animation cleanly before exit
+            isDismissing = true
+            
+            // Small delay to let state settle
+            try? await Task.sleep(for: .milliseconds(50))
+            
+            // Logo scales up to 1.08 and fades out over 0.5s
+            withAnimation(.easeIn(duration: 0.5)) {
+                logoOpacity = 0
+                exitScale = 1.08
             }
+            
+            // Background fades out slightly after, over 0.3s
+            try? await Task.sleep(for: .seconds(0.2))
+            withAnimation(.easeIn(duration: 0.3)) {
+                backgroundOpacity = 0
+            }
+            
+            // Wait for background fade to complete, then hide
+            try? await Task.sleep(for: .seconds(0.3))
+            isVisible = false
         }
     }
 }
