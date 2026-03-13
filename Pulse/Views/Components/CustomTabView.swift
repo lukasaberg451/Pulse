@@ -44,6 +44,7 @@ struct CustomTabView: View {
                         }
                 }
                 .buttonStyle(.plain)
+                .spotlightTarget("\(tab.lowercased())Pill")
             }
         }
         .padding(4)

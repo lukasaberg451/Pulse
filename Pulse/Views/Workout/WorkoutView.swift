@@ -11,6 +11,7 @@ import PostHog
 struct WorkoutView: View {
     @ObservedObject var scheduleViewModel: ScheduleViewModel
     @ObservedObject var routineListViewModel: RoutineListViewModel
+    @EnvironmentObject var tourManager: OnboardingTourManager
     @State private var selectedTab = 0
     @State private var routineToNavigateTo: Routine?
     
@@ -36,6 +37,13 @@ struct WorkoutView: View {
             .navigationDestination(item: $routineToNavigateTo) { routine in
                 RoutineDetailView(routine: routine)
                     .hidesTabBar()
+            }
+            .onChange(of: tourManager.currentIndex) { _, _ in
+                guard let step = tourManager.currentStep,
+                      let subTab = step.workoutSubTab else { return }
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                    selectedTab = subTab
+                }
             }
         }
     }

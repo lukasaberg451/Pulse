@@ -11,6 +11,7 @@ import SwiftUI
 
 struct SpotlightOverlay: View {
     @ObservedObject var manager: OnboardingTourManager
+    /// Frames already resolved into the overlay's local coordinate space.
     let spotlightFrames: [String: CGRect]
     @Binding var selectedTab: HomeTab
 
@@ -18,77 +19,70 @@ struct SpotlightOverlay: View {
 
     @State private var animatedFrame: CGRect = .zero
     @State private var animatedCornerRadius: CGFloat = 22
-    @State private var pulseScale: CGFloat = 1.0
-    @State private var cardSize: CGSize = .zero
+    @State private var cardSize: CGSize = CGSize(width: 300, height: 220)
 
     private var currentStep: TourStep? { manager.currentStep }
 
+    /// The target frame for the current step, with padding applied.
     private var targetFrame: CGRect {
         guard let step = currentStep,
               let raw = spotlightFrames[step.id] else { return .zero }
         return raw.insetBy(dx: -step.spotlightPadding, dy: -step.spotlightPadding)
     }
 
+    private var targetCornerRadius: CGFloat {
+        guard let step = currentStep else { return 22 }
+        return step.spotlightCornerRadius + step.spotlightPadding
+    }
+
     var body: some View {
         if manager.isActive, let step = currentStep {
-            // Use Canvas for the dimmed overlay — it works in the view's own coordinate space.
-            // Since this view sits inside HomeView's ZStack, we use coordinateSpace to
-            // convert global frames to local.
             GeometryReader { geo in
-                let origin = geo.frame(in: .global).origin
-                // Convert the animated (global) frame to local coordinates
-                let localFrame = CGRect(
-                    x: animatedFrame.minX - origin.x,
-                    y: animatedFrame.minY - origin.y,
-                    width: animatedFrame.width,
-                    height: animatedFrame.height
-                )
-
                 let screenW = geo.size.width
                 let screenH = geo.size.height
                 let gap: CGFloat = 16
-                let spaceBelow = screenH - localFrame.maxY
-                let spaceAbove = localFrame.minY
-                let showAbove = spaceAbove > spaceBelow
                 let cardW = min(screenW - 40, 340.0)
+                let hidesCutout = step.hidesSpotlight
+                let spaceAbove = animatedFrame.minY
+                let spaceBelow = screenH - animatedFrame.maxY
+                let showAbove = spaceAbove > spaceBelow
 
-                // Card Y: place its center above or below the cutout
                 let cardCenterY: CGFloat = {
-                    let halfCard = cardSize.height / 2
+                    if hidesCutout {
+                        return screenH / 2
+                    }
+                    let half = cardSize.height / 2
                     if showAbove {
-                        // Card bottom edge at localFrame.minY - gap
-                        let y = localFrame.minY - gap - halfCard
-                        // Clamp so card doesn't go above screen
-                        return max(halfCard + 8, y)
+                        return max(half + 8, animatedFrame.minY - gap - half)
                     } else {
-                        // Card top edge at localFrame.maxY + gap
-                        let y = localFrame.maxY + gap + halfCard
-                        // Clamp so card doesn't go below screen
-                        return min(screenH - halfCard - 8, y)
+                        return min(screenH - half - 8, animatedFrame.maxY + gap + half)
                     }
                 }()
 
                 ZStack {
                     // MARK: - Dimmed backdrop with cutout
                     Canvas { ctx, size in
-                        let fullRect = CGRect(origin: .zero, size: size)
-                        let cutout = RoundedRectangle(cornerRadius: animatedCornerRadius, style: .continuous)
-                            .path(in: localFrame)
-
-                        var path = Rectangle().path(in: fullRect)
-                        path.addPath(cutout)
-
-                        ctx.fill(path, with: .color(.black.opacity(0.6)), style: FillStyle(eoFill: true))
+                        let full = CGRect(origin: .zero, size: size)
+                        if hidesCutout {
+                            ctx.fill(Rectangle().path(in: full), with: .color(.black.opacity(0.6)))
+                        } else {
+                            let hole = RoundedRectangle(cornerRadius: animatedCornerRadius, style: .continuous)
+                                .path(in: animatedFrame)
+                            var combined = Rectangle().path(in: full)
+                            combined.addPath(hole)
+                            ctx.fill(combined, with: .color(.black.opacity(0.6)), style: FillStyle(eoFill: true))
+                        }
                     }
                     .allowsHitTesting(false)
 
-                    // MARK: - Pulsing border
-                    RoundedRectangle(cornerRadius: animatedCornerRadius, style: .continuous)
-                        .stroke(Color.appAccent.opacity(0.6), lineWidth: 2)
-                        .frame(width: localFrame.width, height: localFrame.height)
-                        .position(x: localFrame.midX, y: localFrame.midY)
-                        .scaleEffect(pulseScale, anchor: .center)
-                        .allowsHitTesting(false)
+                    // MARK: - Border around cutout
+                    if !hidesCutout {
+                        RoundedRectangle(cornerRadius: animatedCornerRadius, style: .continuous)
+                            .stroke(Color.appAccent.opacity(0.5), lineWidth: 2)
+                            .frame(width: animatedFrame.width, height: animatedFrame.height)
+                            .position(x: animatedFrame.midX, y: animatedFrame.midY)
+                            .allowsHitTesting(false)
+                    }
 
                     // MARK: - Tooltip card
                     cardContent(for: step, width: cardW)
@@ -97,9 +91,7 @@ struct SpotlightOverlay: View {
                                 Color.clear
                                     .onAppear { cardSize = cardGeo.size }
                                     .onChange(of: manager.currentIndex) { _, _ in
-                                        DispatchQueue.main.async {
-                                            cardSize = cardGeo.size
-                                        }
+                                        DispatchQueue.main.async { cardSize = cardGeo.size }
                                     }
                             }
                         )
@@ -112,14 +104,12 @@ struct SpotlightOverlay: View {
             .onTapGesture { advanceOrFinish() }
             .onAppear {
                 animatedFrame = targetFrame
-                animatedCornerRadius = step.spotlightCornerRadius
-                startPulse()
+                animatedCornerRadius = targetCornerRadius
             }
             .onChange(of: manager.currentIndex) { _, _ in
-                guard let step = manager.currentStep else { return }
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                     animatedFrame = targetFrame
-                    animatedCornerRadius = step.spotlightCornerRadius
+                    animatedCornerRadius = targetCornerRadius
                 }
             }
             .onChange(of: targetFrame) { _, newFrame in
@@ -217,14 +207,4 @@ struct SpotlightOverlay: View {
         }
     }
 
-    // MARK: - Pulse animation
-
-    private func startPulse() {
-        withAnimation(
-            .easeInOut(duration: 1.1)
-            .repeatForever(autoreverses: true)
-        ) {
-            pulseScale = 1.03
-        }
-    }
 }

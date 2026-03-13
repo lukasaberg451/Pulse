@@ -70,8 +70,8 @@ struct DashboardView: View {
                             weeklyMinutes: viewModel.weeklyWorkoutMinutes,
                             triggerHighlight: triggerStreakHighlight
                         )
-                        .padding(.horizontal)
                         .spotlightTarget("statsBar")
+                        .padding(.horizontal)
                         .padding(.top, 20)
                         .opacity(sectionAppeared[0] ? 1 : 0)
                         .offset(y: sectionAppeared[0] ? 0 : 18)
@@ -106,7 +106,6 @@ struct DashboardView: View {
                                 .transition(.opacity)
                             }
                         }
-                        .spotlightTarget("todaySection")
                         .animation(.easeInOut(duration: 0.3), value: viewModel.todaysWorkouts.isEmpty)
                         .padding(.top, 24)
                         .opacity(sectionAppeared[1] ? 1 : 0)
@@ -125,8 +124,8 @@ struct DashboardView: View {
                                 },
                                 celebrate: celebrateGoalUpdate
                             )
-                            .padding(.horizontal)
                             .spotlightTarget("weeklyGoal")
+                            .padding(.horizontal)
 
                             if let dashboardMilestone = milestoneViewModel.dashboardMilestone {
                                 MilestoneCard(milestone: dashboardMilestone, viewModel: milestoneViewModel)
@@ -313,6 +312,7 @@ struct TodayWorkoutCard: View {
                 }
             }
         }
+        .spotlightTarget("todaySection")
         .padding(.horizontal)
         .fullScreenCover(isPresented: $showingActiveWorkout) {
             ActiveWorkoutView(
@@ -428,6 +428,7 @@ struct EmptyTodayCard: View {
                 .buttonStyle(ScalePressStyle())
             }
         }
+        .spotlightTarget("todaySection")
         .padding(.horizontal)
         .sheet(isPresented: $showingRoutinePicker) {
             RoutinePickerSheet(

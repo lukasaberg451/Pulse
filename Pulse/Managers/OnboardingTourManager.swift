@@ -34,27 +34,43 @@ final class OnboardingTourManager: ObservableObject {
         ),
         TourStep(
             id: "workoutTab",
-            title: "Create Your Routines",
-            body: "Build workout routines, add exercises, and schedule them to specific days.",
+            title: "Plan & Workout",
+            body: "This is where you schedule workouts and build routines. Let's take a closer look.",
             tab: .workout,
             spotlightCornerRadius: 16,
             spotlightPadding: 4
         ),
         TourStep(
-            id: "progressTab",
-            title: "Track Your Progress",
-            body: "View workout history, personal records, and see how far you've come.",
-            tab: .progress,
-            spotlightCornerRadius: 16,
+            id: "schedulePill",
+            title: "Schedule Your Workouts",
+            body: "Plan your week ahead — assign routines to specific days so you always know what's coming next.",
+            tab: .workout,
+            workoutSubTab: 0,
+            spotlightCornerRadius: 20,
             spotlightPadding: 4
         ),
         TourStep(
-            id: "profileTab",
-            title: "Make It Yours",
-            body: "Connect Apple Health, pick a theme, set your units, and send feedback.",
-            tab: .profile,
-            spotlightCornerRadius: 16,
+            id: "routinesPill",
+            title: "Build Your Routines",
+            body: "Create workout routines, add exercises, configure target reps and sets, and customize them to match your goals.",
+            tab: .workout,
+            workoutSubTab: 1,
+            spotlightCornerRadius: 20,
             spotlightPadding: 4
+        ),
+        TourStep(
+            id: "progressTab",
+            title: "Track Your Progress",
+            body: "Upgrade to Pro to unlock streaks, volume tracking, strength gains, and body metrics — all in one place.",
+            tab: .progress,
+            hidesSpotlight: true
+        ),
+        TourStep(
+            id: "profileTab",
+            title: "Your Profile",
+            body: "See your milestones, custom exercises and completed workouts. Tap the gear icon for settings.",
+            tab: .profile,
+            hidesSpotlight: true
         ),
     ]
 

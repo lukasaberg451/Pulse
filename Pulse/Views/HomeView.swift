@@ -79,7 +79,6 @@ struct HomeView: View {
     
     @State private var tabBarHeight: CGFloat = 0
     @State private var tabBarVisibility = TabBarVisibility()
-    @State private var spotlightFrames: [String: CGRect] = [:]
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -121,14 +120,17 @@ struct HomeView: View {
                 )
                 .offset(y: tabBarVisibility.isVisible ? 0 : tabBarHeight + 34)
                 .animation(.easeInOut(duration: 0.25), value: tabBarVisibility.isVisible)
-
-            // Spotlight tour overlay — sits above everything including the tab bar.
-            SpotlightOverlay(manager: tourManager, spotlightFrames: spotlightFrames, selectedTab: $selectedTab)
         }
-        .onPreferenceChange(SpotlightPreferenceKey.self) { items in
-            for item in items {
-                spotlightFrames[item.id] = item.frame
+        .overlayPreferenceValue(SpotlightAnchorKey.self) { anchors in
+            GeometryReader { geo in
+                let resolved = anchors.mapValues { geo[$0] }
+                SpotlightOverlay(
+                    manager: tourManager,
+                    spotlightFrames: resolved,
+                    selectedTab: $selectedTab
+                )
             }
+            .ignoresSafeArea()
         }
         .onChange(of: tourManager.currentIndex) { _, _ in
             // Switch tabs to match the current tour step.
