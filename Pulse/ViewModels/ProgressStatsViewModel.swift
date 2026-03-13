@@ -17,6 +17,15 @@ struct PersonalRecord: Identifiable {
     let date: Date
 }
 
+struct StrengthProgress: Identifiable {
+    let id = UUID()
+    let exerciseName: String
+    let bestWeight: Double
+    let lastWeight: Double
+    let firstWeight: Double
+    let improvementPercent: Double
+}
+
 struct MuscleGroupStat {
     let name: String
     let sets: Int
@@ -25,17 +34,19 @@ struct MuscleGroupStat {
 
 @MainActor
 class ProgressStatsViewModel: ObservableObject {
+    @Published var weeklyVolume: Int = 0
     @Published var monthlyVolume: Int = 0
     @Published var monthlyWorkouts: Int = 0
-    @Published var monthlyPRs: Int = 0
+    
     @Published var avgDuration: Int = 0
     @Published var currentStreak: Int = 0
+    private var previousStreak: Int = 0
     
     @Published var lastMonthVolume: Int = 0
     @Published var lastMonthWorkouts: Int = 0
     @Published var lastMonthAvgDuration: Int = 0
     
-    @Published var recentPRs: [PersonalRecord] = []
+    @Published var strengthProgress: [StrengthProgress] = []
     @Published var topMuscleGroups: [MuscleGroupStat] = []
     
     @Published var lifetimeWorkouts: Int = 0
@@ -44,6 +55,7 @@ class ProgressStatsViewModel: ObservableObject {
     @Published var bestStreak: Int = 0
     
     @Published var recentSessions: [WorkoutSession] = []
+    @Published var currentInsight: SmartInsight?
     
     // Pagination state for AllRecentWorkoutsView
     @Published var allRecentSessions: [WorkoutSession] = []
@@ -76,21 +88,103 @@ class ProgressStatsViewModel: ObservableObject {
     
     func loadStats() async {
         loadTask?.cancel()
+        previousStreak = currentStreak
         await fetchUserProfile()
         let task = Task { @MainActor [weak self] in
             guard let self else { return }
+            async let weekly: Void = self.loadWeeklyVolume()
             async let monthly: Void = self.loadMonthlyStats()
             async let lastMonth: Void = self.loadLastMonthStats()
-            async let prs: Void = self.loadRecentPRs()
+            async let prs: Void = self.loadStrengthProgress()
             async let muscles: Void = self.loadMuscleGroupStats()
             async let lifetime: Void = self.loadLifetimeStats()
             async let streak: Void = self.calculateStreak()
             async let recent: Void = self.loadRecentSessions()
-            _ = await (monthly, lastMonth, prs, muscles, lifetime, streak, recent)
+            _ = await (weekly, monthly, lastMonth, prs, muscles, lifetime, streak, recent)
         }
         loadTask = task
         await task.value
         hasLoaded = true
+        generateInsight()
+    }
+    
+    private func generateInsight() {
+        var daysSinceLastWorkout: Int? = nil
+        if let lastSession = recentSessions.first {
+            let lastDate = lastSession.completedAt ?? lastSession.startedAt
+            daysSinceLastWorkout = Calendar.current.dateComponents([.day], from: lastDate, to: Date()).day
+        }
+        
+        let calendar = userProfile?.userCalendar ?? Calendar.current
+        let weekdayIndex = calendar.component(.weekday, from: Date())
+        
+        let insights = SmartInsightEngine.generateInsights(
+            currentStreak: currentStreak,
+            bestStreak: bestStreak,
+            previousStreak: previousStreak,
+            monthlyWorkouts: monthlyWorkouts,
+            lastMonthWorkouts: lastMonthWorkouts,
+            weeklyVolume: weeklyVolume,
+            monthlyVolume: monthlyVolume,
+            lastMonthVolume: lastMonthVolume,
+            avgDuration: avgDuration,
+            muscleGroupNames: topMuscleGroups.map { $0.name },
+            topMuscleGroupName: topMuscleGroups.first?.name,
+            topMuscleGroupPercentage: topMuscleGroups.first?.percentage ?? 0,
+            muscleGroupCount: topMuscleGroups.count,
+            improvingExerciseCount: strengthProgress.filter { $0.improvementPercent > 0 }.count,
+            daysSinceLastWorkout: daysSinceLastWorkout,
+            lifetimeWorkouts: lifetimeWorkouts,
+            weekdayIndex: weekdayIndex
+        )
+        currentInsight = insights.first
+    }
+    
+    private func loadWeeklyVolume() async {
+        let calendar = userProfile?.userCalendar ?? Calendar.current
+        let now = Date()
+        guard let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)),
+              let weekEnd = calendar.date(byAdding: .weekOfYear, value: 1, to: weekStart) else {
+            weeklyVolume = 0
+            return
+        }
+        
+        do {
+            guard let userId = supabase.auth.currentUser?.id else { return }
+            
+            let sessions: [WorkoutSession] = try await supabase
+                .from("workout_sessions")
+                .select()
+                .eq("user_id", value: userId.uuidString)
+                .gte("started_at", value: ISO8601DateFormatter().string(from: weekStart))
+                .lt("started_at", value: ISO8601DateFormatter().string(from: weekEnd))
+                .not("completed_at", operator: .is, value: "null")
+                .execute()
+                .value
+            
+            guard !sessions.isEmpty else {
+                weeklyVolume = 0
+                return
+            }
+            
+            let sets: [WorkoutSet] = try await supabase
+                .from("workout_sets")
+                .select()
+                .in("session_id", values: sessions.map { $0.id.uuidString })
+                .not("weight", operator: .is, value: "null")
+                .not("reps", operator: .is, value: "null")
+                .execute()
+                .value
+            
+            weeklyVolume = sets.reduce(0) { total, set in
+                let weight = set.weight ?? 0
+                let reps = set.reps ?? 0
+                return total + Int(weight * Double(reps))
+            }
+        } catch {
+            debugLog("Failed to load weekly volume: \(error)")
+            weeklyVolume = 0
+        }
     }
     
     private func loadMonthlyStats() async {
@@ -207,37 +301,36 @@ class ProgressStatsViewModel: ObservableObject {
         }
     }
     
-    private func loadRecentPRs() async {
+    private func loadStrengthProgress() async {
         do {
             guard let userId = supabase.auth.currentUser?.id else { return }
             
-            // Get all completed workout sessions
+            // Get all completed workout sessions ordered by date
             let sessions: [WorkoutSession] = try await supabase
                 .from("workout_sessions")
                 .select()
                 .eq("user_id", value: userId.uuidString)
                 .not("completed_at", operator: .is, value: "null")
+                .order("completed_at", ascending: true)
                 .execute()
                 .value
             
             guard !sessions.isEmpty else {
-                monthlyPRs = 0
-                recentPRs = []
+                strengthProgress = []
                 return
             }
             
-            // Get all sets from all sessions
+            // Get all completed sets with weight
             let sets: [WorkoutSet] = try await supabase
                 .from("workout_sets")
                 .select()
                 .in("session_id", values: sessions.map { $0.id.uuidString })
                 .eq("completed", value: true)
                 .not("weight", operator: .is, value: "null")
-                .not("reps", operator: .is, value: "null")
                 .execute()
                 .value
             
-            // Get all exercises to map exercise IDs to names
+            // Get all exercises
             let exercises: [Exercise] = try await supabase
                 .from("exercises")
                 .select()
@@ -246,54 +339,50 @@ class ProgressStatsViewModel: ObservableObject {
             
             let exerciseDict = Dictionary(uniqueKeysWithValues: exercises.map { ($0.id, $0) })
             
-            // Group sets by exercise and find PRs (strength exercises only)
+            // Build a session date lookup
+            let sessionDateDict = Dictionary(uniqueKeysWithValues: sessions.map {
+                ($0.id, $0.completedAt ?? $0.startedAt)
+            })
+            
+            // Group sets by exercise, exclude cardio
             let setsByExercise = Dictionary(grouping: sets, by: { $0.exerciseId })
-            var personalRecords: [PersonalRecord] = []
+            var results: [StrengthProgress] = []
             
             for (exerciseId, exerciseSets) in setsByExercise {
                 guard let exercise = exerciseDict[exerciseId],
                       exercise.exerciseType?.lowercased() != "cardio" else { continue }
-                let exerciseName = exercise.name
                 
-                // Sort by one-rep max (weight * reps as a simple approximation)
-                let sortedSets = exerciseSets.sorted { set1, set2 in
-                    let score1 = (set1.weight ?? 0) * Double(set1.reps ?? 0)
-                    let score2 = (set2.weight ?? 0) * Double(set2.reps ?? 0)
-                    return score1 > score2
+                // Sort by session date to get chronological order
+                let chronological = exerciseSets.sorted { a, b in
+                    let dateA = sessionDateDict[a.sessionId] ?? Date.distantPast
+                    let dateB = sessionDateDict[b.sessionId] ?? Date.distantPast
+                    return dateA < dateB
                 }
                 
-                // Get the best set for this exercise
-                if let bestSet = sortedSets.first,
-                   let weight = bestSet.weight,
-                   let reps = bestSet.reps,
-                   let session = sessions.first(where: { $0.id == bestSet.sessionId }) {
-                    
-                    personalRecords.append(PersonalRecord(
-                        exerciseName: exerciseName,
-                        weight: weight,
-                        reps: reps,
-                        date: session.completedAt ?? session.startedAt
-                    ))
-                }
+                guard let firstWeight = chronological.first?.weight,
+                      let lastWeight = chronological.last?.weight else { continue }
+                
+                let bestWeight = exerciseSets.compactMap(\.weight).max() ?? 0
+                
+                let improvement = firstWeight > 0
+                    ? ((bestWeight - firstWeight) / firstWeight) * 100
+                    : 0
+                
+                results.append(StrengthProgress(
+                    exerciseName: exercise.name,
+                    bestWeight: bestWeight,
+                    lastWeight: lastWeight,
+                    firstWeight: firstWeight,
+                    improvementPercent: improvement
+                ))
             }
             
-            // Sort by date to get most recent PRs
-            recentPRs = personalRecords.sorted { $0.date > $1.date }
-            
-            // Calculate PRs from this month
-            let calendar = userProfile?.userCalendar ?? Calendar.current
-            let now = Date()
-            guard let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) else {
-                monthlyPRs = 0
-                return
-            }
-            
-            monthlyPRs = recentPRs.filter { $0.date >= monthStart }.count
+            // Sort by best weight descending
+            strengthProgress = results.sorted { $0.bestWeight > $1.bestWeight }
             
         } catch {
-            debugLog("Failed to load PRs: \(error)")
-            monthlyPRs = 0
-            recentPRs = []
+            debugLog("Failed to load strength progress: \(error)")
+            strengthProgress = []
         }
     }
     

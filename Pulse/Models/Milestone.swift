@@ -10,6 +10,7 @@ struct UserMilestone: Codable, Identifiable {
     let milestoneDefinitionId: UUID
     let currentValue: Double
     let achievedAt: Date?
+    let unlockedAt: Date?
     let name: String
     let description: String
     let icon: String
@@ -22,6 +23,7 @@ struct UserMilestone: Codable, Identifiable {
         case milestoneDefinitionId = "out_milestone_definition_id"
         case currentValue = "out_current_value"
         case achievedAt = "out_achieved_at"
+        case unlockedAt = "out_unlocked_at"
         case name = "out_name"
         case description = "out_description"
         case icon = "out_icon"
@@ -30,8 +32,48 @@ struct UserMilestone: Codable, Identifiable {
         case sortOrder = "out_sort_order"
     }
     
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        milestoneDefinitionId = try container.decode(UUID.self, forKey: .milestoneDefinitionId)
+        currentValue = try container.decode(Double.self, forKey: .currentValue)
+        achievedAt = try container.decodeIfPresent(Date.self, forKey: .achievedAt)
+        unlockedAt = try container.decodeIfPresent(Date.self, forKey: .unlockedAt)
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decode(String.self, forKey: .description)
+        icon = try container.decode(String.self, forKey: .icon)
+        type = try container.decode(String.self, forKey: .type)
+        targetValue = try container.decode(Double.self, forKey: .targetValue)
+        sortOrder = try container.decode(Int.self, forKey: .sortOrder)
+    }
+    
+    init(id: UUID, milestoneDefinitionId: UUID, currentValue: Double, achievedAt: Date?, unlockedAt: Date?, name: String, description: String, icon: String, type: String, targetValue: Double, sortOrder: Int) {
+        self.id = id
+        self.milestoneDefinitionId = milestoneDefinitionId
+        self.currentValue = currentValue
+        self.achievedAt = achievedAt
+        self.unlockedAt = unlockedAt
+        self.name = name
+        self.description = description
+        self.icon = icon
+        self.type = type
+        self.targetValue = targetValue
+        self.sortOrder = sortOrder
+    }
+    
+    /// Target value has been reached
     var isAchieved: Bool {
         achievedAt != nil
+    }
+    
+    /// User has manually unlocked the achievement
+    var isUnlocked: Bool {
+        unlockedAt != nil
+    }
+    
+    /// Achieved but not yet unlocked by the user
+    var isPendingUnlock: Bool {
+        isAchieved && !isUnlocked
     }
     
     var progress: Double {

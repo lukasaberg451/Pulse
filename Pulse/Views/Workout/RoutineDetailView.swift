@@ -23,6 +23,7 @@ struct RoutineDetailView: View {
     @State private var showingCopySuccess = false
     @State private var isCopying = false
     @State private var routineCount = 0
+    @State private var hasExercisesAppeared = false
     
     init(routine: Routine) {
         self.routine = routine
@@ -42,6 +43,120 @@ struct RoutineDetailView: View {
     // Helper function to handle moving items
     private func moveItems(from source: IndexSet, to destination: Int) {
         reorderedExercises.move(fromOffsets: source, toOffset: destination)
+    }
+    
+    // MARK: - Exercise List
+    
+    private var exerciseList: some View {
+        let exercises = editMode == .active ? reorderedExercises : viewModel.routineExercises
+        return List {
+            ForEach(Array(exercises.enumerated()), id: \.element.id) { index, routineExercise in
+                if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
+                    exerciseRow(routineExercise: routineExercise, exercise: exercise, index: index)
+                }
+            }
+            .onMove { source, destination in
+                if editMode == .active {
+                    moveItems(from: source, to: destination)
+                }
+            }
+            .onAppear {
+                if !hasExercisesAppeared {
+                    DispatchQueue.main.async {
+                        hasExercisesAppeared = true
+                    }
+                }
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .environment(\.editMode, $editMode)
+    }
+    
+    @ViewBuilder
+    private func exerciseRow(routineExercise: RoutineExercise, exercise: Exercise, index: Int) -> some View {
+        StaggeredItem(
+            delay: 0.1 + Double(index) * 0.08,
+            animate: !hasExercisesAppeared
+        ) {
+            HStack(spacing: 12) {
+                IconBadge(
+                    assetName: exercise.exerciseType == "cardio" ? "heart" : "shield-check",
+                    color: .appAccent,
+                    size: 40
+                )
+                
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(exercise.name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.appText)
+                    
+                    if let reps = routineExercise.repsTarget {
+                        Text("\(routineExercise.sets) sets × \(reps) reps")
+                            .font(.caption)
+                            .foregroundStyle(Color.appSecondaryText)
+                    } else if let durationSeconds = routineExercise.durationSeconds {
+                        let minutes = durationSeconds / 60
+                        let seconds = durationSeconds % 60
+                        let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
+                        Text("\(routineExercise.sets) sets × \(durationText)")
+                            .font(.caption)
+                            .foregroundStyle(Color.appSecondaryText)
+                    }
+                    
+                    if routineExercise.restSeconds > 0 {
+                        Text("\(routineExercise.restSeconds)s rest")
+                            .font(.caption)
+                            .foregroundStyle(Color.appTertiaryText)
+                    }
+                }
+                
+                Spacer()
+                
+                if editMode != .active {
+                    Menu {
+                        Button {
+                            editingExercise = routineExercise
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                        } label: {
+                            Label { Text("Edit Exercise") } icon: { Image("pencil").resizable().scaledToFit().frame(width: 16, height: 16) }
+                        }
+                        
+                        Button(role: .destructive) {
+                            let notificationFeedback = UINotificationFeedbackGenerator()
+                            notificationFeedback.notificationOccurred(.warning)
+                            Task {
+                                await viewModel.deleteExercise(routineExercise)
+                            }
+                        } label: {
+                            Label { Text("Delete Exercise") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
+                        }
+                    } label: {
+                        Image("ellipsis-horizontal")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 17, height: 17)
+                            .foregroundStyle(Color.appTertiaryText)
+                            .frame(width: 44, height: 44)
+                    }
+                }
+            }
+            .padding(14)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.appSurface)
+                    .overlay {
+                        if editMode == .active {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(Color.appAccent.opacity(0.3), lineWidth: 1.5)
+                        }
+                    }
+            }
+        }
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
+        .listRowSeparator(.hidden)
     }
     
     var body: some View {
@@ -213,6 +328,7 @@ struct RoutineDetailView: View {
                                         withAnimation {
                                             editMode = .inactive
                                             reorderedExercises = []
+                                            hasExercisesAppeared = false
                                         }
                                     }
                                 } else {
@@ -271,98 +387,7 @@ struct RoutineDetailView: View {
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
-                        List {
-                            ForEach(editMode == .active ? reorderedExercises : viewModel.routineExercises) { routineExercise in
-                                if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
-                                    HStack(spacing: 12) {
-                                        IconBadge(
-                                            assetName: exercise.exerciseType == "cardio" ? "heart" : "shield-check",
-                                            color: .appAccent,
-                                            size: 40
-                                        )
-
-                                        VStack(alignment: .leading, spacing: 3) {
-                                            Text(exercise.name)
-                                                .font(.subheadline.weight(.semibold))
-                                                .foregroundStyle(Color.appText)
-                                            
-                                            if let reps = routineExercise.repsTarget {
-                                                Text("\(routineExercise.sets) sets × \(reps) reps")
-                                                    .font(.caption)
-                                                    .foregroundStyle(Color.appSecondaryText)
-                                            } else if let durationSeconds = routineExercise.durationSeconds {
-                                                let minutes = durationSeconds / 60
-                                                let seconds = durationSeconds % 60
-                                                let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
-                                                Text("\(routineExercise.sets) sets × \(durationText)")
-                                                    .font(.caption)
-                                                    .foregroundStyle(Color.appSecondaryText)
-                                            }
-                                            
-                                            if routineExercise.restSeconds > 0 {
-                                                Text("\(routineExercise.restSeconds)s rest")
-                                                    .font(.caption)
-                                                    .foregroundStyle(Color.appTertiaryText)
-                                            }
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        // Three-dot menu - hide in edit mode
-                                        if editMode != .active {
-                                            Menu {
-                                                Button {
-                                                    editingExercise = routineExercise
-                                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                                    impactLight.impactOccurred()
-                                                } label: {
-                                                    Label { Text("Edit Exercise") } icon: { Image("pencil").resizable().scaledToFit().frame(width: 16, height: 16) }
-                                                }
-                                                
-                                                Button(role: .destructive) {
-                                                    let notificationFeedback = UINotificationFeedbackGenerator()
-                                                    notificationFeedback.notificationOccurred(.warning)
-                                                    Task {
-                                                        await viewModel.deleteExercise(routineExercise)
-                                                    }
-                                                } label: {
-                                                    Label { Text("Delete Exercise") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
-                                                }
-                                            } label: {
-                                                Image("ellipsis-horizontal")
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(width: 17, height: 17)
-                                                    .foregroundStyle(Color.appTertiaryText)
-                                                    .frame(width: 44, height: 44)
-                                            }
-                                        }
-                                    }
-                                    .padding(14)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                            .fill(Color.appSurface)
-                                            .overlay {
-                                                if editMode == .active {
-                                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                                        .strokeBorder(Color.appAccent.opacity(0.3), lineWidth: 1.5)
-                                                }
-                                            }
-                                    }
-                                    .listRowBackground(Color.clear)
-                                    .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
-                                    .listRowSeparator(.hidden)
-                                }
-                            }
-                            .onMove { source, destination in
-                                if editMode == .active {
-                                    moveItems(from: source, to: destination)
-                                }
-                            }
-                        }
-                        .listStyle(.plain)
-                        .scrollContentBackground(.hidden)
-                        .environment(\.editMode, $editMode)
+                        exerciseList
                     }
                 }
             }
@@ -370,16 +395,14 @@ struct RoutineDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("")
         .toolbarBackground(Color.appBackground, for: .navigationBar)
-        .sheet(isPresented: $showingExercisePicker, onDismiss: {
-            Task {
-                await viewModel.loadRoutineExercises(forceRefresh: true)
-            }
-        }) {
+        .sheet(isPresented: $showingExercisePicker) {
             ExercisePickerSheet(routineViewModel: viewModel)
+                .sheetContentTransition()
         }
         .sheet(isPresented: $showingEditSheet) {
             EditRoutineSheet(viewModel: viewModel, onSaved: {
             })
+            .sheetContentTransition()
         }
         .sheet(item: $editingExercise) { routineExercise in
             if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
@@ -388,6 +411,7 @@ struct RoutineDetailView: View {
                     exercise: exercise,
                     viewModel: viewModel
                 )
+                .sheetContentTransition()
             }
         }
         .fullScreenCover(isPresented: $showingActiveWorkout) {
@@ -417,6 +441,7 @@ struct RoutineDetailView: View {
         }
         .sheet(isPresented: $showingPaywall) {
             SubscriptionView()
+                .sheetContentTransition()
         }
     }
 }
@@ -436,6 +461,8 @@ struct ExercisePickerSheet: View {
     @State private var selectedExercise: Exercise?
     @State private var showMyExercises = true
     @State private var addedExerciseName: String?
+    
+    @State private var isInitialLoad = true
     
     // Search debounce
     @State private var searchTask: Task<Void, Never>?
@@ -658,17 +685,10 @@ struct ExercisePickerSheet: View {
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
                             
-                            Button {
+                            PrimaryCTAButton("Create Custom Exercise", systemIcon: "plus") {
                                 showingCreateCustomSheet = true
-                            } label: {
-                                Text("Create Custom Exercise")
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(Color.appAccent)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 12)
-                                    .background(Color.appAccentSubtle, in: Capsule())
                             }
-                            .buttonStyle(ScalePressStyle())
+                            .padding(.horizontal, 24)
                             .padding(.top, 4)
                         }
                         .frame(maxHeight: .infinity)
@@ -749,11 +769,13 @@ struct ExercisePickerSheet: View {
                             .padding(.horizontal)
                             .padding(.bottom, 20)
                         }
+                        .opacity(viewModel.isLoading ? 0 : 1)
+                        .animation(.easeOut(duration: 0.25), value: viewModel.isLoading)
                     }
                 }
                 
-                // Loading overlay
-                if viewModel.isLoading {
+                // Loading overlay - only show on initial load
+                if viewModel.isLoading && isInitialLoad {
                     Color.appBackground.opacity(0.6)
                         .ignoresSafeArea()
                         .background(.ultraThinMaterial)
@@ -783,6 +805,15 @@ struct ExercisePickerSheet: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        showingCreateCustomSheet = true
+                    } label: {
+                        Text("Custom")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.appAccent)
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         let notificationFeedback = UINotificationFeedbackGenerator()
                         notificationFeedback.notificationOccurred(.success)
@@ -790,15 +821,6 @@ struct ExercisePickerSheet: View {
                     }
                     .foregroundStyle(Color.appAccent)
                     .fontWeight(.semibold)
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showingCreateCustomSheet = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(Color.appAccent)
-                    }
                 }
             }
             .sheet(isPresented: $showingConfigSheet) {
@@ -818,6 +840,7 @@ struct ExercisePickerSheet: View {
                             }
                         }
                     )
+                    .sheetContentTransition()
                 }
             }
             .sheet(isPresented: $showingFilterSheet) {
@@ -827,6 +850,7 @@ struct ExercisePickerSheet: View {
                     muscleOptions: muscleOptions,
                     equipmentOptions: equipmentOptions
                 )
+                .sheetContentTransition()
             }
             .sheet(isPresented: $showingCreateCustomSheet) {
                 CreateCustomExerciseSheet { exercise in
@@ -836,6 +860,7 @@ struct ExercisePickerSheet: View {
                         await viewModel.loadCustomExercises()
                     }
                 }
+                .sheetContentTransition()
             }
             .onChange(of: selectedMuscle) { _, _ in
                 applyFilters()
@@ -846,6 +871,7 @@ struct ExercisePickerSheet: View {
             .task {
                 await viewModel.loadCustomExercises()
                 await viewModel.resetAndLoad()
+                isInitialLoad = false
             }
         }
         .presentationBackground(LinearGradient.dashboardBackground)
@@ -1200,6 +1226,10 @@ struct CreateCustomExerciseSheet: View {
                         .pickerStyle(.segmented)
                     }
                     
+                    Text("To delete custom exercises, go to your profile.")
+                        .font(.footnote)
+                        .foregroundStyle(Color.appSecondaryText.opacity(0.8))
+                    
                     if let error = errorMessage {
                         Text(error)
                             .font(.caption)
@@ -1267,6 +1297,7 @@ struct CreateCustomExerciseSheet: View {
                     name: name,
                     exerciseType: exerciseType.databaseValue
                 )
+                NotificationCenter.default.post(name: .customExerciseCreated, object: exercise)
                 dismiss()
                 onCreated(exercise)
             } catch {
@@ -1412,9 +1443,20 @@ struct ExerciseConfigSheet: View {
                             )
                             
                             VStack(alignment: .leading, spacing: 3) {
-                                Text(exercise.name)
-                                    .font(.subheadline.weight(.bold))
-                                    .foregroundStyle(Color.appText)
+                                HStack(spacing: 6) {
+                                    Text(exercise.name)
+                                        .font(.subheadline.weight(.bold))
+                                        .foregroundStyle(Color.appText)
+                                    
+                                    if exercise.isCustom == true {
+                                        Text("Custom")
+                                            .font(.caption2.weight(.semibold))
+                                            .foregroundStyle(Color.appAccent)
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(Color.appAccentSubtle, in: Capsule())
+                                    }
+                                }
                                 
                                 if let muscle = exercise.muscleGroup {
                                     Text(muscle.capitalized)
@@ -1765,6 +1807,11 @@ struct ExerciseConfigSheet: View {
                         let notificationFeedback = UINotificationFeedbackGenerator()
                         notificationFeedback.notificationOccurred(.success)
                         Task {
+                            // Ensure the exercise is in the viewModel's exercises list
+                            if !viewModel.exercises.contains(where: { $0.id == exercise.id }) {
+                                viewModel.exercises.append(exercise)
+                            }
+                            
                             if isCardio {
                                 let totalSeconds = (durationMinutes * 60) + durationSeconds
                                 let actualSets = cardioMode == .continuous ? 1 : sets
@@ -2014,9 +2061,20 @@ struct EditExerciseSheet: View {
                             )
                             
                             VStack(alignment: .leading, spacing: 3) {
-                                Text(exercise.name)
-                                    .font(.subheadline.weight(.bold))
-                                    .foregroundStyle(Color.appText)
+                                HStack(spacing: 6) {
+                                    Text(exercise.name)
+                                        .font(.subheadline.weight(.bold))
+                                        .foregroundStyle(Color.appText)
+                                    
+                                    if exercise.isCustom == true {
+                                        Text("Custom")
+                                            .font(.caption2.weight(.semibold))
+                                            .foregroundStyle(Color.appAccent)
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(Color.appAccentSubtle, in: Capsule())
+                                    }
+                                }
                                 
                                 if let muscle = exercise.muscleGroup {
                                     Text(muscle.capitalized)

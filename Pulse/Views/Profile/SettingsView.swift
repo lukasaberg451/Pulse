@@ -1,0 +1,381 @@
+//
+//  SettingsView.swift
+//  Pulse
+//
+//  Created by Lukas Åberg on 2026-03-12.
+//
+
+import SwiftUI
+import SafariServices
+
+struct SettingsView: View {
+    @StateObject private var viewModel = ProfileViewModel()
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
+    @EnvironmentObject var healthKitManager: HealthKitManager
+    @EnvironmentObject var unitManager: UnitManager
+    
+    @State private var showingThemeSheet = false
+    @State private var showingUnitSheet = false
+    @State private var showingTimezoneSheet = false
+    @State private var showingSubscriptionSheet = false
+    @State private var showingFeedbackSheet = false
+    @State private var showingSignOutAlert = false
+    @State private var showingDeleteAccountAlert = false
+    @State private var showingDeleteConfirmation = false
+    @State private var isDeletingAccount = false
+    @State private var safariURL: URL?
+    
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        
+        if Self.isTestBuild {
+            return "Version \(version) (\(build))"
+        } else {
+            return "Version \(version)"
+        }
+    }
+    
+    #if DEBUG
+    private static let isTestBuild = true
+    #else
+    private static let isTestBuild: Bool = {
+        guard let receiptURL = Bundle.main.appStoreReceiptURL else { return false }
+        return receiptURL.lastPathComponent == "sandboxReceipt"
+    }()
+    #endif
+    
+    var body: some View {
+        ZStack {
+            LinearGradient.dashboardBackground.ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Subscription Section
+                    VStack(alignment: .leading, spacing: 10) {
+                        DashboardSectionHeader(title: "Subscription")
+                            .padding(.horizontal)
+                        
+                        Button {
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                            showingSubscriptionSheet = true
+                        } label: {
+                            HStack(spacing: 14) {
+                                IconBadge(assetName: "star", size: 32)
+                                
+                                Text("Plan")
+                                    .font(.body)
+                                    .foregroundStyle(Color.appText)
+                                
+                                Spacer()
+                                
+                                Text(subscriptionManager.isProUser ? "Pro" : "Free")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+                                
+                                Image("chevron-right")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 13, height: 13)
+                                    .foregroundStyle(Color.appTertiaryText)
+                            }
+                            .padding(14)
+                            .background(Color.appSurface)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .profileCardShadow(colorScheme: colorScheme)
+                        }
+                        .buttonStyle(ScalePressStyle())
+                        .padding(.horizontal)
+                    }
+                    
+                    // Settings Section
+                    VStack(alignment: .leading, spacing: 10) {
+                        DashboardSectionHeader(title: "General")
+                            .padding(.horizontal)
+                        
+                        VStack(spacing: 0) {
+                            // Appearance
+                            ProfileSettingsRow(icon: "paint-brush", title: "Appearance", value: themeManager.selectedTheme.rawValue) {
+                                showingThemeSheet = true
+                            }
+                            
+                            ProfileDivider()
+                            
+                            // Units
+                            ProfileSettingsRow(icon: "ruler", title: "Units", value: unitManager.unitSystem.displayName) {
+                                showingUnitSheet = true
+                            }
+                            
+                            ProfileDivider()
+                            
+                            // Timezone
+                            ProfileSettingsRow(icon: "clock", title: "Time Zone", value: viewModel.profile?.timezone ?? TimeZone.current.identifier, lineLimit: 1, isSystemImage: true) {
+                                showingTimezoneSheet = true
+                            }
+                            
+                            if healthKitManager.isAvailable {
+                                ProfileDivider()
+                                
+                                // Apple Health
+                                Button {
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
+                                    if healthKitManager.isSyncEnabled {
+                                        if let url = URL(string: "x-apple-health://") {
+                                            UIApplication.shared.open(url)
+                                        }
+                                    } else {
+                                        Task {
+                                            await healthKitManager.requestAuthorization()
+                                        }
+                                    }
+                                } label: {
+                                    HStack(spacing: 14) {
+                                        IconBadge(assetName: "heart", color: .pink, size: 32)
+                                        
+                                        Text("Apple Health")
+                                            .font(.body)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Spacer()
+                                        
+                                        if healthKitManager.isSyncEnabled {
+                                            Text("Connected")
+                                                .font(.subheadline.weight(.medium))
+                                                .foregroundStyle(.green)
+                                        } else {
+                                            Text("Connect")
+                                                .font(.subheadline.weight(.semibold))
+                                                .foregroundStyle(Color.appAccent)
+                                        }
+                                    }
+                                    .padding(14)
+                                }
+                            }
+                            
+                            ProfileDivider()
+                            
+                            // Apple Watch
+                            HStack(spacing: 14) {
+                                IconBadge(systemName: "applewatch", size: 32)
+                                
+                                Text("Apple Watch")
+                                    .font(.body)
+                                    .foregroundStyle(Color.appText)
+                                
+                                Spacer()
+                                
+                                Text(WorkoutSyncManager.shared.isPaired == true ? "Connected" : "Not Connected")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(WorkoutSyncManager.shared.isPaired == true ? .green : Color.appSecondaryText)
+                            }
+                            .padding(14)
+                        }
+                        .background(Color.appSurface)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .profileCardShadow(colorScheme: colorScheme)
+                        .padding(.horizontal)
+                    }
+                    
+                    // Support Section
+                    VStack(alignment: .leading, spacing: 10) {
+                        DashboardSectionHeader(title: "Support")
+                            .padding(.horizontal)
+                        
+                        VStack(spacing: 0) {
+                            // Send Feedback
+                            ProfileSettingsRow(icon: "clipboard-document-list", title: "Send Feedback") {
+                                showingFeedbackSheet = true
+                            }
+                            
+                            ProfileDivider()
+                            
+                            // Help & Support
+                            Button {
+                                let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                impactLight.impactOccurred()
+                                openSupportEmail()
+                            } label: {
+                                HStack(spacing: 14) {
+                                    IconBadge(assetName: "question-mark-circle", size: 32)
+                                    
+                                    Text("Help & Support")
+                                        .font(.body)
+                                        .foregroundStyle(Color.appText)
+                                    
+                                    Spacer()
+                                    
+                                    Image("envelope")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 14, height: 14)
+                                        .foregroundStyle(Color.appTertiaryText)
+                                }
+                                .padding(14)
+                            }
+                        }
+                        .background(Color.appSurface)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .profileCardShadow(colorScheme: colorScheme)
+                        .padding(.horizontal)
+                    }
+                    
+                    // Sign Out Button
+                    Button {
+                        let notificationFeedback = UINotificationFeedbackGenerator()
+                        notificationFeedback.notificationOccurred(.warning)
+                        showingSignOutAlert = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            Text("Sign Out")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .foregroundStyle(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color.red.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(ScalePressStyle())
+                    .padding(.horizontal)
+                    
+                    // Delete Account Button
+                    Button {
+                        let notificationFeedback = UINotificationFeedbackGenerator()
+                        notificationFeedback.notificationOccurred(.warning)
+                        showingDeleteAccountAlert = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            if isDeletingAccount {
+                                ProgressView()
+                                    .tint(.red)
+                            } else {
+                                Image("trash")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
+                                    .font(.subheadline.weight(.semibold))
+                                Text("Delete Account")
+                                    .font(.subheadline.weight(.semibold))
+                            }
+                        }
+                        .foregroundStyle(.red.opacity(0.7))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color.red.opacity(0.06))
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(ScalePressStyle())
+                    .disabled(isDeletingAccount)
+                    .padding(.horizontal)
+                }
+                .padding(.top, 8)
+                .padding(.bottom, 16)
+                
+                // Terms & Privacy
+                HStack(spacing: 16) {
+                    Button(action: {
+                        safariURL = URL(string: "https://pulsefitness.io/terms-app.html")
+                    }) {
+                        Text("Terms of Service")
+                            .font(.caption)
+                            .foregroundStyle(Color.appSecondaryText)
+                    }
+                    
+                    Text("·")
+                        .font(.caption)
+                        .foregroundStyle(Color.appTertiaryText)
+                    
+                    Button(action: {
+                        safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
+                    }) {
+                        Text("Privacy Policy")
+                            .font(.caption)
+                            .foregroundStyle(Color.appSecondaryText)
+                    }
+                }
+                .padding(.bottom, 8)
+                
+                Text(appVersion)
+                    .font(.caption2)
+                    .foregroundStyle(Color.appTertiaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 20)
+            }
+        }
+        .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.appBackground, for: .navigationBar)
+        .alert("Sign Out", isPresented: $showingSignOutAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Sign Out", role: .destructive) {
+                Task {
+                    await authViewModel.signOut()
+                }
+            }
+        } message: {
+            Text("Are you sure you want to sign out?")
+        }
+        .alert("Delete Account", isPresented: $showingDeleteAccountAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Continue", role: .destructive) {
+                showingDeleteConfirmation = true
+            }
+        } message: {
+            Text("Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data will be removed.")
+        }
+        .sheet(isPresented: $showingDeleteConfirmation) {
+            DeleteAccountConfirmationSheet(
+                isDeletingAccount: $isDeletingAccount,
+                authViewModel: authViewModel
+            )
+            .sheetContentTransition()
+        }
+        .sheet(isPresented: $showingFeedbackSheet) {
+            FeedbackSheet(viewModel: viewModel)
+                .sheetContentTransition()
+        }
+        .sheet(isPresented: $showingThemeSheet) {
+            ThemeSelectionSheet()
+                .sheetContentTransition()
+        }
+        .sheet(isPresented: $showingUnitSheet) {
+            UnitSelectionSheet(viewModel: viewModel)
+                .sheetContentTransition()
+        }
+        .sheet(isPresented: $showingTimezoneSheet) {
+            TimezoneSelectionSheet(viewModel: viewModel)
+                .sheetContentTransition()
+        }
+        .sheet(isPresented: $showingSubscriptionSheet) {
+            SubscriptionView()
+                .sheetContentTransition()
+        }
+        .sheet(item: $safariURL) { url in
+            SafariView(url: url)
+                .ignoresSafeArea()
+                .sheetContentTransition()
+        }
+        .alert("Apple Health Access", isPresented: $healthKitManager.showDeniedAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Workout sharing was not enabled. To allow this later, go to the Health app → Sharing → Apps and grant access to Pulse.")
+        }
+        .task {
+            await viewModel.loadProfile()
+        }
+    }
+    
+    private func openSupportEmail() {
+        let subject = "Pulse Support Request"
+        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
+        if let url = URL(string: "mailto:support@pulsefitness.io?subject=\(encodedSubject)") {
+            UIApplication.shared.open(url)
+        }
+    }
+}

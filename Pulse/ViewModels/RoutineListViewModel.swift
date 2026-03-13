@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import SwiftUI
 import SwiftData
 
 @MainActor
@@ -115,5 +116,30 @@ class RoutineListViewModel: ObservableObject {
         } catch {
             errorMessage = "Failed to delete routine: \(error.localizedDescription)"
         }
+    }
+    
+    func deleteRoutines(_ routinesToDelete: [Routine]) async {
+        // Remove all routines from the local list immediately to avoid
+        // flickering reloads between individual deletions
+        let idsToDelete = Set(routinesToDelete.map(\.id))
+        withAnimation(.easeInOut(duration: 0.35)) {
+            routines.removeAll { idsToDelete.contains($0.id) }
+        }
+        
+        for routine in routinesToDelete {
+            do {
+                try await workoutRepository.deleteUncompletedScheduledWorkouts(routineId: routine.id)
+                try await workoutRepository.markScheduledWorkoutsAsRoutineDeleted(routineId: routine.id)
+                try await workoutRepository.markSessionsAsRoutineDeleted(routineId: routine.id)
+                try await repository.deleteRoutine(id: routine.id)
+            } catch {
+                errorMessage = "Failed to delete routine: \(error.localizedDescription)"
+            }
+        }
+        
+        // Notify other views once after all deletions are complete.
+        // Pass self so RoutineContentView can ignore its own ViewModel's notifications.
+        NotificationCenter.default.post(name: .routineDataChanged, object: self)
+        NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
     }
 }

@@ -9,48 +9,14 @@ import SwiftUI
 import SafariServices
 
 struct ProfileView: View {
+    @ObservedObject var progressViewModel: ProgressStatsViewModel
+    @ObservedObject var milestoneViewModel: MilestoneViewModel
     @StateObject private var viewModel = ProfileViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var themeManager: ThemeManager
-    @State private var showingThemeSheet = false
-    @State private var showingEditNameSheet = false
-    @State private var showingSignOutAlert = false
-    @State private var showingDeleteAccountAlert = false
-    @State private var showingDeleteConfirmation = false
-    @State private var isDeletingAccount = false
-    @State private var showingFeedbackSheet = false
-
-    @State private var showingChangeEmailSheet = false
-    @State private var showingSubscriptionSheet = false
-    @State private var showingTimezoneSheet = false
-    @State private var showingUnitSheet = false
-    @State private var safariURL: URL?
-    @EnvironmentObject var subscriptionManager: SubscriptionManager
-    @EnvironmentObject var healthKitManager: HealthKitManager
     @EnvironmentObject var unitManager: UnitManager
+    @State private var showingEditNameSheet = false
+    @State private var sectionAnimationId = UUID()
     @Environment(\.tabBarBottomInset) private var tabBarBottomInset
-    
-    var appVersion: String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
-        
-        if Self.isTestBuild {
-            return "Version \(version) (\(build))"
-        } else {
-            return "Version \(version)"
-        }
-    }
-    
-    #if DEBUG
-    private static let isTestBuild = true
-    #else
-    private static let isTestBuild: Bool = {
-        // TestFlight and Xcode builds use a sandbox receipt
-        guard let receiptURL = Bundle.main.appStoreReceiptURL else { return false }
-        return receiptURL.lastPathComponent == "sandboxReceipt"
-    }()
-    #endif
-    
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
@@ -69,374 +35,234 @@ struct ProfileView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 20) {
+                            // Settings button top-right
+                            HStack {
+                                Spacer()
+                                NavigationLink {
+                                    SettingsView()
+                                        .hidesTabBar()
+                                } label: {
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.body)
+                                        .foregroundStyle(Color.appSecondaryText)
+                                        .padding(10)
+                                        .background(Color.appSurface)
+                                        .clipShape(Circle())
+                                }
+                                .padding(.trailing, 16)
+                            }
+                            
                             // Profile Header
-                            VStack(spacing: 14) {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.appAccentSubtle)
-                                        .frame(width: 96, height: 96)
-                                    
-                                    Text(getUserInitials())
-                                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                                        .foregroundStyle(Color.appAccent)
-                                }
-                                .padding(.top, 24)
-                                
-                                Text("\(viewModel.profile?.firstName ?? "") \(viewModel.profile?.lastName ?? "")")
-                                    .font(.title2.weight(.bold))
-                                    .foregroundStyle(Color.appText)
-                                
-                                Text(viewModel.profile?.email ?? "")
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color.appSecondaryText)
-                                
-                                Button {
-                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                    impactLight.impactOccurred()
-                                    showingEditNameSheet = true
-                                } label: {
-                                    Text("Edit Profile")
-                                        .font(.subheadline.weight(.semibold))
-                                        .foregroundStyle(Color.appAccent)
-                                        .padding(.horizontal, 24)
-                                        .padding(.vertical, 10)
-                                        .background(
-                                            Capsule()
-                                                .fill(Color.appAccentSubtle)
-                                        )
-                                }
-                                .buttonStyle(ScalePressStyle())
-                                .padding(.top, 4)
-                            }
-                            
-                            // Subscription Section
-                            VStack(alignment: .leading, spacing: 10) {
-                                DashboardSectionHeader(title: "Subscription")
-                                    .padding(.horizontal)
-                                
-                                Button {
-                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                    impactLight.impactOccurred()
-                                    showingSubscriptionSheet = true
-                                } label: {
-                                    HStack(spacing: 14) {
-                                        IconBadge(assetName: "star", size: 32)
+                            StaggeredItem(delay: 0.05, animate: true) {
+                                VStack(spacing: 14) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.appAccentSubtle)
+                                            .frame(width: 96, height: 96)
                                         
-                                        Text("Plan")
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText)
-                                        
-                                        Spacer()
-                                        
-                                        Text(subscriptionManager.isProUser ? "Pro" : "Free")
-                                            .font(.subheadline.weight(.medium))
-                                            .foregroundStyle(Color.appSecondaryText)
-                                        
-                                        Image("chevron-right")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 13, height: 13)
-                                            .foregroundStyle(Color.appTertiaryText)
-                                    }
-                                    .padding(14)
-                                    .background(Color.appSurface)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                    .profileCardShadow(colorScheme: colorScheme)
-                                }
-                                .buttonStyle(ScalePressStyle())
-                                .padding(.horizontal)
-                            }
-                            
-                            // Settings Section
-                            VStack(alignment: .leading, spacing: 10) {
-                                DashboardSectionHeader(title: "Settings")
-                                    .padding(.horizontal)
-                                
-                                VStack(spacing: 0) {
-                                    // Appearance
-                                    ProfileSettingsRow(icon: "paint-brush", title: "Appearance", value: themeManager.selectedTheme.rawValue) {
-                                        showingThemeSheet = true
+                                        Text(getUserInitials())
+                                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                                            .foregroundStyle(Color.appAccent)
                                     }
                                     
-                                    ProfileDivider()
+                                    Text("\(viewModel.profile?.firstName ?? "") \(viewModel.profile?.lastName ?? "")")
+                                        .font(.title2.weight(.bold))
+                                        .foregroundStyle(Color.appText)
                                     
-                                    // Units
-                                    ProfileSettingsRow(icon: "ruler", title: "Units", value: unitManager.unitSystem.displayName) {
-                                        showingUnitSheet = true
-                                    }
+                                    Text(viewModel.profile?.email ?? "")
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.appSecondaryText)
                                     
-                                    ProfileDivider()
-                                    
-                                    // Timezone
-                                    ProfileSettingsRow(icon: "clock", title: "Time Zone", value: viewModel.profile?.timezone ?? TimeZone.current.identifier, lineLimit: 1, isSystemImage: true) {
-                                        showingTimezoneSheet = true
-                                    }
-                                    
-                                    if healthKitManager.isAvailable {
-                                        ProfileDivider()
-                                        
-                                        // Apple Health
-                                        Button {
-                                            let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                            impactLight.impactOccurred()
-                                            if healthKitManager.isSyncEnabled {
-                                                if let url = URL(string: "x-apple-health://") {
-                                                    UIApplication.shared.open(url)
-                                                }
-                                            } else {
-                                                Task {
-                                                    await healthKitManager.requestAuthorization()
-                                                }
-                                            }
-                                        } label: {
-                                            HStack(spacing: 14) {
-                                                IconBadge(assetName: "heart", color: .pink, size: 32)
-                                                
-                                                Text("Apple Health")
-                                                    .font(.body)
-                                                    .foregroundStyle(Color.appText)
-                                                
-                                                Spacer()
-                                                
-                                                if healthKitManager.isSyncEnabled {
-                                                    Text("Connected")
-                                                        .font(.subheadline.weight(.medium))
-                                                        .foregroundStyle(.green)
-                                                } else {
-                                                    Text("Connect")
-                                                        .font(.subheadline.weight(.semibold))
-                                                        .foregroundStyle(Color.appAccent)
-                                                }
-                                            }
-                                            .padding(14)
-                                        }
-                                    }
-                                    
-                                    ProfileDivider()
-                                    
-                                    // Apple Watch
-                                    HStack(spacing: 14) {
-                                        IconBadge(systemName: "applewatch", size: 32)
-                                        
-                                        Text("Apple Watch")
-                                            .font(.body)
-                                            .foregroundStyle(Color.appText)
-                                        
-                                        Spacer()
-                                        
-                                        Text(WorkoutSyncManager.shared.isPaired == true ? "Connected" : "Not Connected")
-                                            .font(.subheadline.weight(.medium))
-                                            .foregroundStyle(WorkoutSyncManager.shared.isPaired == true ? .green : Color.appSecondaryText)
-                                    }
-                                    .padding(14)
-                                }
-                                .background(Color.appSurface)
-                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                .profileCardShadow(colorScheme: colorScheme)
-                                .padding(.horizontal)
-                            }
-                            
-                            // Support Section
-                            VStack(alignment: .leading, spacing: 10) {
-                                DashboardSectionHeader(title: "Support")
-                                    .padding(.horizontal)
-                                
-                                VStack(spacing: 0) {
-                                    // Send Feedback
-                                    ProfileSettingsRow(icon: "clipboard-document-list", title: "Send Feedback") {
-                                        showingFeedbackSheet = true
-                                    }
-                                    
-                                    ProfileDivider()
-                                    
-                                    // Help & Support
                                     Button {
                                         let impactLight = UIImpactFeedbackGenerator(style: .light)
                                         impactLight.impactOccurred()
-                                        openSupportEmail()
+                                        showingEditNameSheet = true
                                     } label: {
-                                        HStack(spacing: 14) {
-                                            IconBadge(assetName: "question-mark-circle", size: 32)
-                                            
-                                            Text("Help & Support")
-                                                .font(.body)
-                                                .foregroundStyle(Color.appText)
-                                            
-                                            Spacer()
-                                            
-                                            Image("envelope")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 14, height: 14)
-                                                .foregroundStyle(Color.appTertiaryText)
+                                        Text("Edit Profile")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(Color.appAccent)
+                                            .padding(.horizontal, 24)
+                                            .padding(.vertical, 10)
+                                            .background(
+                                                Capsule()
+                                                    .fill(Color.appAccentSubtle)
+                                            )
+                                    }
+                                    .buttonStyle(ScalePressStyle())
+                                    .padding(.top, 4)
+                                }
+                            }
+                            .id("header-\(sectionAnimationId)")
+                            
+                            // Milestones
+                            StaggeredItem(delay: 0.12, animate: true) {
+                                MilestonesSection(viewModel: milestoneViewModel)
+                            }
+                            .id("milestones-\(sectionAnimationId)")
+                            
+                            // My Exercises
+                            StaggeredItem(delay: 0.19, animate: true) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text("My Custom Exercises")
+                                        .font(.title3.weight(.bold))
+                                        .foregroundStyle(Color.appText)
+                                    
+                                    Spacer()
+                                    
+                                    if !viewModel.customExercises.isEmpty {
+                                        NavigationLink(destination: AllCustomExercisesView(viewModel: viewModel).hidesTabBar()) {
+                                            Text("See All")
+                                                .font(.subheadline.weight(.medium))
+                                                .foregroundStyle(Color.appAccent)
                                         }
-                                        .padding(14)
                                     }
                                 }
-                                .background(Color.appSurface)
-                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                .profileCardShadow(colorScheme: colorScheme)
+                                .padding(.horizontal)
+                                
+                                if viewModel.customExercises.isEmpty {
+                                    VStack(spacing: 14) {
+                                        IconBadge(systemName: "dumbbell.fill", size: 48)
+                                        
+                                        Text("No custom exercises yet")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Text("Create custom exercises when adding to a routine")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appSecondaryText)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(28)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                            .fill(Color.appSurface)
+                                            .modifier(CardShadowModifier())
+                                    }
+                                    .padding(.horizontal)
+                                } else {
+                                    VStack(spacing: 10) {
+                                        ForEach(viewModel.customExercises.prefix(3)) { exercise in
+                                            CustomExerciseCard(exercise: exercise)
+                                        }
+                                    }
+                                    .padding(.horizontal)
+                                }
+                            }
+                            }
+                            .id("exercises-\(sectionAnimationId)")
+                            
+                            // Recent Workouts
+                            StaggeredItem(delay: 0.26, animate: true) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text("Completed Workouts")
+                                        .font(.title3.weight(.bold))
+                                        .foregroundStyle(Color.appText)
+                                    
+                                    Spacer()
+                                    
+                                    if !progressViewModel.recentSessions.isEmpty {
+                                        NavigationLink(destination: AllRecentWorkoutsView().hidesTabBar()) {
+                                            Text("See All")
+                                                .font(.subheadline.weight(.medium))
+                                                .foregroundStyle(Color.appAccent)
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
+                                
+                                if progressViewModel.recentSessions.isEmpty {
+                                    VStack(spacing: 14) {
+                                        IconBadge(systemName: "clock.arrow.circlepath", size: 48)
+                                        
+                                        Text("No workout history yet")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Text("Complete your first workout to see it here")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appSecondaryText)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(28)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                            .fill(Color.appSurface)
+                                            .modifier(CardShadowModifier())
+                                    }
+                                    .padding(.horizontal)
+                                } else {
+                                    ForEach(progressViewModel.recentSessions.prefix(3)) { session in
+                                        RecentWorkoutCard(
+                                            session: session,
+                                            viewModel: progressViewModel
+                                        )
+                                    }
+                                }
+                            }
+                            }
+                            .id("workouts-\(sectionAnimationId)")
+                            
+                            // Lifetime Stats
+                            StaggeredItem(delay: 0.33, animate: true) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                DashboardSectionHeader(title: "Lifetime Stats")
+                                
+                                LazyVGrid(columns: [
+                                    GridItem(.flexible()),
+                                    GridItem(.flexible())
+                                ], spacing: 12) {
+                                    LifetimeStatCard(
+                                        title: "Total Workouts",
+                                        value: "\(progressViewModel.lifetimeWorkouts)",
+                                        icon: "figure.run",
+                                        isSystemImage: true
+                                    )
+                                    
+                                    LifetimeStatCard(
+                                        title: "Total Volume",
+                                        value: "\(Int(unitManager.displayWeight(Double(progressViewModel.lifetimeVolume))))\(unitManager.weightUnit)",
+                                        icon: "scale"
+                                    )
+                                    
+                                    LifetimeStatCard(
+                                        title: "Time Trained",
+                                        value: "\(progressViewModel.lifetimeHours)h",
+                                        icon: "clock"
+                                    )
+                                    
+                                    LifetimeStatCard(
+                                        title: "Longest Streak",
+                                        value: "\(progressViewModel.bestStreak) days",
+                                        icon: "FlameIcon"
+                                    )
+                                }
                                 .padding(.horizontal)
                             }
-                            
-                            // Sign Out Button
-                            Button {
-                                let notificationFeedback = UINotificationFeedbackGenerator()
-                                notificationFeedback.notificationOccurred(.warning)
-                                showingSignOutAlert = true
-                            } label: {
-                                HStack(spacing: 8) {
-                                    Text("Sign Out")
-                                        .font(.subheadline.weight(.semibold))
-                                }
-                                .foregroundStyle(.red)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
-                                .background(Color.red.opacity(0.1))
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                             }
-                            .buttonStyle(ScalePressStyle())
-                            .padding(.horizontal)
-                            
-                            // Delete Account Button
-                            Button {
-                                let notificationFeedback = UINotificationFeedbackGenerator()
-                                notificationFeedback.notificationOccurred(.warning)
-                                showingDeleteAccountAlert = true
-                            } label: {
-                                HStack(spacing: 8) {
-                                    if isDeletingAccount {
-                                        ProgressView()
-                                            .tint(.red)
-                                    } else {
-                                        Image("trash")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 16, height: 16)
-                                            .font(.subheadline.weight(.semibold))
-                                        Text("Delete Account")
-                                            .font(.subheadline.weight(.semibold))
-                                    }
-                                }
-                                .foregroundStyle(.red.opacity(0.7))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
-                                .background(Color.red.opacity(0.06))
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                            }
-                            .buttonStyle(ScalePressStyle())
-                            .disabled(isDeletingAccount)
-                            .padding(.horizontal)
+                            .id("stats-\(sectionAnimationId)")
                         }
                         .padding(.top, 8)
-                        .padding(.bottom, 16)
-                        
-                        // Terms & Privacy
-                        HStack(spacing: 16) {
-                            Button(action: {
-                                safariURL = URL(string: "https://pulsefitness.io/terms-app.html")
-                            }) {
-                                Text("Terms of Service")
-                                    .font(.caption)
-                                    .foregroundStyle(Color.appSecondaryText)
-                            }
-                            
-                            Text("·")
-                                .font(.caption)
-                                .foregroundStyle(Color.appTertiaryText)
-                            
-                            Button(action: {
-                                safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
-                            }) {
-                                Text("Privacy Policy")
-                                    .font(.caption)
-                                    .foregroundStyle(Color.appSecondaryText)
-                            }
-                        }
-                        .padding(.bottom, 8)
-                        
-                        Text(appVersion)
-                            .font(.caption2)
-                            .foregroundStyle(Color.appTertiaryText)
-                            .frame(maxWidth: .infinity)
-                            .padding(.bottom, 20 + tabBarBottomInset)
+                        .padding(.bottom, 20 + tabBarBottomInset)
                     }
                 }
             }
-            .alert("Sign Out", isPresented: $showingSignOutAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Sign Out", role: .destructive) {
-                    Task {
-                        await authViewModel.signOut()
-                    }
-                }
-            } message: {
-                Text("Are you sure you want to sign out?")
-            }
-            .alert("Delete Account", isPresented: $showingDeleteAccountAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Continue", role: .destructive) {
-                    showingDeleteConfirmation = true
-                }
-            } message: {
-                Text("Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data will be removed.")
-            }
-            .sheet(isPresented: $showingDeleteConfirmation) {
-                DeleteAccountConfirmationSheet(
-                    isDeletingAccount: $isDeletingAccount,
-                    authViewModel: authViewModel
-                )
-            }
+            .toolbarBackground(LinearGradient.dashboardBackground, for: .navigationBar)
             .sheet(isPresented: $showingEditNameSheet) {
                 EditNameSheet(viewModel: viewModel)
+                    .sheetContentTransition()
             }
-            .sheet(isPresented: $showingFeedbackSheet) {
-                FeedbackSheet(viewModel: viewModel)
-            }
-            .sheet(isPresented: $showingChangeEmailSheet) {
-                ChangeEmailSheet(
-                        authViewModel: authViewModel,
-                        onEmailChanged: {
-                            Task {
-                                await viewModel.loadProfile()
-                            }
-                        }
-                    )
-                }
-            .sheet(isPresented: $showingThemeSheet) {
-                ThemeSelectionSheet()
-            }
-            .sheet(isPresented: $showingUnitSheet) {
-                UnitSelectionSheet(viewModel: viewModel)
-            }
-            .sheet(isPresented: $showingTimezoneSheet) {
-                TimezoneSelectionSheet(viewModel: viewModel)
-            }
-            .sheet(isPresented: $showingSubscriptionSheet) {
-                SubscriptionView()
-            }
-            .sheet(item: $safariURL) { url in
-                SafariView(url: url)
-                    .ignoresSafeArea()
-            }
-            .alert("Apple Health Access", isPresented: $healthKitManager.showDeniedAlert) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text("Workout sharing was not enabled. To allow this later, go to the Health app → Sharing → Apps and grant access to Pulse.")
+            .onAppear {
+                sectionAnimationId = UUID()
             }
             .task {
                 await viewModel.loadProfile()
             }
         }
         }
-    
-    private func openSupportEmail() {
-        let subject = "Pulse Support Request"
-        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
-        if let url = URL(string: "mailto:support@pulsefitness.io?subject=\(encodedSubject)") {
-            UIApplication.shared.open(url)
-        }
-    }
     
     // Helper function to get user initials
     func getUserInitials() -> String {
@@ -457,7 +283,7 @@ struct ProfileView: View {
 
 // MARK: - Profile Helpers
 
-private struct ProfileSettingsRow: View {
+struct ProfileSettingsRow: View {
     let icon: String
     let title: String
     var value: String? = nil
@@ -502,7 +328,7 @@ private struct ProfileSettingsRow: View {
     }
 }
 
-private struct ProfileDivider: View {
+struct ProfileDivider: View {
     var body: some View {
         Divider()
             .background(Color.appText.opacity(0.06))
@@ -510,7 +336,7 @@ private struct ProfileDivider: View {
     }
 }
 
-private struct ProfileCardShadowModifier: ViewModifier {
+struct ProfileCardShadowModifier: ViewModifier {
     let colorScheme: ColorScheme
     
     func body(content: Content) -> some View {
@@ -528,7 +354,7 @@ private struct ProfileCardShadowModifier: ViewModifier {
     }
 }
 
-private extension View {
+extension View {
     func profileCardShadow(colorScheme: ColorScheme) -> some View {
         modifier(ProfileCardShadowModifier(colorScheme: colorScheme))
     }
@@ -608,7 +434,7 @@ struct EditNameSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
                     }
@@ -632,6 +458,7 @@ struct EditNameSheet: View {
                     }
                 }
             )
+            .sheetContentTransition()
         }
         .sheet(isPresented: $showingEditLastNameSheet) {
             EditFieldSheet(
@@ -647,6 +474,7 @@ struct EditNameSheet: View {
                     }
                 }
             )
+            .sheetContentTransition()
         }
         .sheet(isPresented: $showingChangeEmailSheet) {
             ChangeEmailSheet(
@@ -657,6 +485,7 @@ struct EditNameSheet: View {
                     }
                 }
             )
+            .sheetContentTransition()
         }
     }
 }
@@ -1278,5 +1107,166 @@ struct DeleteAccountConfirmationSheet: View {
         }
         .presentationDetents([.medium])
         .presentationBackground(Color.appBackground)
+    }
+}
+
+// MARK: - Custom Exercise Card
+
+struct CustomExerciseCard: View {
+    let exercise: Exercise
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            IconBadge(
+                systemName: "dumbbell.fill",
+                color: .appAccent,
+                size: 40
+            )
+            
+            VStack(alignment: .leading, spacing: 3) {
+                Text(exercise.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.appText)
+                
+                if let muscleGroup = exercise.muscleGroup {
+                    Text(muscleGroup)
+                        .font(.caption)
+                        .foregroundStyle(Color.appSecondaryText)
+                } else if let exerciseType = exercise.exerciseType {
+                    Text(exerciseType)
+                        .font(.caption)
+                        .foregroundStyle(Color.appSecondaryText)
+                }
+            }
+            
+            Spacer()
+        }
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.appSurface)
+                .overlay {
+                    if colorScheme == .dark {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                    }
+                }
+                .shadow(
+                    color: colorScheme == .light
+                        ? Color.black.opacity(0.06)
+                        : Color.clear,
+                    radius: 10,
+                    x: 0,
+                    y: 4
+                )
+        }
+    }
+}
+
+// MARK: - All Custom Exercises View
+
+struct AllCustomExercisesView: View {
+    @ObservedObject var viewModel: ProfileViewModel
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var exerciseToDelete: Exercise?
+    
+    var body: some View {
+        ZStack {
+            LinearGradient.dashboardBackground
+                .ignoresSafeArea()
+            
+            ScrollView {
+                LazyVStack(spacing: 10) {
+                    StaggeredList(items: viewModel.customExercises, id: \.id) { exercise in
+                        HStack(spacing: 12) {
+                            IconBadge(
+                                systemName: "dumbbell.fill",
+                                color: .appAccent,
+                                size: 40
+                            )
+                            
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(exercise.name)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(Color.appText)
+                                
+                                if let muscleGroup = exercise.muscleGroup {
+                                    Text(muscleGroup)
+                                        .font(.caption)
+                                        .foregroundStyle(Color.appSecondaryText)
+                                } else if let exerciseType = exercise.exerciseType {
+                                    Text(exerciseType)
+                                        .font(.caption)
+                                        .foregroundStyle(Color.appSecondaryText)
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            Menu {
+                                Button(role: .destructive) {
+                                    let notificationFeedback = UINotificationFeedbackGenerator()
+                                    notificationFeedback.notificationOccurred(.warning)
+                                    exerciseToDelete = exercise
+                                } label: {
+                                    Label { Text("Delete Exercise") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
+                                }
+                            } label: {
+                                Image("ellipsis-horizontal")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 17, height: 17)
+                                    .foregroundStyle(Color.appTertiaryText)
+                                    .frame(width: 44, height: 44)
+                            }
+                        }
+                        .padding(14)
+                        .background {
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(Color.appSurface)
+                                .overlay {
+                                    if colorScheme == .dark {
+                                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                            .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                    }
+                                }
+                                .shadow(
+                                    color: colorScheme == .light
+                                        ? Color.black.opacity(0.06)
+                                        : Color.clear,
+                                    radius: 10,
+                                    x: 0,
+                                    y: 4
+                                )
+                        }
+                    }
+                }
+                .padding()
+            }
+        }
+        .navigationTitle("My Custom Exercises")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.appBackground, for: .navigationBar)
+        .alert("Delete Exercise", isPresented: Binding(
+            get: { exerciseToDelete != nil },
+            set: { if !$0 { exerciseToDelete = nil } }
+        )) {
+            Button("Cancel", role: .cancel) {
+                exerciseToDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let exercise = exerciseToDelete {
+                    Task {
+                        await viewModel.deleteCustomExercise(exercise)
+                    }
+                }
+                exerciseToDelete = nil
+            }
+        } message: {
+            if let exercise = exerciseToDelete {
+                Text("Are you sure you want to delete '\(exercise.name)'? This action cannot be undone.")
+            }
+        }
     }
 }

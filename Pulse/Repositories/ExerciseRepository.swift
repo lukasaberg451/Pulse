@@ -117,6 +117,20 @@ class ExerciseRepository {
         return exercises
     }
     
+    func deleteCustomExercise(id: UUID) async throws {
+        guard let userId = supabase.auth.currentUser?.id else {
+            throw NSError(domain: "ExerciseRepository", code: 401, userInfo: [NSLocalizedDescriptionKey: "Not authenticated"])
+        }
+        
+        try await supabase
+            .from("exercises")
+            .delete()
+            .eq("id", value: id.uuidString)
+            .eq("is_custom", value: true)
+            .eq("created_by", value: userId.uuidString)
+            .execute()
+    }
+    
     func fetchExercise(id: UUID) async throws -> Exercise {
         let supabase = SupabaseManager.shared.client
         

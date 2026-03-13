@@ -256,6 +256,7 @@ struct SubscriptionView: View {
             .sheet(item: $safariURL) { url in
                 SafariView(url: url)
                     .ignoresSafeArea()
+                    .sheetContentTransition()
             }
         }
         .presentationBackground(LinearGradient.dashboardBackground)

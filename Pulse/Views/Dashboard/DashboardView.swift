@@ -16,7 +16,12 @@ struct DashboardView: View {
     @ObservedObject var scheduleViewModel: ScheduleViewModel
     @ObservedObject var routineListViewModel: RoutineListViewModel
     @State private var showingGoalSettings = false
+    @State private var goalBeforeEdit: Int = 0
+    @State private var celebrateGoalUpdate = false
     @State private var hasAppeared = false
+    @State private var sectionAppeared: [Bool] = [false, false, false]
+    @State private var triggerStreakHighlight = false
+    @Environment(\.splashDismissed) private var splashDismissed
     
     // In-progress workout recovery
     @Environment(\.modelContext) private var modelContext
@@ -51,30 +56,25 @@ struct DashboardView: View {
                             Text(viewModel.formattedToday)
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
-
-                            // Stat pills row
-                            if viewModel.currentStreak > 0 {
-                                StatPill(
-                                    icon: "FlameIcon",
-                                    value: "\(viewModel.currentStreak)",
-                                    label: viewModel.currentStreak == 1 ? "day streak" : "day streak"
-                                )
-                                .padding(.top, 8)
-                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.top, 40)
                         .padding(.horizontal)
+                        .opacity(sectionAppeared[0] ? 1 : 0)
+                        .offset(y: sectionAppeared[0] ? 0 : 18)
 
-                        // MARK: - Smart Insight
-                        if let insight = viewModel.currentInsight {
-                            SmartInsightCard(insight: insight)
-                                .padding(.top, 12)
-                                .onTapGesture {
-                                    viewModel.advanceInsight()
-                                    viewModel.startInsightRotation()
-                                }
-                        }
+                        // MARK: - Stats Bar
+                        StatsBar(
+                            streak: viewModel.currentStreak,
+                            totalWorkouts: viewModel.totalWorkoutCount,
+                            weeklyMinutes: viewModel.weeklyWorkoutMinutes,
+                            triggerHighlight: triggerStreakHighlight
+                        )
+                        .padding(.horizontal)
+                        .spotlightTarget("statsBar")
+                        .padding(.top, 20)
+                        .opacity(sectionAppeared[0] ? 1 : 0)
+                        .offset(y: sectionAppeared[0] ? 0 : 18)
 
                         // MARK: - Today Section
                         VStack(alignment: .leading, spacing: 14) {
@@ -85,6 +85,7 @@ struct DashboardView: View {
                                     scheduleViewModel: scheduleViewModel,
                                     routineListViewModel: routineListViewModel
                                 )
+                                .transition(.opacity)
                             } else {
                                 ForEach(viewModel.todaysWorkouts) { scheduled in
                                     if let routineId = scheduled.routineId,
@@ -102,9 +103,14 @@ struct DashboardView: View {
                                         )
                                     }
                                 }
+                                .transition(.opacity)
                             }
                         }
+                        .spotlightTarget("todaySection")
+                        .animation(.easeInOut(duration: 0.3), value: viewModel.todaysWorkouts.isEmpty)
                         .padding(.top, 24)
+                        .opacity(sectionAppeared[1] ? 1 : 0)
+                        .offset(y: sectionAppeared[1] ? 0 : 18)
 
                         // MARK: - Progress Section
                         VStack(spacing: 14) {
@@ -114,44 +120,64 @@ struct DashboardView: View {
                                 onEditGoal: {
                                     let impactLight = UIImpactFeedbackGenerator(style: .light)
                                     impactLight.impactOccurred()
+                                    goalBeforeEdit = viewModel.weeklyGoalMinutes
                                     showingGoalSettings = true
-                                }
+                                },
+                                celebrate: celebrateGoalUpdate
                             )
                             .padding(.horizontal)
+                            .spotlightTarget("weeklyGoal")
 
-                            if let nextMilestone = milestoneViewModel.nextMilestone {
-                                MilestoneCard(milestone: nextMilestone)
+                            if let dashboardMilestone = milestoneViewModel.dashboardMilestone {
+                                MilestoneCard(milestone: dashboardMilestone, viewModel: milestoneViewModel)
+                                    .id(dashboardMilestone.id)
                                     .padding(.horizontal)
+                                    .transition(.opacity.combined(with: .move(edge: .leading)))
                             }
 
                             Spacer(minLength: 40)
                         }
                         .padding(.top, 20)
+                        .opacity(sectionAppeared[2] ? 1 : 0)
+                        .offset(y: sectionAppeared[2] ? 0 : 18)
                     }
-                    // Card entrance animation
-                    .opacity(hasAppeared ? 1 : 0)
-                    .offset(y: hasAppeared ? 0 : 12)
+                    .animation(.easeOut(duration: 0.35), value: viewModel.todaysWorkouts.count)
                 }
                 .contentMargins(.bottom, tabBarBottomInset, for: .scrollContent)
             }
             .onAppear {
-                viewModel.startInsightRotation()
-                withAnimation(.easeOut(duration: 0.45).delay(0.1)) {
-                    hasAppeared = true
+                guard !hasAppeared else { return }
+                hasAppeared = true
+                for index in sectionAppeared.indices {
+                    withAnimation(.easeOut(duration: 0.45).delay(0.1 + Double(index) * 0.1)) {
+                        sectionAppeared[index] = true
+                    }
                 }
             }
-            .onDisappear {
-                viewModel.stopInsightRotation()
+            .onChange(of: splashDismissed) { _, dismissed in
+                guard dismissed, !triggerStreakHighlight else { return }
+                // Small delay after splash fades so the pill entrance animation finishes first
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    triggerStreakHighlight = true
+                }
             }
             .task {
-                await viewModel.refreshAll(includeInsights: true)
+                await viewModel.refreshAll()
                 await checkForInProgressWorkout()
             }
             .refreshable {
-                await viewModel.refreshAll(includeInsights: true)
+                await viewModel.refreshAll()
             }
-            .sheet(isPresented: $showingGoalSettings) {
+            .sheet(isPresented: $showingGoalSettings, onDismiss: {
+                if viewModel.weeklyGoalMinutes != goalBeforeEdit {
+                    celebrateGoalUpdate = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        celebrateGoalUpdate = true
+                    }
+                }
+            }) {
                 WeeklyGoalSheet(viewModel: viewModel)
+                    .sheetContentTransition()
             }
             .alert("Resume Workout?", isPresented: $showingResumeAlert) {
                 Button("Resume", role: .cancel) {
@@ -360,57 +386,187 @@ struct DeletedRoutineTodayCard: View {
 struct EmptyTodayCard: View {
     @ObservedObject var scheduleViewModel: ScheduleViewModel
     @ObservedObject var routineListViewModel: RoutineListViewModel
+    @State private var showingRoutinePicker = false
 
     var body: some View {
         DashboardCard {
-            VStack(spacing: 16) {
-                IconBadge(assetName: "calendar-days", size: 52)
-                    .padding(.top, 4)
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        IconBadge(assetName: "calendar-days", size: 28)
+                        Text("Today")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.appSecondaryText)
+                    }
 
-                VStack(spacing: 4) {
                     Text("No workouts scheduled")
-                        .font(.subheadline.weight(.semibold))
+                        .font(.title3.weight(.semibold))
                         .foregroundStyle(Color.appText)
+
                     Text("Plan your training for today")
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                 }
 
-                PrimaryCTALink("Schedule a workout", icon: "plus") {
-                    WorkoutView(
-                        scheduleViewModel: scheduleViewModel,
-                        routineListViewModel: routineListViewModel
-                    )
-                    .hidesTabBar()
+                Spacer()
+
+                Button {
+                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                    impactLight.impactOccurred()
+                    showingRoutinePicker = true
+                } label: {
+                    VStack(spacing: 4) {
+                        Image("plus-circle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 32, height: 32)
+                        Text("Add")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .foregroundStyle(Color.appAccent)
                 }
+                .buttonStyle(ScalePressStyle())
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
         }
         .padding(.horizontal)
+        .sheet(isPresented: $showingRoutinePicker) {
+            RoutinePickerSheet(
+                viewModel: scheduleViewModel,
+                selectedDate: Date()
+            )
+            .sheetContentTransition()
+        }
     }
 }
 
-struct SmartInsightCard: View {
-    let insight: SmartInsight
+// MARK: - Stats Bar
+
+struct StatsBar: View {
+    let streak: Int
+    let totalWorkouts: Int
+    let weeklyMinutes: Int
+    var triggerHighlight: Bool = false
+
+    @State private var hasPlayedInitial = false
+    @State private var isAnimating = false
+    @State private var waveOffset: CGFloat = -1.5
 
     var body: some View {
-        HStack(spacing: 10) {
-            IconBadge(assetName: insight.icon, color: insight.accentColor, size: 32)
+        DashboardCard {
+            HStack(spacing: 0) {
+                StatBarItem(
+                    icon: "FlameIcon",
+                    value: "\(streak)",
+                    label: "Daily Streak"
+                )
 
-            Text(insight.text)
-                .font(.subheadline)
-                .foregroundStyle(Color.appText.opacity(0.8))
-                .lineLimit(2)
+                StatBarDivider()
+
+                StatBarItem(
+                    icon: "check-circle",
+                    value: "\(totalWorkouts)",
+                    label: "Workouts"
+                )
+
+                StatBarDivider()
+
+                StatBarItem(
+                    icon: "clock",
+                    value: formattedWeeklyTime,
+                    label: "This Week"
+                )
+            }
         }
-        .padding(.horizontal)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(minHeight: 44)
-        .clipped()
-        .id(insight.id)
-        .transition(.asymmetric(
-            insertion: .opacity.combined(with: .move(edge: .bottom)),
-            removal: .opacity.combined(with: .move(edge: .top))
-        ))
+        .overlay {
+            GeometryReader { geo in
+                // Wave shimmer that sweeps from top-right to bottom-left
+                let waveWidth = geo.size.width * 0.6
+                LinearGradient(
+                    stops: [
+                        .init(color: Color.appAccent.opacity(0), location: 0),
+                        .init(color: Color.appAccent.opacity(0.18), location: 0.4),
+                        .init(color: Color.appAccent.opacity(0.25), location: 0.5),
+                        .init(color: Color.appAccent.opacity(0.18), location: 0.6),
+                        .init(color: Color.appAccent.opacity(0), location: 1)
+                    ],
+                    startPoint: .topTrailing,
+                    endPoint: .bottomLeading
+                )
+                .frame(width: waveWidth)
+                .blur(radius: 12)
+                .offset(x: waveOffset * geo.size.width)
+                .frame(width: geo.size.width, height: geo.size.height, alignment: .topTrailing)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .allowsHitTesting(false)
+        }
+        .onTapGesture {
+            guard !isAnimating else { return }
+            let impactLight = UIImpactFeedbackGenerator(style: .light)
+            impactLight.impactOccurred()
+            runWave()
+        }
+        .onChange(of: triggerHighlight) { _, newValue in
+            guard newValue, !hasPlayedInitial else { return }
+            hasPlayedInitial = true
+            runWave()
+        }
+    }
+
+    private var formattedWeeklyTime: String {
+        let hours = weeklyMinutes / 60
+        let minutes = weeklyMinutes % 60
+        if hours > 0 {
+            return minutes > 0 ? "\(hours)h \(minutes)m" : "\(hours)h"
+        }
+        return "\(minutes)m"
+    }
+
+    private func runWave() {
+        isAnimating = true
+        waveOffset = -1.5
+        withAnimation(.easeInOut(duration: 2.0)) {
+            waveOffset = 1.5
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            isAnimating = false
+            waveOffset = -1.5
+        }
     }
 }
+
+private struct StatBarItem: View {
+    let icon: String
+    let value: String
+    let label: String
+
+    var body: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 7) {
+                Image(icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 14, height: 14)
+                    .foregroundStyle(Color.appAccent)
+
+                Text(value)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(Color.appText)
+            }
+
+            Text(label)
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(Color.appSecondaryText)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+private struct StatBarDivider: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 0.5)
+            .fill(Color.appSecondaryText.opacity(0.2))
+            .frame(width: 1, height: 40)
+    }
+}
+

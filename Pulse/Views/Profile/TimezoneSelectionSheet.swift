@@ -117,7 +117,7 @@ struct TimezoneSelectionSheet: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .navigationTitle("Time Zone")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
                     }

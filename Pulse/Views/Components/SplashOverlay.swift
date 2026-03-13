@@ -15,7 +15,10 @@ struct SplashOverlay: View {
     private let minimumDisplayTime: TimeInterval = 3.5
     
     // Breathe animation
+    private let breatheDelay: TimeInterval = 0.3
+    private let breatheHalfCycle: TimeInterval = 1.4
     @State private var breatheScale: CGFloat = 1.0
+    @State private var breatheStartTime = Date.distantFuture
     
     // Exit animation
     @State private var isDismissing = false
@@ -48,14 +51,26 @@ struct SplashOverlay: View {
     }
     
     private func startLoadingAnimations() {
-        // Start breathe after 0.3s delay
         Task { @MainActor in
-            try? await Task.sleep(for: .seconds(0.3))
+            try? await Task.sleep(for: .seconds(breatheDelay))
             guard !isDismissing else { return }
-            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
-                breatheScale = 1.06
+            breatheStartTime = Date()
+            withAnimation(.easeInOut(duration: breatheHalfCycle).repeatForever(autoreverses: true)) {
+                breatheScale = 1.10
             }
         }
+    }
+    
+    /// Time until the next cycle end (scale back at 1.0)
+    private func timeUntilCycleEnd() -> TimeInterval {
+        let elapsed = Date().timeIntervalSince(breatheStartTime)
+        guard elapsed >= 0 else { return 0 }
+        let fullCycle = breatheHalfCycle * 2
+        let positionInCycle = elapsed.truncatingRemainder(dividingBy: fullCycle)
+        if positionInCycle < 0.05 || (fullCycle - positionInCycle) < 0.05 {
+            return 0 // Close enough to cycle end
+        }
+        return fullCycle - positionInCycle
     }
     
     private func dismiss() {
@@ -65,25 +80,26 @@ struct SplashOverlay: View {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(remaining))
             
-            // Stop breathe animation cleanly before exit
+            // Wait for the current breathe cycle to finish so the logo is back at scale 1.0
+            let waitForCycle = timeUntilCycleEnd()
+            if waitForCycle > 0 {
+                try? await Task.sleep(for: .seconds(waitForCycle))
+            }
+            
             isDismissing = true
             
-            // Small delay to let state settle
             try? await Task.sleep(for: .milliseconds(50))
             
-            // Logo scales up to 1.08 and fades out over 0.5s
             withAnimation(.easeIn(duration: 0.5)) {
                 logoOpacity = 0
                 exitScale = 1.08
             }
             
-            // Background fades out slightly after, over 0.3s
             try? await Task.sleep(for: .seconds(0.2))
             withAnimation(.easeIn(duration: 0.3)) {
                 backgroundOpacity = 0
             }
             
-            // Wait for background fade to complete, then hide
             try? await Task.sleep(for: .seconds(0.3))
             isVisible = false
         }
@@ -94,21 +110,87 @@ struct SplashOverlay: View {
 struct PostLoginLoadingView: View {
     @Binding var isVisible: Bool
     
-    private let displayDuration: TimeInterval = 2.0
+    private let displayDuration: TimeInterval = 3.5
+    
+    // Breathe animation
+    private let breatheDelay: TimeInterval = 0.3
+    private let breatheHalfCycle: TimeInterval = 1.4
+    @State private var breatheScale: CGFloat = 1.0
+    @State private var breatheStartTime = Date.distantFuture
+    
+    // Exit animation
+    @State private var isDismissing = false
+    @State private var exitScale: CGFloat = 1.0
+    @State private var logoOpacity: Double = 1
+    @State private var backgroundOpacity: Double = 1
     
     var body: some View {
         ZStack {
             Color.appBackground
+                .opacity(backgroundOpacity)
             LinearGradient.dashboardBackground
+                .opacity(backgroundOpacity)
             
             Image("LoadingLogo")
+                .scaleEffect(isDismissing ? exitScale : breatheScale)
+                .opacity(logoOpacity)
         }
         .ignoresSafeArea()
+        .onAppear {
+            startBreathAnimation()
+        }
         .task {
             try? await Task.sleep(for: .seconds(displayDuration))
-            withAnimation(.easeOut(duration: 0.4)) {
-                isVisible = false
+            await dismiss()
+        }
+    }
+    
+    private func startBreathAnimation() {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(breatheDelay))
+            guard !isDismissing else { return }
+            breatheStartTime = Date()
+            withAnimation(.easeInOut(duration: breatheHalfCycle).repeatForever(autoreverses: true)) {
+                breatheScale = 1.10
             }
         }
+    }
+    
+    /// Time until the next cycle end (scale back at 1.0)
+    private func timeUntilCycleEnd() -> TimeInterval {
+        let elapsed = Date().timeIntervalSince(breatheStartTime)
+        guard elapsed >= 0 else { return 0 }
+        let fullCycle = breatheHalfCycle * 2
+        let positionInCycle = elapsed.truncatingRemainder(dividingBy: fullCycle)
+        if positionInCycle < 0.05 || (fullCycle - positionInCycle) < 0.05 {
+            return 0
+        }
+        return fullCycle - positionInCycle
+    }
+    
+    @MainActor
+    private func dismiss() async {
+        // Wait for the current breathe cycle to finish so the logo is back at scale 1.0
+        let waitForCycle = timeUntilCycleEnd()
+        if waitForCycle > 0 {
+            try? await Task.sleep(for: .seconds(waitForCycle))
+        }
+        
+        isDismissing = true
+        
+        try? await Task.sleep(for: .milliseconds(50))
+        
+        withAnimation(.easeIn(duration: 0.5)) {
+            logoOpacity = 0
+            exitScale = 1.08
+        }
+        
+        try? await Task.sleep(for: .seconds(0.2))
+        withAnimation(.easeIn(duration: 0.3)) {
+            backgroundOpacity = 0
+        }
+        
+        try? await Task.sleep(for: .seconds(0.3))
+        isVisible = false
     }
 }

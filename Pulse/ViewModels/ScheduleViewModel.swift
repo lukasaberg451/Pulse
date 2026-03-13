@@ -257,4 +257,21 @@ class ScheduleViewModel: ObservableObject {
             errorMessage = "Failed to delete: \(error.localizedDescription)"
         }
     }
+    
+    func deleteScheduledWorkouts(_ workoutsToDelete: [ScheduledWorkout]) async {
+        for workout in workoutsToDelete {
+            do {
+                try await workoutRepository.deleteScheduledWorkout(id: workout.id)
+            } catch {
+                errorMessage = "Failed to delete: \(error.localizedDescription)"
+            }
+        }
+    }
+    
+    func removeScheduledLocally(_ ids: Set<UUID>) {
+        scheduledWorkouts.removeAll { ids.contains($0.id) }
+        isSelfPosting = true
+        NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
+        isSelfPosting = false
+    }
 }

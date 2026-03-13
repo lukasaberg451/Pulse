@@ -60,10 +60,13 @@
 				Extensions/DebugLog.swift,
 				Managers/WorkoutSyncManager.swift,
 				Models/Exercise.swift,
+				Models/HomeTab.swift,
 				Models/Milestone.swift,
 				Models/Routine.swift,
 				Models/RoutineExercise.swift,
 				Models/SmartInsight.swift,
+				Models/TourStep.swift,
+				Models/WeightHistory.swift,
 				Models/WorkoutSet.swift,
 			);
 			target = 3149B71B2F435C0F00A61B9F /* PulseWatch Watch App */;

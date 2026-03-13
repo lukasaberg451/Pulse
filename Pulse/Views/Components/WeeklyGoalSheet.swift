@@ -53,7 +53,7 @@ struct WeeklyGoalSheet: View {
                             .foregroundStyle(Color.appTertiaryText)
 
                         Picker("Goal", selection: $goalMinutes) {
-                            ForEach([30, 60, 90, 120, 150, 180, 210, 240, 270, 300], id: \.self) { minutes in
+                            ForEach(Array(stride(from: 30, through: 600, by: 30)), id: \.self) { minutes in
                                 Text("\(minutes) min").tag(minutes)
                             }
                         }
@@ -69,9 +69,9 @@ struct WeeklyGoalSheet: View {
                             .padding(.horizontal, 4)
 
                         HStack(spacing: 10) {
-                            GoalButton(minutes: 150, currentGoal: $goalMinutes, label: "Recommended")
-                            GoalButton(minutes: 210, currentGoal: $goalMinutes, label: "Active")
-                            GoalButton(minutes: 300, currentGoal: $goalMinutes, label: "Athlete")
+                            GoalButton(minutes: 150, currentGoal: $goalMinutes, label: "Balanced")
+                            GoalButton(minutes: 210, currentGoal: $goalMinutes, label: "Consistent")
+                            GoalButton(minutes: 300, currentGoal: $goalMinutes, label: "Dedicated")
                         }
                     }
                     .padding(.horizontal)

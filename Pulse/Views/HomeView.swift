@@ -62,36 +62,13 @@ extension EnvironmentValues {
     }
 }
 
-// MARK: - Tab Definition
-
-enum HomeTab: Int, CaseIterable {
-    case dashboard, workout, progress, profile
-
-    var title: String {
-        switch self {
-        case .dashboard: "Dashboard"
-        case .workout:   "Workout"
-        case .progress:  "Progress"
-        case .profile:   "Profile"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .dashboard: "DashboardTabIcon"
-        case .workout:   "WorkoutTabIcon"
-        case .progress:  "ProgressTabIcon"
-        case .profile:   "ProfileTabIcon"
-        }
-    }
-}
-
 // MARK: - HomeView
 
 struct HomeView: View {
     @ObservedObject var authViewModel: AuthViewModel
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var syncService: WorkoutSyncService
+    @EnvironmentObject var tourManager: OnboardingTourManager
     @State private var hasPrefetched = false
     @Binding var selectedTab: HomeTab
     
@@ -102,6 +79,7 @@ struct HomeView: View {
     
     @State private var tabBarHeight: CGFloat = 0
     @State private var tabBarVisibility = TabBarVisibility()
+    @State private var spotlightFrames: [String: CGRect] = [:]
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -122,12 +100,14 @@ struct HomeView: View {
                     .frame(width: geo.size.width)
 
                     ProgressTabView(
-                        viewModel: progressStatsViewModel,
-                        milestoneViewModel: milestoneViewModel
+                        viewModel: progressStatsViewModel
                     )
                     .frame(width: geo.size.width)
 
-                    ProfileView()
+                    ProfileView(
+                        progressViewModel: progressStatsViewModel,
+                        milestoneViewModel: milestoneViewModel
+                    )
                         .frame(width: geo.size.width)
                 }
                 .offset(x: -CGFloat(selectedTab.rawValue) * geo.size.width)
@@ -141,6 +121,31 @@ struct HomeView: View {
                 )
                 .offset(y: tabBarVisibility.isVisible ? 0 : tabBarHeight + 34)
                 .animation(.easeInOut(duration: 0.25), value: tabBarVisibility.isVisible)
+
+            // Spotlight tour overlay — sits above everything including the tab bar.
+            SpotlightOverlay(manager: tourManager, spotlightFrames: spotlightFrames, selectedTab: $selectedTab)
+        }
+        .onPreferenceChange(SpotlightPreferenceKey.self) { items in
+            for item in items {
+                spotlightFrames[item.id] = item.frame
+            }
+        }
+        .onChange(of: tourManager.currentIndex) { _, _ in
+            // Switch tabs to match the current tour step.
+            guard let step = tourManager.currentStep else { return }
+            if selectedTab != step.tab {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                    selectedTab = step.tab
+                }
+            }
+        }
+        .onChange(of: tourManager.isActive) { _, active in
+            // When the tour starts, ensure we're on the first step's tab.
+            if active, let step = tourManager.currentStep, selectedTab != step.tab {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                    selectedTab = step.tab
+                }
+            }
         }
         .environment(tabBarVisibility)
         .environment(\.tabBarBottomInset, tabBarHeight)
@@ -187,6 +192,7 @@ private struct HomeTabBar: View {
                     guard tab != selectedTab else { return }
                     selectedTab = tab
                 }
+                .spotlightTarget("\(tab.title.lowercased())Tab")
             }
         }
         .padding(.top, 8)

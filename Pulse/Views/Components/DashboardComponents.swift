@@ -211,24 +211,67 @@ struct StatPill: View {
     let icon: String
     let value: String
     let label: String
+    var triggerHighlight: Bool = false
+
+    @State private var hasPlayedInitial = false
+    @State private var isAnimating = false
+    @State private var glowOpacity: Double = 0.0
+    @State private var pillScale: CGFloat = 1.0
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 8) {
             Image(icon)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 14, height: 14)
+                .frame(width: 16, height: 16)
                 .foregroundStyle(Color.appAccent)
+
             Text(value)
-                .font(.caption.weight(.bold))
+                .font(.subheadline.weight(.bold))
                 .foregroundStyle(Color.appText)
             Text(label)
-                .font(.caption2)
+                .font(.caption.weight(.medium))
                 .foregroundStyle(Color.appSecondaryText)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
         .background(Color.appAccentSubtle, in: Capsule())
+        .overlay {
+            Capsule()
+                .fill(Color.appAccent.opacity(glowOpacity))
+                .blur(radius: 4)
+        }
+        .scaleEffect(pillScale)
+        .onTapGesture {
+            guard !isAnimating else { return }
+            runHighlight()
+        }
+        .onChange(of: triggerHighlight) { _, newValue in
+            guard newValue, !hasPlayedInitial else { return }
+            hasPlayedInitial = true
+            runHighlight()
+        }
+    }
+
+    private func runHighlight() {
+        isAnimating = true
+
+        // Phase 1: scale up + glow on
+        withAnimation(.easeOut(duration: 0.45)) {
+            pillScale = 1.06
+            glowOpacity = 0.25
+        }
+
+        // Phase 2: hold, then settle back
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            withAnimation(.easeInOut(duration: 0.8)) {
+                pillScale = 1.0
+                glowOpacity = 0.0
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                isAnimating = false
+            }
+        }
     }
 }
 

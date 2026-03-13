@@ -38,4 +38,13 @@ class MilestoneRepository {
         
         return milestones
     }
+    
+    /// Sets `unlocked_at` to now for a given user milestone.
+    func unlockMilestone(milestoneId: UUID) async throws {
+        try await supabase
+            .from("user_milestones")
+            .update(["unlocked_at": ISO8601DateFormatter().string(from: Date())])
+            .eq("id", value: milestoneId.uuidString)
+            .execute()
+    }
 }

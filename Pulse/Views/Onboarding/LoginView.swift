@@ -249,6 +249,7 @@ struct LoginView: View {
             .sheet(isPresented: $showingForgotPassword) {
                 ForgotPasswordView()
                     .presentationDragIndicator(.visible)
+                    .sheetContentTransition()
             }
         }
     }
@@ -258,7 +259,6 @@ struct ForgotPasswordView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject private var viewModel = PwResetViewModel()
     @Environment(\.colorScheme) private var colorScheme
-    @FocusState private var focusedOTPField: Int?
     
     func isValidEmail(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
@@ -422,20 +422,9 @@ struct ForgotPasswordView: View {
                 
                 errorBox
                 
-                // OTP input boxes
-                HStack(spacing: 8) {
-                    ForEach(0..<8, id: \.self) { index in
-                        OTPDigitField(
-                            index: index,
-                            code: $viewModel.otpCode,
-                            focusedField: $focusedOTPField
-                        )
-                    }
-                }
-                .padding(.vertical, 4)
-                .onAppear {
-                    focusedOTPField = 0
-                }
+                // OTP input: hidden TextField with visual digit boxes
+                OTPInputView(code: $viewModel.otpCode)
+                    .padding(.vertical, 4)
                 
                 PrimaryCTAButton("Verify Code") {
                     Task {
@@ -649,81 +638,66 @@ struct ForgotPasswordView: View {
     }
 }
 
-// MARK: - OTP Digit Field
+// MARK: - OTP Input View
 
-private struct OTPDigitField: View {
-    let index: Int
+private struct OTPInputView: View {
     @Binding var code: String
-    @FocusState.Binding var focusedField: Int?
+    @FocusState private var isFocused: Bool
     @Environment(\.colorScheme) private var colorScheme
     
-    private var digit: String {
-        guard index < code.count else { return "" }
-        return String(code[code.index(code.startIndex, offsetBy: index)])
-    }
+    private let digitCount = 8
     
     var body: some View {
-        TextField("", text: Binding(
-            get: { digit },
-            set: { newValue in
-                handleInput(newValue)
-            }
-        ))
-        .keyboardType(.numberPad)
-        .textContentType(.oneTimeCode)
-        .multilineTextAlignment(.center)
-        .font(.title3.weight(.bold))
-        .foregroundStyle(Color.appText)
-        .frame(width: 38, height: 48)
-        .background {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.appSurface)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .strokeBorder(
-                            focusedField == index ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.08) : Color.clear),
-                            lineWidth: focusedField == index ? 2 : 1
-                        )
+        ZStack {
+            // Hidden TextField that captures all keyboard input
+            TextField("", text: $code)
+                .keyboardType(.numberPad)
+                .textContentType(.oneTimeCode)
+                .focused($isFocused)
+                .frame(width: 0, height: 0)
+                .opacity(0)
+                .onChange(of: code) {
+                    // Filter to digits only, cap at digitCount
+                    let filtered = String(code.filter { $0.isNumber }.prefix(digitCount))
+                    if code != filtered {
+                        code = filtered
+                    }
                 }
+            
+            // Visual digit boxes
+            HStack(spacing: 8) {
+                ForEach(0..<digitCount, id: \.self) { index in
+                    let isFilled = index < code.count
+                    let isCursor = index == code.count && isFocused
+                    
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.appSurface)
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(
+                                        isCursor ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.08) : Color.clear),
+                                        lineWidth: isCursor ? 2 : 1
+                                    )
+                            }
+                        
+                        if isFilled {
+                            let digitIndex = code.index(code.startIndex, offsetBy: index)
+                            Text(String(code[digitIndex]))
+                                .font(.title3.weight(.bold))
+                                .foregroundStyle(Color.appText)
+                        }
+                    }
+                    .frame(width: 38, height: 48)
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                isFocused = true
+            }
         }
-        .focused($focusedField, equals: index)
-    }
-    
-    private func handleInput(_ newValue: String) {
-        let filtered = newValue.filter { $0.isNumber }
-        
-        // Handle paste of full code
-        if filtered.count >= 8 {
-            code = String(filtered.prefix(8))
-            focusedField = nil
-            return
-        }
-        
-        if filtered.isEmpty {
-            // Deletion
-            if index < code.count {
-                var chars = Array(code)
-                chars.remove(at: index)
-                code = String(chars)
-            }
-            if index > 0 {
-                focusedField = index - 1
-            }
-        } else {
-            // Single digit typed
-            let char = filtered.last!
-            if index < code.count {
-                var chars = Array(code)
-                chars[index] = char
-                code = String(chars)
-            } else {
-                code.append(char)
-            }
-            if index < 7 {
-                focusedField = index + 1
-            } else {
-                focusedField = nil
-            }
+        .onAppear {
+            isFocused = true
         }
     }
 }

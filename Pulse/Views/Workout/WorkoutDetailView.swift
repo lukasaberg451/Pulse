@@ -15,6 +15,7 @@ struct WorkoutDetailView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var showShareSheet = false
     @State private var shareImage: UIImage?
+    @State private var animationTrigger = false
     
     init(workoutSession: WorkoutSession) {
         _viewModel = StateObject(wrappedValue: WorkoutDetailViewModel(workoutSession: workoutSession))
@@ -35,9 +36,15 @@ struct WorkoutDetailView: View {
                         Text(viewModel.workoutSession.name)
                             .font(.title.weight(.bold))
                             .foregroundStyle(Color.appText)
+                            .opacity(animationTrigger ? 1 : 0)
+                            .offset(y: animationTrigger ? 0 : 16)
+                            .animation(.easeOut(duration: 0.4).delay(0.1), value: animationTrigger)
                         
                         // Header Stats
                         statsSection
+                            .opacity(animationTrigger ? 1 : 0)
+                            .offset(y: animationTrigger ? 0 : 16)
+                            .animation(.easeOut(duration: 0.4).delay(0.25), value: animationTrigger)
                         
                         // Exercises
                         exercisesSection
@@ -87,12 +94,15 @@ struct WorkoutDetailView: View {
         }
         .task {
             await viewModel.loadWorkoutDetails()
+            try? await Task.sleep(for: .milliseconds(50))
+            animationTrigger = true
         }
         .sheet(isPresented: $showShareSheet) {
             shareImage = nil
         } content: {
             if let shareImage {
                 SharePreviewSheet(image: shareImage)
+                    .sheetContentTransition()
             }
         }
     }
@@ -190,13 +200,19 @@ struct WorkoutDetailView: View {
             Text("Exercises")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
+                .opacity(animationTrigger ? 1 : 0)
+                .offset(y: animationTrigger ? 0 : 16)
+                .animation(.easeOut(duration: 0.35).delay(0.4), value: animationTrigger)
             
-            ForEach(viewModel.groupedSets, id: \.orderIndex) { exercise in
+            ForEach(Array(viewModel.groupedSets.enumerated()), id: \.element.orderIndex) { index, exercise in
                 exerciseCard(
                     name: exercise.exerciseName,
                     sets: exercise.sets,
                     isCardio: exercise.exerciseType == "cardio"
                 )
+                .opacity(animationTrigger ? 1 : 0)
+                .offset(y: animationTrigger ? 0 : 20)
+                .animation(.easeOut(duration: 0.35).delay(0.5 + Double(index) * 0.1), value: animationTrigger)
             }
         }
     }

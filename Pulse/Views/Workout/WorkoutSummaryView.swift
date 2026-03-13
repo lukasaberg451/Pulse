@@ -25,6 +25,13 @@ struct WorkoutSummaryView: View {
     @State private var showShareSheet = false
     @State private var shareImage: UIImage?
     
+    // MARK: - Animation State
+    @State private var animationTrigger = false
+    @State private var displayedDuration: Double = 0
+    @State private var displayedSets: Double = 0
+    @State private var displayedVolume: Double = 0
+    @State private var displayedExercises: Double = 0
+    
     // MARK: - Computed Stats
     
     private var completedSets: [LocalWorkoutSet] {
@@ -75,6 +82,19 @@ struct WorkoutSummaryView: View {
         return parts.joined(separator: " ")
     }
     
+    private func formattedDurationFromSeconds(_ seconds: Double) -> String {
+        let totalSeconds = Int(seconds)
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let secs = totalSeconds % 60
+        
+        var parts: [String] = []
+        if hours > 0 { parts.append("\(hours)h") }
+        if minutes > 0 { parts.append("\(minutes)m") }
+        if secs > 0 || parts.isEmpty { parts.append("\(secs)s") }
+        return parts.joined(separator: " ")
+    }
+    
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
@@ -87,14 +107,22 @@ struct WorkoutSummaryView: View {
                         // Header
                         VStack(spacing: 12) {
                             IconBadge(assetName: "check-circle", color: .green, size: 56)
+                                .scaleEffect(animationTrigger ? 1.0 : 0.5)
+                                .animation(.spring(response: 0.5, dampingFraction: 0.6), value: animationTrigger)
                             
                             Text("Workout Complete")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
+                                .opacity(animationTrigger ? 1 : 0)
+                                .offset(y: animationTrigger ? 0 : 8)
+                                .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
                             
                             Text(routineName)
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
+                                .opacity(animationTrigger ? 1 : 0)
+                                .offset(y: animationTrigger ? 0 : 8)
+                                .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
                         }
                         .padding(.top, 32)
                         
@@ -104,30 +132,36 @@ struct WorkoutSummaryView: View {
                                 summaryStatCard(
                                     icon: "clock",
                                     title: "Duration",
-                                    value: formattedDuration
+                                    value: formattedDurationFromSeconds(displayedDuration)
                                 )
                                 
                                 summaryStatCard(
                                     icon: "FlameIcon",
                                     title: "Total Sets",
-                                    value: "\(totalSets)"
+                                    value: "\(Int(displayedSets))"
                                 )
                             }
+                            .opacity(animationTrigger ? 1 : 0)
+                            .offset(y: animationTrigger ? 0 : 16)
+                            .animation(.easeOut(duration: 0.4).delay(0.4), value: animationTrigger)
                             
                             HStack(spacing: 12) {
                                 summaryStatCard(
                                     icon: "chart-bar",
                                     title: "Volume",
-                                    value: String(format: "%.0f %@", unitManager.displayWeight(totalVolume), unitManager.weightUnit)
+                                    value: String(format: "%.0f %@", unitManager.displayWeight(displayedVolume), unitManager.weightUnit)
                                 )
                                 
                                 summaryStatCard(
                                     icon: "figure.strengthtraining.traditional",
                                     title: "Exercises",
-                                    value: "\(exerciseCount)",
+                                    value: "\(Int(displayedExercises))",
                                     isSystemImage: true
                                 )
                             }
+                            .opacity(animationTrigger ? 1 : 0)
+                            .offset(y: animationTrigger ? 0 : 16)
+                            .animation(.easeOut(duration: 0.4).delay(0.55), value: animationTrigger)
                         }
                         .padding(.horizontal)
                         
@@ -164,17 +198,31 @@ struct WorkoutSummaryView: View {
                         onDismiss()
                     }
                 }
+                .opacity(animationTrigger ? 1 : 0)
+                .offset(y: animationTrigger ? 0 : 20)
+                .animation(.easeOut(duration: 0.4).delay(0.85), value: animationTrigger)
                 .padding(.horizontal)
                 .padding(.bottom, 16)
                 .padding(.top, 8)
             }
         }
         .interactiveDismissDisabled()
+        .onAppear {
+            animationTrigger = true
+            
+            withAnimation(.easeOut(duration: 1.0).delay(0.5)) {
+                displayedDuration = elapsedTime
+                displayedSets = Double(totalSets)
+                displayedVolume = totalVolume
+                displayedExercises = Double(exerciseCount)
+            }
+        }
         .sheet(isPresented: $showShareSheet) {
             shareImage = nil
         } content: {
             if let shareImage {
                 SharePreviewSheet(image: shareImage)
+                    .sheetContentTransition()
             }
         }
     }
@@ -205,13 +253,19 @@ struct WorkoutSummaryView: View {
             Text("Exercises")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
+                .opacity(animationTrigger ? 1 : 0)
+                .offset(y: animationTrigger ? 0 : 20)
+                .animation(.easeOut(duration: 0.35).delay(0.7), value: animationTrigger)
             
-            ForEach(groupedSets, id: \.orderIndex) { group in
+            ForEach(Array(groupedSets.enumerated()), id: \.element.orderIndex) { index, group in
                 exerciseCard(
                     name: group.exercise.name,
                     sets: group.sets,
                     isCardio: group.exercise.exerciseType == "cardio"
                 )
+                .opacity(animationTrigger ? 1 : 0)
+                .offset(y: animationTrigger ? 0 : 20)
+                .animation(.easeOut(duration: 0.35).delay(0.7 + Double(index) * 0.15), value: animationTrigger)
             }
         }
     }

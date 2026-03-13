@@ -9,6 +9,10 @@ import Foundation
 import Combine
 import Supabase
 
+extension Notification.Name {
+    static let customExerciseCreated = Notification.Name("customExerciseCreated")
+}
+
 @MainActor
 class ProfileViewModel: ObservableObject {
     @Published var profile: Profile?
@@ -17,8 +21,24 @@ class ProfileViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isSubmittingFeedback = false
     @Published var feedbackError: String?
+    @Published var startWeightKg: Double?
+    @Published var customExercises: [Exercise] = []
     
     private let supabase = SupabaseManager.shared.client
+    private let weightHistoryRepo = WeightHistoryRepository()
+    private let exerciseRepo = ExerciseRepository()
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        NotificationCenter.default.publisher(for: .customExerciseCreated)
+            .compactMap { $0.object as? Exercise }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] exercise in
+                self?.customExercises.append(exercise)
+                self?.customExercises.sort { $0.name < $1.name }
+            }
+            .store(in: &cancellables)
+    }
     
     var initials: String {
         guard let profile = profile else { return "?" }
@@ -28,7 +48,10 @@ class ProfileViewModel: ObservableObject {
     }
     
     func loadProfile() async {
-        isLoading = true
+        // Only show full loading spinner on initial load
+        if profile == nil {
+            isLoading = true
+        }
         
         do {
             guard let userId = supabase.auth.currentUser?.id else {
@@ -45,6 +68,11 @@ class ProfileViewModel: ObservableObject {
             
             self.profile = profile
             
+            // Load start weight from history
+            if let startEntry = try? await weightHistoryRepo.fetchStartWeight() {
+                self.startWeightKg = startEntry.weightKg
+            }
+            
             // Sync unit system preference
             if let unitRaw = profile.unitSystem,
                let unit = UnitSystem(rawValue: unitRaw) {
@@ -54,6 +82,11 @@ class ProfileViewModel: ObservableObject {
             // Auto-detect timezone on first load if not set
             if profile.timezone == nil {
                 await updateTimezone(TimeZone.current.identifier)
+            }
+            
+            // Load custom exercises
+            if let exercises = try? await exerciseRepo.fetchCustomExercises() {
+                self.customExercises = exercises
             }
         } catch {
             debugLog("Failed to load profile: \(error)")
@@ -176,7 +209,17 @@ class ProfileViewModel: ObservableObject {
         }
     }
     
-    func updateHealthMetrics(weightKg: Double?, heightCm: Double?) async -> Bool {
+    func deleteCustomExercise(_ exercise: Exercise) async {
+        do {
+            try await exerciseRepo.deleteCustomExercise(id: exercise.id)
+            customExercises.removeAll { $0.id == exercise.id }
+            NotificationCenter.default.post(name: .routineDataChanged, object: nil)
+        } catch {
+            debugLog("Failed to delete custom exercise: \(error)")
+        }
+    }
+    
+    func updateHealthMetrics(weightKg: Double?, heightCm: Double?, targetWeightKg: Double?) async -> Bool {
         isSubmitting = true
         errorMessage = nil
         
@@ -190,13 +233,19 @@ class ProfileViewModel: ObservableObject {
             struct UpdateHealthMetrics: Encodable {
                 let weight_kg: Double?
                 let height_cm: Double?
+                let target_weight_kg: Double?
             }
             
             try await supabase
                 .from("profiles")
-                .update(UpdateHealthMetrics(weight_kg: weightKg, height_cm: heightCm))
+                .update(UpdateHealthMetrics(weight_kg: weightKg, height_cm: heightCm, target_weight_kg: targetWeightKg))
                 .eq("id", value: userId.uuidString)
                 .execute()
+            
+            // Log weight to history if provided
+            if let weightKg {
+                try? await weightHistoryRepo.logWeight(weightKg)
+            }
             
             // Reload profile
             await loadProfile()

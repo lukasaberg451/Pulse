@@ -11,6 +11,12 @@ struct WeeklyGoalCard: View {
     let completedMinutes: Int
     let goalMinutes: Int
     let onEditGoal: () -> Void
+    var celebrate: Bool = false
+
+    @State private var glowOpacity: Double = 0.0
+    @State private var showUpdatedLabel = false
+    @State private var labelOffset: CGFloat = 8
+    @State private var labelOpacity: Double = 0
 
     var progress: Double {
         guard goalMinutes > 0 else { return 0 }
@@ -38,11 +44,14 @@ struct WeeklyGoalCard: View {
                             Text("\(completedMinutes)")
                                 .font(.system(size: 32, weight: .bold, design: .rounded))
                                 .foregroundStyle(Color.appText)
+                                .contentTransition(.numericText())
 
                             Text("/ \(goalMinutes) min")
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(Color.appTertiaryText)
+                                .contentTransition(.numericText())
                         }
+                        .animation(.spring(response: 0.4), value: goalMinutes)
                     }
 
                     Spacer()
@@ -62,6 +71,8 @@ struct WeeklyGoalCard: View {
                         Text("\(Int(progress * 100))%")
                             .font(.system(size: 18, weight: .bold, design: .rounded))
                             .foregroundStyle(goalReached ? .green : Color.appAccent)
+                            .contentTransition(.numericText())
+                            .animation(.spring(response: 0.4), value: goalMinutes)
                     }
                 }
 
@@ -84,9 +95,66 @@ struct WeeklyGoalCard: View {
                         }
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.green)
+                            .opacity(showUpdatedLabel ? 0 : 1)
                     }
+
                     Spacer()
                 }
+                .overlay(alignment: .leading) {
+                    if showUpdatedLabel {
+                        HStack(spacing: 4) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.caption)
+                            Text("Goal updated!")
+                        }
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.appAccent)
+                        .offset(y: labelOffset)
+                        .opacity(labelOpacity)
+                    }
+                }
+            }
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(Color.appAccent, lineWidth: 2)
+                .opacity(glowOpacity)
+        }
+        .onChange(of: celebrate) { _, newValue in
+            guard newValue else { return }
+            runCelebration()
+        }
+    }
+
+    private func runCelebration() {
+        let impact = UIImpactFeedbackGenerator(style: .medium)
+        impact.impactOccurred()
+
+        showUpdatedLabel = true
+
+        // Phase 1: glow border + label entrance
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.6)) {
+            glowOpacity = 0.7
+            labelOffset = 0
+            labelOpacity = 1
+        }
+
+        // Phase 2: fade glow
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            withAnimation(.easeInOut(duration: 0.6)) {
+                glowOpacity = 0.0
+            }
+        }
+
+        // Phase 3: fade out label
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            withAnimation(.easeOut(duration: 0.4)) {
+                labelOpacity = 0
+                labelOffset = -4
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                showUpdatedLabel = false
+                labelOffset = 8
             }
         }
     }

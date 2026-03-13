@@ -27,11 +27,7 @@ class DashboardViewModel: ObservableObject {
     @Published var currentStreak: Int = 0
     @Published var bestStreak: Int = 0
     @Published var latestPR: PersonalRecord?
-    @Published var currentInsight: SmartInsight?
-    
-    private var insightQueue: [SmartInsight] = []
-    private var insightIndex: Int = 0
-    private var insightTimer: Timer?
+    @Published var totalWorkoutCount: Int = 0
     
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
@@ -45,13 +41,13 @@ class DashboardViewModel: ObservableObject {
             .sink { [weak self] _ in
                 Task { @MainActor [weak self] in
                     debugLog("📢 Received workout data change notification, reloading...")
-                    await self?.refreshAll(includeInsights: true)
+                    await self?.refreshAll()
                 }
             }
             .store(in: &cancellables)
     }
     
-    func refreshAll(includeInsights: Bool = false) async {
+    func refreshAll() async {
         // Cancel any in-flight refresh to avoid request cancellation errors
         refreshTask?.cancel()
         
@@ -65,10 +61,6 @@ class DashboardViewModel: ObservableObject {
             async let streak: () = calculateStreak()
             async let latestPR: () = loadLatestPR()
             _ = await (weeklyProgress, streak, latestPR)
-            
-            if includeInsights {
-                loadInsights()
-            }
         }
         refreshTask = task
         await task.value
@@ -131,7 +123,9 @@ class DashboardViewModel: ObservableObject {
                 workoutSessions[session.id] = session
             }
             
-            recentSessions = Array(allSessions.filter { $0.completedAt != nil}.prefix(5))
+            let completedSessions = allSessions.filter { $0.completedAt != nil }
+            totalWorkoutCount = completedSessions.count
+            recentSessions = Array(completedSessions.prefix(5))
             debugLog("📊 Filtered to \(recentSessions.count) recent completed sessions")
             if !recentSessions.isEmpty {
                 debugLog("📊 Recent sessions: \(recentSessions.map { "\($0.name) (ID: \($0.id))" }.joined(separator: ", "))")
@@ -432,101 +426,5 @@ class DashboardViewModel: ObservableObject {
             debugLog("Failed to update weekly goal: \(error)")
         }
     }
-    
-    // MARK: - Smart Insights
-    
-    func loadInsights() {
-        insightQueue = generatePlaceholderInsights().shuffled()
-        insightIndex = 0
-        if !insightQueue.isEmpty {
-            currentInsight = insightQueue[0]
-        }
-    }
-    
-    func advanceInsight() {
-        guard !insightQueue.isEmpty else { return }
-        insightIndex = (insightIndex + 1) % insightQueue.count
-        withAnimation(.easeInOut(duration: 0.4)) {
-            currentInsight = insightQueue[insightIndex]
-        }
-    }
-    
-    func startInsightRotation() {
-        stopInsightRotation()
-        insightTimer = Timer.scheduledTimer(withTimeInterval: 45.0, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.advanceInsight()
-            }
-        }
-    }
-    
-    func stopInsightRotation() {
-        insightTimer?.invalidate()
-        insightTimer = nil
-    }
-    
-    private func generatePlaceholderInsights() -> [SmartInsight] {
-        [
-            SmartInsight(
-                type: .consistencyPattern,
-                icon: "calendar-days",
-                text: "Consistency beats intensity. Show up today and results will follow",
-                accentColor: .blue
-            ),
-            SmartInsight(
-                type: .streakProtection,
-                icon: "FlameIcon",
-                text: "Even a short session counts. Keep your momentum going today",
-                accentColor: .orange
-            ),
-            SmartInsight(
-                type: .progressiveOverload,
-                icon: "arrow-up-circle",
-                text: "Try adding a little more weight or one extra rep today",
-                accentColor: .green
-            ),
-            SmartInsight(
-                type: .recoveryIntelligence,
-                icon: "moon",
-                text: "Rest days build muscle too. Listen to your body",
-                accentColor: .purple
-            ),
-            SmartInsight(
-                type: .momentumHighlight,
-                icon: "FlameIcon",
-                text: "Every rep brings you closer to your goals. Keep pushing",
-                accentColor: .yellow
-            ),
-            SmartInsight(
-                type: .habitTimeDetection,
-                icon: "clock",
-                text: "The best time to work out is the time you'll actually do it",
-                accentColor: .cyan
-            ),
-            SmartInsight(
-                type: .weakPointDetection,
-                icon: "scale",
-                text: "A balanced routine builds a stronger body. Mix it up",
-                accentColor: .red
-            ),
-            SmartInsight(
-                type: .microGoalMotivation,
-                icon: "sparkle",
-                text: "Small steps lead to big results. Start with what feels easy",
-                accentColor: .mint
-            ),
-            SmartInsight(
-                type: .performanceTrend,
-                icon: "arrow-trending-up",
-                text: "Progress isn't always visible. Trust the process",
-                accentColor: .green
-            ),
-            SmartInsight(
-                type: .returnMotivation,
-                icon: "hand-thumb-up",
-                text: "The hardest part is starting. You've got this",
-                accentColor: .orange
-            ),
-        ]
-    }
 }
+

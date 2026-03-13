@@ -47,11 +47,15 @@ struct ScheduleContentView: View {
     @StateObject private var exerciseViewModel = ExerciseListViewModel()
     @State private var selectedDate = Date()
     @State private var showingRoutinePicker = false
-    @State private var isEditMode = false
-    @State private var scheduledToDelete: ScheduledWorkout?
+    @State private var isSelectMode = false
+    @State private var selectedScheduledIds: Set<UUID> = []
     @State private var showingDeleteAlert = false
     @State private var monthChangeDirection: Edge = .trailing
     @Environment(\.tabBarBottomInset) private var tabBarBottomInset
+
+    private var selectedScheduledWorkouts: [ScheduledWorkout] {
+        viewModel.scheduledWorkouts(for: selectedDate).filter { selectedScheduledIds.contains($0.id) }
+    }
 
     var body: some View {
         ZStack {
@@ -121,12 +125,10 @@ struct ScheduleContentView: View {
                     ScheduledSectionCard(
                         viewModel: viewModel,
                         selectedDate: selectedDate,
-                        isEditMode: $isEditMode,
+                        isSelectMode: $isSelectMode,
+                        selectedScheduledIds: $selectedScheduledIds,
                         showingRoutinePicker: $showingRoutinePicker,
-                        onDeleteScheduled: { scheduled in
-                            scheduledToDelete = scheduled
-                            showingDeleteAlert = true
-                        }
+                        showingDeleteAlert: $showingDeleteAlert
                     )
                     .padding(.horizontal)
                     .padding(.top, 12)
@@ -140,29 +142,40 @@ struct ScheduleContentView: View {
                 viewModel: viewModel,
                 selectedDate: selectedDate
             )
+            .sheetContentTransition()
         }
-        .alert("Remove Workout", isPresented: $showingDeleteAlert) {
+        .alert("Remove Workout\(selectedScheduledIds.count == 1 ? "" : "s")", isPresented: $showingDeleteAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Remove", role: .destructive) {
-                if let scheduled = scheduledToDelete {
-                    let notificationFeedback = UINotificationFeedbackGenerator()
-                    notificationFeedback.notificationOccurred(.warning)
-                    Task {
-                        await viewModel.deleteScheduled(scheduled)
+                let workouts = selectedScheduledWorkouts
+                let notificationFeedback = UINotificationFeedbackGenerator()
+                notificationFeedback.notificationOccurred(.warning)
+                Task {
+                    let ids = Set(workouts.map(\.id))
+                    await viewModel.deleteScheduledWorkouts(workouts)
 
-                        if !viewModel.scheduledWorkouts(for: selectedDate).contains(where: { !$0.completed }) {
-                            withAnimation {
-                                isEditMode = false
-                            }
-                        }
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        viewModel.removeScheduledLocally(ids)
+                        selectedScheduledIds.removeAll()
+                        isSelectMode = false
                     }
                 }
             }
         } message: {
-            if let scheduled = scheduledToDelete,
+            if selectedScheduledIds.count == 1, let scheduled = selectedScheduledWorkouts.first,
                let routineId = scheduled.routineId,
                let routine = viewModel.routine(for: routineId) {
                 Text("Are you sure you want to remove '\(routine.name)' from your schedule?")
+            } else {
+                Text("Are you sure you want to remove \(selectedScheduledIds.count) workouts from your schedule?")
+            }
+        }
+        .onChange(of: selectedDate) {
+            if isSelectMode {
+                withAnimation {
+                    selectedScheduledIds.removeAll()
+                    isSelectMode = false
+                }
             }
         }
         .task {
@@ -179,33 +192,76 @@ struct ScheduleContentView: View {
 private struct ScheduledSectionCard: View {
     @ObservedObject var viewModel: ScheduleViewModel
     let selectedDate: Date
-    @Binding var isEditMode: Bool
+    @Binding var isSelectMode: Bool
+    @Binding var selectedScheduledIds: Set<UUID>
     @Binding var showingRoutinePicker: Bool
-    let onDeleteScheduled: (ScheduledWorkout) -> Void
+    @Binding var showingDeleteAlert: Bool
 
     @Environment(\.colorScheme) private var colorScheme
 
     private var workouts: [ScheduledWorkout] {
         viewModel.scheduledWorkouts(for: selectedDate)
     }
+    
+    private var uncompletedWorkouts: [ScheduledWorkout] {
+        workouts.filter { !$0.completed }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header row
             HStack {
-                Text("Scheduled for \(viewModel.formattedDate(selectedDate))")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.appText)
+                if isSelectMode {
+                    Button {
+                        withAnimation(.spring(response: 0.3)) {
+                            isSelectMode = false
+                            selectedScheduledIds.removeAll()
+                        }
+                    } label: {
+                        Text("Cancel")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Color.appSecondaryText)
+                    }
+                } else {
+                    Text("Scheduled for \(viewModel.formattedDate(selectedDate))")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.appText)
+                }
 
                 Spacer()
 
-                if !workouts.isEmpty && workouts.contains(where: { !$0.completed }) {
+                if isSelectMode {
+                    Button {
+                        if selectedScheduledIds.isEmpty { return }
+                        showingDeleteAlert = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image("trash")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 12, height: 12)
+                            Text("Delete\(selectedScheduledIds.isEmpty ? "" : " (\(selectedScheduledIds.count))")")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 9)
+                        .background(
+                            selectedScheduledIds.isEmpty
+                                ? Color.red.opacity(0.4)
+                                : Color.red,
+                            in: Capsule()
+                        )
+                    }
+                    .buttonStyle(ScalePressStyle())
+                    .disabled(selectedScheduledIds.isEmpty)
+                } else if !workouts.isEmpty && uncompletedWorkouts.count > 0 {
                     Button {
                         withAnimation(.spring(response: 0.3)) {
-                            isEditMode.toggle()
+                            isSelectMode = true
                         }
                     } label: {
-                        Text(isEditMode ? "Done" : "Edit")
+                        Text("Modify")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.appAccent)
                     }
@@ -222,9 +278,6 @@ private struct ScheduledSectionCard: View {
                         .foregroundStyle(Color.appSecondaryText)
 
                     PrimaryCTAButton("Add Workout", icon: "plus") {
-                        if isEditMode {
-                            withAnimation { isEditMode = false }
-                        }
                         let impactLight = UIImpactFeedbackGenerator(style: .light)
                         impactLight.impactOccurred()
                         showingRoutinePicker = true
@@ -240,51 +293,68 @@ private struct ScheduledSectionCard: View {
                             ScheduledWorkoutCard(
                                 routine: routine,
                                 scheduled: scheduled,
-                                isEditMode: isEditMode,
+                                isSelectMode: isSelectMode,
+                                isSelected: selectedScheduledIds.contains(scheduled.id),
                                 exerciseCount: viewModel.exerciseCount(for: routine.id),
                                 viewModel: viewModel,
-                                onDelete: {
-                                    onDeleteScheduled(scheduled)
+                                onTap: {
+                                    if isSelectMode && !scheduled.completed {
+                                        withAnimation(.spring(response: 0.25)) {
+                                            if selectedScheduledIds.contains(scheduled.id) {
+                                                selectedScheduledIds.remove(scheduled.id)
+                                            } else {
+                                                selectedScheduledIds.insert(scheduled.id)
+                                            }
+                                        }
+                                    }
                                 }
                             )
                         } else if scheduled.routineDeleted == true || scheduled.routineId == nil {
                             DeletedRoutineWorkoutCard(
                                 scheduled: scheduled,
                                 viewModel: viewModel,
-                                isEditMode: isEditMode,
-                                onDelete: {
-                                    onDeleteScheduled(scheduled)
+                                isSelectMode: isSelectMode,
+                                isSelected: selectedScheduledIds.contains(scheduled.id),
+                                onTap: {
+                                    if isSelectMode && !scheduled.completed {
+                                        withAnimation(.spring(response: 0.25)) {
+                                            if selectedScheduledIds.contains(scheduled.id) {
+                                                selectedScheduledIds.remove(scheduled.id)
+                                            } else {
+                                                selectedScheduledIds.insert(scheduled.id)
+                                            }
+                                        }
+                                    }
                                 }
                             )
                         }
                     }
 
                     // Inline add button
-                    Button {
-                        if isEditMode {
-                            withAnimation { isEditMode = false }
+                    if !isSelectMode {
+                        Button {
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                            showingRoutinePicker = true
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image("plus-circle")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 18, height: 18)
+                                Text("Add Workout")
+                                    .font(.subheadline.weight(.semibold))
+                            }
+                            .foregroundStyle(Color.appAccent)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.appAccentSubtle)
+                            }
                         }
-                        let impactLight = UIImpactFeedbackGenerator(style: .light)
-                        impactLight.impactOccurred()
-                        showingRoutinePicker = true
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image("plus-circle")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 18, height: 18)
-                            Text("Add Workout")
-                                .font(.subheadline.weight(.semibold))
-                        }
-                        .foregroundStyle(Color.appAccent)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color.appAccentSubtle)
-                        }
+                        .buttonStyle(ScalePressStyle())
                     }
-                    .buttonStyle(ScalePressStyle())
                 }
             }
         }
@@ -313,25 +383,34 @@ private struct ScheduledSectionCard: View {
 struct ScheduledWorkoutCard: View {
     let routine: Routine
     let scheduled: ScheduledWorkout
-    let isEditMode: Bool
+    let isSelectMode: Bool
+    let isSelected: Bool
     let exerciseCount: Int
     @ObservedObject var viewModel: ScheduleViewModel
-    let onDelete: () -> Void
+    let onTap: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var showingActiveWorkout = false
 
     var body: some View {
         HStack(spacing: 12) {
-            if isEditMode && !scheduled.completed {
-                Button {
-                    onDelete()
-                } label: {
-                    Image("minus-circle")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 22, height: 22)
-                        .foregroundStyle(.red)
+            if isSelectMode && !scheduled.completed {
+                ZStack {
+                    Circle()
+                        .strokeBorder(isSelected ? Color.appAccent : Color.appTertiaryText, lineWidth: 2)
+                        .frame(width: 24, height: 24)
+                    
+                    if isSelected {
+                        Circle()
+                            .fill(Color.appAccent)
+                            .frame(width: 24, height: 24)
+                        
+                        Image("check")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 12, height: 12)
+                            .foregroundStyle(.white)
+                    }
                 }
                 .transition(.scale.combined(with: .opacity))
             }
@@ -346,7 +425,14 @@ struct ScheduledWorkoutCard: View {
                 scheduledWorkoutContent
             }
         }
-        .animation(.spring(response: 0.3), value: isEditMode)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if isSelectMode && !scheduled.completed {
+                onTap()
+            }
+        }
+        .animation(.spring(response: 0.3), value: isSelectMode)
+        .animation(.spring(response: 0.25), value: isSelected)
         .fullScreenCover(isPresented: $showingActiveWorkout) {
             ActiveWorkoutView(
                 routine: routine,
@@ -400,9 +486,15 @@ struct ScheduledWorkoutCard: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 18)
                         .padding(.vertical, 9)
-                        .background(LinearGradient.accentGradient, in: Capsule())
+                        .background(
+                            isSelectMode
+                                ? LinearGradient.accentGradient.opacity(0.4)
+                                : LinearGradient.accentGradient.opacity(1),
+                            in: Capsule()
+                        )
                 }
                 .buttonStyle(ScalePressStyle())
+                .disabled(isSelectMode)
             } else {
                 Image("chevron-right")
                     .resizable()
@@ -428,8 +520,9 @@ struct ScheduledWorkoutCard: View {
 struct DeletedRoutineWorkoutCard: View {
     let scheduled: ScheduledWorkout
     @ObservedObject var viewModel: ScheduleViewModel
-    let isEditMode: Bool
-    let onDelete: () -> Void
+    let isSelectMode: Bool
+    let isSelected: Bool
+    let onTap: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -443,15 +536,23 @@ struct DeletedRoutineWorkoutCard: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            if isEditMode && !scheduled.completed {
-                Button {
-                    onDelete()
-                } label: {
-                    Image("minus-circle")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 22, height: 22)
-                        .foregroundStyle(.red)
+            if isSelectMode && !scheduled.completed {
+                ZStack {
+                    Circle()
+                        .strokeBorder(isSelected ? Color.appAccent : Color.appTertiaryText, lineWidth: 2)
+                        .frame(width: 24, height: 24)
+                    
+                    if isSelected {
+                        Circle()
+                            .fill(Color.appAccent)
+                            .frame(width: 24, height: 24)
+                        
+                        Image("check")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 12, height: 12)
+                            .foregroundStyle(.white)
+                    }
                 }
                 .transition(.scale.combined(with: .opacity))
             }
@@ -466,7 +567,14 @@ struct DeletedRoutineWorkoutCard: View {
                 cardContent
             }
         }
-        .animation(.spring(response: 0.3), value: isEditMode)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if isSelectMode && !scheduled.completed {
+                onTap()
+            }
+        }
+        .animation(.spring(response: 0.3), value: isSelectMode)
+        .animation(.spring(response: 0.25), value: isSelected)
     }
 
     private var cardContent: some View {
@@ -646,14 +754,19 @@ struct RoutineContentView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @State private var showingCreateSheet = false
     @State private var showingPaywall = false
-    @State private var isEditMode = false
-    @State private var routineToDelete: Routine?
+    @State private var isSelectMode = false
+    @State private var selectedRoutineIds: Set<UUID> = []
     @State private var showingDeleteAlert = false
+    @State private var animateList = false
     @Binding var routineToNavigateTo: Routine?
     @Environment(\.tabBarBottomInset) private var tabBarBottomInset
 
     private var canCreateRoutine: Bool {
         subscriptionManager.isProUser || viewModel.routines.count < SubscriptionManager.freeRoutineLimit
+    }
+    
+    private var selectedRoutines: [Routine] {
+        viewModel.routines.filter { selectedRoutineIds.contains($0.id) }
     }
 
     var body: some View {
@@ -661,97 +774,108 @@ struct RoutineContentView: View {
             LinearGradient.dashboardBackground
                 .ignoresSafeArea()
 
-            Group {
-                if viewModel.isLoading {
-                    VStack(spacing: 12) {
-                        ProgressView()
-                            .tint(Color.appAccent)
-                        Text("Loading routines...")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.appSecondaryText)
+            if viewModel.isLoading {
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .tint(Color.appAccent)
+                    Text("Loading routines...")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
+                }
+            } else if let error = viewModel.errorMessage {
+                VStack(spacing: 14) {
+                    IconBadge(assetName: "exclamation-triangle", color: .red, size: 48)
+                    Text("Something went wrong")
+                        .font(.headline)
+                        .foregroundStyle(Color.appText)
+                    Text(error)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
+                        .multilineTextAlignment(.center)
+                    PrimaryCTAButton("Retry", systemIcon: "arrow.clockwise") {
+                        Task { await viewModel.loadRoutines() }
                     }
-                } else if let error = viewModel.errorMessage {
-                    VStack(spacing: 14) {
-                        IconBadge(assetName: "exclamation-triangle", color: .red, size: 48)
-                        Text("Something went wrong")
-                            .font(.headline)
-                            .foregroundStyle(Color.appText)
-                        Text(error)
-                            .font(.subheadline)
-                            .foregroundStyle(Color.appSecondaryText)
-                            .multilineTextAlignment(.center)
-                        PrimaryCTAButton("Retry", systemIcon: "arrow.clockwise") {
-                            Task { await viewModel.loadRoutines() }
-                        }
-                        .frame(width: 160)
-                    }
-                    .padding()
-                } else if viewModel.routines.isEmpty {
-                    VStack(spacing: 16) {
-                        IconBadge(
-                            assetName: "arrow-path-rounded-square",
-                            size: 56
-                        )
-                        Text("No Routines Yet")
-                            .font(.title3.weight(.semibold))
-                            .foregroundStyle(Color.appText)
-                        Text("Create your first workout routine")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.appSecondaryText)
-                        PrimaryCTAButton("Create Routine", icon: "plus") {
-                            let impactLight = UIImpactFeedbackGenerator(style: .light)
-                            impactLight.impactOccurred()
-                            if canCreateRoutine {
-                                showingCreateSheet = true
-                            } else {
-                                showingPaywall = true
-                            }
-                        }
-                        .frame(width: 220)
-                    }
-                } else {
+                    .frame(width: 160)
+                }
+                .padding()
+            } else if !viewModel.routines.isEmpty {
                     VStack(spacing: 0) {
-                        // Header with new routine and edit buttons
+                        // Header with new routine and select/delete buttons
                         HStack {
-                            Button {
-                                if isEditMode {
+                            if isSelectMode {
+                                Button {
                                     withAnimation(.spring(response: 0.3)) {
-                                        isEditMode = false
+                                        isSelectMode = false
+                                        selectedRoutineIds.removeAll()
                                     }
+                                } label: {
+                                    Text("Cancel")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(Color.appSecondaryText)
                                 }
-                                let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                impactLight.impactOccurred()
-                                if canCreateRoutine {
-                                    showingCreateSheet = true
-                                } else {
-                                    showingPaywall = true
+                            } else {
+                                Button {
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
+                                    if canCreateRoutine {
+                                        showingCreateSheet = true
+                                    } else {
+                                        showingPaywall = true
+                                    }
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image("plus")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 12, height: 12)
+                                        Text("New Routine")
+                                            .font(.subheadline.weight(.semibold))
+                                    }
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 9)
+                                    .background(LinearGradient.accentGradient, in: Capsule())
                                 }
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image("plus")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 12, height: 12)
-                                    Text("New Routine")
-                                        .font(.subheadline.weight(.semibold))
-                                }
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 9)
-                                .background(LinearGradient.accentGradient, in: Capsule())
+                                .buttonStyle(ScalePressStyle())
                             }
-                            .buttonStyle(ScalePressStyle())
 
                             Spacer()
 
-                            Button {
-                                withAnimation(.spring(response: 0.3)) {
-                                    isEditMode.toggle()
+                            if isSelectMode {
+                                Button {
+                                    if selectedRoutineIds.isEmpty { return }
+                                    showingDeleteAlert = true
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image("trash")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 12, height: 12)
+                                        Text("Delete\(selectedRoutineIds.isEmpty ? "" : " (\(selectedRoutineIds.count))")")
+                                            .font(.subheadline.weight(.semibold))
+                                    }
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 9)
+                                    .background(
+                                        selectedRoutineIds.isEmpty
+                                            ? Color.red.opacity(0.4)
+                                            : Color.red,
+                                        in: Capsule()
+                                    )
                                 }
-                            } label: {
-                                Text(isEditMode ? "Done" : "Edit")
-                                    .font(.subheadline.weight(.medium))
-                                    .foregroundStyle(Color.appAccent)
+                                .buttonStyle(ScalePressStyle())
+                                .disabled(selectedRoutineIds.isEmpty)
+                            } else {
+                                Button {
+                                    withAnimation(.spring(response: 0.3)) {
+                                        isSelectMode = true
+                                    }
+                                } label: {
+                                    Text("Modify")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(Color.appAccent)
+                                }
                             }
                         }
                         .padding(.horizontal)
@@ -760,28 +884,68 @@ struct RoutineContentView: View {
 
                         ScrollView {
                             LazyVStack(spacing: 10) {
-                                ForEach(viewModel.routines) { routine in
+                                StaggeredList(
+                                    items: viewModel.routines,
+                                    id: \.id,
+                                    staggerDelay: 0.08,
+                                    initialDelay: 0.1
+                                ) { routine in
                                     RoutineRow(
                                         routine: routine,
-                                        isEditMode: isEditMode,
+                                        isSelectMode: isSelectMode,
+                                        isSelected: selectedRoutineIds.contains(routine.id),
                                         exerciseCount: viewModel.exerciseCount(for: routine.id),
                                         onTap: {
-                                            routineToNavigateTo = routine
-                                        },
-                                        onDelete: {
-                                            routineToDelete = routine
-                                            showingDeleteAlert = true
+                                            if isSelectMode {
+                                                withAnimation(.spring(response: 0.25)) {
+                                                    if selectedRoutineIds.contains(routine.id) {
+                                                        selectedRoutineIds.remove(routine.id)
+                                                    } else {
+                                                        selectedRoutineIds.insert(routine.id)
+                                                    }
+                                                }
+                                            } else {
+                                                routineToNavigateTo = routine
+                                            }
                                         }
                                     )
                                 }
                             }
+                            .id(animateList)
                             .padding(16)
                         }
                         .contentMargins(.bottom, tabBarBottomInset, for: .scrollContent)
                     }
                 }
+        }
+        .overlay {
+            if !viewModel.isLoading && viewModel.errorMessage == nil && viewModel.routines.isEmpty && viewModel.hasLoaded {
+                VStack(spacing: 16) {
+                    IconBadge(
+                        assetName: "arrow-path-rounded-square",
+                        size: 56
+                    )
+                    Text("No Routines Yet")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(Color.appText)
+                    Text("Create your first workout routine")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appSecondaryText)
+                    PrimaryCTAButton("Create Routine", icon: "plus") {
+                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                        impactLight.impactOccurred()
+                        if canCreateRoutine {
+                            showingCreateSheet = true
+                        } else {
+                            showingPaywall = true
+                        }
+                    }
+                    .frame(width: 220)
+                }
+                .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.35), value: viewModel.routines.isEmpty)
         .sheet(isPresented: $showingCreateSheet) {
             CreateRoutineSheet(
                 viewModel: viewModel,
@@ -789,30 +953,29 @@ struct RoutineContentView: View {
                     routineToNavigateTo = routine
                 }
             )
+            .sheetContentTransition()
         }
         .sheet(isPresented: $showingPaywall) {
             SubscriptionView()
+                .sheetContentTransition()
         }
-        .alert("Delete Routine", isPresented: $showingDeleteAlert) {
+        .alert("Delete Routine\(selectedRoutineIds.count == 1 ? "" : "s")", isPresented: $showingDeleteAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
-                if let routine = routineToDelete {
-                    let notificationFeedback = UINotificationFeedbackGenerator()
-                    notificationFeedback.notificationOccurred(.warning)
-                    Task {
-                        await viewModel.deleteRoutine(routine)
-
-                        if viewModel.routines.isEmpty {
-                            withAnimation {
-                                isEditMode = false
-                            }
-                        }
-                    }
+                let routines = selectedRoutines
+                let notificationFeedback = UINotificationFeedbackGenerator()
+                notificationFeedback.notificationOccurred(.warning)
+                Task {
+                    selectedRoutineIds.removeAll()
+                    isSelectMode = false
+                    await viewModel.deleteRoutines(routines)
                 }
             }
         } message: {
-            if let routine = routineToDelete {
+            if selectedRoutineIds.count == 1, let routine = selectedRoutines.first {
                 Text("Are you sure you want to delete '\(routine.name)'? All past workouts related to the routine will not be deleted. This action cannot be undone.")
+            } else {
+                Text("Are you sure you want to delete \(selectedRoutineIds.count) routines? All past workouts related to these routines will not be deleted. This action cannot be undone.")
             }
         }
         .task {
@@ -820,7 +983,9 @@ struct RoutineContentView: View {
                 await viewModel.loadRoutines()
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .routineDataChanged)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .routineDataChanged)) { notification in
+            // Skip reload if this ViewModel posted the notification (local state is already up to date)
+            if notification.object as? RoutineListViewModel === viewModel { return }
             Task { await viewModel.loadRoutines() }
         }
     }
@@ -1027,40 +1192,46 @@ struct RoutineCard: View {
 
 struct RoutineRow: View {
     let routine: Routine
-    let isEditMode: Bool
+    let isSelectMode: Bool
+    let isSelected: Bool
     let exerciseCount: Int
     let onTap: () -> Void
-    let onDelete: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            if isEditMode {
-                Button {
-                    onDelete()
-                } label: {
-                    Image("minus-circle")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 22, height: 22)
-                        .foregroundStyle(.red)
+        Button {
+            onTap()
+        } label: {
+            HStack(spacing: 12) {
+                if isSelectMode {
+                    ZStack {
+                        Circle()
+                            .strokeBorder(isSelected ? Color.appAccent : Color.appTertiaryText, lineWidth: 2)
+                            .frame(width: 24, height: 24)
+                        
+                        if isSelected {
+                            Circle()
+                                .fill(Color.appAccent)
+                                .frame(width: 24, height: 24)
+                            
+                            Image("check")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 12, height: 12)
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .transition(.scale.combined(with: .opacity))
                 }
-                .transition(.scale.combined(with: .opacity))
-            }
 
-            Button {
-                if !isEditMode {
-                    onTap()
-                }
-            } label: {
                 RoutineCard(
                     routine: routine,
                     exerciseCount: exerciseCount
                 )
             }
-            .buttonStyle(ScalePressStyle())
-            .allowsHitTesting(!isEditMode)
         }
-        .animation(.spring(response: 0.3), value: isEditMode)
+        .buttonStyle(ScalePressStyle())
+        .animation(.spring(response: 0.3), value: isSelectMode)
+        .animation(.spring(response: 0.25), value: isSelected)
     }
 }
 

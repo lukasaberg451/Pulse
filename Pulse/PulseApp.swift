@@ -46,10 +46,19 @@ struct DismissAllSheetsKey: EnvironmentKey {
     static let defaultValue: () -> Void = {}
 }
 
+private struct SplashDismissedKey: EnvironmentKey {
+    static let defaultValue: Bool = false
+}
+
 extension EnvironmentValues {
     var dismissAllSheets: () -> Void {
         get { self[DismissAllSheetsKey.self] }
         set { self[DismissAllSheetsKey.self] = newValue }
+    }
+
+    var splashDismissed: Bool {
+        get { self[SplashDismissedKey.self] }
+        set { self[SplashDismissedKey.self] = newValue }
     }
 }
 
@@ -65,8 +74,8 @@ struct PulseApp: App {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var healthKitManager = HealthKitManager.shared
     @StateObject private var unitManager = UnitManager.shared
+    @StateObject private var tourManager = OnboardingTourManager()
 
-    @State private var showPostSignInGuide = false
     @State private var showPostLoginLoading = false
     @State private var showPostLogoutLoading = false
     @State private var showSplash = true
@@ -119,29 +128,26 @@ struct PulseApp: App {
                 if authViewModel.isAuthenticated {
                     HomeView(authViewModel: authViewModel, selectedTab: $selectedTab)
                         .environmentObject(authViewModel)
-                        .overlay {
-                            if showPostSignInGuide {
-                                PostSignInGuideView(isPresented: $showPostSignInGuide, selectedTab: $selectedTab)
-                            }
-                        }
+                        .environmentObject(tourManager)
                         .overlay {
                             if showPostLoginLoading {
                                 PostLoginLoadingView(isVisible: $showPostLoginLoading)
                             }
                         }
                         .onChange(of: authViewModel.isAuthenticated) { _, newValue in
-                            // Show guide ONLY on first launch after user authenticates
+                            // Start spotlight tour on first launch after user authenticates
                             if newValue && !hasCompletedFirstLaunchGuide {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    showPostSignInGuide = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                                    hasCompletedFirstLaunchGuide = true
+                                    tourManager.start()
                                 }
                             }
                         }
                         .onAppear {
-                            // Also check on appear in case already authenticated
                             if authViewModel.isAuthenticated && !hasCompletedFirstLaunchGuide {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    showPostSignInGuide = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                                    hasCompletedFirstLaunchGuide = true
+                                    tourManager.start()
                                 }
                             }
                         }
@@ -162,6 +168,7 @@ struct PulseApp: App {
             .environmentObject(healthKitManager)
             .environmentObject(unitManager)
             .preferredColorScheme(themeManager.selectedTheme.colorScheme)
+            .environment(\.splashDismissed, !showSplash && !showPostLoginLoading)
             .overlay {
                 if showSplash {
                     SplashOverlay(
