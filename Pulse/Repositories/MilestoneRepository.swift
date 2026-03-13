@@ -25,16 +25,15 @@ class MilestoneRepository {
     }
     
     /// Fetches existing milestone data without recomputing.
-    /// Used for fast reads when fresh data isn't needed.
+    /// Uses the same RPC as refresh so the response columns (out_*) match
+    /// the UserMilestone CodingKeys.
     func fetchUserMilestones() async throws -> [UserMilestone] {
         guard let userId = supabase.auth.currentUser?.id else {
             return []
         }
         
         let milestones: [UserMilestone] = try await supabase
-            .from("user_milestones")
-            .select()
-            .eq("user_id", value: userId.uuidString)
+            .rpc("refresh_user_milestones", params: ["p_user_id": userId.uuidString])
             .execute()
             .value
         

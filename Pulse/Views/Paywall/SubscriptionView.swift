@@ -57,7 +57,7 @@ struct SubscriptionView: View {
                         // Features
                         VStack(spacing: 0) {
                             SubscriptionFeatureRow(
-                                icon: "arrow-trending-up",
+                                icon: "progressup",
                                 title: "Analytics",
                                 subtitle: "Detailed progress insights and trends"
                             )
@@ -66,20 +66,18 @@ struct SubscriptionView: View {
                                 .padding(.leading, 68)
                             
                             SubscriptionFeatureRow(
-                                icon: "list.bullet",
+                                icon: "list",
                                 title: "Unlimited Routines",
-                                subtitle: "Create and track your own routines",
-                                isSystemImage: true
+                                subtitle: "Create and track your own routines"
                             )
                             
                             Divider()
                                 .padding(.leading, 68)
                             
                             SubscriptionFeatureRow(
-                                icon: "applewatch.and.arrow.forward",
+                                icon: "watch",
                                 title: "Apple Watch",
-                                subtitle: "Log workouts straight from your wrist",
-                                isSystemImage: true
+                                subtitle: "Log workouts straight from your wrist"
                             )
                         }
                         .background {
@@ -181,7 +179,7 @@ struct SubscriptionView: View {
                             // Error
                             if let error = subscriptionManager.errorMessage {
                                 HStack(spacing: 8) {
-                                    Image("exclamation-circle")
+                                    Image("error")
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 14, height: 14)
@@ -242,7 +240,7 @@ struct SubscriptionView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image("x-mark")
+                        Image("xmark")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 16, height: 16)

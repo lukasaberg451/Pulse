@@ -27,7 +27,7 @@ struct WeeklyGoalSheet: View {
                 VStack(spacing: 28) {
                     // Header
                     VStack(spacing: 8) {
-                        IconBadge(assetName: "flag", color: .appAccent, size: 48)
+                        IconBadge(assetName: "goal", color: .appAccent, size: 48)
 
                         Text("Weekly Workout Goal")
                             .font(.title2.weight(.bold))

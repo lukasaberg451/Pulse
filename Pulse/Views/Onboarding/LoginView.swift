@@ -48,7 +48,7 @@ struct LoginView: View {
                         // Error message
                         if showError {
                             HStack(spacing: 8) {
-                                Image("exclamation-circle")
+                                Image("error")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 16, height: 16)
@@ -554,7 +554,7 @@ struct ForgotPasswordView: View {
                 // Password match indicator
                 if !viewModel.confirmPassword.isEmpty {
                     HStack(spacing: 6) {
-                        Image(viewModel.passwordsMatch ? "check-circle" : "x-mark")
+                        Image(viewModel.passwordsMatch ? "check-circle" : "xmark")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 16, height: 16)
@@ -620,7 +620,7 @@ struct ForgotPasswordView: View {
     private var errorBox: some View {
         if viewModel.showError {
             HStack(spacing: 8) {
-                Image("exclamation-circle")
+                Image("error")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 16, height: 16)

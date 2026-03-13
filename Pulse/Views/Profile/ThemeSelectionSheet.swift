@@ -18,7 +18,7 @@ struct ThemeSelectionSheet: View {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 16) {
-                    IconBadge(assetName: "paint-brush", size: 48)
+                    IconBadge(assetName: "brush", size: 48)
                         .padding(.top, 24)
                     
                     Text("Appearance")
@@ -35,7 +35,7 @@ struct ThemeSelectionSheet: View {
                                 themeManager.selectedTheme = theme
                             } label: {
                                 HStack(spacing: 14) {
-                                    IconBadge(systemName: iconForTheme(theme), size: 32)
+                                    IconBadge(assetName: iconForTheme(theme), size: 32)
                                     
                                     Text(theme.rawValue)
                                         .font(.body)
@@ -95,9 +95,9 @@ struct ThemeSelectionSheet: View {
     
     func iconForTheme(_ theme: AppTheme) -> String {
         switch theme {
-        case .light: return "sun.max.fill"
-        case .dark: return "moon.fill"
-        case .system: return "circle.lefthalf.filled"
+        case .light: return "sun"
+        case .dark: return "moon"
+        case .system: return "system"
         }
     }
 }

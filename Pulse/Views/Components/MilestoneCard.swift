@@ -109,7 +109,7 @@ struct MilestoneCard: View {
                         Text(viewModel.dashboardMilestone != nil ? "Next Achievement" : "Done")
                             .font(.subheadline.weight(.bold))
                         if viewModel.dashboardMilestone != nil {
-                            Image(systemName: "chevron.right")
+                            Image("chevron-right")
                                 .font(.caption.weight(.bold))
                         }
                     }

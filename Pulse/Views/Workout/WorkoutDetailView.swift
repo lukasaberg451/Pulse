@@ -60,7 +60,7 @@ struct WorkoutDetailView: View {
                 Button {
                     shareWorkout()
                 } label: {
-                    Image("arrow-up-on-square")
+                    Image("share")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 20, height: 20)
@@ -131,7 +131,7 @@ struct WorkoutDetailView: View {
         VStack(spacing: 16) {
             // Date
             HStack(spacing: 10) {
-                IconBadge(assetName: "calendar-days", size: 32)
+                IconBadge(assetName: "calendar", size: 32)
                 Text(viewModel.formattedDate(viewModel.workoutSession.startedAt))
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
@@ -153,13 +153,13 @@ struct WorkoutDetailView: View {
                 )
                 
                 detailStatCard(
-                    icon: "FlameIcon",
+                    icon: "flame",
                     title: "Total Sets",
                     value: "\(viewModel.totalSets)"
                 )
                 
                 detailStatCard(
-                    icon: "chart-bar",
+                    icon: "volume",
                     title: "Volume",
                     value: String(format: "%.0f %@", unitManager.displayWeight(viewModel.totalVolume), unitManager.weightUnit)
                 )
@@ -222,7 +222,7 @@ struct WorkoutDetailView: View {
             // Exercise name
             HStack(spacing: 10) {
                 IconBadge(
-                    assetName: isCardio ? "heart" : "shield-check",
+                    assetName: isCardio ? "cardio" : "musclegroup",
                     size: 32
                 )
                 Text(name)
@@ -339,7 +339,7 @@ struct WorkoutDetailView: View {
                     .foregroundStyle(Color.green)
                     .frame(width: 30)
             } else {
-                Image(systemName: "circle")
+                Image("circle")
                     .font(.subheadline)
                     .foregroundStyle(Color.appTertiaryText)
                     .frame(width: 30)

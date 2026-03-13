@@ -53,7 +53,7 @@ enum SmartInsightEngine {
             insights.append(SmartInsight(
                 title: "Recovery Matters",
                 message: "You've trained \(currentStreak) days straight. Muscle tissue repairs and grows during rest — scheduling a recovery day can actually accelerate your progress.",
-                iconAsset: "moon.zzz.fill",
+                iconAsset: "moon",
                 priority: 90
             ))
         }
@@ -63,14 +63,14 @@ enum SmartInsightEngine {
             insights.append(SmartInsight(
                 title: "Time to Get Back",
                 message: "It's been \(daysSince) days since your last session. Strength can decline after 72 hours of inactivity — even a light workout helps maintain your gains.",
-                iconAsset: "FlameIcon",
+                iconAsset: "flame",
                 priority: 95
             ))
         } else if lifetimeWorkouts == 0 {
             insights.append(SmartInsight(
                 title: "Start Your Journey",
                 message: "Complete your first workout to unlock personalized training insights based on your activity.",
-                iconAsset: "FlameIcon",
+                iconAsset: "flame",
                 priority: 100
             ))
         }
@@ -82,7 +82,7 @@ enum SmartInsightEngine {
                 insights.append(SmartInsight(
                     title: "Consistency Pays Off",
                     message: "You've completed \(monthlyWorkouts) workouts this month vs \(lastMonthWorkouts) last month. Consistency is the strongest predictor of long-term strength gains.",
-                    iconAsset: "arrow-trending-up",
+                    iconAsset: "progressup",
                     priority: 75
                 ))
             }
@@ -95,7 +95,7 @@ enum SmartInsightEngine {
                 insights.append(SmartInsight(
                     title: "Dropping Off?",
                     message: "Your workout count is down from \(lastMonthWorkouts) last month to \(monthlyWorkouts) so far. Training at least 2–3 times per week is enough to maintain and build strength.",
-                    iconAsset: "arrow-trending-up",
+                    iconAsset: "progressup",
                     priority: 80
                 ))
             }
@@ -143,7 +143,7 @@ enum SmartInsightEngine {
             insights.append(SmartInsight(
                 title: "Add Some Variety",
                 message: "You've only trained \(topName) this month. Full-body balance reduces injury risk and improves overall functional strength.",
-                iconAsset: "figure.strengthtraining.traditional",
+                iconAsset: "strengthtraining",
                 priority: 60
             ))
         }
@@ -157,7 +157,7 @@ enum SmartInsightEngine {
                 insights.append(SmartInsight(
                     title: "Don't Neglect Your Legs",
                     message: "All your training this month targets upper body. Lower-body exercises like squats and deadlifts boost testosterone, burn more calories, and prevent muscular imbalances.",
-                    iconAsset: "figure.strengthtraining.traditional",
+                    iconAsset: "strengthtraining",
                     priority: 63
                 ))
             }
@@ -168,7 +168,7 @@ enum SmartInsightEngine {
             insights.append(SmartInsight(
                 title: "Quality Over Quantity",
                 message: "Your average session is \(avgDuration) minutes. Research shows diminishing returns after 60–75 minutes as cortisol rises — consider higher-intensity, shorter sessions.",
-                iconAsset: "clock",
+                iconAsset: "stopwatch",
                 priority: 55
             ))
         }
@@ -178,7 +178,7 @@ enum SmartInsightEngine {
             insights.append(SmartInsight(
                 title: "Make Each Session Count",
                 message: "Your average session is \(avgDuration) minutes. Sessions under 20 minutes may not provide enough stimulus — aim for at least 30–45 minutes to maximize your results.",
-                iconAsset: "clock",
+                iconAsset: "stopwatch",
                 priority: 52
             ))
         }
@@ -198,7 +198,7 @@ enum SmartInsightEngine {
             insights.append(SmartInsight(
                 title: "New Personal Best",
                 message: "You're on your longest workout streak ever at \(currentStreak) days. Building a training habit is the foundation of lasting results.",
-                iconAsset: "FlameIcon",
+                iconAsset: "flame",
                 priority: 85
             ))
         }
@@ -208,7 +208,7 @@ enum SmartInsightEngine {
             insights.append(SmartInsight(
                 title: "Streak Paused — Not Lost",
                 message: "Your \(previousStreak)-day streak ended, but the strength you built didn't disappear. One session is all it takes to start a new one.",
-                iconAsset: "FlameIcon",
+                iconAsset: "flame",
                 priority: 82
             ))
         }
@@ -233,7 +233,7 @@ enum SmartInsightEngine {
             insights.append(SmartInsight(
                 title: "Week's Not Over Yet",
                 message: "You haven't trained this week yet. Even one session before the weekend helps maintain the progress you've built.",
-                iconAsset: "FlameIcon",
+                iconAsset: "flame",
                 priority: 78
             ))
         }
@@ -244,14 +244,14 @@ enum SmartInsightEngine {
                 insights.append(SmartInsight(
                     title: "Keep It Up",
                     message: "You've logged \(monthlyWorkouts) workout\(monthlyWorkouts == 1 ? "" : "s") this month and \(lifetimeWorkouts) overall. Staying consistent is what separates short-term effort from lasting results.",
-                    iconAsset: "figure.strengthtraining.traditional",
+                    iconAsset: "strengthtraining",
                     priority: 10
                 ))
             } else {
                 insights.append(SmartInsight(
                     title: "New Month, Fresh Start",
                     message: "You have \(lifetimeWorkouts) workout\(lifetimeWorkouts == 1 ? "" : "s") under your belt. Kick this month off with a session — momentum builds fast once you start.",
-                    iconAsset: "FlameIcon",
+                    iconAsset: "flame",
                     priority: 10
                 ))
             }

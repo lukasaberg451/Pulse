@@ -21,10 +21,10 @@ enum HomeTab: Int, CaseIterable {
 
     var icon: String {
         switch self {
-        case .dashboard: "DashboardTabIcon"
-        case .workout:   "WorkoutTabIcon"
-        case .progress:  "ProgressTabIcon"
-        case .profile:   "ProfileTabIcon"
+        case .dashboard: "dashboard"
+        case .workout:   "workout"
+        case .progress:  "progress"
+        case .profile:   "profile"
         }
     }
 }

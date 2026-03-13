@@ -66,7 +66,7 @@ struct SettingsView: View {
                             showingSubscriptionSheet = true
                         } label: {
                             HStack(spacing: 14) {
-                                IconBadge(assetName: "star", size: 32)
+                                IconBadge(assetName: "starshine", size: 32)
                                 
                                 Text("Plan")
                                     .font(.body)
@@ -100,7 +100,7 @@ struct SettingsView: View {
                         
                         VStack(spacing: 0) {
                             // Appearance
-                            ProfileSettingsRow(icon: "paint-brush", title: "Appearance", value: themeManager.selectedTheme.rawValue) {
+                            ProfileSettingsRow(icon: "brush", title: "Appearance", value: themeManager.selectedTheme.rawValue) {
                                 showingThemeSheet = true
                             }
                             
@@ -114,7 +114,7 @@ struct SettingsView: View {
                             ProfileDivider()
                             
                             // Timezone
-                            ProfileSettingsRow(icon: "clock", title: "Time Zone", value: viewModel.profile?.timezone ?? TimeZone.current.identifier, lineLimit: 1, isSystemImage: true) {
+                            ProfileSettingsRow(icon: "clock", title: "Time Zone", value: viewModel.profile?.timezone ?? TimeZone.current.identifier, lineLimit: 1) {
                                 showingTimezoneSheet = true
                             }
                             
@@ -162,7 +162,7 @@ struct SettingsView: View {
                             
                             // Apple Watch
                             HStack(spacing: 14) {
-                                IconBadge(systemName: "applewatch", size: 32)
+                                IconBadge(assetName: "watch", size: 32)
                                 
                                 Text("Apple Watch")
                                     .font(.body)
@@ -189,7 +189,7 @@ struct SettingsView: View {
                         
                         VStack(spacing: 0) {
                             // Send Feedback
-                            ProfileSettingsRow(icon: "clipboard-document-list", title: "Send Feedback") {
+                            ProfileSettingsRow(icon: "clipboard-text", title: "Send Feedback") {
                                 showingFeedbackSheet = true
                             }
                             

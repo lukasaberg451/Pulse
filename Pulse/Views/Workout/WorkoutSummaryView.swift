@@ -136,7 +136,7 @@ struct WorkoutSummaryView: View {
                                 )
                                 
                                 summaryStatCard(
-                                    icon: "FlameIcon",
+                                    icon: "flame",
                                     title: "Total Sets",
                                     value: "\(Int(displayedSets))"
                                 )
@@ -147,16 +147,15 @@ struct WorkoutSummaryView: View {
                             
                             HStack(spacing: 12) {
                                 summaryStatCard(
-                                    icon: "chart-bar",
+                                    icon: "volume",
                                     title: "Volume",
                                     value: String(format: "%.0f %@", unitManager.displayWeight(displayedVolume), unitManager.weightUnit)
                                 )
                                 
                                 summaryStatCard(
-                                    icon: "figure.strengthtraining.traditional",
+                                    icon: "exercises",
                                     title: "Exercises",
                                     value: "\(Int(displayedExercises))",
-                                    isSystemImage: true
                                 )
                             }
                             .opacity(animationTrigger ? 1 : 0)
@@ -177,7 +176,7 @@ struct WorkoutSummaryView: View {
                     Button {
                         shareWorkout()
                     } label: {
-                        Image("arrow-up-on-square")
+                        Image("share")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 17, height: 17)
@@ -274,7 +273,7 @@ struct WorkoutSummaryView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
                 IconBadge(
-                    systemName: isCardio ? "figure.run" : "dumbbell.fill",
+                    assetName: isCardio ? "cardio" : "musclegroup",
                     size: 32
                 )
                 Text(name)
@@ -388,7 +387,7 @@ struct WorkoutSummaryView: View {
                     .foregroundStyle(Color.green)
                     .frame(width: 30)
             } else {
-                Image(systemName: "circle")
+                Image("circle")
                     .font(.subheadline)
                     .foregroundStyle(Color.appTertiaryText)
                     .frame(width: 30)
@@ -483,14 +482,14 @@ struct ShareableWorkoutCard: View {
                         .fill(.white.opacity(0.08))
                         .frame(height: 1)
                     
-                    shareStatItem(icon: "chart-bar", value: totalVolume, label: "Volume")
+                    shareStatItem(icon: "volume", value: totalVolume, label: "Volume")
                         .padding(.vertical, 16)
                     
                     Rectangle()
                         .fill(.white.opacity(0.08))
                         .frame(height: 1)
                     
-                    shareStatItem(icon: "list-bullet", value: "\(exerciseCount)", label: "Exercises")
+                    shareStatItem(icon: "list", value: "\(exerciseCount)", label: "Exercises")
                         .padding(.vertical, 16)
                 }
                 .padding(.horizontal, 20)
@@ -563,7 +562,7 @@ struct SharePreviewSheet: View {
             VStack(spacing: 20) {
                 // Header
                 VStack(spacing: 8) {
-                    IconBadge(assetName: "arrow-up-on-square", size: 48)
+                    IconBadge(assetName: "share", size: 48)
                         .padding(.top, 24)
                     
                     Text("Share Preview")
@@ -599,7 +598,7 @@ struct SharePreviewSheet: View {
                     }
                     .buttonStyle(ScalePressStyle())
                     
-                    PrimaryCTAButton("Share", icon: "arrow-up-on-square") {
+                    PrimaryCTAButton("Share", icon: "share") {
                         presentShareSheet()
                         PostHogSDK.shared.capture("workout_shared")
                     }

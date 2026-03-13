@@ -279,7 +279,7 @@ private struct ScheduledSectionCard: View {
             if workouts.isEmpty {
                 // Empty state
                 VStack(spacing: 14) {
-                    IconBadge(assetName: "calendar-days", size: 44)
+                    IconBadge(assetName: "calendar", size: 44)
 
                     Text("No workouts scheduled")
                         .font(.subheadline)
@@ -346,7 +346,7 @@ private struct ScheduledSectionCard: View {
                             showingRoutinePicker = true
                         } label: {
                             HStack(spacing: 8) {
-                                Image("plus-circle")
+                                Image("plus")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 18, height: 18)
@@ -455,7 +455,7 @@ struct ScheduledWorkoutCard: View {
     private var scheduledWorkoutContent: some View {
         HStack(spacing: 12) {
             IconBadge(
-                assetName: "bolt",
+                assetName: "workout",
                 color: .appAccent,
                 size: 38
             )
@@ -650,7 +650,7 @@ struct RoutinePickerSheet: View {
                 if viewModel.routines.isEmpty {
                     VStack(spacing: 16) {
                         IconBadge(
-                            assetName: "arrow-path-rounded-square",
+                            assetName: "routine",
                             size: 56
                         )
                         Text("No Routines Yet")
@@ -706,7 +706,7 @@ struct RoutinePickerRow: View {
         Button(action: onSelect) {
             HStack(spacing: 12) {
                 IconBadge(
-                    systemName: "figure.strengthtraining.traditional",
+                    assetName: "routine",
                     color: .appAccent,
                     size: 38
                 )
@@ -723,7 +723,7 @@ struct RoutinePickerRow: View {
 
                 Spacer()
 
-                Image("plus-circle")
+                Image("plus")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 22, height: 22)
@@ -792,7 +792,7 @@ struct RoutineContentView: View {
                 }
             } else if let error = viewModel.errorMessage {
                 VStack(spacing: 14) {
-                    IconBadge(assetName: "exclamation-triangle", color: .red, size: 48)
+                    IconBadge(assetName: "error", color: .red, size: 48)
                     Text("Something went wrong")
                         .font(.headline)
                         .foregroundStyle(Color.appText)
@@ -800,7 +800,7 @@ struct RoutineContentView: View {
                         .font(.subheadline)
                         .foregroundStyle(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
-                    PrimaryCTAButton("Retry", systemIcon: "arrow.clockwise") {
+                    PrimaryCTAButton("Retry", icon: "refresh") {
                         Task { await viewModel.loadRoutines() }
                     }
                     .frame(width: 160)
@@ -930,7 +930,7 @@ struct RoutineContentView: View {
             if !viewModel.isLoading && viewModel.errorMessage == nil && viewModel.routines.isEmpty && viewModel.hasLoaded {
                 VStack(spacing: 16) {
                     IconBadge(
-                        assetName: "arrow-path-rounded-square",
+                        assetName: "routine",
                         size: 56
                     )
                     Text("No Routines Yet")
@@ -1020,7 +1020,7 @@ struct CreateRoutineSheet: View {
                 VStack(spacing: 28) {
                     // Header
                     VStack(spacing: 8) {
-                        IconBadge(assetName: "arrow-path-rounded-square", color: .appAccent, size: 48)
+                        IconBadge(assetName: "routine", color: .appAccent, size: 48)
 
                         Text("New Routine")
                             .font(.title2.weight(.bold))
@@ -1153,7 +1153,7 @@ struct RoutineCard: View {
     var body: some View {
         HStack(spacing: 12) {
             IconBadge(
-                assetName: "arrow-path-rounded-square",
+                assetName: "routine",
                 color: .appAccent,
                 size: 40
             )

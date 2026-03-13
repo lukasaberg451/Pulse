@@ -42,13 +42,14 @@ struct ProfileView: View {
                                     SettingsView()
                                         .hidesTabBar()
                                 } label: {
-                                    Image(systemName: "gearshape.fill")
+                                    Image("settings")
                                         .font(.body)
                                         .foregroundStyle(Color.appSecondaryText)
                                         .padding(10)
                                         .background(Color.appSurface)
                                         .clipShape(Circle())
                                 }
+                                .spotlightTarget("settingsButton")
                                 .padding(.trailing, 16)
                             }
                             
@@ -122,7 +123,7 @@ struct ProfileView: View {
                                 
                                 if viewModel.customExercises.isEmpty {
                                     VStack(spacing: 14) {
-                                        IconBadge(systemName: "dumbbell.fill", size: 48)
+                                        IconBadge(assetName: "clipboard-text", size: 48)
                                         
                                         Text("No custom exercises yet")
                                             .font(.subheadline.weight(.medium))
@@ -153,7 +154,7 @@ struct ProfileView: View {
                             }
                             .id("exercises-\(sectionAnimationId)")
                             
-                            // Recent Workouts
+                            // Completed Workouts
                             StaggeredItem(delay: 0.26, animate: true) {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
@@ -175,7 +176,7 @@ struct ProfileView: View {
                                 
                                 if progressViewModel.recentSessions.isEmpty {
                                     VStack(spacing: 14) {
-                                        IconBadge(systemName: "clock.arrow.circlepath", size: 48)
+                                        IconBadge(assetName: "clock", size: 48)
                                         
                                         Text("No workout history yet")
                                             .font(.subheadline.weight(.medium))
@@ -218,14 +219,13 @@ struct ProfileView: View {
                                     LifetimeStatCard(
                                         title: "Total Workouts",
                                         value: "\(progressViewModel.lifetimeWorkouts)",
-                                        icon: "figure.run",
-                                        isSystemImage: true
+                                        icon: "workout"
                                     )
                                     
                                     LifetimeStatCard(
                                         title: "Total Volume",
                                         value: "\(Int(unitManager.displayWeight(Double(progressViewModel.lifetimeVolume))))\(unitManager.weightUnit)",
-                                        icon: "scale"
+                                        icon: "volume"
                                     )
                                     
                                     LifetimeStatCard(
@@ -237,7 +237,7 @@ struct ProfileView: View {
                                     LifetimeStatCard(
                                         title: "Longest Streak",
                                         value: "\(progressViewModel.bestStreak) days",
-                                        icon: "FlameIcon"
+                                        icon: "flame"
                                     )
                                 }
                                 .padding(.horizontal)
@@ -391,7 +391,7 @@ struct EditNameSheet: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         // Profile Header
-                        IconBadge(assetName: "user-circle", size: 52)
+                        IconBadge(assetName: "profile", size: 52)
                             .padding(.top, 24)
                         
                         Text("Edit Profile")
@@ -405,14 +405,14 @@ struct EditNameSheet: View {
                         // Account Details Card
                         VStack(spacing: 0) {
                             // First Name Row
-                            EditNameRow(icon: "user-circle", label: "First Name", value: viewModel.profile?.firstName ?? "Not set") {
+                            EditNameRow(icon: "profile", label: "First Name", value: viewModel.profile?.firstName ?? "Not set") {
                                 showingEditFirstNameSheet = true
                             }
                             
                             ProfileDivider()
                             
                             // Last Name Row
-                            EditNameRow(icon: "user-circle", label: "Last Name", value: viewModel.profile?.lastName ?? "Not set") {
+                            EditNameRow(icon: "profile", label: "Last Name", value: viewModel.profile?.lastName ?? "Not set") {
                                 showingEditLastNameSheet = true
                             }
                             
@@ -556,7 +556,7 @@ struct EditFieldSheet: View {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 24) {
-                    IconBadge(assetName: "pencil-square", size: 48)
+                    IconBadge(assetName: "pencil", size: 48)
                         .padding(.top, 24)
                     
                     Text("Edit \(title)")
@@ -588,7 +588,7 @@ struct EditFieldSheet: View {
                     
                     if showError {
                         HStack(spacing: 4) {
-                            Image("exclamation-triangle")
+                            Image("error")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 14, height: 14)
@@ -642,6 +642,7 @@ struct FeedbackSheet: View {
     @State private var title = ""
     @State private var description = ""
     @State private var isChecked = false
+    @State private var showSuccess = false
     @FocusState private var focusedField: FeedbackField?
     
     enum FeedbackType: String, CaseIterable {
@@ -666,7 +667,7 @@ struct FeedbackSheet: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
-                        IconBadge(assetName: "clipboard-document-list", size: 48)
+                        IconBadge(assetName: "clipboard-text", size: 48)
                             .padding(.top, 24)
                         
                         Text("Send Feedback")
@@ -694,7 +695,7 @@ struct FeedbackSheet: View {
                                     Text(feedbackType.rawValue)
                                         .foregroundStyle(Color.appText)
                                     Spacer()
-                                    Image("arrows-up-down")
+                                    Image("updown")
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 14, height: 14)
@@ -760,7 +761,7 @@ struct FeedbackSheet: View {
                         .tint(Color.appAccent)
                         .padding(.horizontal)
                         
-                        PrimaryCTAButton("Submit Feedback", icon: "paper-airplane") {
+                        PrimaryCTAButton("Submit Feedback", icon: "send") {
                             Task {
                                 let success = await viewModel.submitFeedback(
                                     type: feedbackType.rawValue,
@@ -769,6 +770,12 @@ struct FeedbackSheet: View {
                                     isChecked: isChecked
                                 )
                                 if success {
+                                    let notificationFeedback = UINotificationFeedbackGenerator()
+                                    notificationFeedback.notificationOccurred(.success)
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                        showSuccess = true
+                                    }
+                                    try? await Task.sleep(for: .seconds(1.5))
                                     dismiss()
                                 }
                             }
@@ -798,6 +805,35 @@ struct FeedbackSheet: View {
                     .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .transition(.opacity)
+                }
+                
+                // Success confirmation overlay
+                if showSuccess {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                    
+                    VStack(spacing: 16) {
+                        Image("check-circle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                            .foregroundStyle(Color.appAccent)
+                        
+                        Text("Feedback Sent!")
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(Color.appText)
+                        
+                        Text("Thanks for helping us improve Pulse")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(32)
+                    .background(Color.appSurface)
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .shadow(color: .black.opacity(0.2), radius: 20, y: 10)
+                    .padding(.horizontal, 40)
+                    .transition(.scale(scale: 0.8).combined(with: .opacity))
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -931,7 +967,7 @@ struct ChangeEmailSheet: View {
                             
                             if let error = errorMessage {
                                 HStack(spacing: 4) {
-                                    Image("exclamation-triangle")
+                                    Image("error")
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 14, height: 14)
@@ -1015,7 +1051,7 @@ struct DeleteAccountConfirmationSheet: View {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 VStack(spacing: 16) {
-                    IconBadge(assetName: "exclamation-triangle", color: .red, size: 48)
+                    IconBadge(assetName: "error", color: .red, size: 48)
                         .padding(.top, 24)
                     
                     Text("This action is irreversible")
@@ -1119,7 +1155,7 @@ struct CustomExerciseCard: View {
     var body: some View {
         HStack(spacing: 12) {
             IconBadge(
-                systemName: "dumbbell.fill",
+                assetName: exercise.exerciseType?.lowercased() == "cardio" ? "cardio" : "musclegroup",
                 color: .appAccent,
                 size: 40
             )
@@ -1130,11 +1166,11 @@ struct CustomExerciseCard: View {
                     .foregroundStyle(Color.appText)
                 
                 if let muscleGroup = exercise.muscleGroup {
-                    Text(muscleGroup)
+                    Text(muscleGroup.capitalized)
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                 } else if let exerciseType = exercise.exerciseType {
-                    Text(exerciseType)
+                    Text(exerciseType.capitalized)
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                 }
@@ -1181,7 +1217,7 @@ struct AllCustomExercisesView: View {
                     StaggeredList(items: viewModel.customExercises, id: \.id) { exercise in
                         HStack(spacing: 12) {
                             IconBadge(
-                                systemName: "dumbbell.fill",
+                                assetName: exercise.exerciseType?.lowercased() == "cardio" ? "cardio" : "musclegroup",
                                 color: .appAccent,
                                 size: 40
                             )
@@ -1192,11 +1228,11 @@ struct AllCustomExercisesView: View {
                                     .foregroundStyle(Color.appText)
                                 
                                 if let muscleGroup = exercise.muscleGroup {
-                                    Text(muscleGroup)
+                                    Text(muscleGroup.capitalized)
                                         .font(.caption)
                                         .foregroundStyle(Color.appSecondaryText)
                                 } else if let exerciseType = exercise.exerciseType {
-                                    Text(exerciseType)
+                                    Text(exerciseType.capitalized)
                                         .font(.caption)
                                         .foregroundStyle(Color.appSecondaryText)
                                 }

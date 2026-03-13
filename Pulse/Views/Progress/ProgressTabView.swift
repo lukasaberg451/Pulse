@@ -41,7 +41,7 @@ struct ProgressTabView: View {
                     VStack(spacing: 24) {
                         Spacer()
                         
-                        IconBadge(assetName: "arrow-trending-up", color: .appAccent, size: 72)
+                        IconBadge(assetName: "progressup", color: .appAccent, size: 72)
                         
                         Text("Unlock Progress Tracking")
                             .font(.title2.weight(.bold))
@@ -53,7 +53,7 @@ struct ProgressTabView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 32)
                         
-                        PrimaryCTAButton("Upgrade to Pulse Pro", icon: "star") {
+                        PrimaryCTAButton("Upgrade to Pulse Pro", icon: "starshine") {
                             let impactLight = UIImpactFeedbackGenerator(style: .light)
                             impactLight.impactOccurred()
                             showingPaywall = true
@@ -87,7 +87,7 @@ struct ProgressTabView: View {
                         // Streak Card
                         VStack(spacing: 16) {
                             HStack(spacing: 14) {
-                                IconBadge(assetName: "FlameIcon", color: .orange, size: 44)
+                                IconBadge(assetName: "flame", color: .orange, size: 44)
                                 
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text("Current Streak")
@@ -139,7 +139,7 @@ struct ProgressTabView: View {
                         
                         // Total Workouts
                         HStack(spacing: 14) {
-                            IconBadge(systemName: "figure.strengthtraining.traditional", color: .appAccent, size: 44)
+                            IconBadge(assetName: "strengthtraining", color: .appAccent, size: 44)
                             
                             VStack(alignment: .leading, spacing: 3) {
                                 Text("\(viewModel.lifetimeWorkouts) workouts completed")
@@ -164,7 +164,7 @@ struct ProgressTabView: View {
                         // Volume Lifted
                         VStack(spacing: 16) {
                             HStack(spacing: 14) {
-                                IconBadge(assetName: "scale", color: .blue, size: 44)
+                                IconBadge(assetName: "volume", color: .blue, size: 44)
                                 
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text("Volume Lifted")
@@ -421,7 +421,7 @@ struct ComparisonRow: View {
                 
                 if change != 0 {
                     HStack(spacing: 4) {
-                        Image(systemName: change > 0 ? "arrow.up" : "arrow.down")
+                        Image(change > 0 ? "arrow-up" : "arrow-down")
                             .font(.caption)
                         Text("\(abs(change)) (\(abs(changePercentage), specifier: "%.0f")%)")
                             .font(.caption)
@@ -530,7 +530,7 @@ struct HealthMetricsSection: View {
                     impactLight.impactOccurred()
                     showingEditSheet = true
                 } label: {
-                    Image("pencil-square")
+                    Image("edit-pencil")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 24, height: 24)
@@ -546,12 +546,11 @@ struct HealthMetricsSection: View {
                     HStack(spacing: 16) {
                         // Height Card
                         HealthMetricCard(
-                            icon: "ruler.fill",
+                            icon: "ruler",
                             title: "Height",
                             value: profile.heightCm != nil ? unitManager.displayHeightFormatted(profile.heightCm!) : "--",
                             unit: unitManager.unitSystem == .metric ? "cm" : "",
-                            color: .green,
-                            isSystemImage: true
+                            color: .green
                         )
                         
                         // Weight Card
@@ -565,63 +564,63 @@ struct HealthMetricsSection: View {
                     }
                     .padding(.horizontal)
                     
-                    // Weight Progression
+                    // Weight Trend
                     if let currentWeight = profile.weightKg,
                        let startWeight = viewModel.startWeightKg,
                        startWeight > 0 {
                         
-                        VStack(spacing: 10) {
+                        VStack(spacing: 12) {
+                            // Header
                             HStack(spacing: 14) {
-                                IconBadge(assetName: "arrow-trending-up", color: .green, size: 40)
+                                IconBadge(assetName: "scale", color: .appAccent, size: 40)
                                 
-                                Text("Weight Progress")
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(Color.appText)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Weight Trend")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(Color.appText)
+                                    
+                                    let change = currentWeight - startWeight
+                                    let displayChange = abs(unitManager.displayWeight(currentWeight) - unitManager.displayWeight(startWeight))
+                                    
+                                    if abs(change) >= 0.1 {
+                                        let arrow = change > 0 ? "↑" : "↓"
+                                        Text("\(arrow) \(String(format: "%.1f", displayChange)) \(unitManager.weightUnit) since start")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appSecondaryText)
+                                    } else {
+                                        Text("No change since start")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appSecondaryText)
+                                    }
+                                }
                                 
                                 Spacer()
                             }
                             
-                            HStack {
-                                Text("Start: \(String(format: "%.1f", unitManager.displayWeight(startWeight))) \(unitManager.weightUnit)")
-                                    .font(.caption)
-                                    .foregroundStyle(Color.appSecondaryText)
-                                
-                                Text("→")
-                                    .font(.caption)
-                                    .foregroundStyle(Color.appTertiaryText)
-                                
-                                Text("Now: \(String(format: "%.1f", unitManager.displayWeight(currentWeight))) \(unitManager.weightUnit)")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(Color.appText)
-                                
-                                Spacer()
-                            }
-                            .padding(.leading, 54)
-                            
-                            // Goal progress
+                            // Target (optional)
                             if let targetWeight = profile.targetWeightKg, targetWeight > 0 {
                                 Divider()
                                 
                                 let remaining = abs(currentWeight - targetWeight)
                                 
                                 HStack(spacing: 14) {
-                                    IconBadge(systemName: "target", color: .orange, size: 40)
+                                    IconBadge(assetName: "circle-dashed", color: .appSecondaryText, size: 40)
                                     
-                                    Text("Goal: \(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit)")
+                                    Text("Target: \(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit)")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
                                     
                                     Spacer()
                                     
-                                    Text("\(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) to go")
+                                    Text("\(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) from target")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
                                 }
                             }
                         }
-                        .padding(14)
+                        .padding(16)
                         .background {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
                                 .fill(Color.appSurface)
                                 .modifier(CardShadowModifier())
                         }
@@ -633,7 +632,7 @@ struct HealthMetricsSection: View {
                         VStack(alignment: .leading, spacing: 8) {
                             // Icon
                             HStack {
-                                Image(systemName: "heart.text.square.fill")
+                                Image("clipboard-text")
                                     .font(.title2)
                                     .foregroundStyle(Color.red)
                                 Spacer()
@@ -724,7 +723,7 @@ struct HealthMetricsSection: View {
                     } else if profile.weightKg == nil || profile.heightCm == nil {
                         // Empty state - prompt to add data
                         VStack(spacing: 14) {
-                            IconBadge(assetName: "arrow-trending-up", size: 48)
+                            IconBadge(assetName: "progressup", size: 48)
 
                             Text("Add your weight and height to calculate BMI")
                                 .font(.subheadline)
@@ -883,7 +882,7 @@ struct EditHealthMetricsSheet: View {
                     VStack(spacing: 28) {
                         // Header
                         VStack(spacing: 8) {
-                            IconBadge(systemName: "heart.text.square.fill", color: .red, size: 48)
+                            IconBadge(assetName: "clipboard-text", color: .red, size: 48)
 
                             Text("Body Metrics")
                                 .font(.title2.weight(.bold))
@@ -898,7 +897,7 @@ struct EditHealthMetricsSheet: View {
                         // Error message
                         if showError {
                             HStack(spacing: 8) {
-                                Image("exclamation-triangle")
+                                Image("error")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 16, height: 16)
@@ -918,7 +917,7 @@ struct EditHealthMetricsSheet: View {
                             // Height Input
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack(spacing: 6) {
-                                    Image(systemName: "ruler.fill")
+                                    Image("ruler")
                                         .foregroundStyle(Color.green)
                                         .font(.caption)
                                     Text("Height")
@@ -1050,7 +1049,7 @@ struct EditHealthMetricsSheet: View {
                             // Target Weight Input (optional)
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack(spacing: 6) {
-                                    Image(systemName: "target")
+                                    Image("goal")
                                         .foregroundStyle(Color.orange)
                                         .font(.caption)
                                     Text("Target Weight (Optional)")
@@ -1216,7 +1215,7 @@ struct RecentWorkoutCard: View {
         NavigationLink(destination: WorkoutDetailView(workoutSession: session).hidesTabBar()) {
             HStack(spacing: 12) {
                 IconBadge(
-                    systemName: "figure.strengthtraining.traditional",
+                    assetName: "workout",
                     color: .appAccent,
                     size: 40
                 )
@@ -1228,7 +1227,7 @@ struct RecentWorkoutCard: View {
 
                     HStack(spacing: 10) {
                         HStack(spacing: 4) {
-                            Image("calendar-days")
+                            Image("calendar")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 12, height: 12)
@@ -1296,7 +1295,7 @@ struct AllRecentWorkoutsView: View {
                 LazyVStack(spacing: 12) {
                     if viewModel.allRecentSessions.isEmpty && !viewModel.isLoadingMore {
                         VStack(spacing: 16) {
-                            IconBadge(systemName: "clock.arrow.circlepath", size: 56)
+                            IconBadge(assetName: "refresh", size: 56)
 
                             Text("No Workout History Yet")
                                 .font(.title3.weight(.bold))

@@ -47,7 +47,7 @@ struct RegisterSelectionView: View {
                         // Error message
                         if showError {
                             HStack(spacing: 8) {
-                                Image("exclamation-circle")
+                                Image("error")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 16, height: 16)

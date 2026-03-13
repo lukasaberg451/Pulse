@@ -63,14 +63,24 @@ final class OnboardingTourManager: ObservableObject {
             title: "Track Your Progress",
             body: "Upgrade to Pro to unlock streaks, volume tracking, strength gains, and body metrics — all in one place.",
             tab: .progress,
-            hidesSpotlight: true
+            spotlightCornerRadius: 16,
+            spotlightPadding: 4
         ),
         TourStep(
             id: "profileTab",
             title: "Your Profile",
-            body: "See your milestones, custom exercises and completed workouts. Tap the gear icon for settings.",
+            body: "See your milestones, custom exercises and completed workouts.",
             tab: .profile,
-            hidesSpotlight: true
+            spotlightCornerRadius: 16,
+            spotlightPadding: 4
+        ),
+        TourStep(
+            id: "settingsButton",
+            title: "Settings",
+            body: "Customize your experience — connect Apple Health, change your theme, set preferred units, and more.",
+            tab: .profile,
+            spotlightCornerRadius: 50,
+            spotlightPadding: 6
         ),
     ]
 

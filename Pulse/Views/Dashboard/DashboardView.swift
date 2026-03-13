@@ -31,6 +31,7 @@ struct DashboardView: View {
     @State private var resumeExercises: [Exercise] = []
     @State private var showingResumeWorkout = false
     @State private var showingResumeAlert = false
+    @State private var pendingResumeAlert = false
     @Environment(\.tabBarBottomInset) private var tabBarBottomInset
     @EnvironmentObject var syncService: WorkoutSyncService
     
@@ -154,10 +155,19 @@ struct DashboardView: View {
                 }
             }
             .onChange(of: splashDismissed) { _, dismissed in
-                guard dismissed, !triggerStreakHighlight else { return }
-                // Small delay after splash fades so the pill entrance animation finishes first
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    triggerStreakHighlight = true
+                guard dismissed else { return }
+                if !triggerStreakHighlight {
+                    // Small delay after splash fades so the pill entrance animation finishes first
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        triggerStreakHighlight = true
+                    }
+                }
+                if pendingResumeAlert {
+                    pendingResumeAlert = false
+                    // Show the resume alert after a short delay so splash exit animation finishes
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showingResumeAlert = true
+                    }
                 }
             }
             .task {
@@ -228,7 +238,11 @@ struct DashboardView: View {
             self.resumeRoutine = routine
             self.resumeRoutineExercises = routineExercises
             self.resumeExercises = exercises
-            self.showingResumeAlert = true
+            if splashDismissed {
+                self.showingResumeAlert = true
+            } else {
+                self.pendingResumeAlert = true
+            }
         } catch {
             debugLog("⚠️ Failed to load data for in-progress workout: \(error)")
         }
@@ -256,7 +270,7 @@ struct TodayWorkoutCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        IconBadge(assetName: "calendar-days", size: 28)
+                        IconBadge(assetName: "calendar", size: 28)
                         Text("Scheduled")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appSecondaryText)
@@ -293,7 +307,7 @@ struct TodayWorkoutCard: View {
                         PostHogSDK.shared.capture("scheduled_from_dashboard_started")
                     } label: {
                         VStack(spacing: 4) {
-                            Image("play-circle")
+                            Image("play")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 32, height: 32)
@@ -335,7 +349,7 @@ struct DeletedRoutineTodayCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        IconBadge(assetName: "calendar-days", size: 28)
+                        IconBadge(assetName: "calendar", size: 28)
                         Text("Scheduled")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appSecondaryText)
@@ -393,7 +407,7 @@ struct EmptyTodayCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        IconBadge(assetName: "calendar-days", size: 28)
+                        IconBadge(assetName: "calendar", size: 28)
                         Text("Today")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appSecondaryText)
@@ -416,7 +430,7 @@ struct EmptyTodayCard: View {
                     showingRoutinePicker = true
                 } label: {
                     VStack(spacing: 4) {
-                        Image("plus-circle")
+                        Image("plus")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 32, height: 32)
@@ -456,7 +470,7 @@ struct StatsBar: View {
         DashboardCard {
             HStack(spacing: 0) {
                 StatBarItem(
-                    icon: "FlameIcon",
+                    icon: "flame",
                     value: "\(streak)",
                     label: "Daily Streak"
                 )
@@ -472,7 +486,7 @@ struct StatsBar: View {
                 StatBarDivider()
 
                 StatBarItem(
-                    icon: "clock",
+                    icon: "stopwatch",
                     value: formattedWeeklyTime,
                     label: "This Week"
                 )

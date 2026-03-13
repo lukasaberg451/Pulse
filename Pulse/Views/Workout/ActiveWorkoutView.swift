@@ -162,7 +162,7 @@ struct ActiveWorkoutViewContent: View {
                 if !hasSeenWatchTip {
                     VStack {
                         HStack(spacing: 12) {
-                            IconBadge(systemName: "applewatch", size: 28)
+                            IconBadge(assetName: "watch", size: 28)
                             
                             Text("Open Pulse on your Apple Watch to track along")
                                 .font(.caption)
@@ -175,7 +175,7 @@ struct ActiveWorkoutViewContent: View {
                                     hasSeenWatchTip = true
                                 }
                             } label: {
-                                Image("x-mark")
+                                Image("xmark")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 17, height: 17)
@@ -313,7 +313,7 @@ struct RestTimerBanner: View {
         HStack {
             HStack(spacing: 12) {
                 // Pulsing rest icon
-                Image(systemName: "bed.double.fill")
+                Image("stopwatch")
                     .font(.body)
                     .foregroundStyle(Color.appAccent)
                     .symbolEffect(.pulse, options: .repeating)
@@ -422,7 +422,7 @@ struct ExerciseCard: View {
                         }
                     } label: {
                         HStack(spacing: 6) {
-                            Image("plus-circle")
+                            Image("plus")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 12, height: 12)
@@ -486,7 +486,7 @@ struct ExerciseCard: View {
             Spacer()
             
             if status == .completed {
-                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                Image(isExpanded ? "chevron-up" : "chevron-down")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.appTertiaryText)
                     .padding(6)
@@ -509,13 +509,13 @@ struct ExerciseCard: View {
         case .completed:
             IconBadge(assetName: "check", color: .green, size: 32)
         case .current:
-            IconBadge(systemName: exercise.exerciseType == "cardio" ? "figure.run" : "figure.strengthtraining.traditional", size: 32)
+            IconBadge(assetName: exercise.exerciseType == "cardio" ? "cardio" : "musclegroup", size: 32)
         case .upcoming:
             ZStack {
                 Circle()
                     .fill(Color.appText.opacity(0.06))
                     .frame(width: 32, height: 32)
-                Image(systemName: "circle.dotted")
+                Image("circle-dashed")
                     .font(.caption)
                     .foregroundStyle(Color.appTertiaryText)
             }
@@ -588,7 +588,7 @@ struct SwipeableSetRow: View {
                     // Undo action (swipe right on completed sets)
                     if set.completed {
                         HStack(spacing: 6) {
-                            Image("arrow-uturn-left")
+                            Image("undo")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 15, height: 15)

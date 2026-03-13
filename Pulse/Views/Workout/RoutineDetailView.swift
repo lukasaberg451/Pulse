@@ -81,7 +81,7 @@ struct RoutineDetailView: View {
         ) {
             HStack(spacing: 12) {
                 IconBadge(
-                    assetName: exercise.exerciseType == "cardio" ? "heart" : "shield-check",
+                    assetName: exercise.exerciseType == "cardio" ? "cardio" : "musclegroup",
                     color: .appAccent,
                     size: 40
                 )
@@ -174,7 +174,7 @@ struct RoutineDetailView: View {
                 }
             } else if let error = viewModel.errorMessage {
                 VStack(spacing: 14) {
-                    IconBadge(assetName: "exclamation-triangle", color: .red, size: 48)
+                    IconBadge(assetName: "error", color: .red, size: 48)
                     Text("Something went wrong")
                         .font(.headline)
                         .foregroundStyle(Color.appText)
@@ -182,7 +182,7 @@ struct RoutineDetailView: View {
                         .font(.subheadline)
                         .foregroundStyle(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
-                    PrimaryCTAButton("Retry", systemIcon: "arrow.clockwise") {
+                    PrimaryCTAButton("Retry", icon: "refresh") {
                         Task {
                             await viewModel.loadRoutineExercises()
                             await viewModel.loadExercises()
@@ -295,7 +295,7 @@ struct RoutineDetailView: View {
                                             ProgressView()
                                                 .tint(Color.appText)
                                         } else {
-                                            Image("document-duplicate")
+                                            Image("copy")
                                                 .resizable()
                                                 .scaledToFit()
                                                 .frame(width: 12, height: 12)
@@ -347,7 +347,7 @@ struct RoutineDetailView: View {
                                             .scaledToFit()
                                             .frame(width: 12, height: 12)
                                     } else {
-                                        Image("arrows-up-down")
+                                        Image("updown")
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 12, height: 12)
@@ -374,7 +374,7 @@ struct RoutineDetailView: View {
                         VStack(spacing: 16) {
                             Spacer()
                             IconBadge(
-                                assetName: "clipboard-document-list",
+                                assetName: "clipboard-text",
                                 size: 56
                             )
                             Text("No Exercises Yet")
@@ -504,39 +504,39 @@ struct ExercisePickerSheet: View {
     private func equipmentIcon(for equipment: String) -> String {
         switch equipment.lowercased() {
         case "barbell":
-            return "shield-check"
+            return "barbell"
         case "dumbbell":
-            return "shield-check"
+            return "dumbbell"
         case "kettlebell":
-            return "shield-check"
+            return "kettlebell"
         case "cable":
-            return "shield-check"
+            return "cable"
         case "machine":
-            return "shield-check"
+            return "machine"
         case "bodyweight":
-            return "shield-check"
+            return "bodyweight"
         case "resistance band":
-            return "shield-check"
+            return "band"
         case "medicine ball":
-            return "shield-check"
+            return "ball"
         case "bike":
-            return "cardio"
+            return "bike"
         case "stairmaster":
-            return "cardio"
+            return "stairmaster"
         case "treadmill":
-            return "cardio"
+            return "treadmill"
         case "trx":
-            return "shield-check"
+            return "band"
         case "smith machine":
-            return "shield-check"
+            return "smithmachine"
         case "sled":
-            return "cardio"
+            return "sled"
         case "sandbag":
-            return "shield-check"
+            return "sandbag"
         case "outdoors":
-            return "cardio"
+            return "outdoors"
         default:
-            return "cardio"
+            return "barbell"
         }
     }
     
@@ -550,7 +550,7 @@ struct ExercisePickerSheet: View {
                     HStack(spacing: 10) {
                         // Search field
                         HStack(spacing: 10) {
-                            Image("magnifying-glass")
+                            Image("search")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 15, height: 15)
@@ -576,7 +576,7 @@ struct ExercisePickerSheet: View {
                                 Button {
                                     searchText = ""
                                 } label: {
-                                    Image("x-mark")
+                                    Image("xmark")
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 15, height: 15)
@@ -599,7 +599,7 @@ struct ExercisePickerSheet: View {
                             showingFilterSheet = true
                         } label: {
                             ZStack(alignment: .topTrailing) {
-                                Image("adjustments-horizontal")
+                                Image("filter")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 22, height: 22)
@@ -633,13 +633,13 @@ struct ExercisePickerSheet: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 if let muscle = selectedMuscle {
-                                    ActiveFilterChip(title: muscle, icon: "cube-transparent") {
+                                    ActiveFilterChip(title: muscle, icon: "musclegroup") {
                                         selectedMuscle = nil
                                     }
                                 }
                                 
                                 if let equipment = selectedEquipment {
-                                    ActiveFilterChip(title: equipment, icon: "wrench") {
+                                    ActiveFilterChip(title: equipment, icon: "equipment") {
                                         selectedEquipment = nil
                                     }
                                 }
@@ -674,7 +674,7 @@ struct ExercisePickerSheet: View {
                     // Exercise list
                     if filteredExercises.isEmpty && !viewModel.isLoading {
                         VStack(spacing: 14) {
-                            IconBadge(assetName: "magnifying-glass", size: 48)
+                            IconBadge(assetName: "search", size: 48)
                             
                             Text("No exercises found")
                                 .font(.subheadline.weight(.semibold))
@@ -705,7 +705,7 @@ struct ExercisePickerSheet: View {
                                             }
                                         } label: {
                                             HStack(spacing: 8) {
-                                                Image("ProfileTabIcon")
+                                                Image("profile")
                                                     .resizable()
                                                     .scaledToFit()
                                                     .frame(width: 14, height: 14)
@@ -723,7 +723,7 @@ struct ExercisePickerSheet: View {
                                                 
                                                 Spacer()
                                                 
-                                                Image(systemName: "chevron.right")
+                                                Image("chevron-right")
                                                     .font(.caption.weight(.semibold))
                                                     .foregroundStyle(Color.appTertiaryText)
                                                     .rotationEffect(.degrees(showMyExercises ? 90 : 0))
@@ -786,7 +786,7 @@ struct ExercisePickerSheet: View {
             .overlay(alignment: .top) {
                 if let name = addedExerciseName {
                     HStack(spacing: 8) {
-                        Image(systemName: "checkmark.circle.fill")
+                        Image("check-circle")
                             .foregroundStyle(.green)
                         Text("\(name) added")
                             .font(.subheadline.weight(.semibold))
@@ -886,7 +886,7 @@ struct ExercisePickerSheet: View {
         } label: {
             HStack(spacing: 12) {
                 IconBadge(
-                    assetName: exercise.exerciseType == "cardio" ? "bolt" : "bicep",
+                    assetName: exercise.exerciseType == "cardio" ? "cardio" : "musclegroup",
                     size: 38
                 )
                 
@@ -930,7 +930,7 @@ struct ExercisePickerSheet: View {
                 
                 Spacer()
                 
-                Image("plus-circle")
+                Image("plus")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
@@ -965,7 +965,7 @@ struct ActiveFilterChip: View {
                 .font(.caption.weight(.semibold))
             
             Button(action: onRemove) {
-                Image("x-mark")
+                Image("xmark")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 12, height: 12)
@@ -1010,7 +1010,7 @@ struct FilterSheet: View {
                         VStack(alignment: .leading, spacing: 14) {
                             HStack {
                                 HStack(spacing: 8) {
-                                    IconBadge(assetName: "cube-transparent", size: 28)
+                                    IconBadge(assetName: "musclegroup", size: 28)
                                     Text("Muscle Group")
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundStyle(Color.appText)
@@ -1072,7 +1072,7 @@ struct FilterSheet: View {
                         VStack(alignment: .leading, spacing: 14) {
                             HStack {
                                 HStack(spacing: 8) {
-                                    IconBadge(assetName: "wrench", size: 28)
+                                    IconBadge(assetName: "equipment", size: 28)
                                     Text("Equipment")
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundStyle(Color.appText)
@@ -1247,7 +1247,7 @@ struct CreateCustomExerciseSheet: View {
                                 ProgressView()
                                     .tint(.white)
                             } else {
-                                Image(systemName: "plus.circle.fill")
+                                Image("plus")
                                     .font(.subheadline)
                             }
                             Text("Create Exercise")
@@ -1438,7 +1438,7 @@ struct ExerciseConfigSheet: View {
                         // Exercise Info Card
                         HStack(spacing: 14) {
                             IconBadge(
-                                systemName: isCardio ? "figure.run" : "dumbbell.fill",
+                                assetName: isCardio ? "cardio" : "musclegroup",
                                 size: 44
                             )
                             
@@ -1539,7 +1539,7 @@ struct ExerciseConfigSheet: View {
                                                             sets += 1
                                                         }
                                                     } label: {
-                                                        Image("plus-circle")
+                                                        Image("plus")
                                                             .resizable()
                                                             .scaledToFit()
                                                             .frame(width: 22, height: 22)
@@ -1629,7 +1629,7 @@ struct ExerciseConfigSheet: View {
                                                             restSeconds += 15
                                                         }
                                                     } label: {
-                                                        Image("plus-circle")
+                                                        Image("plus")
                                                             .resizable()
                                                             .scaledToFit()
                                                             .frame(width: 22, height: 22)
@@ -1680,7 +1680,7 @@ struct ExerciseConfigSheet: View {
                                                         sets += 1
                                                     }
                                                 } label: {
-                                                    Image("plus-circle")
+                                                    Image("plus")
                                                         .resizable()
                                                         .scaledToFit()
                                                         .frame(width: 22, height: 22)
@@ -1772,7 +1772,7 @@ struct ExerciseConfigSheet: View {
                                                         restSeconds += 15
                                                     }
                                                 } label: {
-                                                    Image("plus-circle")
+                                                    Image("plus")
                                                         .resizable()
                                                         .scaledToFit()
                                                         .frame(width: 22, height: 22)
@@ -1877,7 +1877,7 @@ struct EditRoutineSheet: View {
                 VStack(spacing: 28) {
                     // Header
                     VStack(spacing: 8) {
-                        IconBadge(assetName: "pencil-square", color: .appAccent, size: 48)
+                        IconBadge(assetName: "edit-pencil", color: .appAccent, size: 48)
 
                         Text("Edit Routine")
                             .font(.title2.weight(.bold))
@@ -2056,7 +2056,7 @@ struct EditExerciseSheet: View {
                         // Exercise Info Card
                         HStack(spacing: 14) {
                             IconBadge(
-                                systemName: isCardio ? "figure.run" : "dumbbell.fill",
+                                assetName: isCardio ? "cardio" : "musclegroup",
                                 size: 44
                             )
                             
@@ -2157,7 +2157,7 @@ struct EditExerciseSheet: View {
                                                             sets += 1
                                                         }
                                                     } label: {
-                                                        Image("plus-circle")
+                                                        Image("plus")
                                                             .resizable()
                                                             .scaledToFit()
                                                             .frame(width: 22, height: 22)
@@ -2247,7 +2247,7 @@ struct EditExerciseSheet: View {
                                                             restSeconds += 15
                                                         }
                                                     } label: {
-                                                        Image("plus-circle")
+                                                        Image("plus")
                                                             .resizable()
                                                             .scaledToFit()
                                                             .frame(width: 22, height: 22)
@@ -2298,7 +2298,7 @@ struct EditExerciseSheet: View {
                                                         sets += 1
                                                     }
                                                 } label: {
-                                                    Image("plus-circle")
+                                                    Image("plus")
                                                         .resizable()
                                                         .scaledToFit()
                                                         .frame(width: 22, height: 22)
@@ -2390,7 +2390,7 @@ struct EditExerciseSheet: View {
                                                         restSeconds += 15
                                                     }
                                                 } label: {
-                                                    Image("plus-circle")
+                                                    Image("plus")
                                                         .resizable()
                                                         .scaledToFit()
                                                         .frame(width: 22, height: 22)

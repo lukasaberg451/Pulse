@@ -132,7 +132,7 @@ struct RegisterView: View {
                             // Error message
                             if showError {
                                 HStack(spacing: 8) {
-                                    Image("exclamation-circle")
+                                    Image("error")
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 16, height: 16)
@@ -282,7 +282,7 @@ struct RegisterView: View {
                                 // Password match indicator
                                 if !confirmPassword.isEmpty {
                                     HStack(spacing: 6) {
-                                        Image(passwordsMatch ? "check-circle" : "x-mark")
+                                        Image(passwordsMatch ? "check-circle" : "xmark")
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 16, height: 16)

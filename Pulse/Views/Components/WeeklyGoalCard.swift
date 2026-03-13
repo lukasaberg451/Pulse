@@ -34,7 +34,7 @@ struct WeeklyGoalCard: View {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(spacing: 8) {
-                            IconBadge(assetName: "flag", color: .appAccent, size: 28)
+                            IconBadge(assetName: "goal", color: .appAccent, size: 28)
                             Text("Weekly Goal")
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(Color.appSecondaryText)
@@ -60,7 +60,7 @@ struct WeeklyGoalCard: View {
                         Button {
                             onEditGoal()
                         } label: {
-                            Image("adjustments-horizontal")
+                            Image("sliders-double-horizontal")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 18, height: 18)
@@ -103,7 +103,7 @@ struct WeeklyGoalCard: View {
                 .overlay(alignment: .leading) {
                     if showUpdatedLabel {
                         HStack(spacing: 4) {
-                            Image(systemName: "checkmark.circle.fill")
+                            Image("check-circle")
                                 .font(.caption)
                             Text("Goal updated!")
                         }

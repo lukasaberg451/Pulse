@@ -113,6 +113,19 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 }
             }
         }
+        
+        // Save elapsed time when the app goes to the background so we can
+        // restore it accurately if the user kills the app mid-workout.
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didEnterBackgroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.saveElapsedTime()
+            }
+        }
     }
     
     private func handleWatchSetCompleted(
@@ -152,7 +165,6 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         if let session = resumingSession {
             debugLog("📱 Resuming interrupted workout session: \(session.id)")
             currentSession = session
-            startTime = session.startedAt
             
             // Load existing sets from SwiftData
             do {
@@ -161,6 +173,12 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             } catch {
                 debugLog("❌ Failed to load sets for resumed session: \(error)")
             }
+            
+            // Restore the elapsed time from before the app was killed.
+            // durationSeconds is saved when the app enters the background,
+            // so it reflects the actual workout time before the interruption.
+            let elapsedBeforeKill = TimeInterval(session.durationSeconds ?? 0)
+            startTime = Date().addingTimeInterval(-elapsedBeforeKill)
             
             // Filter routineExercises to only those that have sets in this session
             // This prevents exercises added to the routine after the workout started from appearing
@@ -273,6 +291,15 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 self.elapsedTime = Date().timeIntervalSince(startTime)
             }
         }
+    }
+    
+    /// Persist the current elapsed time to the session so it can be
+    /// restored accurately if the app is killed mid-workout.
+    private func saveElapsedTime() {
+        guard let session = currentSession, let startTime = startTime else { return }
+        let elapsed = Int(Date().timeIntervalSince(startTime))
+        session.durationSeconds = elapsed
+        try? modelContext.save()
     }
         
     func startRestTimer(seconds: Int) {
