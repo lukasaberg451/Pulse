@@ -169,9 +169,6 @@ class MilestoneViewModel: ObservableObject {
     }
     
     func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter.string(from: date)
+        return SharedFormatters.mediumDate.string(from: date)
     }
 }

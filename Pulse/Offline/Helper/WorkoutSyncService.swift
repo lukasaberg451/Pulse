@@ -114,8 +114,8 @@ class WorkoutSyncService: ObservableObject {
         debugLog("🔽 Syncing from server...")
         
         do {
-            // Fetch all remote sessions
-            let remoteSessions = try await WorkoutRepository().fetchSessions()
+            // Fetch recent remote sessions (last 500 for sync comparison)
+            let remoteSessions = try await WorkoutRepository().fetchSessions(limit: 500)
             debugLog("🔽 Found \(remoteSessions.count) remote sessions")
             let remoteSessionIds = Set(remoteSessions.map { $0.id })
             

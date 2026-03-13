@@ -41,7 +41,7 @@ class WorkoutRepository {
             id: id.uuidString,
             name: name,
             routine_id: routineId?.uuidString,
-            started_at: ISO8601DateFormatter().string(from: startedAt)
+            started_at: SharedFormatters.iso8601.string(from: startedAt)
         )
         
         try await supabase
@@ -50,12 +50,13 @@ class WorkoutRepository {
             .execute()
     }
     
-    // Fetch all workout sessions
-    func fetchSessions() async throws -> [WorkoutSession] {
+    // Fetch workout sessions with an optional limit (defaults to 100)
+    func fetchSessions(limit: Int = 100) async throws -> [WorkoutSession] {
         let response: [WorkoutSession] = try await supabase
             .from("workout_sessions")
             .select()
             .order("started_at", ascending: false)
+            .limit(limit)
             .execute()
             .value
         
@@ -213,7 +214,7 @@ class WorkoutRepository {
         }
         
         let data = UpdateData(
-            completed_at: ISO8601DateFormatter().string(from: Date()),
+            completed_at: SharedFormatters.iso8601.string(from: Date()),
             duration_seconds: durationSeconds
         )
         
@@ -273,7 +274,7 @@ class WorkoutRepository {
         let sessionData = SessionInsertData(
             id: sessionId.uuidString,
             routine_id: routineId.uuidString,
-            started_at: ISO8601DateFormatter().string(from: Date()),
+            started_at: SharedFormatters.iso8601.string(from: Date()),
             name: routine.name
         )
         
@@ -480,5 +481,77 @@ class WorkoutRepository {
             .update(data)
             .eq("id", value: id.uuidString)
             .execute()
+    }
+    
+    // MARK: - Server-Side Aggregate RPCs
+    
+    /// Fetches dashboard stats (streak, weekly minutes, total count, latest PR) via server-side RPC.
+    func fetchDashboardStats(
+        userId: UUID,
+        weekStart: Date,
+        weekEnd: Date
+    ) async throws -> DashboardStats {
+        let stats: DashboardStats = try await supabase
+            .rpc("get_dashboard_stats", params: [
+                "p_user_id": userId.uuidString,
+                "p_week_start": SharedFormatters.iso8601.string(from: weekStart),
+                "p_week_end": SharedFormatters.iso8601.string(from: weekEnd)
+            ])
+            .execute()
+            .value
+        return stats
+    }
+    
+    /// Fetches all progress tab stats via server-side RPC.
+    func fetchProgressStats(
+        userId: UUID,
+        weekStart: Date,
+        weekEnd: Date,
+        monthStart: Date,
+        monthEnd: Date,
+        lastMonthStart: Date,
+        lastMonthEnd: Date
+    ) async throws -> ProgressStats {
+        let stats: ProgressStats = try await supabase
+            .rpc("get_progress_stats", params: [
+                "p_user_id": userId.uuidString,
+                "p_week_start": SharedFormatters.iso8601.string(from: weekStart),
+                "p_week_end": SharedFormatters.iso8601.string(from: weekEnd),
+                "p_month_start": SharedFormatters.iso8601.string(from: monthStart),
+                "p_month_end": SharedFormatters.iso8601.string(from: monthEnd),
+                "p_last_month_start": SharedFormatters.iso8601.string(from: lastMonthStart),
+                "p_last_month_end": SharedFormatters.iso8601.string(from: lastMonthEnd)
+            ])
+            .execute()
+            .value
+        return stats
+    }
+    
+    /// Fetches muscle group stats for the current month via server-side RPC.
+    func fetchMuscleGroupStats(
+        userId: UUID,
+        monthStart: Date,
+        monthEnd: Date
+    ) async throws -> [MuscleGroupStatRow] {
+        let rows: [MuscleGroupStatRow] = try await supabase
+            .rpc("get_muscle_group_stats", params: [
+                "p_user_id": userId.uuidString,
+                "p_month_start": SharedFormatters.iso8601.string(from: monthStart),
+                "p_month_end": SharedFormatters.iso8601.string(from: monthEnd)
+            ])
+            .execute()
+            .value
+        return rows
+    }
+    
+    /// Fetches strength progress per exercise via server-side RPC.
+    func fetchStrengthProgress(userId: UUID) async throws -> [StrengthProgressRow] {
+        let rows: [StrengthProgressRow] = try await supabase
+            .rpc("get_strength_progress", params: [
+                "p_user_id": userId.uuidString
+            ])
+            .execute()
+            .value
+        return rows
     }
 }

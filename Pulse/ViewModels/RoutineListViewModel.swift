@@ -47,9 +47,10 @@ class RoutineListViewModel: ObservableObject {
             } else {
                 routines = try await routineRepository.fetchRoutines()
                 
-                for routine in routines {
-                    let exercises = try await routineRepository.fetchRoutineExercises(routineId: routine.id)
-                    routineExerciseCounts[routine.id] = exercises.count
+                let routineIds = routines.map { $0.id }
+                let allRoutineExercises = try await routineRepository.fetchRoutineExercises(routineIds: routineIds)
+                for (routineId, exercises) in allRoutineExercises {
+                    routineExerciseCounts[routineId] = exercises.count
                 }
             }
             hasLoaded = true

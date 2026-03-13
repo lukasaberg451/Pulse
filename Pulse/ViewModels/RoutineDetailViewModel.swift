@@ -20,7 +20,7 @@ class RoutineDetailViewModel: ObservableObject {
     @Published var routine: Routine
     
     private let routineRepository = RoutineRepository()
-    private let exerciseRepository = ExerciseRepository()
+    private let exerciseRepository = ExerciseRepository.shared
     private let syncService = WorkoutSyncService.shared
     
     // Optional: Inject model context for offline support

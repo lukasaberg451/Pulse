@@ -9,7 +9,12 @@ import Foundation
 import Supabase
 
 class ExerciseRepository {
+    static let shared = ExerciseRepository()
+    
     private let supabase = SupabaseManager.shared.client
+    private var cachedExercises: [Exercise]?
+    private var cacheDate: Date?
+    private let cacheTTL: TimeInterval = 300 // 5 minutes
     
     func fetchExercises(
         page: Int = 0,
@@ -50,8 +55,13 @@ class ExerciseRepository {
         return exercises
     }
     
-    func fetchAllExercises() async throws -> [Exercise] {
-        let supabase = SupabaseManager.shared.client
+    func fetchAllExercises(forceRefresh: Bool = false) async throws -> [Exercise] {
+        if !forceRefresh,
+           let cached = cachedExercises,
+           let date = cacheDate,
+           Date().timeIntervalSince(date) < cacheTTL {
+            return cached
+        }
         
         let exercises: [Exercise] = try await supabase
             .from("exercises")
@@ -60,7 +70,20 @@ class ExerciseRepository {
             .execute()
             .value
         
+        cachedExercises = exercises
+        cacheDate = Date()
         return exercises
+    }
+    
+    /// Adds an exercise to the cache without a full refresh.
+    func addToCache(_ exercise: Exercise) {
+        cachedExercises?.append(exercise)
+    }
+    
+    /// Clears the exercise cache (e.g., on logout).
+    func clearCache() {
+        cachedExercises = nil
+        cacheDate = nil
     }
     
     private struct CreateCustomExercisePayload: Encodable {

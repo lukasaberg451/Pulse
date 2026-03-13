@@ -30,9 +30,8 @@ class DataMigrationHelper {
         debugLog("🔄 Starting workout migration...")
         
         do {
-            // Fetch recent sessions from Supabase (limit to last 30 days to avoid long migration)
-            let sessions = try await repository.fetchSessions()
-            let recentSessions = Array(sessions.prefix(50)) // Only migrate 50 most recent
+            // Fetch the 50 most recent sessions from Supabase for migration
+            let recentSessions = try await repository.fetchSessions(limit: 50)
             
             debugLog("🔄 Migrating \(recentSessions.count) workouts...")
             

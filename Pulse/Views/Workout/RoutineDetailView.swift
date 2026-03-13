@@ -1172,7 +1172,7 @@ struct CreateCustomExerciseSheet: View {
     
     let onCreated: (Exercise) -> Void
     
-    private let repository = ExerciseRepository()
+    private let repository = ExerciseRepository.shared
     
     enum ExerciseType: String, CaseIterable {
         case strength = "Strength"

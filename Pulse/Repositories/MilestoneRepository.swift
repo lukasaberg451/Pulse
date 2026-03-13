@@ -32,7 +32,9 @@ class MilestoneRepository {
         }
         
         let milestones: [UserMilestone] = try await supabase
-            .rpc("refresh_user_milestones", params: ["p_user_id": userId.uuidString])
+            .from("user_milestones")
+            .select()
+            .eq("user_id", value: userId.uuidString)
             .execute()
             .value
         
@@ -43,7 +45,7 @@ class MilestoneRepository {
     func unlockMilestone(milestoneId: UUID) async throws {
         try await supabase
             .from("user_milestones")
-            .update(["unlocked_at": ISO8601DateFormatter().string(from: Date())])
+            .update(["unlocked_at": SharedFormatters.iso8601.string(from: Date())])
             .eq("id", value: milestoneId.uuidString)
             .execute()
     }

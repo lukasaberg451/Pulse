@@ -42,17 +42,13 @@ class WorkoutDetailViewModel: ObservableObject {
     }
     
     func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
+        let formatter = SharedFormatters.mediumDate
         formatter.timeZone = userProfile?.resolvedTimeZone ?? .current
         return formatter.string(from: date)
     }
     
     func formattedTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .none
-        formatter.timeStyle = .short
+        let formatter = SharedFormatters.shortTime
         formatter.timeZone = userProfile?.resolvedTimeZone ?? .current
         return formatter.string(from: date)
     }

@@ -180,6 +180,27 @@ class RoutineRepository {
             .execute()
     }
     
+    /// Fetches all routine exercises for the given routine IDs in a single query.
+    /// Returns a dictionary keyed by routine ID.
+    func fetchRoutineExercises(routineIds: [UUID]) async throws -> [UUID: [RoutineExercise]] {
+        guard !routineIds.isEmpty else { return [:] }
+        
+        let ids = routineIds.map { $0.uuidString }
+        let response: [RoutineExercise] = try await supabase
+            .from("routine_exercises")
+            .select()
+            .in("routine_id", values: ids)
+            .order("order_index")
+            .execute()
+            .value
+        
+        var grouped: [UUID: [RoutineExercise]] = [:]
+        for exercise in response {
+            grouped[exercise.routineId, default: []].append(exercise)
+        }
+        return grouped
+    }
+    
     func fetchRoutine(id: UUID) async throws -> Routine {
         let supabase = SupabaseManager.shared.client
         

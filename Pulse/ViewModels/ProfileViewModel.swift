@@ -26,7 +26,7 @@ class ProfileViewModel: ObservableObject {
     
     private let supabase = SupabaseManager.shared.client
     private let weightHistoryRepo = WeightHistoryRepository()
-    private let exerciseRepo = ExerciseRepository()
+    private let exerciseRepo = ExerciseRepository.shared
     private var cancellables = Set<AnyCancellable>()
     
     init() {

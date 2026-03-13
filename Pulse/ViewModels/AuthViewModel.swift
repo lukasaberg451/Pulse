@@ -224,6 +224,7 @@ class AuthViewModel: ObservableObject{
             self.session = nil
             self.isAuthenticated = false
             self.userProfile = nil
+            ExerciseRepository.shared.clearCache()
         } catch{
             debugLog("Sign-out failed: \(error.localizedDescription)")
         }

@@ -31,7 +31,7 @@ class DashboardViewModel: ObservableObject {
     
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
-    private let exerciseRepository = ExerciseRepository()
+    private let exerciseRepository = ExerciseRepository.shared
     private var cancellables = Set<AnyCancellable>()
     private var refreshTask: Task<Void, Never>?
     
@@ -56,11 +56,7 @@ class DashboardViewModel: ObservableObject {
             
             guard !Task.isCancelled else { return }
             
-            // Run independent network calls concurrently
-            async let weeklyProgress: () = loadWeeklyProgress()
-            async let streak: () = calculateStreak()
-            async let latestPR: () = loadLatestPR()
-            _ = await (weeklyProgress, streak, latestPR)
+            await loadDashboardStats()
         }
         refreshTask = task
         await task.value
@@ -78,23 +74,12 @@ class DashboardViewModel: ObservableObject {
             // Load routines
             routines = try await routineRepository.fetchRoutines()
             
-            // Load exercise counts for each routine
-            for routine in routines {
-                let routineExercises = try await routineRepository.fetchRoutineExercises(routineId: routine.id)
-                routineExerciseCounts[routine.id] = routineExercises.count
-                routineExercisesMap[routine.id] = routineExercises
-                
-                // Ensure all exercises referenced by routine exercises are loaded
-                for routineExercise in routineExercises {
-                    if !exercises.contains(where: { $0.id == routineExercise.exerciseId }) {
-                        do {
-                            let exercise = try await exerciseRepository.fetchExercise(id: routineExercise.exerciseId)
-                            exercises.append(exercise)
-                        } catch {
-                            debugLog("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
-                        }
-                    }
-                }
+            // Load all routine exercises in a single batch query
+            let routineIds = routines.map { $0.id }
+            let allRoutineExercises = try await routineRepository.fetchRoutineExercises(routineIds: routineIds)
+            routineExercisesMap = allRoutineExercises
+            for (routineId, exercises) in allRoutineExercises {
+                routineExerciseCounts[routineId] = exercises.count
             }
             
             // Load todays workouts
@@ -113,23 +98,23 @@ class DashboardViewModel: ObservableObject {
             )
             .sorted { !$0.completed && $1.completed }
             
-            //Load recently completed (last 5)
-            let allSessions = try await workoutRepository.fetchSessions()
-            debugLog("📊 Loaded \(allSessions.count) total sessions from server")
-            
-            // Build session lookup for today's workouts
+            // Build session lookup for today's scheduled workouts
             let todaySessionIds = Set(todaysWorkouts.compactMap { $0.workoutSessionId })
-            for session in allSessions where todaySessionIds.contains(session.id) {
-                workoutSessions[session.id] = session
+            for id in todaySessionIds {
+                let sessions: [WorkoutSession] = try await SupabaseManager.shared.client
+                    .from("workout_sessions")
+                    .select()
+                    .eq("id", value: id.uuidString)
+                    .execute()
+                    .value
+                if let session = sessions.first {
+                    workoutSessions[session.id] = session
+                }
             }
             
-            let completedSessions = allSessions.filter { $0.completedAt != nil }
-            totalWorkoutCount = completedSessions.count
-            recentSessions = Array(completedSessions.prefix(5))
-            debugLog("📊 Filtered to \(recentSessions.count) recent completed sessions")
-            if !recentSessions.isEmpty {
-                debugLog("📊 Recent sessions: \(recentSessions.map { "\($0.name) (ID: \($0.id))" }.joined(separator: ", "))")
-            }
+            // Load recently completed (last 5) using pagination
+            recentSessions = try await workoutRepository.fetchCompletedSessions(limit: 5, offset: 0)
+            debugLog("📊 Loaded \(recentSessions.count) recent completed sessions")
             
         } catch {
             errorMessage = "Failed to load data: \(error.localizedDescription)"
@@ -159,16 +144,13 @@ class DashboardViewModel: ObservableObject {
     }
     
     var formattedToday: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d MMMM yyyy"
+        let formatter = SharedFormatters.dayMonthYear
         formatter.timeZone = userProfile?.resolvedTimeZone ?? .current
         return formatter.string(from: Date())
     }
     
     func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
+        let formatter = SharedFormatters.mediumDate
         formatter.timeZone = userProfile?.resolvedTimeZone ?? TimeZone.current
         return formatter.string(from: date)
     }
@@ -207,8 +189,12 @@ class DashboardViewModel: ObservableObject {
         }
     }
     
-    func loadWeeklyProgress() async {
-        // Get start of current week (Monday)
+    /// Fetches dashboard aggregate stats from the server-side RPC.
+    /// Replaces the previous loadWeeklyProgress(), calculateStreak(), and loadLatestPR() methods.
+    private func loadDashboardStats() async {
+        let supabase = SupabaseManager.shared.client
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        
         let calendar = userProfile?.userCalendar ?? Calendar.current
         let now = Date()
         guard let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)),
@@ -217,189 +203,38 @@ class DashboardViewModel: ObservableObject {
         }
         
         do {
-            let supabase = SupabaseManager.shared.client
+            let stats = try await workoutRepository.fetchDashboardStats(
+                userId: userId,
+                weekStart: weekStart,
+                weekEnd: weekEnd
+            )
             
-            // Fetch all completed sessions from this week
-            let sessions: [WorkoutSession] = try await supabase
-                .from("workout_sessions")
-                .select()
-                .eq("user_id", value: supabase.auth.currentUser?.id.uuidString ?? "")
-                .gte("started_at", value: ISO8601DateFormatter().string(from: weekStart))
-                .lt("started_at", value: ISO8601DateFormatter().string(from: weekEnd))
-                .not("completed_at", operator: .is, value: "null")
-                .execute()
-                .value
+            currentStreak = stats.currentStreak
+            bestStreak = stats.bestStreak
+            totalWorkoutCount = stats.totalWorkoutCount
+            weeklyWorkoutMinutes = stats.weeklyWorkoutMinutes
             
-            // Sum up the duration
-            weeklyWorkoutMinutes = sessions.reduce(0) { total, session in
-                total + ((session.durationSeconds ?? 0) / 60)
-            }
-            
-            // Get user's weekly goal
+            // Update weekly goal from profile
             if let profile = userProfile {
                 weeklyGoalMinutes = profile.weeklyGoalMinutes ?? 150
             }
-        } catch {
-            debugLog("Failed to load weekly progress: \(error)")
-        }
-    }
-
-    func calculateStreak() async {
-        let supabase = SupabaseManager.shared.client
-        guard let userId = supabase.auth.currentUser?.id else { return }
-        
-        do {
-            let sessions: [WorkoutSession] = try await supabase
-                .from("workout_sessions")
-                .select()
-                .eq("user_id", value: userId.uuidString)
-                .not("completed_at", operator: .is, value: "null")
-                .order("completed_at", ascending: false)
-                .execute()
-                .value
             
-            guard !sessions.isEmpty else {
-                currentStreak = 0
-                bestStreak = 0
-                return
-            }
-            
-            let calendar = userProfile?.userCalendar ?? Calendar.current
-            var workoutDates = Set<Date>()
-            
-            for session in sessions {
-                let date = session.completedAt ?? session.startedAt
-                let dayStart = calendar.startOfDay(for: date)
-                workoutDates.insert(dayStart)
-            }
-            
-            let sortedDates = workoutDates.sorted(by: >)
-            
-            // Calculate current streak
-            let today = calendar.startOfDay(for: Date())
-            var streak = 0
-            var checkDate = today
-            
-            for date in sortedDates {
-                if date == checkDate {
-                    streak += 1
-                    checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
-                } else if calendar.dateComponents([.day], from: date, to: checkDate).day == 1 {
-                    streak += 1
-                    checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
-                } else {
-                    break
-                }
-            }
-            
-            if let firstDate = sortedDates.first {
-                let daysDiff = calendar.dateComponents([.day], from: firstDate, to: today).day ?? 0
-                if daysDiff > 1 {
-                    streak = 0
-                }
-            }
-            
-            currentStreak = streak
-            
-            // Calculate best streak
-            var maxStreak = 0
-            var tempStreak = 0
-            var previousDate: Date? = nil
-            
-            for date in sortedDates.reversed() {
-                if let prev = previousDate {
-                    let daysDiff = calendar.dateComponents([.day], from: prev, to: date).day ?? 0
-                    if daysDiff <= 1 {
-                        tempStreak += 1
-                    } else {
-                        maxStreak = max(maxStreak, tempStreak)
-                        tempStreak = 1
-                    }
-                } else {
-                    tempStreak = 1
-                }
-                previousDate = date
-            }
-            
-            maxStreak = max(maxStreak, tempStreak)
-            bestStreak = maxStreak
-            
-        } catch {
-            debugLog("Failed to calculate streak: \(error)")
-            currentStreak = 0
-            bestStreak = 0
-        }
-    }
-    
-    func loadLatestPR() async {
-        let supabase = SupabaseManager.shared.client
-        guard let userId = supabase.auth.currentUser?.id else { return }
-        
-        do {
-            let sessions: [WorkoutSession] = try await supabase
-                .from("workout_sessions")
-                .select()
-                .eq("user_id", value: userId.uuidString)
-                .not("completed_at", operator: .is, value: "null")
-                .execute()
-                .value
-            
-            guard !sessions.isEmpty else {
+            // Map the latest PR
+            if let prName = stats.latestPrExerciseName,
+               let prWeight = stats.latestPrWeight,
+               let prReps = stats.latestPrReps,
+               let prDate = stats.latestPrDate {
+                latestPR = PersonalRecord(
+                    exerciseName: prName,
+                    weight: prWeight,
+                    reps: prReps,
+                    date: prDate
+                )
+            } else {
                 latestPR = nil
-                return
             }
-            
-            let sets: [WorkoutSet] = try await supabase
-                .from("workout_sets")
-                .select()
-                .in("session_id", values: sessions.map { $0.id.uuidString })
-                .eq("completed", value: true)
-                .not("weight", operator: .is, value: "null")
-                .not("reps", operator: .is, value: "null")
-                .execute()
-                .value
-            
-            let allExercises: [Exercise] = try await supabase
-                .from("exercises")
-                .select()
-                .execute()
-                .value
-            
-            let exerciseDict = Dictionary(uniqueKeysWithValues: allExercises.map { ($0.id, $0) })
-            
-            // Group sets by exercise and find the best set per exercise
-            let setsByExercise = Dictionary(grouping: sets, by: { $0.exerciseId })
-            var personalRecords: [PersonalRecord] = []
-            
-            for (exerciseId, exerciseSets) in setsByExercise {
-                guard let exercise = exerciseDict[exerciseId],
-                      exercise.exerciseType?.lowercased() != "cardio" else { continue }
-                
-                let sortedSets = exerciseSets.sorted { set1, set2 in
-                    let score1 = (set1.weight ?? 0) * Double(set1.reps ?? 0)
-                    let score2 = (set2.weight ?? 0) * Double(set2.reps ?? 0)
-                    return score1 > score2
-                }
-                
-                if let bestSet = sortedSets.first,
-                   let weight = bestSet.weight,
-                   let reps = bestSet.reps,
-                   let session = sessions.first(where: { $0.id == bestSet.sessionId }) {
-                    personalRecords.append(PersonalRecord(
-                        exerciseName: exercise.name,
-                        weight: weight,
-                        reps: reps,
-                        date: session.completedAt ?? session.startedAt
-                    ))
-                }
-            }
-            
-            // Get the most recent PR
-            latestPR = personalRecords.sorted { $0.date > $1.date }.first
-            
         } catch {
-            debugLog("Failed to load latest PR: \(error)")
-            latestPR = nil
+            debugLog("Failed to load dashboard stats: \(error)")
         }
     }
     

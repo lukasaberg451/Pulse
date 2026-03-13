@@ -400,7 +400,7 @@ struct EmptyTodayCard: View {
                     }
 
                     Text("No workouts scheduled")
-                        .font(.title3.weight(.semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
 
                     Text("Plan your training for today")

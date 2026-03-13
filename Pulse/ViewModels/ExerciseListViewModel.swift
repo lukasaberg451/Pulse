@@ -19,7 +19,7 @@ class ExerciseListViewModel: ObservableObject {
     
     private let pageSize = 50  // Load 50 at a time
     private var currentPage = 0
-    private let repository = ExerciseRepository()
+    private let repository = ExerciseRepository.shared
     
     func loadExercises() async {
         isLoading = true

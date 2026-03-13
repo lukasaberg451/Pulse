@@ -27,7 +27,7 @@ class ScheduleViewModel: ObservableObject {
     var userCalendar: Calendar {
         userProfile?.userCalendar ?? Calendar.current
     }
-    private let exerciseRepository = ExerciseRepository()
+    private let exerciseRepository = ExerciseRepository.shared
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
     private var cancellables = Set<AnyCancellable>()
@@ -57,8 +57,7 @@ class ScheduleViewModel: ObservableObject {
     }
     
     var currentMonthYear: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
+        let formatter = SharedFormatters.monthYear
         formatter.timeZone = userProfile?.resolvedTimeZone ?? .current
         return formatter.string(from: currentMonth)
     }
@@ -123,23 +122,12 @@ class ScheduleViewModel: ObservableObject {
             // Load routines
             routines = try await routineRepository.fetchRoutines()
             
-            // Load exercise counts for each routine
-            for routine in routines {
-                let routineExercises = try await routineRepository.fetchRoutineExercises(routineId: routine.id)
-                routineExerciseCounts[routine.id] = routineExercises.count
-                routineExerciseMap[routine.id] = routineExercises
-                
-                // Ensure all exercises referenced by routine exercises are loaded
-                for routineExercise in routineExercises {
-                    if !exercises.contains(where: { $0.id == routineExercise.exerciseId }) {
-                        do {
-                            let exercise = try await exerciseRepository.fetchExercise(id: routineExercise.exerciseId)
-                            exercises.append(exercise)
-                        } catch {
-                            debugLog("⚠️ Failed to load exercise \(routineExercise.exerciseId): \(error)")
-                        }
-                    }
-                }
+            // Load all routine exercises in a single batch query
+            let routineIds = routines.map { $0.id }
+            let allRoutineExercises = try await routineRepository.fetchRoutineExercises(routineIds: routineIds)
+            routineExerciseMap = allRoutineExercises
+            for (routineId, exercises) in allRoutineExercises {
+                routineExerciseCounts[routineId] = exercises.count
             }
 
             // Load scheduled workouts for current month
@@ -162,12 +150,16 @@ class ScheduleViewModel: ObservableObject {
                 .filter { $0.completed }
                 .compactMap { $0.workoutSessionId }
             
-            if !completedSessionIds.isEmpty {
-                let allSessions = try await workoutRepository.fetchSessions()
-                for session in allSessions {
-                    if completedSessionIds.contains(session.id) {
-                        workoutSessions[session.id] = session
-                    }
+            for sessionId in completedSessionIds {
+                let sessions: [WorkoutSession] = try await SupabaseManager.shared.client
+                    .from("workout_sessions")
+                    .select()
+                    .eq("id", value: sessionId.uuidString)
+                    .limit(1)
+                    .execute()
+                    .value
+                if let session = sessions.first {
+                    workoutSessions[session.id] = session
                 }
             }
             hasLoaded = true
@@ -212,8 +204,7 @@ class ScheduleViewModel: ObservableObject {
     }
     
     func scheduledWorkouts(for date: Date) -> [ScheduledWorkout] {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
+        let formatter = SharedFormatters.yearMonthDay
         formatter.timeZone = userProfile?.resolvedTimeZone ?? TimeZone.current
         let dateString = formatter.string(from: date)
         
@@ -231,9 +222,7 @@ class ScheduleViewModel: ObservableObject {
     }
     
     func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
+        let formatter = SharedFormatters.mediumDate
         formatter.timeZone = userProfile?.resolvedTimeZone ?? .current
         return formatter.string(from: date)
     }

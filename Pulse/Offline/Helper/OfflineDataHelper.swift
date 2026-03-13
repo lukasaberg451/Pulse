@@ -57,8 +57,7 @@ class OfflineDataHelper {
             return try await offlineRepo.getExercise(id: id)
         } else {
             // Fallback to direct Supabase query
-            let exerciseRepo = ExerciseRepository()
-            return try await exerciseRepo.fetchExercise(id: id)
+            return try await ExerciseRepository.shared.fetchExercise(id: id)
         }
     }
 }
