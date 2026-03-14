@@ -128,10 +128,6 @@ struct WatchWorkoutView: View {
                                     .font(.caption2)
                                     .foregroundStyle(.gray)
 
-                                Text("Adjust Weight")
-                                    .font(.caption2)
-                                    .foregroundStyle(Color.appAccent)
-
                                 HStack(spacing: 2) {
                                     Picker("", selection: $actualWeightWhole) {
                                         ForEach(0..<500) { value in
