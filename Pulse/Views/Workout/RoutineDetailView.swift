@@ -1401,6 +1401,66 @@ struct FilterChip: View {
     }
 }
 
+// MARK: - Exercise 1RM Banner
+/// Shows the estimated 1RM for an exercise if one exists. Hidden for cardio.
+struct Exercise1RMBanner: View {
+    let exerciseId: UUID
+    let isCardio: Bool
+    @EnvironmentObject var unitManager: UnitManager
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var stat: Exercise1RMRow?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            if !isCardio, let stat {
+                HStack(spacing: 12) {
+                    IconBadge(assetName: "crown", color: .orange, size: 36)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Estimated 1RM")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.appSecondaryText)
+                        Text("\(unitManager.displayWeight(stat.bestEstimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(Color.appText)
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("Based on")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(Color.appTertiaryText)
+                        Text("\(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps)")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Color.appSecondaryText)
+                    }
+                }
+                .padding(14)
+                .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay {
+                    if colorScheme == .dark {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                    }
+                }
+                .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
+            }
+        }
+        .task(id: exerciseId) {
+            guard !isCardio else { return }
+            debugLog("Exercise1RMBanner .task fired for exerciseId: \(exerciseId)")
+            do {
+                let result = try await WorkoutRepository().fetchSingleExercise1RMForCurrentUser(exerciseId: exerciseId)
+                debugLog("Exercise1RMBanner fetch result: \(String(describing: result))")
+                stat = result
+            } catch {
+                debugLog("Failed to load 1RM for exercise: \(error)")
+            }
+        }
+    }
+}
+
 struct ExerciseConfigSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) private var colorScheme
@@ -1476,6 +1536,9 @@ struct ExerciseConfigSheet: View {
                             }
                         }
                         .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
+                        
+                        // Estimated 1RM Banner
+                        Exercise1RMBanner(exerciseId: exercise.id, isCardio: isCardio)
                         
                         // Configuration Section
                         VStack(alignment: .leading, spacing: 16) {
@@ -2094,6 +2157,9 @@ struct EditExerciseSheet: View {
                             }
                         }
                         .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
+                        
+                        // Estimated 1RM Banner
+                        Exercise1RMBanner(exerciseId: exercise.id, isCardio: isCardio)
                         
                         // Configuration Section
                         VStack(alignment: .leading, spacing: 16) {

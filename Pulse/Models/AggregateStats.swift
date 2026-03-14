@@ -70,6 +70,48 @@ struct MuscleGroupStatRow: Codable {
     let percentage: Double
 }
 
+/// Row from `get_exercise_1rm_stats` RPC
+struct Exercise1RMRow: Codable, Identifiable {
+    var id: UUID { exerciseId }
+    let exerciseId: UUID
+    let exerciseName: String
+    let bestEstimated1rm: Double
+    let bestWeight: Double
+    let bestReps: Int
+    let achievedAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case exerciseId = "exercise_id"
+        case exerciseName = "exercise_name"
+        case bestEstimated1rm = "best_estimated_1rm"
+        case bestWeight = "best_weight"
+        case bestReps = "best_reps"
+        case achievedAt = "achieved_at"
+    }
+}
+
+/// Response from `update_exercise_1rm` RPC
+struct Update1RMResponse: Codable {
+    let isNewPr: Bool
+    let estimated1rm: Double?
+    let previousBest: Double?
+
+    enum CodingKeys: String, CodingKey {
+        case isNewPr = "is_new_pr"
+        case estimated1rm = "estimated_1rm"
+        case previousBest = "previous_best"
+    }
+}
+
+/// A 1RM highlight for display on the workout summary screen.
+struct Strength1RMHighlight: Identifiable {
+    let id: UUID
+    let exerciseName: String
+    let estimated1rm: Double
+    let isNewPr: Bool
+    let previousBest: Double
+}
+
 /// Row from `get_strength_progress` RPC
 struct StrengthProgressRow: Codable {
     let exerciseName: String

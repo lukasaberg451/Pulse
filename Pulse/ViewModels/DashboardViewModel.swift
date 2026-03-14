@@ -116,6 +116,10 @@ class DashboardViewModel: ObservableObject {
             recentSessions = try await workoutRepository.fetchCompletedSessions(limit: 5, offset: 0)
             debugLog("📊 Loaded \(recentSessions.count) recent completed sessions")
             
+        } catch is CancellationError {
+            // Ignore — view was dismissed or a newer refresh replaced this one
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // Ignore URL session cancellation
         } catch {
             errorMessage = "Failed to load data: \(error.localizedDescription)"
         }
@@ -233,6 +237,10 @@ class DashboardViewModel: ObservableObject {
             } else {
                 latestPR = nil
             }
+        } catch is CancellationError {
+            // Ignore — view was dismissed or a newer refresh replaced this one
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // Ignore URL session cancellation (e.g. view dismissed mid-request)
         } catch {
             debugLog("Failed to load dashboard stats: \(error)")
         }

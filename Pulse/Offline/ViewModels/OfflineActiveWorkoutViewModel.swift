@@ -29,6 +29,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     let routine: Routine
     @Published var routineExercises: [RoutineExercise]
     @Published private(set) var allWorkoutExercises: [RoutineExercise] // All exercises in this workout session
+    @Published var strength1RMHighlights: [Strength1RMHighlight] = []
     private let originalRoutineExercises: [RoutineExercise] // Store original list for watch
     
     private var currentSession: LocalWorkoutSession?
@@ -481,6 +482,9 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 }
             }
             
+            // Update estimated 1RM for each completed strength set
+            await updateEstimated1RMForCompletedSets()
+            
             // Post notification to refresh UI
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
             debugLog("📢 Posted workoutDataChanged notification")
@@ -534,6 +538,69 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             return profile.resolvedTimeZone
         } catch {
             return .current
+        }
+    }
+    
+    /// Calls the server-side RPC to update estimated 1RM for each eligible
+    /// completed strength set in this workout.
+    private func updateEstimated1RMForCompletedSets() async {
+        guard let userId = SupabaseManager.shared.client.auth.currentUser?.id else { return }
+        
+        let repository = WorkoutRepository()
+        let completedSets = sets.filter { $0.completed }
+        
+        // Track the best response per exercise (a set with higher estimated 1RM wins)
+        var bestPerExercise: [UUID: (name: String, response: Update1RMResponse)] = [:]
+        
+        for set in completedSets {
+            guard let weight = set.weight, weight > 0,
+                  let reps = set.reps, reps >= 1, reps <= 10 else { continue }
+            
+            // Skip cardio exercises
+            let exercise = exercises.first { $0.id == set.exerciseId }
+            if exercise?.exerciseType == "cardio" { continue }
+            
+            do {
+                let response = try await repository.updateExercise1RM(
+                    userId: userId,
+                    exerciseId: set.exerciseId,
+                    weight: weight,
+                    reps: reps
+                )
+                
+                let name = exercise?.name ?? "Unknown"
+                
+                // Keep the response with the highest estimated 1RM per exercise
+                if let existing = bestPerExercise[set.exerciseId] {
+                    if (response.estimated1rm ?? 0) > (existing.response.estimated1rm ?? 0) {
+                        bestPerExercise[set.exerciseId] = (name, response)
+                    }
+                } else {
+                    bestPerExercise[set.exerciseId] = (name, response)
+                }
+                
+                if response.isNewPr {
+                    debugLog("🏆 New 1RM PR for exercise \(name): \(response.estimated1rm ?? 0)")
+                }
+            } catch {
+                debugLog("Failed to update 1RM for exercise \(set.exerciseId): \(error)")
+            }
+        }
+        
+        // Build highlights from best responses (only include exercises that had a valid estimated 1RM)
+        let highlights = bestPerExercise.compactMap { exerciseId, entry -> Strength1RMHighlight? in
+            guard let estimated1rm = entry.response.estimated1rm else { return nil }
+            return Strength1RMHighlight(
+                id: exerciseId,
+                exerciseName: entry.name,
+                estimated1rm: estimated1rm,
+                isNewPr: entry.response.isNewPr,
+                previousBest: entry.response.previousBest ?? 0
+            )
+        }.sorted { $0.estimated1rm > $1.estimated1rm }
+        
+        await MainActor.run {
+            self.strength1RMHighlights = highlights
         }
     }
     

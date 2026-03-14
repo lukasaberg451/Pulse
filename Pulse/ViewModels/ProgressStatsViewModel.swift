@@ -48,6 +48,7 @@ class ProgressStatsViewModel: ObservableObject {
     
     @Published var strengthProgress: [StrengthProgress] = []
     @Published var topMuscleGroups: [MuscleGroupStat] = []
+    @Published var exercise1RMStats: [Exercise1RMRow] = []
     
     @Published var lifetimeWorkouts: Int = 0
     @Published var lifetimeVolume: Int = 0
@@ -105,7 +106,8 @@ class ProgressStatsViewModel: ObservableObject {
             async let muscles: Void = self.loadMuscleGroupStatsRPC()
             async let strength: Void = self.loadStrengthProgressRPC()
             async let recent: Void = self.loadRecentSessions()
-            _ = await (stats, muscles, strength, recent)
+            async let oneRM: Void = self.loadExercise1RMStats()
+            _ = await (stats, muscles, strength, recent, oneRM)
         }
         loadTask = task
         await task.value
@@ -234,6 +236,18 @@ class ProgressStatsViewModel: ObservableObject {
         } catch {
             debugLog("Failed to load strength progress: \(error)")
             strengthProgress = []
+        }
+    }
+    
+    /// Fetches estimated 1RM stats from the server-side RPC.
+    private func loadExercise1RMStats() async {
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        
+        do {
+            exercise1RMStats = try await workoutRepository.fetchExercise1RMStats(userId: userId)
+        } catch {
+            debugLog("Failed to load 1RM stats: \(error)")
+            exercise1RMStats = []
         }
     }
     

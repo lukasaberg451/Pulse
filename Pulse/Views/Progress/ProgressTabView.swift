@@ -198,6 +198,9 @@ struct ProgressTabView: View {
                         }
                         .padding(.horizontal)
                         
+                        // Estimated 1RM Section
+                        Estimated1RMSection(viewModel: viewModel)
+                        
                         // Strength Progress
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
@@ -464,6 +467,234 @@ struct LifetimeStatCard: View {
                 .fill(Color.appSurface)
                 .modifier(CardShadowModifier())
         }
+    }
+}
+
+// MARK: - Estimated 1RM Section
+struct Estimated1RMSection: View {
+    @ObservedObject var viewModel: ProgressStatsViewModel
+    @EnvironmentObject var unitManager: UnitManager
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Estimated 1RM")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Color.appText)
+
+                Spacer()
+
+                if !viewModel.exercise1RMStats.isEmpty {
+                    NavigationLink(destination: AllEstimated1RMView(viewModel: viewModel).hidesTabBar()) {
+                        Text("See All")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Color.appAccent)
+                    }
+                }
+            }
+            .padding(.horizontal)
+
+            if viewModel.exercise1RMStats.isEmpty {
+                Empty1RMCard()
+            } else {
+                ForEach(viewModel.exercise1RMStats.prefix(3)) { stat in
+                    Estimated1RMCard(stat: stat)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Estimated 1RM Card
+struct Estimated1RMCard: View {
+    let stat: Exercise1RMRow
+    @EnvironmentObject var unitManager: UnitManager
+    @State private var showTrainingWeights = false
+
+    private var formattedDate: String {
+        SharedFormatters.mediumDate.string(from: stat.achievedAt)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Header row
+            HStack(spacing: 12) {
+                IconBadge(assetName: "crown", color: .orange, size: 40)
+
+                Text(stat.exerciseName)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.appText)
+
+                Spacer()
+
+                Text("\(unitManager.displayWeight(stat.bestEstimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(Color.appAccent)
+            }
+
+            // Details row
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Based on")
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(Color.appSecondaryText)
+                    Text("\(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.appText)
+                }
+
+                Spacer()
+
+                Text(formattedDate)
+                    .font(.caption2)
+                    .foregroundStyle(Color.appTertiaryText)
+            }
+            .padding(.leading, 52)
+
+            // Training weights toggle
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showTrainingWeights.toggle()
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Training Weights")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(Color.appAccent)
+                    Image(systemName: showTrainingWeights ? "chevron.up" : "chevron.down")
+                        .font(.caption2)
+                        .foregroundStyle(Color.appAccent)
+                }
+            }
+            .buttonStyle(.plain)
+            .padding(.leading, 52)
+
+            if showTrainingWeights {
+                TrainingWeightsGrid(estimated1rm: stat.bestEstimated1rm)
+                    .padding(.leading, 52)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.appSurface)
+                .modifier(CardShadowModifier())
+        }
+        .padding(.horizontal)
+    }
+}
+
+// MARK: - Training Weights Grid
+struct TrainingWeightsGrid: View {
+    let estimated1rm: Double
+    @EnvironmentObject var unitManager: UnitManager
+
+    private let percentages: [(label: String, value: Double)] = [
+        ("95%", 0.95),
+        ("90%", 0.90),
+        ("85%", 0.85),
+        ("80%", 0.80),
+        ("75%", 0.75),
+        ("70%", 0.70)
+    ]
+
+    var body: some View {
+        LazyVGrid(columns: [
+            GridItem(.flexible()),
+            GridItem(.flexible()),
+            GridItem(.flexible())
+        ], spacing: 8) {
+            ForEach(percentages, id: \.label) { pct in
+                VStack(spacing: 2) {
+                    Text(pct.label)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(Color.appSecondaryText)
+                    Text("\(unitManager.displayWeight(estimated1rm * pct.value), specifier: "%.1f")")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(Color.appText)
+                    Text(unitManager.weightUnit)
+                        .font(.caption2)
+                        .foregroundStyle(Color.appTertiaryText)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 6)
+                .background {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color.appAccent.opacity(0.08))
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Empty 1RM Card
+struct Empty1RMCard: View {
+    var body: some View {
+        VStack(spacing: 14) {
+            IconBadge(assetName: "crown", size: 48)
+
+            Text("No 1RM Data Yet")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.appText)
+
+            Text("Log strength sets with 10 or fewer reps to estimate your one rep max!")
+                .font(.caption)
+                .foregroundStyle(Color.appSecondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(28)
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.appSurface)
+                .modifier(CardShadowModifier())
+        }
+        .padding(.horizontal)
+    }
+}
+
+// MARK: - All Estimated 1RM View
+struct AllEstimated1RMView: View {
+    @ObservedObject var viewModel: ProgressStatsViewModel
+
+    var body: some View {
+        ZStack {
+            LinearGradient.dashboardBackground
+                .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 12) {
+                    if viewModel.exercise1RMStats.isEmpty {
+                        VStack(spacing: 16) {
+                            IconBadge(assetName: "crown", size: 56)
+
+                            Text("No 1RM Data Yet")
+                                .font(.title3.weight(.bold))
+                                .foregroundStyle(Color.appText)
+
+                            Text("Log strength sets with 10 or fewer reps to estimate your one rep max!")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appSecondaryText)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                        .padding(.top, 100)
+                    } else {
+                        StaggeredList(items: viewModel.exercise1RMStats, id: \.id) { stat in
+                            Estimated1RMCard(stat: stat)
+                        }
+                    }
+                }
+                .padding(.vertical)
+            }
+            .refreshable {
+                await viewModel.loadStats()
+            }
+        }
+        .navigationTitle("Estimated 1RM")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.appBackground, for: .navigationBar)
     }
 }
 

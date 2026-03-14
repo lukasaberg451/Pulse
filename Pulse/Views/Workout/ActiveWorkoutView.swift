@@ -51,6 +51,7 @@ struct ActiveWorkoutViewContent: View {
     @State private var showWorkoutSummary = false
     @State private var summaryElapsedTime: TimeInterval = 0
     @State private var summarySets: [LocalWorkoutSet] = []
+    @State private var summary1RMHighlights: [Strength1RMHighlight] = []
     @AppStorage("hasSeenWatchTip") private var hasSeenWatchTip = false
     @State private var expandedCompletedExercises: Set<UUID> = []
     
@@ -231,6 +232,7 @@ struct ActiveWorkoutViewContent: View {
                             summaryElapsedTime = viewModel.elapsedTime
                             summarySets = viewModel.sets
                             await viewModel.finishWorkout()
+                            summary1RMHighlights = viewModel.strength1RMHighlights
                             showWorkoutSummary = true
                         }
                     }
@@ -250,6 +252,7 @@ struct ActiveWorkoutViewContent: View {
                     elapsedTime: summaryElapsedTime,
                     sets: summarySets,
                     exercises: exercises,
+                    strength1RMHighlights: summary1RMHighlights,
                     onDismiss: {
                         showWorkoutSummary = false
                         dismiss()

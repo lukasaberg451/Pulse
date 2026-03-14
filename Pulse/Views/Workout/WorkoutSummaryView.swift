@@ -19,6 +19,7 @@ struct WorkoutSummaryView: View {
     let elapsedTime: TimeInterval
     let sets: [LocalWorkoutSet]
     let exercises: [Exercise]
+    let strength1RMHighlights: [Strength1RMHighlight]
     let onDismiss: () -> Void
     
     @EnvironmentObject var unitManager: UnitManager
@@ -110,7 +111,7 @@ struct WorkoutSummaryView: View {
                                 .scaleEffect(animationTrigger ? 1.0 : 0.5)
                                 .animation(.spring(response: 0.5, dampingFraction: 0.6), value: animationTrigger)
                             
-                            Text("Workout Complete")
+                            Text("Workout Completed")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
                                 .opacity(animationTrigger ? 1 : 0)
@@ -163,6 +164,15 @@ struct WorkoutSummaryView: View {
                             .animation(.easeOut(duration: 0.4).delay(0.55), value: animationTrigger)
                         }
                         .padding(.horizontal)
+                        
+                        // Strength Highlights (only shown when there are new PRs)
+                        if strength1RMHighlights.contains(where: { $0.isNewPr }) {
+                            strengthHighlightsSection
+                                .padding(.horizontal)
+                                .opacity(animationTrigger ? 1 : 0)
+                                .offset(y: animationTrigger ? 0 : 20)
+                                .animation(.easeOut(duration: 0.4).delay(0.65), value: animationTrigger)
+                        }
                         
                         // Exercise Breakdown
                         exercisesSection
@@ -242,6 +252,61 @@ struct WorkoutSummaryView: View {
         if let image = renderer.uiImage {
             shareImage = image
             showShareSheet = true
+        }
+    }
+    
+    // MARK: - Strength Highlights Section
+    
+    private var strengthHighlightsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Strength Highlights")
+                .font(.title3.weight(.bold))
+                .foregroundStyle(Color.appText)
+            
+            VStack(spacing: 10) {
+                ForEach(strength1RMHighlights.filter { $0.isNewPr }) { highlight in
+                    HStack(spacing: 12) {
+                        IconBadge(assetName: "crown", color: .orange, size: 36)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("New PR")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(Color.orange)
+                            
+                            Text(highlight.exerciseName)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.appText)
+                            
+                            Text("Estimated 1RM")
+                                .font(.caption2)
+                                .foregroundStyle(Color.appTertiaryText.opacity(0.7))
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("\(unitManager.displayWeight(highlight.estimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
+                                .font(.subheadline.weight(.bold))
+                                .foregroundStyle(Color.appText)
+                            
+                            if highlight.previousBest > 0 {
+                                let improvement = highlight.estimated1rm - highlight.previousBest
+                                Text("+\(unitManager.displayWeight(improvement), specifier: "%.1f") \(unitManager.weightUnit)")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(Color.green)
+                            }
+                        }
+                    }
+                    .padding(14)
+                    .background(Color.orange.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .strokeBorder(Color.orange.opacity(0.35), lineWidth: 1.5)
+                    }
+                    .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
+                }
+            }
         }
     }
     

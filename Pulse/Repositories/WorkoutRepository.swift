@@ -544,6 +544,48 @@ class WorkoutRepository {
         return rows
     }
     
+    /// Fetches the 1RM stat for a single exercise via the existing RPC, filtered client-side.
+    func fetchSingleExercise1RM(userId: UUID, exerciseId: UUID) async throws -> Exercise1RMRow? {
+        let all = try await fetchExercise1RMStats(userId: userId)
+        return all.first { $0.exerciseId == exerciseId }
+    }
+    
+    /// Convenience: fetches the 1RM stat for the current user and a specific exercise.
+    func fetchSingleExercise1RMForCurrentUser(exerciseId: UUID) async throws -> Exercise1RMRow? {
+        guard let userId = supabase.auth.currentUser?.id else { return nil }
+        return try await fetchSingleExercise1RM(userId: userId, exerciseId: exerciseId)
+    }
+    
+    /// Fetches all 1RM stats for the user via server-side RPC.
+    func fetchExercise1RMStats(userId: UUID) async throws -> [Exercise1RMRow] {
+        let rows: [Exercise1RMRow] = try await supabase
+            .rpc("get_exercise_1rm_stats", params: [
+                "p_user_id": userId.uuidString
+            ])
+            .execute()
+            .value
+        return rows
+    }
+    
+    /// Updates the exercise 1RM if the new set is a PR.
+    func updateExercise1RM(
+        userId: UUID,
+        exerciseId: UUID,
+        weight: Double,
+        reps: Int
+    ) async throws -> Update1RMResponse {
+        let response: Update1RMResponse = try await supabase
+            .rpc("update_exercise_1rm", params: [
+                "p_user_id": userId.uuidString,
+                "p_exercise_id": exerciseId.uuidString,
+                "p_weight": String(weight),
+                "p_reps": String(reps)
+            ])
+            .execute()
+            .value
+        return response
+    }
+    
     /// Fetches strength progress per exercise via server-side RPC.
     func fetchStrengthProgress(userId: UUID) async throws -> [StrengthProgressRow] {
         let rows: [StrengthProgressRow] = try await supabase
