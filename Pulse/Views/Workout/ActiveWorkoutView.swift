@@ -579,6 +579,9 @@ struct SwipeableSetRow: View {
     
     @State private var dragOffset: CGFloat = 0
     @State private var hasTriggeredHaptic = false
+    @State private var weightText: String = ""
+    @State private var hasInitializedWeight = false
+    @FocusState private var isWeightFieldFocused: Bool
     
     private let swipeThreshold: CGFloat = -80
     private let undoThreshold: CGFloat = 80
@@ -704,12 +707,13 @@ struct SwipeableSetRow: View {
                         
                         if !set.completed && translation < swipeThreshold {
                             // Complete the set — delay state update so the swipe animation finishes first
+                            isWeightFieldFocused = false
                             withAnimation(.easeOut(duration: 0.2)) {
                                 dragOffset = 0
                             }
                             
                             let targetReps = routineExercise.repsTarget.flatMap { Int($0) }
-                            let targetWeight = routineExercise.targetWeight
+                            let actualWeight = exercise.exerciseType == "strength" ? (enteredWeight ?? routineExercise.targetWeight) : routineExercise.targetWeight
                             let targetDuration = routineExercise.durationSeconds
                             
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
@@ -717,7 +721,7 @@ struct SwipeableSetRow: View {
                                     viewModel.updateSet(
                                         set: set,
                                         reps: targetReps,
-                                        weight: targetWeight,
+                                        weight: actualWeight,
                                         durationSeconds: targetDuration,
                                         completed: true
                                     )
@@ -752,22 +756,51 @@ struct SwipeableSetRow: View {
             )
         }
         .clipShape(Rectangle())
+        .onAppear {
+            if !hasInitializedWeight {
+                let target = routineExercise.targetWeight ?? 0
+                let display = unitManager.displayWeight(target)
+                weightText = formatWeight(display)
+                hasInitializedWeight = true
+            }
+        }
         .onChange(of: set.completed) {
             dragOffset = 0
         }
     }
     
+    /// The weight value entered by the user, converted back to kg for storage.
+    private var enteredWeight: Double? {
+        let cleaned = weightText.replacingOccurrences(of: ",", with: ".")
+        guard let displayValue = Double(cleaned) else { return nil }
+        return unitManager.toKg(displayValue)
+    }
+    
     @ViewBuilder
     private var strengthContent: some View {
         HStack(spacing: 3) {
-            Text("\(unitManager.displayWeight(routineExercise.targetWeight ?? 0), specifier: "%.1f")")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(Color.appText)
+            if set.completed {
+                Text("\(unitManager.displayWeight(set.weight ?? 0), specifier: "%.1f")")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.appText)
+            } else {
+                TextField("0", text: $weightText)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.appText)
+                    .keyboardType(.decimalPad)
+                    .focused($isWeightFieldFocused)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 50)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+                    .background(Color.appText.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            }
             Text(unitManager.weightUnit)
                 .font(.caption2)
                 .foregroundStyle(Color.appSecondaryText)
         }
-        .frame(width: 70, alignment: .leading)
+        .frame(width: 80, alignment: .leading)
         
         HStack(spacing: 3) {
             Text(routineExercise.repsTarget ?? "—")
@@ -776,6 +809,14 @@ struct SwipeableSetRow: View {
             Text("reps")
                 .font(.caption2)
                 .foregroundStyle(Color.appSecondaryText)
+        }
+    }
+    
+    private func formatWeight(_ value: Double) -> String {
+        if value == value.rounded() {
+            return String(format: "%.0f", value)
+        } else {
+            return String(format: "%.1f", value)
         }
     }
     

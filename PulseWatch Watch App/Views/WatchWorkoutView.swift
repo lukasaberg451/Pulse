@@ -28,6 +28,11 @@ struct WatchWorkoutView: View {
     @State private var workoutDuration: TimeInterval = 0
     @State private var durationTimer: Timer?
     
+    // Weight input flow for strength exercises
+    @State private var isEditingWeight: Bool = false
+    @State private var actualWeightWhole: Int = 0
+    @State private var actualWeightDecimal: Int = 0
+    
     var body: some View {
         let showWorkout = !currentExerciseName.isEmpty && currentExerciseName != "No active workout" && totalSets > 0
         let workoutComplete = currentSet > totalSets && totalSets > 0
@@ -117,20 +122,67 @@ struct WatchWorkoutView: View {
                                     }
                                 }
                                 .padding(.top, 2)
+                            } else if isEditingWeight {
+                                // STRENGTH WEIGHT INPUT VIEW
+                                Text("Set \(currentSet)/\(totalSets)")
+                                    .font(.caption2)
+                                    .foregroundStyle(.gray)
+
+                                Text("Adjust Weight")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.appAccent)
+
+                                HStack(spacing: 2) {
+                                    Picker("", selection: $actualWeightWhole) {
+                                        ForEach(0..<500) { value in
+                                            Text("\(value)").tag(value)
+                                        }
+                                    }
+                                    .pickerStyle(.wheel)
+                                    .frame(width: 55, height: 70)
+
+                                    Text(".")
+                                        .font(.title3.weight(.semibold))
+                                        .foregroundStyle(.white)
+
+                                    Picker("", selection: $actualWeightDecimal) {
+                                        ForEach(0..<10) { value in
+                                            Text("\(value)").tag(value)
+                                        }
+                                    }
+                                    .pickerStyle(.wheel)
+                                    .frame(width: 35, height: 70)
+
+                                    Text("kg")
+                                        .font(.caption)
+                                        .foregroundStyle(.gray)
+                                }
+
+                                Button {
+                                    logSetWithActualWeight()
+                                } label: {
+                                    Text("Log Set")
+                                        .font(.footnote)
+                                        .fontWeight(.semibold)
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(.green)
+                                .padding(.top, 4)
                             } else {
                                 // STRENGTH VIEW - show weight and reps
                                 // Workout timer
                                 Text(timeString(from: workoutDuration))
                                     .font(.caption2)
                                     .foregroundStyle(Color.gray)
-                                
+
                                 // Current set progress
                                 Text("Set \(currentSet)/\(totalSets)")
                                     .font(.body)
                                     .fontWeight(.bold)
                                     .foregroundStyle(.white)
                                     .padding(.top, 2)
-                                
+
                                 // Target weight and reps
                                 HStack(spacing: 20) {
                                     VStack(spacing: 0) {
@@ -142,12 +194,12 @@ struct WatchWorkoutView: View {
                                             .fontWeight(.semibold)
                                             .foregroundStyle(.white)
                                     }
-                                    
+
                                     VStack(spacing: 0) {
                                         Text("Reps")
                                             .font(.body)
                                             .foregroundStyle(.gray)
-                                       
+
                                         Text(targetReps.isEmpty ? "—" : "\(targetReps)")
                                             .font(.body)
                                             .fontWeight(.semibold)
@@ -156,18 +208,24 @@ struct WatchWorkoutView: View {
                                 }
                                 .padding(.top, 4)
                             }
-                            
-                            Button {
-                                logSetAndStartRest()
-                            } label: {
-                                Text("Log Set")
-                                    .font(.footnote)
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity)
+
+                            if !isEditingWeight {
+                                Button {
+                                    if exerciseType == "strength" {
+                                        prepareWeightInput()
+                                    } else {
+                                        logSetAndStartRest()
+                                    }
+                                } label: {
+                                    Text("Complete")
+                                        .font(.footnote)
+                                        .fontWeight(.semibold)
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(.appAccent)
+                                .padding(.top, 8)
                             }
-                            .buttonStyle(.bordered)
-                            .tint(.appAccent)
-                            .padding(.top, 8)
                         }
                         .padding(.horizontal, 8)
                     }
@@ -274,6 +332,9 @@ struct WatchWorkoutView: View {
             return
         }
         
+        // Reset weight editing state when exercise data updates
+        isEditingWeight = false
+
         // Update exercise details
         if let exerciseName = data["currentExercise"] as? String {
             debugLog("⌚ Setting exercise name: \(exerciseName)")
@@ -365,12 +426,39 @@ struct WatchWorkoutView: View {
         debugLog("⌚ ========================================")
     }
     
+    func prepareWeightInput() {
+        WKInterfaceDevice.current().play(.click)
+        let whole = Int(targetWeight)
+        let decimal = Int(round((targetWeight - Double(whole)) * 10))
+        actualWeightWhole = whole
+        actualWeightDecimal = decimal
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isEditingWeight = true
+        }
+    }
+
+    func logSetWithActualWeight() {
+        WKInterfaceDevice.current().play(.click)
+        let actualWeight = Double(actualWeightWhole) + Double(actualWeightDecimal) / 10.0
+
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isEditingWeight = false
+        }
+
+        // Send completed set with the actual weight
+        sendSetCompleted(overrideWeight: actualWeight)
+
+        if currentSet < totalSets {
+            startRestTimer()
+        }
+    }
+
     func logSetAndStartRest() {
         WKInterfaceDevice.current().play(.click)
-        
+
         // Send completed set to iPhone
         sendSetCompleted()
-        
+
         // Don't increment currentSet here - wait for iPhone to send updated set number
         // Just start rest timer if not on last set
         if currentSet < totalSets {
@@ -408,31 +496,33 @@ struct WatchWorkoutView: View {
         sendSkipRest()
     }
     
-    func sendSetCompleted() {
+    func sendSetCompleted(overrideWeight: Double? = nil) {
         guard let session = WCSession.default as WCSession?, session.isReachable else {
             debugLog("⌚ Cannot send - not reachable")
             return
         }
-        
+
         guard let workoutData = WorkoutSyncManager.shared.currentWorkoutData,
               let exerciseIdString = workoutData["exerciseId"] as? String else {
             debugLog("⌚ No exercise ID available")
             return
         }
-        
+
+        let weightToSend = overrideWeight ?? targetWeight
+
         var message: [String: Any] = [
             "completedSet_exerciseId": exerciseIdString,
             "completedSet_setNumber": currentSet,
             "completedSet_reps": Int(targetReps) ?? 10,
-            "completedSet_weight": targetWeight
+            "completedSet_weight": weightToSend
         ]
-        
+
         if exerciseType == "cardio" && targetDuration > 0 {
             message["completedSet_durationSeconds"] = targetDuration
         }
-        
+
         debugLog("⌚ Sending completed set: \(message)")
-        
+
         session.sendMessage(message, replyHandler: nil) { error in
             debugLog("⌚ Error sending set: \(error.localizedDescription)")
         }
