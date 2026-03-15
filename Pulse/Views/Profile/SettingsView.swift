@@ -154,20 +154,40 @@ struct SettingsView: View {
                             ProfileDivider()
                             
                             // Apple Watch
-                            HStack(spacing: 14) {
-                                IconBadge(assetName: "watch", size: 32)
-                                
-                                Text("Apple Watch")
-                                    .font(.body)
-                                    .foregroundStyle(Color.appText)
-                                
-                                Spacer()
-                                
-                                Text(WorkoutSyncManager.shared.isPaired == true ? "Connected" : "Not Connected")
-                                    .font(.subheadline.weight(.medium))
-                                    .foregroundStyle(WorkoutSyncManager.shared.isPaired == true ? .green : Color.appSecondaryText)
+                            Button {
+                                if !subscriptionManager.isProUser {
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
+                                    showingSubscriptionSheet = true
+                                }
+                            } label: {
+                                HStack(spacing: 14) {
+                                    IconBadge(assetName: "watch", size: 32)
+                                    
+                                    Text("Apple Watch")
+                                        .font(.body)
+                                        .foregroundStyle(Color.appText)
+                                    
+                                    Spacer()
+                                    
+                                    if subscriptionManager.isProUser {
+                                        Text(WorkoutSyncManager.shared.isPaired == true ? "Connected" : "Not Connected")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(WorkoutSyncManager.shared.isPaired == true ? .green : Color.appSecondaryText)
+                                    } else {
+                                        Text("Upgrade to Pro")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(Color.appAccent)
+                                        
+                                        Image("chevron-right")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 13, height: 13)
+                                            .foregroundStyle(Color.appTertiaryText)
+                                    }
+                                }
+                                .padding(14)
                             }
-                            .padding(14)
                         }
                         .background(Color.appSurface)
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))

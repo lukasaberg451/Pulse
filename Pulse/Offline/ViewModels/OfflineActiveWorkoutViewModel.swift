@@ -18,6 +18,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     @Published var elapsedTime: TimeInterval = 0
     @Published var isRestTimerActive = false
     @Published var restTimeRemaining: Int = 0
+    @Published var isFinishing = false
     
     private var restEndTime: Date?
     @Published var isOfflineMode = false
@@ -432,6 +433,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     
     func finishWorkout() async {
         guard let session = currentSession, let startTime = startTime else { return }
+        
+        isFinishing = true
         
         // Stop timers
         workoutTimer?.invalidate()

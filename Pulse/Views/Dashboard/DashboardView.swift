@@ -314,9 +314,10 @@ struct TodayWorkoutCard: View {
                             Text("Start")
                                 .font(.caption.weight(.semibold))
                         }
-                        .foregroundStyle(Color.appAccent)
+                        .foregroundStyle(routineExercises.isEmpty ? Color.appTertiaryText : Color.appAccent)
                     }
                     .buttonStyle(ScalePressStyle())
+                    .disabled(routineExercises.isEmpty)
                 } else {
                     Image("check-circle")
                         .resizable()

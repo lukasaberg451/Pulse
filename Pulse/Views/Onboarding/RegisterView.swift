@@ -21,6 +21,11 @@ struct RegisterView: View {
     @State private var showError = false
     @State private var agreedToTerms = false
     @State private var safariURL: URL?
+    @FocusState private var focusedField: RegisterField?
+    
+    private enum RegisterField {
+        case firstName, lastName, email, password, confirmPassword
+    }
     
     func isValidEmail(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
@@ -112,6 +117,15 @@ struct RegisterView: View {
                         }
                         .padding(.horizontal, 24)
                         .padding(.top, 12)
+                        
+                        Button {
+                            authViewModel.registrationSuccess = false
+                        } label: {
+                            Text("Use a different email")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
+                        }
+                        .padding(.top, 4)
                     }
                 } else {
                     // Registration Form
@@ -152,21 +166,40 @@ struct RegisterView: View {
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
                                 
-                                TextField("First Name", text: $firstName)
-                                    .textInputAutocapitalization(.words)
-                                    .padding()
-                                    .foregroundStyle(Color.appText)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .fill(Color.appSurface)
-                                            .overlay {
-                                                if colorScheme == .dark {
-                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                                }
+                                HStack {
+                                    TextField("First Name", text: $firstName)
+                                        .textFieldStyle(.plain)
+                                        .textInputAutocapitalization(.words)
+                                        .focused($focusedField, equals: .firstName)
+                                        .foregroundStyle(Color.appText)
+                                        .onChange(of: firstName) { _, newValue in
+                                            firstName = sanitizeInput(newValue, maxLength: 50)
+                                        }
+                                }
+                                .padding()
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                                             }
+                                        }
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .firstName }
+                                
+                                if firstName.count >= 40 {
+                                    HStack {
+                                        Spacer()
+                                        Text("\(firstName.count)/50")
+                                            .font(.caption2)
+                                            .foregroundStyle(firstName.count >= 50 ? .red : Color.appSecondaryText)
                                     }
+                                }
                             }
+                            .animation(.easeInOut(duration: 0.2), value: firstName.count >= 40)
                             
                             // Last Name
                             VStack(alignment: .leading, spacing: 8) {
@@ -174,21 +207,40 @@ struct RegisterView: View {
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
                                 
-                                TextField("Last Name", text: $lastName)
-                                    .textInputAutocapitalization(.words)
-                                    .padding()
-                                    .foregroundStyle(Color.appText)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .fill(Color.appSurface)
-                                            .overlay {
-                                                if colorScheme == .dark {
-                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                                }
+                                HStack {
+                                    TextField("Last Name", text: $lastName)
+                                        .textFieldStyle(.plain)
+                                        .textInputAutocapitalization(.words)
+                                        .focused($focusedField, equals: .lastName)
+                                        .foregroundStyle(Color.appText)
+                                        .onChange(of: lastName) { _, newValue in
+                                            lastName = sanitizeInput(newValue, maxLength: 50)
+                                        }
+                                }
+                                .padding()
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                                             }
+                                        }
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .lastName }
+                                
+                                if lastName.count >= 40 {
+                                    HStack {
+                                        Spacer()
+                                        Text("\(lastName.count)/50")
+                                            .font(.caption2)
+                                            .foregroundStyle(lastName.count >= 50 ? .red : Color.appSecondaryText)
                                     }
+                                }
                             }
+                            .animation(.easeInOut(duration: 0.2), value: lastName.count >= 40)
                             
                             // Email
                             VStack(alignment: .leading, spacing: 8) {
@@ -196,22 +248,42 @@ struct RegisterView: View {
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
                                 
-                                TextField("Email", text: $email)
-                                    .textInputAutocapitalization(.never)
-                                    .keyboardType(.emailAddress)
-                                    .padding()
-                                    .foregroundStyle(Color.appText)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .fill(Color.appSurface)
-                                            .overlay {
-                                                if colorScheme == .dark {
-                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                                }
+                                HStack {
+                                    TextField("Email", text: $email)
+                                        .textFieldStyle(.plain)
+                                        .textInputAutocapitalization(.never)
+                                        .keyboardType(.emailAddress)
+                                        .autocorrectionDisabled()
+                                        .focused($focusedField, equals: .email)
+                                        .foregroundStyle(Color.appText)
+                                        .onChange(of: email) { _, newValue in
+                                            email = sanitizeInput(newValue, maxLength: 254)
+                                        }
+                                }
+                                .padding()
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                                             }
+                                        }
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .email }
+                                
+                                if email.count >= 244 {
+                                    HStack {
+                                        Spacer()
+                                        Text("\(email.count)/254")
+                                            .font(.caption2)
+                                            .foregroundStyle(email.count >= 254 ? .red : Color.appSecondaryText)
                                     }
+                                }
                             }
+                            .animation(.easeInOut(duration: 0.2), value: email.count >= 244)
                             
                             // Password
                             VStack(alignment: .leading, spacing: 8) {
@@ -219,19 +291,28 @@ struct RegisterView: View {
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
                                 
-                                SecureField("Password", text: $password)
-                                    .padding()
-                                    .foregroundStyle(Color.appText)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .fill(Color.appSurface)
-                                            .overlay {
-                                                if colorScheme == .dark {
-                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                                }
+                                HStack {
+                                    SecureField("Password", text: $password)
+                                        .textFieldStyle(.plain)
+                                        .focused($focusedField, equals: .password)
+                                        .foregroundStyle(Color.appText)
+                                }
+                                .padding()
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                                             }
-                                    }
+                                        }
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .password }
+                                .onChange(of: password) { _, newValue in
+                                    password = sanitizeInput(newValue, maxLength: 72)
+                                }
                                 
                                 // Password strength indicator
                                 if !password.isEmpty {
@@ -257,7 +338,17 @@ struct RegisterView: View {
                                         .font(.caption2)
                                         .foregroundStyle(Color.appTertiaryText)
                                 }
+                                
+                                if password.count >= 62 {
+                                    HStack {
+                                        Spacer()
+                                        Text("\(password.count)/72")
+                                            .font(.caption2)
+                                            .foregroundStyle(password.count >= 72 ? .red : Color.appSecondaryText)
+                                    }
+                                }
                             }
+                            .animation(.easeInOut(duration: 0.2), value: password.count >= 62)
                             
                             // Confirm Password
                             VStack(alignment: .leading, spacing: 8) {
@@ -265,19 +356,28 @@ struct RegisterView: View {
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
                                 
-                                SecureField("Confirm Password", text: $confirmPassword)
-                                    .padding()
-                                    .foregroundStyle(Color.appText)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .fill(Color.appSurface)
-                                            .overlay {
-                                                if colorScheme == .dark {
-                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                                }
+                                HStack {
+                                    SecureField("Confirm Password", text: $confirmPassword)
+                                        .textFieldStyle(.plain)
+                                        .focused($focusedField, equals: .confirmPassword)
+                                        .foregroundStyle(Color.appText)
+                                }
+                                .padding()
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                                             }
-                                    }
+                                        }
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .confirmPassword }
+                                .onChange(of: confirmPassword) { _, newValue in
+                                    confirmPassword = sanitizeInput(newValue, maxLength: 72)
+                                }
                                 
                                 // Password match indicator
                                 if !confirmPassword.isEmpty {
@@ -293,7 +393,17 @@ struct RegisterView: View {
                                             .foregroundStyle(passwordsMatch ? .green : .red)
                                     }
                                 }
+                                
+                                if confirmPassword.count >= 62 {
+                                    HStack {
+                                        Spacer()
+                                        Text("\(confirmPassword.count)/72")
+                                            .font(.caption2)
+                                            .foregroundStyle(confirmPassword.count >= 72 ? .red : Color.appSecondaryText)
+                                    }
+                                }
                             }
+                            .animation(.easeInOut(duration: 0.2), value: confirmPassword.count >= 62)
                             
                                 HStack(alignment: .center, spacing: 8) {
                                 Button(action: {

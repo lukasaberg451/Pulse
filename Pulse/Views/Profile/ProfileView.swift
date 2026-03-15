@@ -536,16 +536,21 @@ struct EditFieldSheet: View {
     let title: String
     let value: String
     let placeholder: String
+    let maxLength: Int
     let onSave: (String) -> Void
     
     @State private var editedValue: String = ""
     @State private var showError = false
     @State private var errorMessage = ""
     
-    init(title: String, value: String, placeholder: String, onSave: @escaping (String) -> Void) {
+    /// Threshold at which the character counter becomes visible
+    private var counterVisibleThreshold: Int { maxLength - 10 }
+    
+    init(title: String, value: String, placeholder: String, maxLength: Int = 50, onSave: @escaping (String) -> Void) {
         self.title = title
         self.value = value
         self.placeholder = placeholder
+        self.maxLength = maxLength
         self.onSave = onSave
         _editedValue = State(initialValue: value)
     }
@@ -570,21 +575,41 @@ struct EditFieldSheet: View {
                             .foregroundStyle(Color.appSecondaryText)
                             .textCase(.uppercase)
                         
-                        TextField(placeholder, text: $editedValue)
-                            .textInputAutocapitalization(.words)
-                            .focused($isFocused)
-                            .padding(14)
-                            .background(Color.appSurface)
-                            .foregroundStyle(Color.appText)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .strokeBorder(isFocused ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
-                            )
-                            .submitLabel(.done)
-                            .onSubmit { save() }
+                        HStack {
+                            TextField(placeholder, text: $editedValue)
+                                .textInputAutocapitalization(.words)
+                                .textFieldStyle(.plain)
+                                .focused($isFocused)
+                                .foregroundStyle(Color.appText)
+                                .submitLabel(.done)
+                                .onSubmit { save() }
+                                .onChange(of: editedValue) { _, newValue in
+                                    editedValue = sanitizeInput(newValue, maxLength: maxLength)
+                                }
+                        }
+                        .padding(14)
+                        .background(Color.appSurface)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .strokeBorder(isFocused ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture { isFocused = true }
+                        
+                        // Character counter (visible when close to limit)
+                        if editedValue.count >= counterVisibleThreshold {
+                            HStack {
+                                Spacer()
+                                Text("\(editedValue.count)/\(maxLength)")
+                                    .font(.caption2)
+                                    .foregroundStyle(editedValue.count >= maxLength ? .red : Color.appSecondaryText)
+                            }
+                            .transition(.opacity)
+                        }
                     }
                     .padding(.horizontal)
+                    .animation(.easeInOut(duration: 0.2), value: editedValue.count >= counterVisibleThreshold)
                     
                     if showError {
                         HStack(spacing: 4) {
@@ -623,11 +648,12 @@ struct EditFieldSheet: View {
     }
     
     private func save() {
-        if editedValue.trimmingCharacters(in: .whitespaces).isEmpty {
+        let trimmed = editedValue.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty {
             errorMessage = "\(title) cannot be empty"
             showError = true
         } else {
-            onSave(editedValue)
+            onSave(trimmed)
             dismiss()
         }
     }
@@ -719,16 +745,21 @@ struct FeedbackSheet: View {
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(Color.appSecondaryText)
                             
-                            TextField("Brief summary", text: $title)
-                                .focused($focusedField, equals: .title)
-                                .padding(14)
-                                .background(Color.appSurface)
-                                .foregroundStyle(Color.appText)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .strokeBorder(focusedField == .title ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
-                                )
+                            HStack {
+                                TextField("Brief summary", text: $title)
+                                    .textFieldStyle(.plain)
+                                    .focused($focusedField, equals: .title)
+                                    .foregroundStyle(Color.appText)
+                            }
+                            .padding(14)
+                            .background(Color.appSurface)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(focusedField == .title ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
+                            )
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .title }
                         }
                         .padding(.horizontal)
                         
@@ -741,15 +772,17 @@ struct FeedbackSheet: View {
                             TextEditor(text: $description)
                                 .focused($focusedField, equals: .description)
                                 .frame(minHeight: 120)
+                                .scrollContentBackground(.hidden)
+                                .foregroundStyle(Color.appText)
                                 .padding(10)
                                 .background(Color.appSurface)
-                                .foregroundStyle(Color.appText)
                                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                                         .strokeBorder(focusedField == .description ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
                                 )
-                                .scrollContentBackground(.hidden)
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .description }
                         }
                         .padding(.horizontal)
                         
@@ -929,6 +962,7 @@ struct ChangeEmailSheet: View {
                                     .font(.caption.weight(.semibold))
                                     .foregroundStyle(Color.appSecondaryText)
                                 
+                                HStack {
                                 TextField("email@example.com", text: $newEmail)
                                     .textFieldStyle(.plain)
                                     .textInputAutocapitalization(.never)
@@ -936,14 +970,32 @@ struct ChangeEmailSheet: View {
                                     .keyboardType(.emailAddress)
                                     .autocorrectionDisabled()
                                     .focused($focusedField, equals: .email)
-                                    .padding(14)
-                                    .background(Color.appSurface)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .strokeBorder(focusedField == .email ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
-                                    )
+                                    .onChange(of: newEmail) { _, newValue in
+                                        newEmail = sanitizeInput(newValue, maxLength: 254)
+                                    }
                             }
+                            .padding(14)
+                            .background(Color.appSurface)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(focusedField == .email ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
+                            )
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .email }
+                                
+                                // Character counter (visible when close to limit)
+                                if newEmail.count >= 244 {
+                                    HStack {
+                                        Spacer()
+                                        Text("\(newEmail.count)/254")
+                                            .font(.caption2)
+                                            .foregroundStyle(newEmail.count >= 254 ? .red : Color.appSecondaryText)
+                                    }
+                                    .transition(.opacity)
+                                }
+                            }
+                            .animation(.easeInOut(duration: 0.2), value: newEmail.count >= 244)
                             .padding(.horizontal)
                             
                             VStack(alignment: .leading, spacing: 8) {
@@ -951,17 +1003,21 @@ struct ChangeEmailSheet: View {
                                     .font(.caption.weight(.semibold))
                                     .foregroundStyle(Color.appSecondaryText)
                                 
-                                SecureField("Password", text: $password)
-                                    .textFieldStyle(.plain)
-                                    .foregroundStyle(Color.appText)
-                                    .focused($focusedField, equals: .password)
-                                    .padding(14)
-                                    .background(Color.appSurface)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .strokeBorder(focusedField == .password ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
-                                    )
+                                HStack {
+                                    SecureField("Password", text: $password)
+                                        .textFieldStyle(.plain)
+                                        .foregroundStyle(Color.appText)
+                                        .focused($focusedField, equals: .password)
+                                }
+                                .padding(14)
+                                .background(Color.appSurface)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .strokeBorder(focusedField == .password ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
+                                )
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .password }
                             }
                             .padding(.horizontal)
                             

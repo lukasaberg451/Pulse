@@ -58,6 +58,7 @@
 				Assets.xcassets,
 				Extensions/ColorExtensions.swift,
 				Extensions/DebugLog.swift,
+				Extensions/InputSanitization.swift,
 				Extensions/SharedFormatters.swift,
 				Managers/WorkoutSyncManager.swift,
 				Models/AggregateStats.swift,

@@ -19,7 +19,12 @@ struct LoginView: View {
     @State private var showError = false
     @State private var showingForgotPassword = false
     @State private var safariURL: URL?
+    @FocusState private var focusedField: LoginField?
     @Environment(\.colorScheme) private var colorScheme
+    
+    private enum LoginField {
+        case email, password
+    }
     
     func isValidEmail(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
@@ -68,24 +73,31 @@ struct LoginView: View {
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
                             
-                            TextField("Email", text: $email)
-                                .textInputAutocapitalization(.never)
-                                .keyboardType(.emailAddress)
-                                .padding()
-                                .foregroundStyle(Color.appText)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                            }
+                            HStack {
+                                TextField("Email", text: $email)
+                                    .textFieldStyle(.plain)
+                                    .textInputAutocapitalization(.never)
+                                    .keyboardType(.emailAddress)
+                                    .autocorrectionDisabled()
+                                    .focused($focusedField, equals: .email)
+                                    .foregroundStyle(Color.appText)
+                                    .onChange(of: email) {
+                                        showError = false
+                                    }
+                            }
+                            .padding()
+                            .background {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .overlay {
+                                        if colorScheme == .dark {
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                                         }
-                                }
-                                .onChange(of: email) {
-                                    showError = false
-                                }
+                                    }
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .email }
                         }
                         
                         // Password field
@@ -94,22 +106,28 @@ struct LoginView: View {
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
                             
-                            SecureField("Password", text: $password)
-                                .padding()
-                                .foregroundStyle(Color.appText)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                            }
+                            HStack {
+                                SecureField("Password", text: $password)
+                                    .textFieldStyle(.plain)
+                                    .focused($focusedField, equals: .password)
+                                    .foregroundStyle(Color.appText)
+                                    .onChange(of: password) {
+                                        showError = false
+                                    }
+                            }
+                            .padding()
+                            .background {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .overlay {
+                                        if colorScheme == .dark {
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                                         }
-                                }
-                                .onChange(of: password) {
-                                    showError = false
-                                }
+                                    }
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .password }
                         }
                         
                         // Forgot password
@@ -260,6 +278,11 @@ struct ForgotPasswordView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject private var viewModel = PwResetViewModel()
     @Environment(\.colorScheme) private var colorScheme
+    @FocusState private var focusedResetField: ResetField?
+    
+    private enum ResetField {
+        case email, newPassword, confirmPassword
+    }
     
     func isValidEmail(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
@@ -350,24 +373,31 @@ struct ForgotPasswordView: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
                     
-                    TextField("Email", text: $viewModel.email)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.emailAddress)
-                        .padding()
-                        .foregroundStyle(Color.appText)
-                        .background {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color.appSurface)
-                                .overlay {
-                                    if colorScheme == .dark {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                    }
+                    HStack {
+                        TextField("Email", text: $viewModel.email)
+                            .textFieldStyle(.plain)
+                            .textInputAutocapitalization(.never)
+                            .keyboardType(.emailAddress)
+                            .autocorrectionDisabled()
+                            .focused($focusedResetField, equals: .email)
+                            .foregroundStyle(Color.appText)
+                            .onChange(of: viewModel.email) {
+                                viewModel.showError = false
+                            }
+                    }
+                    .padding()
+                    .background {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color.appSurface)
+                            .overlay {
+                                if colorScheme == .dark {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                                 }
-                        }
-                        .onChange(of: viewModel.email) {
-                            viewModel.showError = false
-                        }
+                            }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture { focusedResetField = .email }
                 }
                 
                 PrimaryCTAButton("Send Code") {
@@ -496,20 +526,29 @@ struct ForgotPasswordView: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
                 
-                SecureField("New Password", text: $viewModel.newPassword)
-                    .padding()
-                    .foregroundStyle(Color.appText)
-                    .background {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color.appSurface)
-                            .overlay {
-                                if colorScheme == .dark {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                }
+                HStack {
+                    SecureField("New Password", text: $viewModel.newPassword)
+                        .textFieldStyle(.plain)
+                        .focused($focusedResetField, equals: .newPassword)
+                        .foregroundStyle(Color.appText)
+                        .textContentType(.newPassword)
+                }
+                .padding()
+                .background {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.appSurface)
+                        .overlay {
+                            if colorScheme == .dark {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                             }
-                    }
-                    .textContentType(.newPassword)
+                        }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { focusedResetField = .newPassword }
+                .onChange(of: viewModel.newPassword) { _, newValue in
+                    viewModel.newPassword = sanitizeInput(newValue, maxLength: 72)
+                }
                 
                 // Password strength indicator
                 if !viewModel.newPassword.isEmpty {
@@ -530,27 +569,46 @@ struct ForgotPasswordView: View {
                         .frame(maxWidth: 100)
                     }
                 }
+                
+                if viewModel.newPassword.count >= 62 {
+                    HStack {
+                        Spacer()
+                        Text("\(viewModel.newPassword.count)/72")
+                            .font(.caption2)
+                            .foregroundStyle(viewModel.newPassword.count >= 72 ? .red : Color.appSecondaryText)
+                    }
+                }
             }
+            .animation(.easeInOut(duration: 0.2), value: viewModel.newPassword.count >= 62)
             
             VStack(alignment: .leading, spacing: 8) {
                 Text("Confirm Password")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
                 
-                SecureField("Confirm Password", text: $viewModel.confirmPassword)
-                    .padding()
-                    .foregroundStyle(Color.appText)
-                    .background {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color.appSurface)
-                            .overlay {
-                                if colorScheme == .dark {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                }
+                HStack {
+                    SecureField("Confirm Password", text: $viewModel.confirmPassword)
+                        .textFieldStyle(.plain)
+                        .focused($focusedResetField, equals: .confirmPassword)
+                        .foregroundStyle(Color.appText)
+                        .textContentType(.newPassword)
+                }
+                .padding()
+                .background {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.appSurface)
+                        .overlay {
+                            if colorScheme == .dark {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                             }
-                    }
-                    .textContentType(.newPassword)
+                        }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { focusedResetField = .confirmPassword }
+                .onChange(of: viewModel.confirmPassword) { _, newValue in
+                    viewModel.confirmPassword = sanitizeInput(newValue, maxLength: 72)
+                }
                 
                 // Password match indicator
                 if !viewModel.confirmPassword.isEmpty {
@@ -566,7 +624,17 @@ struct ForgotPasswordView: View {
                             .foregroundStyle(viewModel.passwordsMatch ? .green : .red)
                     }
                 }
+                
+                if viewModel.confirmPassword.count >= 62 {
+                    HStack {
+                        Spacer()
+                        Text("\(viewModel.confirmPassword.count)/72")
+                            .font(.caption2)
+                            .foregroundStyle(viewModel.confirmPassword.count >= 72 ? .red : Color.appSecondaryText)
+                    }
+                }
             }
+            .animation(.easeInOut(duration: 0.2), value: viewModel.confirmPassword.count >= 62)
             
             Button {
                 Task {

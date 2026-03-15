@@ -495,14 +495,14 @@ struct ScheduledWorkoutCard: View {
                         .padding(.horizontal, 18)
                         .padding(.vertical, 9)
                         .background(
-                            isSelectMode
+                            (isSelectMode || exerciseCount == 0)
                                 ? LinearGradient.accentGradient.opacity(0.4)
                                 : LinearGradient.accentGradient.opacity(1),
                             in: Capsule()
                         )
                 }
                 .buttonStyle(ScalePressStyle())
-                .disabled(isSelectMode)
+                .disabled(isSelectMode || exerciseCount == 0)
             } else {
                 Image("chevron-right")
                     .resizable()
@@ -1067,34 +1067,39 @@ struct CreateRoutineSheet: View {
                                 .foregroundStyle(Color.appSecondaryText)
                                 .padding(.horizontal, 4)
 
-                            TextField("e.g. Push Day, Upper Body", text: $name)
-                                .font(.body)
-                                .padding(14)
-                                .foregroundStyle(Color.appText)
-                                .focused($focusedField, equals: .name)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .strokeBorder(
-                                                    focusedField == .name
-                                                        ? Color.appAccent.opacity(0.5)
-                                                        : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
-                                                    lineWidth: 1
-                                                )
-                                        }
-                                        .shadow(
-                                            color: colorScheme == .light
-                                                ? Color.black.opacity(0.04)
-                                                : Color.clear,
-                                            radius: 6,
-                                            x: 0,
-                                            y: 2
-                                        )
-                                }
-                                .submitLabel(.next)
-                                .onSubmit { focusedField = .notes }
+                            HStack {
+                                TextField("e.g. Push Day, Upper Body", text: $name)
+                                    .textFieldStyle(.plain)
+                                    .font(.body)
+                                    .foregroundStyle(Color.appText)
+                                    .focused($focusedField, equals: .name)
+                                    .submitLabel(.next)
+                                    .onSubmit { focusedField = .notes }
+                            }
+                            .padding(14)
+                            .background {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .strokeBorder(
+                                                focusedField == .name
+                                                    ? Color.appAccent.opacity(0.5)
+                                                    : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
+                                                lineWidth: 1
+                                            )
+                                    }
+                                    .shadow(
+                                        color: colorScheme == .light
+                                            ? Color.black.opacity(0.04)
+                                            : Color.clear,
+                                        radius: 6,
+                                        x: 0,
+                                        y: 2
+                                    )
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .name }
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
@@ -1103,33 +1108,38 @@ struct CreateRoutineSheet: View {
                                 .foregroundStyle(Color.appSecondaryText)
                                 .padding(.horizontal, 4)
 
-                            TextField("Add a description or notes", text: $description, axis: .vertical)
-                                .font(.body)
-                                .padding(14)
-                                .foregroundStyle(Color.appText)
-                                .focused($focusedField, equals: .notes)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .strokeBorder(
-                                                    focusedField == .notes
-                                                        ? Color.appAccent.opacity(0.5)
-                                                        : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
-                                                    lineWidth: 1
-                                                )
-                                        }
-                                        .shadow(
-                                            color: colorScheme == .light
-                                                ? Color.black.opacity(0.04)
-                                                : Color.clear,
-                                            radius: 6,
-                                            x: 0,
-                                            y: 2
-                                        )
-                                }
-                                .lineLimit(3...6)
+                            HStack(alignment: .top) {
+                                TextField("Add a description or notes", text: $description, axis: .vertical)
+                                    .textFieldStyle(.plain)
+                                    .font(.body)
+                                    .foregroundStyle(Color.appText)
+                                    .focused($focusedField, equals: .notes)
+                                    .lineLimit(3...6)
+                            }
+                            .padding(14)
+                            .background {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .strokeBorder(
+                                                focusedField == .notes
+                                                    ? Color.appAccent.opacity(0.5)
+                                                    : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
+                                                lineWidth: 1
+                                            )
+                                    }
+                                    .shadow(
+                                        color: colorScheme == .light
+                                            ? Color.black.opacity(0.04)
+                                            : Color.clear,
+                                        radius: 6,
+                                        x: 0,
+                                        y: 2
+                                    )
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .notes }
                         }
                     }
                     .padding(.horizontal)

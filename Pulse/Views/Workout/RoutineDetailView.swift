@@ -1169,6 +1169,7 @@ struct CreateCustomExerciseSheet: View {
     @State private var exerciseType: ExerciseType = .strength
     @State private var isCreating = false
     @State private var errorMessage: String?
+    @FocusState private var isExerciseNameFocused: Bool
     
     let onCreated: (Exercise) -> Void
     
@@ -1198,18 +1199,24 @@ struct CreateCustomExerciseSheet: View {
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appText)
                         
-                        TextField("e.g. Reverse Nordic Curl", text: $exerciseName)
-                            .font(.subheadline)
-                            .foregroundStyle(Color.appText)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 12)
-                            .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                            .overlay {
-                                if colorScheme == .dark {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                                }
+                        HStack {
+                            TextField("e.g. Reverse Nordic Curl", text: $exerciseName)
+                                .textFieldStyle(.plain)
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appText)
+                                .focused($isExerciseNameFocused)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay {
+                            if colorScheme == .dark {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
                             }
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture { isExerciseNameFocused = true }
                     }
                     
                     // Exercise type
@@ -1471,7 +1478,7 @@ struct ExerciseConfigSheet: View {
     
     @State private var sets = 3
     @State private var repsTarget = "8"
-    @State private var targetWeight = "0"
+    @State private var targetWeight = "0.0"
     @State private var durationMinutes = 5
     @State private var durationSeconds = 0
     @State private var restSeconds = 60
@@ -1788,13 +1795,19 @@ struct ExerciseConfigSheet: View {
                                             
                                             Spacer()
                                             
-                                            TextField("0", text: $targetWeight)
+                                            TextField("0.0", text: $targetWeight)
                                                 .foregroundStyle(Color.appText)
                                                 .keyboardType(.decimalPad)
                                                 .multilineTextAlignment(.trailing)
                                                 .frame(width: 80)
                                                 .padding(10)
                                                 .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                                .onChange(of: targetWeight) { _, newValue in
+                                                    let sanitized = sanitizeWeightInput(newValue)
+                                                    if sanitized != newValue {
+                                                        targetWeight = sanitized
+                                                    }
+                                                }
                                         }
                                         .padding()
                                     }
@@ -1889,7 +1902,8 @@ struct ExerciseConfigSheet: View {
                                     restSeconds: actualRest
                                 )
                             } else {
-                                let weight = unitManager.toKg(Double(targetWeight) ?? 0)
+                                let normalizedWeight = targetWeight.replacingOccurrences(of: ",", with: ".")
+                                let weight = unitManager.toKg(Double(normalizedWeight) ?? 0)
                                 await viewModel.addExercise(
                                     exerciseId: exercise.id,
                                     sets: sets,
@@ -1909,6 +1923,16 @@ struct ExerciseConfigSheet: View {
             }
         }
         .presentationBackground(LinearGradient.dashboardBackground)
+    }
+    
+    private func sanitizeWeightInput(_ newValue: String) -> String {
+        var sanitized = newValue.replacingOccurrences(of: ",", with: ".")
+        sanitized = String(sanitized.filter { $0.isNumber || $0 == "." })
+        if sanitized.filter({ $0 == "." }).count > 1 {
+            let parts = sanitized.split(separator: ".", omittingEmptySubsequences: false)
+            sanitized = parts[0] + "." + parts.dropFirst().joined()
+        }
+        return sanitized
     }
 }
 
@@ -1960,34 +1984,39 @@ struct EditRoutineSheet: View {
                                 .foregroundStyle(Color.appSecondaryText)
                                 .padding(.horizontal, 4)
 
-                            TextField("Push Day", text: $name)
-                                .font(.body)
-                                .padding(14)
-                                .foregroundStyle(Color.appText)
-                                .focused($focusedField, equals: .name)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .strokeBorder(
-                                                    focusedField == .name
-                                                        ? Color.appAccent.opacity(0.5)
-                                                        : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
-                                                    lineWidth: 1
-                                                )
-                                        }
-                                        .shadow(
-                                            color: colorScheme == .light
-                                                ? Color.black.opacity(0.04)
-                                                : Color.clear,
-                                            radius: 6,
-                                            x: 0,
-                                            y: 2
-                                        )
-                                }
-                                .submitLabel(.next)
-                                .onSubmit { focusedField = .notes }
+                            HStack {
+                                TextField("Push Day", text: $name)
+                                    .textFieldStyle(.plain)
+                                    .font(.body)
+                                    .foregroundStyle(Color.appText)
+                                    .focused($focusedField, equals: .name)
+                                    .submitLabel(.next)
+                                    .onSubmit { focusedField = .notes }
+                            }
+                            .padding(14)
+                            .background {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .strokeBorder(
+                                                focusedField == .name
+                                                    ? Color.appAccent.opacity(0.5)
+                                                    : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
+                                                lineWidth: 1
+                                            )
+                                    }
+                                    .shadow(
+                                        color: colorScheme == .light
+                                            ? Color.black.opacity(0.04)
+                                            : Color.clear,
+                                        radius: 6,
+                                        x: 0,
+                                        y: 2
+                                    )
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .name }
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
@@ -1996,33 +2025,38 @@ struct EditRoutineSheet: View {
                                 .foregroundStyle(Color.appSecondaryText)
                                 .padding(.horizontal, 4)
 
-                            TextField("Add a description or notes", text: $description, axis: .vertical)
-                                .font(.body)
-                                .padding(14)
-                                .foregroundStyle(Color.appText)
-                                .focused($focusedField, equals: .notes)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .strokeBorder(
-                                                    focusedField == .notes
-                                                        ? Color.appAccent.opacity(0.5)
-                                                        : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
-                                                    lineWidth: 1
-                                                )
-                                        }
-                                        .shadow(
-                                            color: colorScheme == .light
-                                                ? Color.black.opacity(0.04)
-                                                : Color.clear,
-                                            radius: 6,
-                                            x: 0,
-                                            y: 2
-                                        )
-                                }
-                                .lineLimit(3...6)
+                            HStack(alignment: .top) {
+                                TextField("Add a description or notes", text: $description, axis: .vertical)
+                                    .textFieldStyle(.plain)
+                                    .font(.body)
+                                    .foregroundStyle(Color.appText)
+                                    .focused($focusedField, equals: .notes)
+                                    .lineLimit(3...6)
+                            }
+                            .padding(14)
+                            .background {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .strokeBorder(
+                                                focusedField == .notes
+                                                    ? Color.appAccent.opacity(0.5)
+                                                    : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
+                                                lineWidth: 1
+                                            )
+                                    }
+                                    .shadow(
+                                        color: colorScheme == .light
+                                            ? Color.black.opacity(0.04)
+                                            : Color.clear,
+                                        radius: 6,
+                                        x: 0,
+                                        y: 2
+                                    )
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .notes }
                         }
                     }
                     .padding(.horizontal)
@@ -2409,13 +2443,19 @@ struct EditExerciseSheet: View {
                                             
                                             Spacer()
                                             
-                                            TextField("0", text: $targetWeight)
+                                            TextField("0.0", text: $targetWeight)
                                                 .foregroundStyle(Color.appText)
                                                 .keyboardType(.decimalPad)
                                                 .multilineTextAlignment(.trailing)
                                                 .frame(width: 80)
                                                 .padding(10)
                                                 .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                                .onChange(of: targetWeight) { _, newValue in
+                                                    let sanitized = sanitizeWeightInput(newValue)
+                                                    if sanitized != newValue {
+                                                        targetWeight = sanitized
+                                                    }
+                                                }
                                         }
                                         .padding()
                                     }
@@ -2505,7 +2545,8 @@ struct EditExerciseSheet: View {
                                     restSeconds: actualRest
                                 )
                             } else {
-                                let weight = unitManager.toKg(Double(targetWeight) ?? 0)
+                                let normalizedWeight = targetWeight.replacingOccurrences(of: ",", with: ".")
+                                let weight = unitManager.toKg(Double(normalizedWeight) ?? 0)
                                 await viewModel.updateExercise(
                                     id: routineExercise.id,
                                     sets: sets,
@@ -2524,6 +2565,16 @@ struct EditExerciseSheet: View {
             }
             .presentationBackground(LinearGradient.dashboardBackground)
         }
+    }
+    
+    private func sanitizeWeightInput(_ newValue: String) -> String {
+        var sanitized = newValue.replacingOccurrences(of: ",", with: ".")
+        sanitized = String(sanitized.filter { $0.isNumber || $0 == "." })
+        if sanitized.filter({ $0 == "." }).count > 1 {
+            let parts = sanitized.split(separator: ".", omittingEmptySubsequences: false)
+            sanitized = parts[0] + "." + parts.dropFirst().joined()
+        }
+        return sanitized
     }
 }
 

@@ -10,7 +10,7 @@ import SwiftData
 import WatchConnectivity
 
 enum WorkoutAlertType {
-    case cancel, finish
+    case cancel, finish, emptyFinish
 }
 
 // MARK: - Wrapper to inject modelContext
@@ -206,22 +206,37 @@ struct ActiveWorkoutViewContent: View {
                         alertType = .cancel
                     }
                     .foregroundStyle(Color.appSecondaryText)
+                    .disabled(viewModel.isFinishing)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Finish") {
-                        alertType = .finish
+                    if viewModel.isFinishing {
+                        ProgressView()
+                            .tint(Color.appAccent)
+                    } else {
+                        Button("Finish") {
+                            let hasCompletedSets = viewModel.sets.contains { $0.completed }
+                            alertType = hasCompletedSets ? .finish : .emptyFinish
+                        }
+                        .foregroundStyle(Color.appAccent)
+                        .fontWeight(.semibold)
                     }
-                    .foregroundStyle(Color.appAccent)
-                    .fontWeight(.semibold)
                 }
             }
-            .alert(alertType == .cancel ? "Cancel Workout?" : "Finish Workout?",
+            .alert(alertType == .emptyFinish ? "No Sets Completed" : (alertType == .cancel ? "Cancel Workout?" : "Finish Workout?"),
                    isPresented: Binding(
                        get: { alertType != nil },
                        set: { if !$0 { alertType = nil } }
                    )) {
                 if alertType == .cancel {
+                    Button("Continue Workout", role: .cancel) { }
+                    Button("Discard", role: .destructive) {
+                        Task {
+                            await viewModel.cancelWorkout()
+                            dismiss()
+                        }
+                    }
+                } else if alertType == .emptyFinish {
                     Button("Continue Workout", role: .cancel) { }
                     Button("Discard", role: .destructive) {
                         Task {
@@ -244,6 +259,8 @@ struct ActiveWorkoutViewContent: View {
             } message: {
                 if alertType == .cancel {
                     Text("This workout will not be saved.")
+                } else if alertType == .emptyFinish {
+                    Text("Complete at least one set before finishing your workout. Would you like to continue or discard?")
                 } else {
                     Text(viewModel.isOfflineMode
                         ? "Your workout will be saved locally and synced when you're back online."
