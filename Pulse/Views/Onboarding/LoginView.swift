@@ -127,6 +127,7 @@ struct LoginView: View {
                             ? "Wait \(authViewModel.rateLimitSecondsRemaining)s"
                             : "Sign In"
                         ) {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             if email.trimmingCharacters(in: .whitespaces).isEmpty {
                                 errorMessage = "Email is required"
                                 showError = true

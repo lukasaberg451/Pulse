@@ -1,12 +1,6 @@
 {
   "images" : [
     {
-      "filename" : "P (1024 x 1024 px) (1).png",
-      "idiom" : "universal",
-      "platform" : "ios",
-      "size" : "1024x1024"
-    },
-    {
       "filename" : "Pulse1024.png",
       "idiom" : "universal",
       "platform" : "watchos",

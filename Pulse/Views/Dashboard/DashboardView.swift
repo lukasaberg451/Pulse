@@ -417,7 +417,7 @@ struct EmptyTodayCard: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
 
-                    Text("Plan your training for today")
+                    Text("Plan your workout for today")
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                 }
@@ -517,8 +517,6 @@ struct StatsBar: View {
         }
         .onTapGesture {
             guard !isAnimating else { return }
-            let impactLight = UIImpactFeedbackGenerator(style: .light)
-            impactLight.impactOccurred()
             runWave()
         }
         .onChange(of: triggerHighlight) { _, newValue in

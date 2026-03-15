@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SafariServices
+import StoreKit
 
 struct SettingsView: View {
     @StateObject private var viewModel = ProfileViewModel()
@@ -26,6 +27,7 @@ struct SettingsView: View {
     @State private var showingDeleteConfirmation = false
     @State private var isDeletingAccount = false
     @State private var safariURL: URL?
+    @State private var isTestBuild = false
     
     @Environment(\.colorScheme) private var colorScheme
     
@@ -33,21 +35,12 @@ struct SettingsView: View {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
         
-        if Self.isTestBuild {
+        if isTestBuild {
             return "Version \(version) (\(build))"
         } else {
             return "Version \(version)"
         }
     }
-    
-    #if DEBUG
-    private static let isTestBuild = true
-    #else
-    private static let isTestBuild: Bool = {
-        guard let receiptURL = Bundle.main.appStoreReceiptURL else { return false }
-        return receiptURL.lastPathComponent == "sandboxReceipt"
-    }()
-    #endif
     
     var body: some View {
         ZStack {
@@ -368,6 +361,14 @@ struct SettingsView: View {
         }
         .task {
             await viewModel.loadProfile()
+            #if DEBUG
+            isTestBuild = true
+            #else
+            if let result = try? await AppTransaction.shared,
+               case .verified(let appTransaction) = result {
+                isTestBuild = appTransaction.environment != .production
+            }
+            #endif
         }
     }
     

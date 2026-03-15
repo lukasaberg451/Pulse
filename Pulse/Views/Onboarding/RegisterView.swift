@@ -340,6 +340,7 @@ struct RegisterView: View {
     
                             // Sign up button
                             Button(action: {
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                                 if firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty {
                                     errorMessage = "Please fill in all fields"
                                     showError = true

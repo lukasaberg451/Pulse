@@ -19,6 +19,7 @@ struct WorkoutSummaryView: View {
     let elapsedTime: TimeInterval
     let sets: [LocalWorkoutSet]
     let exercises: [Exercise]
+    let routineExercises: [RoutineExercise]
     let strength1RMHighlights: [Strength1RMHighlight]
     let onDismiss: () -> Void
     
@@ -219,7 +220,7 @@ struct WorkoutSummaryView: View {
         .onAppear {
             animationTrigger = true
             
-            withAnimation(.easeOut(duration: 1.0).delay(0.5)) {
+            withAnimation(.easeOut(duration: 0.6).delay(0.4)) {
                 displayedDuration = elapsedTime
                 displayedSets = Double(totalSets)
                 displayedVolume = totalVolume
@@ -395,7 +396,11 @@ struct WorkoutSummaryView: View {
     }
     
     private func setRow(set: LocalWorkoutSet, isCardio: Bool) -> some View {
-        HStack {
+        let routineExercise = routineExercises.first(where: {
+            $0.exerciseId == set.exerciseId && $0.orderIndex == (set.orderIndex ?? Int.max)
+        })
+        
+        return HStack {
             Text("\(set.setNumber)")
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(set.completed ? Color.appText : Color.appTertiaryText)
@@ -412,6 +417,11 @@ struct WorkoutSummaryView: View {
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.appText)
                         .frame(maxWidth: .infinity, alignment: .center)
+                } else if let targetDuration = routineExercise?.durationSeconds {
+                    Text(formattedSetDuration(targetDuration))
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.appTertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
                         .font(.subheadline)
@@ -422,7 +432,12 @@ struct WorkoutSummaryView: View {
                 if let weight = set.weight {
                     Text(String(format: "%.1f %@", unitManager.displayWeight(weight), unitManager.weightUnit))
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Color.appText)
+                        .foregroundStyle(set.completed ? Color.appText : Color.appTertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else if let targetWeight = routineExercise?.targetWeight {
+                    Text(String(format: "%.1f %@", unitManager.displayWeight(targetWeight), unitManager.weightUnit))
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.appTertiaryText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
@@ -434,7 +449,12 @@ struct WorkoutSummaryView: View {
                 if let reps = set.reps {
                     Text("\(reps)")
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Color.appText)
+                        .foregroundStyle(set.completed ? Color.appText : Color.appTertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else if let targetReps = routineExercise?.repsTarget {
+                    Text(targetReps)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.appTertiaryText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
@@ -448,12 +468,14 @@ struct WorkoutSummaryView: View {
                 Image("check-circle")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 15, height: 15)
+                    .frame(width: 20, height: 20)
                     .foregroundStyle(Color.green)
                     .frame(width: 30)
             } else {
                 Image("circle")
-                    .font(.subheadline)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
                     .foregroundStyle(Color.appTertiaryText)
                     .frame(width: 30)
             }

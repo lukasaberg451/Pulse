@@ -281,7 +281,11 @@ struct WorkoutDetailView: View {
     }
     
     func setRow(set: WorkoutSet, isCardio: Bool) -> some View {
-        HStack {
+        let routineExercise = viewModel.routineExercises.first(where: {
+            $0.exerciseId == set.exerciseId && $0.orderIndex == (set.orderIndex ?? Int.max)
+        })
+        
+        return HStack {
             // Set number
             Text("\(set.setNumber)")
                 .font(.subheadline.weight(.medium))
@@ -299,6 +303,11 @@ struct WorkoutDetailView: View {
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.appText)
                         .frame(maxWidth: .infinity, alignment: .center)
+                } else if let targetDuration = routineExercise?.durationSeconds {
+                    Text(formattedDuration(targetDuration))
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.appTertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
                         .font(.subheadline)
@@ -309,7 +318,12 @@ struct WorkoutDetailView: View {
                 if let weight = set.weight {
                     Text(String(format: "%.1f %@", unitManager.displayWeight(weight), unitManager.weightUnit))
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Color.appText)
+                        .foregroundStyle(set.completed ? Color.appText : Color.appTertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else if let targetWeight = routineExercise?.targetWeight {
+                    Text(String(format: "%.1f %@", unitManager.displayWeight(targetWeight), unitManager.weightUnit))
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.appTertiaryText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
@@ -321,7 +335,12 @@ struct WorkoutDetailView: View {
                 if let reps = set.reps {
                     Text("\(reps)")
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Color.appText)
+                        .foregroundStyle(set.completed ? Color.appText : Color.appTertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else if let targetReps = routineExercise?.repsTarget {
+                    Text(targetReps)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.appTertiaryText)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text("-")
@@ -335,12 +354,14 @@ struct WorkoutDetailView: View {
                 Image("check-circle")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 15, height: 15)
+                    .frame(width: 20, height: 20)
                     .foregroundStyle(Color.green)
                     .frame(width: 30)
             } else {
                 Image("circle")
-                    .font(.subheadline)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
                     .foregroundStyle(Color.appTertiaryText)
                     .frame(width: 30)
             }

@@ -15,6 +15,13 @@ final class OnboardingTourManager: ObservableObject {
 
     let steps: [TourStep] = [
         TourStep(
+            id: "welcome",
+            title: "Welcome to Pulse",
+            body: "Let's take a quick tour to help you get the most out of your training. Tap Next to get started!",
+            tab: .dashboard,
+            hidesSpotlight: true
+        ),
+        TourStep(
             id: "statsBar",
             title: "Your Stats at a Glance",
             body: "Track your daily streak, total workouts, and weekly training time right here.",
@@ -43,7 +50,7 @@ final class OnboardingTourManager: ObservableObject {
         TourStep(
             id: "schedulePill",
             title: "Schedule Your Workouts",
-            body: "Plan your week ahead — assign routines to specific days so you always know what's coming next.",
+            body: "Plan your week ahead, assign routines to specific days so you always know what's coming next.",
             tab: .workout,
             workoutSubTab: 0,
             spotlightCornerRadius: 20,
@@ -61,7 +68,7 @@ final class OnboardingTourManager: ObservableObject {
         TourStep(
             id: "progressTab",
             title: "Track Your Progress",
-            body: "Upgrade to Pro to unlock streaks, volume tracking, strength gains, and body metrics — all in one place.",
+            body: "Upgrade to Pro to unlock streaks, volume tracking, strength gains, and body metrics. All in one place.",
             tab: .progress,
             spotlightCornerRadius: 16,
             spotlightPadding: 4
@@ -77,7 +84,7 @@ final class OnboardingTourManager: ObservableObject {
         TourStep(
             id: "settingsButton",
             title: "Settings",
-            body: "Customize your experience — connect Apple Health, change your theme, set preferred units, and more.",
+            body: "Customize your experience! Connect Apple Health, change your theme, set preferred units, and more.",
             tab: .profile,
             spotlightCornerRadius: 50,
             spotlightPadding: 6

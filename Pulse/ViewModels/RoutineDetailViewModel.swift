@@ -144,6 +144,8 @@ class RoutineDetailViewModel: ObservableObject {
             let updatedRoutine = try await routineRepository.fetchRoutine(id: routine.id)
             self.routine = updatedRoutine
             
+            NotificationCenter.default.post(name: .routineDataChanged, object: nil)
+            
         } catch {
             errorMessage = "Failed to update routine: \(error.localizedDescription)"
         }

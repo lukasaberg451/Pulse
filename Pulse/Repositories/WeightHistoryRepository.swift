@@ -56,4 +56,30 @@ class WeightHistoryRepository {
         
         return entries.first
     }
+    
+    /// Fetch all weight history entries for the current user, ordered by date
+    func fetchAllWeightHistory() async throws -> [WeightHistory] {
+        guard let userId = supabase.auth.currentUser?.id else { return [] }
+        
+        let entries: [WeightHistory] = try await supabase
+            .from("weight_history")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .order("recorded_at", ascending: true)
+            .execute()
+            .value
+        
+        return entries
+    }
+    
+    /// Delete all weight history entries for the current user
+    func deleteAllWeightHistory() async throws {
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        
+        try await supabase
+            .from("weight_history")
+            .delete()
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+    }
 }

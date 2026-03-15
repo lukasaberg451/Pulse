@@ -158,6 +158,10 @@ struct ActiveWorkoutViewContent: View {
                     }
                     .padding(.top, 8)
                 }
+                .scrollDismissesKeyboard(.interactively)
+                .onTapGesture {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
                 
                 // Watch tip overlay
                 if !hasSeenWatchTip {
@@ -167,7 +171,7 @@ struct ActiveWorkoutViewContent: View {
                             
                             Text("Open Pulse on your Apple Watch to track along")
                                 .font(.caption)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(Color.appText)
                             
                             Spacer()
                             
@@ -180,7 +184,7 @@ struct ActiveWorkoutViewContent: View {
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 17, height: 17)
-                                    .foregroundStyle(.white.opacity(0.6))
+                                    .foregroundStyle(Color.appSecondaryText)
                             }
                         }
                         .padding(14)
@@ -252,6 +256,7 @@ struct ActiveWorkoutViewContent: View {
                     elapsedTime: summaryElapsedTime,
                     sets: summarySets,
                     exercises: exercises,
+                    routineExercises: routineExercises,
                     strength1RMHighlights: summary1RMHighlights,
                     onDismiss: {
                         showWorkoutSummary = false
@@ -771,9 +776,35 @@ struct SwipeableSetRow: View {
     
     /// The weight value entered by the user, converted back to kg for storage.
     private var enteredWeight: Double? {
-        let cleaned = weightText.replacingOccurrences(of: ",", with: ".")
-        guard let displayValue = Double(cleaned) else { return nil }
+        let cleaned = weightText
+            .replacingOccurrences(of: ",", with: ".")
+            .trimmingCharacters(in: .whitespaces)
+        guard !cleaned.isEmpty, let displayValue = Double(cleaned) else { return nil }
         return unitManager.toKg(displayValue)
+    }
+    
+    /// Sanitizes weight input to allow only digits and a single decimal separator (comma or dot).
+    /// Caps the value at 1000 kg (or the display-unit equivalent).
+    private func sanitizeWeightInput(_ newValue: String) -> String {
+        // Replace comma with dot for consistent handling
+        var sanitized = newValue.replacingOccurrences(of: ",", with: ".")
+        
+        // Allow only digits and dots
+        sanitized = String(sanitized.filter { $0.isNumber || $0 == "." })
+        
+        // Ensure only one decimal point
+        if sanitized.filter({ $0 == "." }).count > 1 {
+            let parts = sanitized.split(separator: ".", omittingEmptySubsequences: false)
+            sanitized = parts[0] + "." + parts.dropFirst().joined()
+        }
+        
+        // Cap at 1000 kg (converted to display unit)
+        let maxDisplay = unitManager.displayWeight(1000)
+        if let value = Double(sanitized), value > maxDisplay {
+            sanitized = formatWeight(maxDisplay)
+        }
+        
+        return sanitized
     }
     
     @ViewBuilder
@@ -795,6 +826,12 @@ struct SwipeableSetRow: View {
                     .padding(.vertical, 4)
                     .background(Color.appText.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .onChange(of: weightText) { _, newValue in
+                        let sanitized = sanitizeWeightInput(newValue)
+                        if sanitized != newValue {
+                            weightText = sanitized
+                        }
+                    }
             }
             Text(unitManager.weightUnit)
                 .font(.caption2)

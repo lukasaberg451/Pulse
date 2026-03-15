@@ -561,7 +561,7 @@ struct ExercisePickerSheet: View {
                                 .onChange(of: searchText) { _, newValue in
                                     searchTask?.cancel()
                                     searchTask = Task {
-                                        try? await Task.sleep(nanoseconds: 300_000_000)
+                                        try? await Task.sleep(nanoseconds: 500_000_000)
                                         if !Task.isCancelled {
                                             await viewModel.resetAndLoad(
                                                 equipment: selectedEquipment,

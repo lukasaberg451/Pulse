@@ -13,6 +13,9 @@ struct SmartInsightCard: View {
         insight.iconAsset.contains(".")
     }
     
+    @State private var isAnimating = false
+    @State private var waveOffset: CGFloat = -1.5
+    
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             IconBadge(
@@ -45,6 +48,44 @@ struct SmartInsightCard: View {
                 .fill(Color.appSurface)
                 .modifier(CardShadowModifier())
         }
+        .overlay {
+            GeometryReader { geo in
+                let waveWidth = geo.size.width * 0.6
+                LinearGradient(
+                    stops: [
+                        .init(color: Color.appAccent.opacity(0), location: 0),
+                        .init(color: Color.appAccent.opacity(0.18), location: 0.4),
+                        .init(color: Color.appAccent.opacity(0.25), location: 0.5),
+                        .init(color: Color.appAccent.opacity(0.18), location: 0.6),
+                        .init(color: Color.appAccent.opacity(0), location: 1)
+                    ],
+                    startPoint: .topTrailing,
+                    endPoint: .bottomLeading
+                )
+                .frame(width: waveWidth)
+                .blur(radius: 12)
+                .offset(x: waveOffset * geo.size.width)
+                .frame(width: geo.size.width, height: geo.size.height, alignment: .topTrailing)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .allowsHitTesting(false)
+        }
+        .onTapGesture {
+            guard !isAnimating else { return }
+            runWave()
+        }
         .padding(.horizontal)
+    }
+    
+    private func runWave() {
+        isAnimating = true
+        waveOffset = -1.5
+        withAnimation(.easeInOut(duration: 2.0)) {
+            waveOffset = 1.5
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            isAnimating = false
+            waveOffset = -1.5
+        }
     }
 }

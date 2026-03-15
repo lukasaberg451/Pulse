@@ -51,5 +51,6 @@ struct CustomTabView: View {
         .background(Color.appText.opacity(0.06), in: Capsule())
         .padding(.horizontal)
         .padding(.top, 8)
+        .animation(.spring(response: 0.35, dampingFraction: 0.75), value: selectedTab)
     }
 }

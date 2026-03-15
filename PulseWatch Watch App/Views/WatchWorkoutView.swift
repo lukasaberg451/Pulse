@@ -127,6 +127,7 @@ struct WatchWorkoutView: View {
                                 Text("Set \(currentSet)/\(totalSets)")
                                     .font(.caption2)
                                     .foregroundStyle(.gray)
+                                    .padding(.bottom, -2)
 
                                 HStack(spacing: 2) {
                                     Picker("", selection: $actualWeightWhole) {
@@ -135,7 +136,7 @@ struct WatchWorkoutView: View {
                                         }
                                     }
                                     .pickerStyle(.wheel)
-                                    .frame(width: 55, height: 70)
+                                    .frame(width: 55, height: 80)
 
                                     Text(".")
                                         .font(.title3.weight(.semibold))
@@ -147,12 +148,13 @@ struct WatchWorkoutView: View {
                                         }
                                     }
                                     .pickerStyle(.wheel)
-                                    .frame(width: 35, height: 70)
+                                    .frame(width: 35, height: 80)
 
                                     Text("kg")
                                         .font(.caption)
                                         .foregroundStyle(.gray)
                                 }
+                                .padding(.bottom, 4)
 
                                 Button {
                                     logSetWithActualWeight()
@@ -164,7 +166,6 @@ struct WatchWorkoutView: View {
                                 }
                                 .buttonStyle(.bordered)
                                 .tint(.green)
-                                .padding(.top, 4)
                             } else {
                                 // STRENGTH VIEW - show weight and reps
                                 // Workout timer

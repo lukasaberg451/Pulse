@@ -94,7 +94,7 @@ struct ProgressTabView: View {
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
                                     
-                                    Text("\(viewModel.currentStreak) days")
+                                    Text("\(viewModel.currentStreak) \(viewModel.currentStreak == 1 ? "day" : "days")")
                                         .font(.title2.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -111,7 +111,7 @@ struct ProgressTabView: View {
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
                                     
-                                    Text("\(viewModel.bestStreak) days")
+                                    Text("\(viewModel.bestStreak) \(viewModel.bestStreak == 1 ? "day" : "days")")
                                         .font(.subheadline.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -746,6 +746,7 @@ struct HealthMetricsSection: View {
     @StateObject private var viewModel = ProfileViewModel()
     @EnvironmentObject var unitManager: UnitManager
     @State private var showingEditSheet = false
+    @State private var showingWeightChart = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -785,13 +786,23 @@ struct HealthMetricsSection: View {
                         )
                         
                         // Weight Card
-                        HealthMetricCard(
-                            icon: "scale",
-                            title: "Weight",
-                            value: profile.weightKg != nil ? String(format: "%.1f", unitManager.displayWeight(profile.weightKg!)) : "--",
-                            unit: unitManager.weightUnit,
-                            color: .blue
-                        )
+                        Button {
+                            if profile.weightKg != nil {
+                                let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                impactLight.impactOccurred()
+                                showingWeightChart = true
+                            }
+                        } label: {
+                            HealthMetricCard(
+                                icon: "scale",
+                                title: "Weight",
+                                value: profile.weightKg != nil ? String(format: "%.1f", unitManager.displayWeight(profile.weightKg!)) : "--",
+                                unit: unitManager.weightUnit,
+                                color: .blue,
+                                showChevron: profile.weightKg != nil
+                            )
+                        }
+                        .buttonStyle(ScalePressStyle())
                     }
                     .padding(.horizontal)
                     
@@ -990,6 +1001,10 @@ struct HealthMetricsSection: View {
             EditHealthMetricsSheet(viewModel: viewModel)
                 .sheetContentTransition()
         }
+        .sheet(isPresented: $showingWeightChart) {
+            WeightProgressionChart(viewModel: viewModel)
+                .sheetContentTransition()
+        }
     }
     
     func categoryColor(for category: String) -> Color {
@@ -1026,13 +1041,24 @@ struct HealthMetricCard: View {
     let unit: String
     let color: Color
     var isSystemImage: Bool = false
+    var showChevron: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if isSystemImage {
-                IconBadge(systemName: icon, color: color, size: 34)
-            } else {
-                IconBadge(assetName: icon, color: color, size: 34)
+            HStack {
+                if isSystemImage {
+                    IconBadge(systemName: icon, color: color, size: 34)
+                } else {
+                    IconBadge(assetName: icon, color: color, size: 34)
+                }
+                
+                Spacer()
+                
+                if showChevron {
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.appTertiaryText)
+                }
             }
 
             Text(title)
@@ -1059,6 +1085,295 @@ struct HealthMetricCard: View {
     }
 }
 
+// MARK: - Weight Progression Chart
+struct WeightProgressionChart: View {
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject var unitManager: UnitManager
+    @ObservedObject var viewModel: ProfileViewModel
+    
+    @State private var selectedEntry: WeightHistory?
+    
+    private var displayHistory: [(date: Date, weight: Double)] {
+        viewModel.weightHistory.map { entry in
+            (date: entry.recordedAt, weight: unitManager.displayWeight(entry.weightKg))
+        }
+    }
+    
+    private var yMin: Double {
+        guard let min = displayHistory.map(\.weight).min() else { return 0 }
+        return (min - 2).rounded(.down)
+    }
+    
+    private var yMax: Double {
+        guard let max = displayHistory.map(\.weight).max() else { return 100 }
+        return (max + 2).rounded(.up)
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                LinearGradient.dashboardBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Header
+                        VStack(spacing: 8) {
+                            IconBadge(assetName: "scale", color: .blue, size: 48)
+                            
+                            Text("Weight Progression")
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(Color.appText)
+                            
+                            if let first = displayHistory.first,
+                               let last = displayHistory.last,
+                               displayHistory.count > 1 {
+                                let change = last.weight - first.weight
+                                let arrow = change >= 0 ? "↑" : "↓"
+                                Text("\(arrow) \(String(format: "%.1f", abs(change))) \(unitManager.weightUnit) overall")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appSecondaryText)
+                            }
+                        }
+                        .padding(.top, 20)
+                        
+                        if displayHistory.count < 2 {
+                            // Not enough data
+                            VStack(spacing: 14) {
+                                IconBadge(assetName: "progressup", size: 48)
+                                
+                                Text("Not enough data yet")
+                                    .font(.headline.weight(.semibold))
+                                    .foregroundStyle(Color.appText)
+                                
+                                Text("Log your weight at least twice to see your progression chart.")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appSecondaryText)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(24)
+                            .background {
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .modifier(CardShadowModifier())
+                            }
+                            .padding(.horizontal)
+                        } else {
+                            // Chart
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Weight (\(unitManager.weightUnit))")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+                                
+                                chartView
+                                    .frame(height: 220)
+                                
+                                // Selected point info
+                                if let selected = selectedEntry {
+                                    HStack(spacing: 12) {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(formatDate(selected.recordedAt))
+                                                .font(.caption.weight(.medium))
+                                                .foregroundStyle(Color.appSecondaryText)
+                                            Text("\(String(format: "%.1f", unitManager.displayWeight(selected.weightKg))) \(unitManager.weightUnit)")
+                                                .font(.title3.weight(.bold))
+                                                .foregroundStyle(Color.appText)
+                                        }
+                                        Spacer()
+                                    }
+                                    .padding(12)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(Color.appAccent.opacity(0.1))
+                                    }
+                                }
+                            }
+                            .padding(16)
+                            .background {
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .modifier(CardShadowModifier())
+                            }
+                            .padding(.horizontal)
+                            
+                            // History list
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("History")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(Color.appText)
+                                    .padding(.horizontal, 4)
+                                
+                                ForEach(viewModel.weightHistory.reversed()) { entry in
+                                    HStack(spacing: 12) {
+                                        Circle()
+                                            .fill(Color.appAccent)
+                                            .frame(width: 8, height: 8)
+                                        
+                                        Text(formatDate(entry.recordedAt))
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.appSecondaryText)
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(String(format: "%.1f", unitManager.displayWeight(entry.weightKg))) \(unitManager.weightUnit)")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(Color.appText)
+                                    }
+                                    .padding(.vertical, 8)
+                                    
+                                    if entry.id != viewModel.weightHistory.first?.id {
+                                        Divider()
+                                    }
+                                }
+                            }
+                            .padding(16)
+                            .background {
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .modifier(CardShadowModifier())
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        Spacer(minLength: 20)
+                    }
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                    .foregroundStyle(Color.appText)
+                }
+            }
+        }
+        .presentationBackground(Color.appBackground)
+        .task {
+            await viewModel.loadWeightHistory()
+        }
+    }
+    
+    @ViewBuilder
+    private var chartView: some View {
+        let data = displayHistory
+        
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
+            let range = yMax - yMin
+            
+            ZStack {
+                // Grid lines
+                ForEach(0..<5) { i in
+                    let y = height - (CGFloat(i) / 4.0) * height
+                    let value = yMin + (Double(i) / 4.0) * range
+                    
+                    Path { path in
+                        path.move(to: CGPoint(x: 0, y: y))
+                        path.addLine(to: CGPoint(x: width, y: y))
+                    }
+                    .stroke(Color.appSecondaryText.opacity(0.15), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+                    
+                    Text(String(format: "%.0f", value))
+                        .font(.caption2)
+                        .foregroundStyle(Color.appSecondaryText.opacity(0.6))
+                        .position(x: 16, y: y - 8)
+                }
+                
+                if data.count >= 2 {
+                    // Line
+                    Path { path in
+                        for (index, point) in data.enumerated() {
+                            let x = xPosition(for: index, count: data.count, width: width)
+                            let y = yPosition(for: point.weight, height: height, range: range)
+                            
+                            if index == 0 {
+                                path.move(to: CGPoint(x: x, y: y))
+                            } else {
+                                path.addLine(to: CGPoint(x: x, y: y))
+                            }
+                        }
+                    }
+                    .stroke(Color.appAccent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                    
+                    // Gradient fill
+                    Path { path in
+                        for (index, point) in data.enumerated() {
+                            let x = xPosition(for: index, count: data.count, width: width)
+                            let y = yPosition(for: point.weight, height: height, range: range)
+                            
+                            if index == 0 {
+                                path.move(to: CGPoint(x: x, y: y))
+                            } else {
+                                path.addLine(to: CGPoint(x: x, y: y))
+                            }
+                        }
+                        path.addLine(to: CGPoint(x: xPosition(for: data.count - 1, count: data.count, width: width), y: height))
+                        path.addLine(to: CGPoint(x: xPosition(for: 0, count: data.count, width: width), y: height))
+                        path.closeSubpath()
+                    }
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.appAccent.opacity(0.3), Color.appAccent.opacity(0.0)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    
+                    // Data points
+                    ForEach(Array(data.enumerated()), id: \.offset) { index, point in
+                        let x = xPosition(for: index, count: data.count, width: width)
+                        let y = yPosition(for: point.weight, height: height, range: range)
+                        let isSelected = selectedEntry?.id == viewModel.weightHistory[index].id
+                        
+                        Circle()
+                            .fill(isSelected ? Color.appAccent : Color.appSurface)
+                            .frame(width: isSelected ? 10 : 7, height: isSelected ? 10 : 7)
+                            .overlay {
+                                Circle()
+                                    .stroke(Color.appAccent, lineWidth: 2)
+                            }
+                            .position(x: x, y: y)
+                            .onTapGesture {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    if selectedEntry?.id == viewModel.weightHistory[index].id {
+                                        selectedEntry = nil
+                                    } else {
+                                        selectedEntry = viewModel.weightHistory[index]
+                                    }
+                                }
+                            }
+                    }
+                }
+            }
+        }
+    }
+    
+    private func xPosition(for index: Int, count: Int, width: CGFloat) -> CGFloat {
+        guard count > 1 else { return width / 2 }
+        let padding: CGFloat = 30
+        let usableWidth = width - (padding * 2)
+        return padding + usableWidth * CGFloat(index) / CGFloat(count - 1)
+    }
+    
+    private func yPosition(for value: Double, height: CGFloat, range: Double) -> CGFloat {
+        guard range > 0 else { return height / 2 }
+        return height - CGFloat((value - yMin) / range) * height
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+}
+
 // MARK: - Edit Body Metrics Sheet
 struct EditHealthMetricsSheet: View {
     @Environment(\.dismiss) var dismiss
@@ -1073,6 +1388,7 @@ struct EditHealthMetricsSheet: View {
     @State private var targetWeightText: String
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showDeleteConfirmation = false
 
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
@@ -1330,6 +1646,46 @@ struct EditHealthMetricsSheet: View {
                         .disabled(viewModel.isSubmitting)
                         .opacity(viewModel.isSubmitting ? 0.5 : 1.0)
                         .padding(.horizontal)
+                        
+                        // Delete Data
+                        Button {
+                            showDeleteConfirmation = true
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "trash")
+                                    .font(.subheadline.weight(.semibold))
+                                Text("Delete Body Metrics Data")
+                                    .font(.subheadline.weight(.semibold))
+                            }
+                            .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding(14)
+                            .background {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.red.opacity(0.1))
+                            }
+                        }
+                        .padding(.horizontal)
+                        .confirmationDialog(
+                            "Delete Body Metrics",
+                            isPresented: $showDeleteConfirmation,
+                            titleVisibility: .visible
+                        ) {
+                            Button("Delete All Data", role: .destructive) {
+                                Task {
+                                    let success = await viewModel.clearBodyMetrics()
+                                    if success {
+                                        dismiss()
+                                    } else {
+                                        errorMessage = viewModel.errorMessage ?? "Failed to delete body metrics"
+                                        showError = true
+                                    }
+                                }
+                            }
+                            Button("Cancel", role: .cancel) {}
+                        } message: {
+                            Text("This will permanently delete your weight, height, target weight, and all weight history. This action cannot be undone.")
+                        }
 
                         Spacer()
                     }

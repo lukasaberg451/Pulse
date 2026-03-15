@@ -22,6 +22,7 @@ class ProfileViewModel: ObservableObject {
     @Published var isSubmittingFeedback = false
     @Published var feedbackError: String?
     @Published var startWeightKg: Double?
+    @Published var weightHistory: [WeightHistory] = []
     @Published var customExercises: [Exercise] = []
     
     private let supabase = SupabaseManager.shared.client
@@ -71,6 +72,8 @@ class ProfileViewModel: ObservableObject {
             // Load start weight from history
             if let startEntry = try? await weightHistoryRepo.fetchStartWeight() {
                 self.startWeightKg = startEntry.weightKg
+            } else {
+                self.startWeightKg = nil
             }
             
             // Sync unit system preference
@@ -216,6 +219,66 @@ class ProfileViewModel: ObservableObject {
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
         } catch {
             debugLog("Failed to delete custom exercise: \(error)")
+        }
+    }
+    
+    func loadWeightHistory() async {
+        do {
+            weightHistory = try await weightHistoryRepo.fetchAllWeightHistory()
+        } catch {
+            debugLog("Failed to load weight history: \(error)")
+        }
+    }
+    
+    func clearBodyMetrics() async -> Bool {
+        isSubmitting = true
+        errorMessage = nil
+        
+        do {
+            guard let userId = supabase.auth.currentUser?.id else {
+                errorMessage = "User not authenticated"
+                isSubmitting = false
+                return false
+            }
+            
+            // Use custom encoding to ensure nil is sent as JSON null
+            struct ClearHealthMetrics: Encodable {
+                enum CodingKeys: String, CodingKey {
+                    case weightKg = "weight_kg"
+                    case heightCm = "height_cm"
+                    case targetWeightKg = "target_weight_kg"
+                }
+                
+                func encode(to encoder: Encoder) throws {
+                    var container = encoder.container(keyedBy: CodingKeys.self)
+                    try container.encodeNil(forKey: .weightKg)
+                    try container.encodeNil(forKey: .heightCm)
+                    try container.encodeNil(forKey: .targetWeightKg)
+                }
+            }
+            
+            // Clear profile metrics
+            try await supabase
+                .from("profiles")
+                .update(ClearHealthMetrics())
+                .eq("id", value: userId.uuidString)
+                .execute()
+            
+            // Delete all weight history
+            try await weightHistoryRepo.deleteAllWeightHistory()
+            
+            // Reset local state
+            startWeightKg = nil
+            weightHistory = []
+            
+            // Reload profile
+            await loadProfile()
+            isSubmitting = false
+            return true
+        } catch {
+            errorMessage = "Failed to clear body metrics: \(error.localizedDescription)"
+            isSubmitting = false
+            return false
         }
     }
     

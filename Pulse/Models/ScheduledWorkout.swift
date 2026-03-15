@@ -30,7 +30,9 @@ struct ScheduledWorkout: Codable, Identifiable {
         case routineDeleted = "routine_deleted"
     }
     
-    var date: Date? {
-        SharedFormatters.yearMonthDay.date(from: scheduledDate)
+    func date(in timeZone: TimeZone) -> Date? {
+        let formatter = SharedFormatters.yearMonthDay
+        formatter.timeZone = timeZone
+        return formatter.date(from: scheduledDate)
     }
 }

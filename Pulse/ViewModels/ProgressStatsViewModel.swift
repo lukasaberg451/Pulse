@@ -64,6 +64,7 @@ class ProgressStatsViewModel: ObservableObject {
     @Published var isLoadingMore: Bool = false
     private var paginationOffset: Int = 0
     private let pageSize: Int = 20
+    private var isLoadingInitialPage: Bool = false
     
     private var userProfile: Profile?
     private let supabase = SupabaseManager.shared.client
@@ -116,13 +117,14 @@ class ProgressStatsViewModel: ObservableObject {
     }
     
     private func generateInsight() {
+        let calendar = userProfile?.userCalendar ?? Calendar.current
+        
         var daysSinceLastWorkout: Int? = nil
         if let lastSession = recentSessions.first {
             let lastDate = lastSession.completedAt ?? lastSession.startedAt
-            daysSinceLastWorkout = Calendar.current.dateComponents([.day], from: lastDate, to: Date()).day
+            daysSinceLastWorkout = calendar.dateComponents([.day], from: lastDate, to: Date()).day
         }
         
-        let calendar = userProfile?.userCalendar ?? Calendar.current
         let weekdayIndex = calendar.component(.weekday, from: Date())
         
         let insights = SmartInsightEngine.generateInsights(
@@ -262,8 +264,9 @@ class ProgressStatsViewModel: ObservableObject {
     
     // Load first page of sessions for AllRecentWorkoutsView
     func loadRecentSessionsPaginated() async {
+        isLoadingInitialPage = true
         paginationOffset = 0
-        hasMoreSessions = true
+        hasMoreSessions = false
         do {
             let sessions = try await workoutRepository.fetchCompletedSessions(limit: pageSize, offset: 0)
             allRecentSessions = sessions
@@ -278,11 +281,12 @@ class ProgressStatsViewModel: ObservableObject {
             allRecentSessions = []
             hasMoreSessions = false
         }
+        isLoadingInitialPage = false
     }
     
     // Load next page of sessions
     func loadMoreSessions() async {
-        guard hasMoreSessions, !isLoadingMore else { return }
+        guard hasMoreSessions, !isLoadingMore, !isLoadingInitialPage else { return }
         isLoadingMore = true
         do {
             let sessions = try await workoutRepository.fetchCompletedSessions(limit: pageSize, offset: paginationOffset)

@@ -320,7 +320,7 @@
 		3149B7282F435C1000A61B9F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = WatchAppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "PulseWatch Watch App/PulseWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
@@ -328,7 +328,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "PulseWatch-Watch-App-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = PulseWatch;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pulse Watch";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Pulse uses HealthKit to track your workouts and sync them with Apple Health.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Pulse saves your workout sessions to Apple Health to keep all your fitness data in one place.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
@@ -356,7 +356,7 @@
 		3149B7292F435C1000A61B9F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = WatchAppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "PulseWatch Watch App/PulseWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
@@ -364,7 +364,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "PulseWatch-Watch-App-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = PulseWatch;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pulse Watch";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Pulse uses HealthKit to track your workouts and sync them with Apple Health.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Pulse saves your workout sessions to Apple Health to keep all your fitness data in one place.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
@@ -523,7 +523,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = V6H588482S;
 				ENABLE_APP_SANDBOX = YES;
@@ -574,7 +574,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = V6H588482S;
 				ENABLE_APP_SANDBOX = YES;

@@ -15,6 +15,7 @@ class WorkoutDetailViewModel: ObservableObject {
     @Published var workoutSets: [WorkoutSet] = []
     @Published var exerciseNames: [UUID: String] = [:]
     @Published var exerciseTypes: [UUID: String] = [:]
+    @Published var routineExercises: [RoutineExercise] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
     
@@ -86,6 +87,17 @@ class WorkoutDetailViewModel: ObservableObject {
                     exerciseNames[exerciseId] = exercise.name
                     exerciseTypes[exerciseId] = exercise.exerciseType
                 }
+            }
+            
+            // Fetch routine exercises for target values
+            if let routineId = workoutSession.routineId {
+                let fetched: [RoutineExercise] = try await supabase
+                    .from("routine_exercises")
+                    .select()
+                    .eq("routine_id", value: routineId.uuidString)
+                    .execute()
+                    .value
+                routineExercises = fetched
             }
             
         } catch {

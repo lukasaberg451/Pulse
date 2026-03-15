@@ -656,7 +656,7 @@ struct RoutinePickerSheet: View {
                         Text("No Routines Yet")
                             .font(.headline)
                             .foregroundStyle(Color.appText)
-                        Text("Go to Routines tab to create your first routine")
+                        Text("Go to the Workout tab to create your first routine")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
@@ -670,6 +670,8 @@ struct RoutinePickerSheet: View {
                             onSelect: {
                                 Task {
                                     await viewModel.scheduleWorkout(routineId: routine.id, date: selectedDate)
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                                     dismiss()
                                 }
                             }
@@ -701,12 +703,18 @@ struct RoutinePickerRow: View {
     let onSelect: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
+    @State private var isSelected = false
 
     var body: some View {
-        Button(action: onSelect) {
+        Button {
+            withAnimation(.easeOut(duration: 0.15)) {
+                isSelected = true
+            }
+            onSelect()
+        } label: {
             HStack(spacing: 12) {
                 IconBadge(
-                    assetName: "routine",
+                    assetName: isSelected ? "check" : "routine",
                     color: .appAccent,
                     size: 38
                 )
@@ -723,18 +731,26 @@ struct RoutinePickerRow: View {
 
                 Spacer()
 
-                Image("plus")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 22, height: 22)
-                    .foregroundStyle(Color.appAccent)
+                if isSelected {
+                    ProgressView()
+                        .tint(Color.appAccent)
+                } else {
+                    Image("plus")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 22, height: 22)
+                        .foregroundStyle(Color.appAccent)
+                }
             }
             .padding(14)
             .background {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color.appSurface)
+                    .fill(isSelected ? Color.appAccent.opacity(0.12) : Color.appSurface)
                     .overlay {
-                        if colorScheme == .dark {
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(Color.appAccent.opacity(0.3), lineWidth: 1.5)
+                        } else if colorScheme == .dark {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
                         }
@@ -749,10 +765,20 @@ struct RoutinePickerRow: View {
                     )
             }
         }
-        .buttonStyle(ScalePressStyle())
+        .buttonStyle(RoutinePickerPressStyle())
+        .disabled(isSelected)
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
+    }
+}
+
+struct RoutinePickerPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .brightness(configuration.isPressed ? -0.05 : 0)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
