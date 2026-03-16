@@ -46,6 +46,10 @@ struct DismissAllSheetsKey: EnvironmentKey {
     static let defaultValue: () -> Void = {}
 }
 
+private struct SignOutActionKey: EnvironmentKey {
+    static let defaultValue: () async -> Void = {}
+}
+
 private struct SplashDismissedKey: EnvironmentKey {
     static let defaultValue: Bool = false
 }
@@ -59,6 +63,11 @@ extension EnvironmentValues {
     var splashDismissed: Bool {
         get { self[SplashDismissedKey.self] }
         set { self[SplashDismissedKey.self] = newValue }
+    }
+    
+    var signOutAction: () async -> Void {
+        get { self[SignOutActionKey.self] }
+        set { self[SignOutActionKey.self] = newValue }
     }
 }
 
@@ -154,11 +163,6 @@ struct PulseApp: App {
                 } else {
                     AuthSelectionView(authViewModel: authViewModel)
                         .environmentObject(authViewModel)
-                        .overlay {
-                            if showPostLogoutLoading {
-                                PostLoginLoadingView(isVisible: $showPostLogoutLoading)
-                            }
-                        }
                 }
             }
             .id(authViewModel.isAuthenticated)
@@ -169,6 +173,19 @@ struct PulseApp: App {
             .environmentObject(unitManager)
             .preferredColorScheme(themeManager.selectedTheme.colorScheme)
             .environment(\.splashDismissed, !showSplash && !showPostLoginLoading)
+            .environment(\.signOutAction, { @MainActor in
+                // Show the loading overlay first, then sign out after it's visible
+                showPostLogoutLoading = true
+                // Wait a frame so the overlay renders before the view tree swaps
+                try? await Task.sleep(for: .milliseconds(50))
+                await authViewModel.signOut()
+            })
+            .overlay {
+                if showPostLogoutLoading {
+                    PostLoginLoadingView(isVisible: $showPostLogoutLoading)
+                        .ignoresSafeArea()
+                }
+            }
             .overlay {
                 if showSplash {
                     SplashOverlay(
@@ -184,8 +201,8 @@ struct PulseApp: App {
                         // User just signed in
                         selectedTab = .dashboard
                         showPostLoginLoading = true
-                    } else if !isAuthenticated && oldValue {
-                        // User just signed out
+                    } else if !isAuthenticated && oldValue && !showPostLogoutLoading {
+                        // Signed out via another path (e.g. account deletion)
                         showPostLogoutLoading = true
                     }
                 }

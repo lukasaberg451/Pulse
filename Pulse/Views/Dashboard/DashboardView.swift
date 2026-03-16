@@ -253,6 +253,8 @@ struct DashboardView: View {
         let repository = OfflineWorkoutRepository(modelContext: modelContext)
         repository.deleteSession(session)
         inProgressSession = nil
+        // Clean up any stale Live Activity from the terminated session
+        WorkoutLiveActivityManager.shared.endStaleLiveActivities()
     }
 }
 

@@ -195,7 +195,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         NotificationCenter.default.post(name: .skipRestFromWatch, object: nil)
     }
     
-    func sendCurrentExercise(exercise: Exercise, routineExercise: RoutineExercise, currentSetNumber: Int = 1, restStopped: Bool = false, restStarted: Bool = false, restDuration: Int = 0) {
+    func sendCurrentExercise(exercise: Exercise, routineExercise: RoutineExercise, currentSetNumber: Int = 1, totalSets: Int? = nil, restStopped: Bool = false, restStarted: Bool = false, restDuration: Int = 0) {
         guard let session = session else {
             debugLog("📱 ERROR: No WCSession available")
             return
@@ -204,7 +204,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         var exerciseData: [String: Any] = [
             "exerciseId": exercise.id.uuidString,
             "currentExercise": exercise.name,
-            "sets": routineExercise.sets,
+            "sets": totalSets ?? routineExercise.sets,
             "currentSet": currentSetNumber,
             "reps": routineExercise.repsTarget ?? "",
             "weight": routineExercise.targetWeight ?? 0,

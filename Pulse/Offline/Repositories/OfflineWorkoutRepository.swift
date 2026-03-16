@@ -131,13 +131,8 @@ class OfflineWorkoutRepository {
         
         do {
             try modelContext.save()
-            
-            // Try to sync immediately if online
-            if syncService.isOnline {
-                Task {
-                    await syncService.syncPendingWorkouts()
-                }
-            }
+            // Sync is handled by finishWorkout() to avoid race conditions
+            // with duplicate scheduled entry creation
         } catch {
             debugLog("❌ Failed to complete session: \(error)")
         }

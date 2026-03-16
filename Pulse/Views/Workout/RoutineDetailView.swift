@@ -783,7 +783,7 @@ struct ExercisePickerSheet: View {
                         .tint(Color.appAccent)
                 }
             }
-            .overlay(alignment: .top) {
+            .overlay(alignment: .bottom) {
                 if let name = addedExerciseName {
                     HStack(spacing: 8) {
                         Image("check-circle")
@@ -796,8 +796,8 @@ struct ExercisePickerSheet: View {
                     .padding(.vertical, 10)
                     .background(.ultraThinMaterial, in: Capsule())
                     .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .padding(.top, 8)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.bottom, 16)
                 }
             }
             .navigationTitle("Add Exercise")

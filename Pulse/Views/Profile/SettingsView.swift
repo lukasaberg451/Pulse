@@ -30,6 +30,7 @@ struct SettingsView: View {
     @State private var isTestBuild = false
     
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.signOutAction) private var signOutAction
     
     var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
@@ -328,7 +329,7 @@ struct SettingsView: View {
             Button("Cancel", role: .cancel) { }
             Button("Sign Out", role: .destructive) {
                 Task {
-                    await authViewModel.signOut()
+                    await signOutAction()
                 }
             }
         } message: {

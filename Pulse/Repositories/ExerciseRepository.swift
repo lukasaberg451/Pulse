@@ -63,16 +63,32 @@ class ExerciseRepository {
             return cached
         }
         
-        let exercises: [Exercise] = try await supabase
-            .from("exercises")
-            .select()
-            .order("name")
-            .execute()
-            .value
+        // Supabase defaults to max 1000 rows per request.
+        // Paginate to ensure we fetch every exercise in the table.
+        let pageSize = 1000
+        var allExercises: [Exercise] = []
+        var offset = 0
         
-        cachedExercises = exercises
+        while true {
+            let page: [Exercise] = try await supabase
+                .from("exercises")
+                .select()
+                .order("name")
+                .range(from: offset, to: offset + pageSize - 1)
+                .execute()
+                .value
+            
+            allExercises.append(contentsOf: page)
+            
+            if page.count < pageSize {
+                break
+            }
+            offset += pageSize
+        }
+        
+        cachedExercises = allExercises
         cacheDate = Date()
-        return exercises
+        return allExercises
     }
     
     /// Adds an exercise to the cache without a full refresh.

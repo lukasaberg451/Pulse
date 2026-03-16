@@ -786,12 +786,47 @@ struct FeedbackSheet: View {
                         }
                         .padding(.horizontal)
                         
-                        Toggle(isOn: $isChecked) {
-                            Text("Receive updates on my feedback")
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Receive updates on my feedback?")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appText)
+                            
+                            HStack(spacing: 10) {
+                                Button {
+                                    isChecked = true
+                                } label: {
+                                    Text("Yes")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(isChecked ? .white : Color.appText)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 10)
+                                        .background(isChecked ? Color.appAccent : Color.appSurface)
+                                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                .strokeBorder(isChecked ? Color.clear : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.1)), lineWidth: 1)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                                
+                                Button {
+                                    isChecked = false
+                                } label: {
+                                    Text("No")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(!isChecked ? .white : Color.appText)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 10)
+                                        .background(!isChecked ? Color.appAccent : Color.appSurface)
+                                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                .strokeBorder(!isChecked ? Color.clear : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.1)), lineWidth: 1)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
-                        .tint(Color.appAccent)
                         .padding(.horizontal)
                         
                         PrimaryCTAButton("Submit Feedback", icon: "send") {

@@ -22,6 +22,9 @@ final class LocalWorkoutSession {
     var createdAt: Date
     var needsSync: Bool
     var syncedAt: Date?
+    /// Whether the scheduled_workouts entry has already been created/updated for this session.
+    /// Prevents duplicate entries when both finishWorkout() and syncSession() run.
+    var scheduledEntryCreated: Bool
     
     @Relationship(deleteRule: .cascade, inverse: \LocalWorkoutSet.session)
     var sets: [LocalWorkoutSet]?
@@ -38,7 +41,8 @@ final class LocalWorkoutSession {
         notes: String? = nil,
         createdAt: Date = Date(),
         needsSync: Bool = true,
-        syncedAt: Date? = nil
+        syncedAt: Date? = nil,
+        scheduledEntryCreated: Bool = false
     ) {
         self.id = id
         self.userId = userId
@@ -52,6 +56,7 @@ final class LocalWorkoutSession {
         self.createdAt = createdAt
         self.needsSync = needsSync
         self.syncedAt = syncedAt
+        self.scheduledEntryCreated = scheduledEntryCreated
     }
     
     // Convert from Supabase model

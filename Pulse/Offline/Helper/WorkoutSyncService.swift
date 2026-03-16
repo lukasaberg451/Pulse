@@ -246,22 +246,30 @@ class WorkoutSyncService: ObservableObject {
                 )
                 debugLog("✅ Marked session as completed in Supabase")
                 
-                // Create/update scheduled workout entry
-                if let scheduledWorkoutId = session.scheduledWorkoutId {
-                    // This was a scheduled workout — mark it as completed
-                    try await repository.completeScheduledWorkout(
-                        id: scheduledWorkoutId,
-                        sessionId: session.id
-                    )
-                    debugLog("✅ Marked scheduled workout \(scheduledWorkoutId) as completed")
-                } else if let routineId = session.routineId {
-                    // Non-scheduled workout — create a completed scheduled entry for the calendar
-                    try await repository.createCompletedScheduledWorkout(
-                        routineId: routineId,
-                        sessionId: session.id,
-                        date: session.startedAt
-                    )
-                    debugLog("✅ Created completed scheduled entry for offline workout")
+                // Create/update scheduled workout entry (only if not already done by finishWorkout)
+                if !session.scheduledEntryCreated {
+                    if let scheduledWorkoutId = session.scheduledWorkoutId {
+                        // This was a scheduled workout — mark it as completed
+                        try await repository.completeScheduledWorkout(
+                            id: scheduledWorkoutId,
+                            sessionId: session.id
+                        )
+                        session.scheduledEntryCreated = true
+                        debugLog("✅ Marked scheduled workout \(scheduledWorkoutId) as completed")
+                    } else if let routineId = session.routineId {
+                        // Non-scheduled workout — create a completed scheduled entry for the calendar
+                        let userTimeZone = await Self.fetchUserTimeZone()
+                        try await repository.createCompletedScheduledWorkout(
+                            routineId: routineId,
+                            sessionId: session.id,
+                            date: session.startedAt,
+                            timeZone: userTimeZone
+                        )
+                        session.scheduledEntryCreated = true
+                        debugLog("✅ Created completed scheduled entry for offline workout")
+                    }
+                } else {
+                    debugLog("⏭️ Scheduled entry already created, skipping")
                 }
                 
                 // Post notification to refresh UI
@@ -346,5 +354,23 @@ class WorkoutSyncService: ObservableObject {
     /// Force a sync from server immediately (useful for testing)
     func forceSyncFromServer() async {
         await syncFromServer()
+    }
+    
+    private static func fetchUserTimeZone() async -> TimeZone {
+        let supabase = SupabaseManager.shared.client
+        guard let userId = supabase.auth.currentUser?.id else { return .current }
+        
+        do {
+            let profile: Profile = try await supabase
+                .from("profiles")
+                .select()
+                .eq("id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+            return profile.resolvedTimeZone
+        } catch {
+            return .current
+        }
     }
 }

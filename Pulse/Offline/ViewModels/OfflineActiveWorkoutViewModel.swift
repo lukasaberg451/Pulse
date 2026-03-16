@@ -218,6 +218,12 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 )
             }
             
+            // Start HKWorkoutSession to keep the app alive in the background
+            await HealthKitManager.shared.startWorkoutSession(exercises: exercises)
+            
+            // Start Live Activity for resumed workout
+            startWorkoutLiveActivity()
+            
             isLoading = false
             return
         }
@@ -281,6 +287,12 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             )
         }
         
+        // Start HKWorkoutSession to keep the app alive in the background
+        await HealthKitManager.shared.startWorkoutSession(exercises: exercises)
+        
+        // Start Live Activity for new workout
+        startWorkoutLiveActivity()
+        
         isLoading = false
     }
     
@@ -302,6 +314,42 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         let elapsed = Int(Date().timeIntervalSince(startTime))
         session.durationSeconds = elapsed
         try? modelContext.save()
+    }
+    
+    // MARK: - Live Activity
+    
+    private func startWorkoutLiveActivity() {
+        guard let firstRoutineExercise = allWorkoutExercises.first,
+              let firstExercise = exercises.first(where: { $0.id == firstRoutineExercise.exerciseId }) else {
+            return
+        }
+        WorkoutLiveActivityManager.shared.startLiveActivity(
+            routineName: routine.name,
+            startTime: startTime ?? Date(),
+            firstExerciseName: firstExercise.name,
+            totalExercises: allWorkoutExercises.count,
+            totalSetsForFirstExercise: firstRoutineExercise.sets
+        )
+    }
+    
+    private func updateWorkoutLiveActivity() {
+        let completedCount = allWorkoutExercises.count - routineExercises.count
+        let currentRoutineExercise = routineExercises.first
+        let currentExercise = currentRoutineExercise.flatMap { re in exercises.first(where: { $0.id == re.exerciseId }) }
+        
+        let setsForCurrent = currentRoutineExercise.map { re in
+            sets.filter { $0.exerciseId == re.exerciseId && $0.orderIndex == re.orderIndex }
+        } ?? []
+        let completedSets = setsForCurrent.filter { $0.completed }.count
+        
+        WorkoutLiveActivityManager.shared.updateLiveActivity(
+            currentExerciseName: currentExercise?.name ?? "Workout",
+            currentSetNumber: completedSets + 1,
+            totalSets: setsForCurrent.count,
+            completedExercises: completedCount,
+            totalExercises: allWorkoutExercises.count,
+            elapsedSeconds: Int(elapsedTime)
+        )
     }
         
     func startRestTimer(seconds: Int) {
@@ -393,17 +441,21 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             if allSetsCompleted {
                 moveToNextExercise()
             } else {
-                // Send updated set number to Watch
+                // Send updated set number to Watch (use actual set count in case sets were added)
                 if let currentRoutineExercise = currentRoutineExercise,
                    let currentExercise = exercises.first(where: { $0.id == currentRoutineExercise.exerciseId }) {
                     WorkoutSyncManager.shared.sendCurrentExercise(
                         exercise: currentExercise,
                         routineExercise: currentRoutineExercise,
-                        currentSetNumber: completedSetsCount + 1
+                        currentSetNumber: completedSetsCount + 1,
+                        totalSets: setsForCurrentExercise.count
                     )
                 }
                 startRestTimer(seconds: currentRoutineExercise?.restSeconds ?? 60)
             }
+            
+            // Update Live Activity with current progress
+            updateWorkoutLiveActivity()
         }
     }
 
@@ -429,6 +481,18 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             orderIndex: orderIndex
         )
         sets.append(newSet)
+        
+        // Notify watch of the updated set count so it doesn't prematurely show "workout complete"
+        if let routineExercise = routineExercises.first(where: { $0.exerciseId == exerciseId && $0.orderIndex == orderIndex }),
+           let exercise = exercises.first(where: { $0.id == exerciseId }) {
+            let completedCount = existingSets.filter { $0.completed }.count
+            WorkoutSyncManager.shared.sendCurrentExercise(
+                exercise: exercise,
+                routineExercise: routineExercise,
+                currentSetNumber: completedCount + 1,
+                totalSets: nextSetNumber
+            )
+        }
     }
     
     func finishWorkout() async {
@@ -445,6 +509,9 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         offlineRepository.completeSession(session, durationSeconds: durationSeconds)
         debugLog("✅ Workout completed locally")
         
+        // End the Live Activity
+        WorkoutLiveActivityManager.shared.endLiveActivity(completed: true)
+        
         // Sync completed workout to Supabase if online
         if syncService.isOnline {
             debugLog("🔄 Syncing completed workout to Supabase...")
@@ -456,32 +523,39 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             }
             await syncService.syncPendingWorkouts()
             
-            // Mark scheduled workout as completed if this was a scheduled workout
-            if let scheduledWorkoutId = scheduledWorkoutId {
-                do {
-                    try await WorkoutRepository().completeScheduledWorkout(
-                        id: scheduledWorkoutId,
-                        sessionId: session.id
-                    )
-                    debugLog("✅ Marked scheduled workout \(scheduledWorkoutId) as completed")
-                } catch {
-                    debugLog("❌ Failed to mark scheduled workout as completed: \(error)")
-                }
-            } else {
-                // Non-scheduled workout: create a completed scheduled entry so it appears on the calendar
-                // This must happen after sync so the workout_session exists in Supabase
-                do {
-                    // Fetch user's timezone setting so the date is stored correctly
-                    let userTimeZone = await Self.fetchUserTimeZone()
-                    try await WorkoutRepository().createCompletedScheduledWorkout(
-                        routineId: routine.id,
-                        sessionId: session.id,
-                        date: Date(),
-                        timeZone: userTimeZone
-                    )
-                    debugLog("✅ Created completed scheduled entry for non-scheduled workout")
-                } catch {
-                    debugLog("❌ Failed to create scheduled entry: \(error)")
+            // Mark scheduled workout as completed if this was a scheduled workout.
+            // Guard with scheduledEntryCreated to prevent duplicates if syncSession() also runs.
+            if !session.scheduledEntryCreated {
+                if let scheduledWorkoutId = scheduledWorkoutId {
+                    do {
+                        try await WorkoutRepository().completeScheduledWorkout(
+                            id: scheduledWorkoutId,
+                            sessionId: session.id
+                        )
+                        session.scheduledEntryCreated = true
+                        try? modelContext.save()
+                        debugLog("✅ Marked scheduled workout \(scheduledWorkoutId) as completed")
+                    } catch {
+                        debugLog("❌ Failed to mark scheduled workout as completed: \(error)")
+                    }
+                } else {
+                    // Non-scheduled workout: create a completed scheduled entry so it appears on the calendar
+                    // This must happen after sync so the workout_session exists in Supabase
+                    do {
+                        // Fetch user's timezone setting so the date is stored correctly
+                        let userTimeZone = await Self.fetchUserTimeZone()
+                        try await WorkoutRepository().createCompletedScheduledWorkout(
+                            routineId: routine.id,
+                            sessionId: session.id,
+                            date: Date(),
+                            timeZone: userTimeZone
+                        )
+                        session.scheduledEntryCreated = true
+                        try? modelContext.save()
+                        debugLog("✅ Created completed scheduled entry for non-scheduled workout")
+                    } catch {
+                        debugLog("❌ Failed to create scheduled entry: \(error)")
+                    }
                 }
             }
             
@@ -500,13 +574,18 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             debugLog("📱 Offline - workout will sync when back online")
         }
         
-        // Save to HealthKit
-        await HealthKitManager.shared.saveWorkout(
-            name: routine.name,
-            startDate: startTime,
-            durationSeconds: durationSeconds,
-            exercises: exercises
-        )
+        // End HKWorkoutSession (saves workout to HealthKit automatically).
+        // Falls back to legacy saveWorkout() if no session was started.
+        if HealthKitManager.shared.isWorkoutSessionActive {
+            await HealthKitManager.shared.endWorkoutSession(name: routine.name)
+        } else {
+            await HealthKitManager.shared.saveWorkout(
+                name: routine.name,
+                startDate: startTime,
+                durationSeconds: durationSeconds,
+                exercises: exercises
+            )
+        }
         
         // Tell the watch the workout has ended so it dismisses
         WorkoutSyncManager.shared.sendWorkoutEnded()
@@ -523,6 +602,10 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         offlineRepository.deleteSession(session)
         debugLog("🗑️ Cancelled workout - deleted local session without syncing")
         
+        // Cancel the HKWorkoutSession without saving to HealthKit
+        HealthKitManager.shared.cancelWorkoutSession()
+        
+        WorkoutLiveActivityManager.shared.endLiveActivity(completed: false)
         WorkoutSyncManager.shared.sendWorkoutEnded()
     }
     

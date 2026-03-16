@@ -294,6 +294,7 @@ struct RegisterView: View {
                                 HStack {
                                     SecureField("Password", text: $password)
                                         .textFieldStyle(.plain)
+                                        .textContentType(.newPassword)
                                         .focused($focusedField, equals: .password)
                                         .foregroundStyle(Color.appText)
                                 }
@@ -359,6 +360,7 @@ struct RegisterView: View {
                                 HStack {
                                     SecureField("Confirm Password", text: $confirmPassword)
                                         .textFieldStyle(.plain)
+                                        .textContentType(.newPassword)
                                         .focused($focusedField, equals: .confirmPassword)
                                         .foregroundStyle(Color.appText)
                                 }
