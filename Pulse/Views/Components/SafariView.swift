@@ -10,7 +10,10 @@ struct SafariView: UIViewControllerRepresentable {
     let url: URL
     
     func makeUIViewController(context: Context) -> SFSafariViewController {
-        SFSafariViewController(url: url)
+        let config = SFSafariViewController.Configuration()
+        config.entersReaderIfAvailable = false
+        let controller = SFSafariViewController(url: url, configuration: config)
+        return controller
     }
     
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}

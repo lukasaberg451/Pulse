@@ -1103,10 +1103,19 @@ struct CreateRoutineSheet: View {
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Notes (Optional)")
-                                .font(.caption.weight(.medium))
-                                .foregroundStyle(Color.appSecondaryText)
-                                .padding(.horizontal, 4)
+                            HStack {
+                                Text("Notes (Optional)")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+                                    .padding(.horizontal, 4)
+
+                                Spacer()
+
+                                Text("\(description.count)/256")
+                                    .font(.caption2)
+                                    .foregroundStyle(description.count >= 256 ? Color.red : Color.appTertiaryText)
+                                    .padding(.horizontal, 4)
+                            }
 
                             HStack(alignment: .top) {
                                 TextField("Add a description or notes", text: $description, axis: .vertical)
@@ -1115,6 +1124,11 @@ struct CreateRoutineSheet: View {
                                     .foregroundStyle(Color.appText)
                                     .focused($focusedField, equals: .notes)
                                     .lineLimit(3...6)
+                                    .onChange(of: description) { _, newValue in
+                                        if newValue.count > 256 {
+                                            description = String(newValue.prefix(256))
+                                        }
+                                    }
                             }
                             .padding(14)
                             .background {

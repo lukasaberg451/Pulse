@@ -370,10 +370,9 @@ struct SettingsView: View {
             SubscriptionView()
                 .sheetContentTransition()
         }
-        .sheet(item: $safariURL) { url in
+        .fullScreenCover(item: $safariURL) { url in
             SafariView(url: url)
                 .ignoresSafeArea()
-                .sheetContentTransition()
         }
         .alert("Apple Health Access", isPresented: $healthKitManager.showDeniedAlert) {
             Button("OK", role: .cancel) {}

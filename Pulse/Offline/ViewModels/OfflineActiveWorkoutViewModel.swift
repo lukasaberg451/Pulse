@@ -37,10 +37,16 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     private var startTime: Date?
     private var workoutTimer: Timer?
     private var restTimer: Timer?
+    private var persistenceTimer: Timer?
+    private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
     private let offlineRepository: OfflineWorkoutRepository
     private let syncService: WorkoutSyncService
     private let modelContext: ModelContext
     private var resumingSession: LocalWorkoutSession?
+    
+    /// UserDefaults keys for fallback persistence of critical workout state
+    private static let startTimeKey = "activeWorkout_startTime"
+    private static let sessionIdKey = "activeWorkout_sessionId"
     
     init(
         routine: Routine,
@@ -113,11 +119,13 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 if self.isRestTimerActive {
                     self.updateRestTimeRemaining()
                 }
+                self.endBackgroundSave()
             }
         }
         
         // Save elapsed time when the app goes to the background so we can
         // restore it accurately if the user kills the app mid-workout.
+        // Also request a background task to ensure the save completes.
         NotificationCenter.default.addObserver(
             forName: UIApplication.didEnterBackgroundNotification,
             object: nil,
@@ -125,7 +133,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         ) { [weak self] _ in
             guard let self = self else { return }
             Task { @MainActor in
-                self.saveElapsedTime()
+                self.beginBackgroundSave()
             }
         }
     }
@@ -177,10 +185,21 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             }
             
             // Restore the elapsed time from before the app was killed.
-            // durationSeconds is saved when the app enters the background,
-            // so it reflects the actual workout time before the interruption.
-            let elapsedBeforeKill = TimeInterval(session.durationSeconds ?? 0)
-            startTime = Date().addingTimeInterval(-elapsedBeforeKill)
+            // First try durationSeconds (saved periodically and on background).
+            // Fall back to the original start time saved in UserDefaults,
+            // which gives us the real wall-clock time the workout was started.
+            if let savedDuration = session.durationSeconds, savedDuration > 0 {
+                startTime = Date().addingTimeInterval(-TimeInterval(savedDuration))
+            } else {
+                // Fallback: use persisted start time from UserDefaults
+                let savedStartTimestamp = UserDefaults.standard.double(forKey: Self.startTimeKey)
+                if savedStartTimestamp > 0 {
+                    startTime = Date(timeIntervalSince1970: savedStartTimestamp)
+                } else {
+                    // Last resort: use the session's startedAt
+                    startTime = session.startedAt
+                }
+            }
             
             // Filter routineExercises to only those that have sets in this session
             // This prevents exercises added to the routine after the workout started from appearing
@@ -201,6 +220,12 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             
             // Clear the resuming flag
             resumingSession = nil
+            
+            // Save the restored start time to UserDefaults for future crash protection
+            if let startTime = startTime {
+                UserDefaults.standard.set(startTime.timeIntervalSince1970, forKey: Self.startTimeKey)
+            }
+            UserDefaults.standard.set(session.id.uuidString, forKey: Self.sessionIdKey)
             
             // Start elapsed time timer
             startWorkoutTimer()
@@ -233,6 +258,9 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         // Start elapsed time timer
         startWorkoutTimer()
         
+        // Save start time immediately as fallback
+        UserDefaults.standard.set(startTime!.timeIntervalSince1970, forKey: Self.startTimeKey)
+        
         // Use existing session if provided (from scheduled workout), otherwise create new one
         let session: LocalWorkoutSession
         if let existingSessionId = workoutSessionId {
@@ -258,6 +286,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             )
         }
         currentSession = session
+        UserDefaults.standard.set(session.id.uuidString, forKey: Self.sessionIdKey)
         
         // Create placeholder sets for each exercise
         for routineExercise in routineExercises {
@@ -305,6 +334,10 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 self.elapsedTime = Date().timeIntervalSince(startTime)
             }
         }
+        
+        // Also start periodic persistence so elapsed time is saved
+        // even if the app is killed without the background notification
+        startPersistenceTimer()
     }
     
     /// Persist the current elapsed time to the session so it can be
@@ -314,6 +347,52 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         let elapsed = Int(Date().timeIntervalSince(startTime))
         session.durationSeconds = elapsed
         try? modelContext.save()
+        
+        // Also save start time to UserDefaults as a fallback
+        UserDefaults.standard.set(startTime.timeIntervalSince1970, forKey: Self.startTimeKey)
+        UserDefaults.standard.set(session.id.uuidString, forKey: Self.sessionIdKey)
+    }
+    
+    /// Start periodic persistence of elapsed time every 30 seconds.
+    /// This ensures elapsed time is saved even if the app is killed
+    /// without going through the normal background notification.
+    private func startPersistenceTimer() {
+        persistenceTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.saveElapsedTime()
+            }
+        }
+    }
+    
+    /// Request a background task so iOS gives us extra time to save state.
+    private func beginBackgroundSave() {
+        saveElapsedTime()
+        
+        guard backgroundTaskID == .invalid else { return }
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "WorkoutStateSave") { [weak self] in
+            // Expiration handler — save one more time and end the task
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.saveElapsedTime()
+                self.endBackgroundSave()
+            }
+        }
+    }
+    
+    /// End the background task if one is active.
+    private func endBackgroundSave() {
+        guard backgroundTaskID != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(backgroundTaskID)
+        backgroundTaskID = .invalid
+    }
+    
+    /// Clear the UserDefaults fallback keys when a workout completes or is cancelled.
+    private func clearPersistedState() {
+        UserDefaults.standard.removeObject(forKey: Self.startTimeKey)
+        UserDefaults.standard.removeObject(forKey: Self.sessionIdKey)
+        persistenceTimer?.invalidate()
+        persistenceTimer = nil
     }
     
     // MARK: - Live Activity
@@ -430,6 +509,9 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         sets[index].completed = completed
         
         if completed {
+            // Save elapsed time on each set completion as an additional persistence point
+            saveElapsedTime()
+            
             // Check if this was the last set of current exercise
             let currentRoutineExercise = routineExercises.first
             let setsForCurrentExercise = sets.filter {
@@ -503,6 +585,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         // Stop timers
         workoutTimer?.invalidate()
         stopRestTimer()
+        clearPersistedState()
         
         let durationSeconds = Int(Date().timeIntervalSince(startTime))
         
@@ -597,6 +680,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         // Stop timers
         workoutTimer?.invalidate()
         stopRestTimer()
+        clearPersistedState()
         
         // Delete the session - no need to sync cancelled workouts
         offlineRepository.deleteSession(session)
@@ -693,6 +777,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     deinit {
         workoutTimer?.invalidate()
         restTimer?.invalidate()
+        persistenceTimer?.invalidate()
     }
     
     private func sendCurrentExerciseToWatch() {

@@ -157,7 +157,7 @@ struct RegisterSelectionView: View {
                     .transition(.opacity)
                 }
             }
-            .sheet(item: $safariURL) { url in
+            .fullScreenCover(item: $safariURL) { url in
                 SafariView(url: url)
                     .ignoresSafeArea()
             }

@@ -69,6 +69,7 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var syncService: WorkoutSyncService
     @EnvironmentObject var tourManager: OnboardingTourManager
+    @EnvironmentObject var healthKitManager: HealthKitManager
     @State private var hasPrefetched = false
     @Binding var selectedTab: HomeTab
     
@@ -79,6 +80,7 @@ struct HomeView: View {
     
     @State private var tabBarHeight: CGFloat = 0
     @State private var tabBarVisibility = TabBarVisibility()
+    @State private var showHealthKitSheet = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -141,13 +143,23 @@ struct HomeView: View {
                 }
             }
         }
-        .onChange(of: tourManager.isActive) { _, active in
+        .onChange(of: tourManager.isActive) { oldActive, active in
             // When the tour starts, ensure we're on the first step's tab.
             if active, let step = tourManager.currentStep, selectedTab != step.tab {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
                     selectedTab = step.tab
                 }
             }
+            // When the tour finishes, show the HealthKit permission sheet
+            // if the user hasn't authorized HealthKit yet.
+            if oldActive && !active && !healthKitManager.isSyncEnabled && healthKitManager.isAvailable {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showHealthKitSheet = true
+                }
+            }
+        }
+        .sheet(isPresented: $showHealthKitSheet) {
+            HealthKitPermissionSheet()
         }
         .environment(tabBarVisibility)
         .environment(\.tabBarBottomInset, tabBarHeight)

@@ -23,6 +23,11 @@ class HealthKitManager: NSObject, ObservableObject {
     private var workoutSession: HKWorkoutSession?
     private var workoutBuilder: HKLiveWorkoutBuilder?
     
+    /// Tracks whether the last attempt to start a workout session succeeded.
+    /// When false, the app has no background execution protection and should
+    /// persist state more aggressively.
+    @Published var hasActiveBackgroundProtection = false
+    
     private override init() {}
     
     // MARK: - Authorization
@@ -57,14 +62,56 @@ class HealthKitManager: NSObject, ObservableObject {
         }
     }
     
+    /// Ensures HealthKit is authorized for workout sessions.
+    /// Unlike requestAuthorization(), this does not show a denied alert or
+    /// change the sync toggle — it only ensures we have the minimum permission
+    /// needed for background execution.
+    func ensureAuthorizedForBackgroundExecution() async -> Bool {
+        guard isAvailable else { return false }
+        
+        let status = healthStore.authorizationStatus(for: HKObjectType.workoutType())
+        if status == .sharingAuthorized {
+            return true
+        }
+        
+        // Not yet determined — request authorization silently
+        if status == .notDetermined {
+            let typesToShare: Set<HKSampleType> = [
+                HKObjectType.workoutType()
+            ]
+            do {
+                try await healthStore.requestAuthorization(toShare: typesToShare, read: [])
+                let newStatus = healthStore.authorizationStatus(for: HKObjectType.workoutType())
+                if newStatus == .sharingAuthorized {
+                    isAuthorized = true
+                    return true
+                }
+            } catch {
+                debugLog("❌ HealthKit background auth error: \(error.localizedDescription)")
+            }
+        }
+        
+        return false
+    }
+    
     // MARK: - Live Workout Session (Background Execution)
     
-    /// Starts an HKWorkoutSession which grants the app extended background execution
-    /// via the workout-processing background mode. This prevents iOS from terminating
-    /// the app while a workout is in progress.
+    /// Starts an HKWorkoutSession which grants the app extended background execution.
+    /// This prevents iOS from terminating the app while a workout is in progress.
+    /// Always attempts to start regardless of the sync toggle — background protection
+    /// is critical for all workouts. Will auto-request HealthKit authorization if needed.
     func startWorkoutSession(exercises: [Exercise]) async {
-        guard isSyncEnabled, isAvailable else {
-            debugLog("📱 HealthKit not enabled, skipping workout session")
+        guard isAvailable else {
+            debugLog("📱 HealthKit not available on this device — no background execution protection")
+            hasActiveBackgroundProtection = false
+            return
+        }
+        
+        // Ensure we have authorization (will prompt user if not yet determined)
+        let authorized = await ensureAuthorizedForBackgroundExecution()
+        guard authorized else {
+            debugLog("📱 HealthKit not authorized — no background execution protection")
+            hasActiveBackgroundProtection = false
             return
         }
         
@@ -91,35 +138,46 @@ class HealthKitManager: NSObject, ObservableObject {
             
             self.workoutSession = session
             self.workoutBuilder = builder
+            hasActiveBackgroundProtection = true
             
             debugLog("📱 ✅ Started HKWorkoutSession for background execution")
         } catch {
+            hasActiveBackgroundProtection = false
             debugLog("📱 ❌ Failed to start HKWorkoutSession: \(error.localizedDescription)")
         }
     }
     
-    /// Ends the active workout session and saves the workout to HealthKit.
+    /// Ends the active workout session. Saves the workout to HealthKit only if
+    /// the user has HealthKit sync enabled; otherwise discards the workout data.
     func endWorkoutSession(name: String? = nil) async {
         guard let session = workoutSession, let builder = workoutBuilder else { return }
         
         session.end()
         
-        do {
-            if let name = name {
-                try await builder.addMetadata([
-                    HKMetadataKeyWorkoutBrandName: "Pulse",
-                    "WorkoutName": name
-                ])
+        if isSyncEnabled {
+            // User wants workouts saved to Health — finish and save
+            do {
+                if let name = name {
+                    try await builder.addMetadata([
+                        HKMetadataKeyWorkoutBrandName: "Pulse",
+                        "WorkoutName": name
+                    ])
+                }
+                try await builder.endCollection(at: Date())
+                try await builder.finishWorkout()
+                debugLog("📱 ✅ Ended HKWorkoutSession and saved workout to Health")
+            } catch {
+                debugLog("📱 ❌ Failed to end workout session: \(error.localizedDescription)")
             }
-            try await builder.endCollection(at: Date())
-            try await builder.finishWorkout()
-            debugLog("📱 ✅ Ended HKWorkoutSession and saved workout")
-        } catch {
-            debugLog("📱 ❌ Failed to end workout session: \(error.localizedDescription)")
+        } else {
+            // Session was only used for background execution — discard the workout
+            builder.discardWorkout()
+            debugLog("📱 ✅ Ended HKWorkoutSession (workout discarded — sync not enabled)")
         }
         
         workoutSession = nil
         workoutBuilder = nil
+        hasActiveBackgroundProtection = false
     }
     
     /// Cancels the active workout session without saving to HealthKit.
@@ -131,6 +189,7 @@ class HealthKitManager: NSObject, ObservableObject {
         
         workoutSession = nil
         workoutBuilder = nil
+        hasActiveBackgroundProtection = false
         
         debugLog("📱 🗑️ Cancelled HKWorkoutSession without saving")
     }
@@ -202,12 +261,16 @@ extension HealthKitManager: HKWorkoutSessionDelegate {
     nonisolated func workoutSession(_ workoutSession: HKWorkoutSession, didChangeTo toState: HKWorkoutSessionState, from fromState: HKWorkoutSessionState, date: Date) {
         Task { @MainActor in
             debugLog("📱 HKWorkoutSession state changed: \(fromState.rawValue) → \(toState.rawValue)")
+            if toState == .ended || toState == .stopped {
+                self.hasActiveBackgroundProtection = false
+            }
         }
     }
     
     nonisolated func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: any Error) {
         Task { @MainActor in
             debugLog("📱 ❌ HKWorkoutSession failed: \(error.localizedDescription)")
+            self.hasActiveBackgroundProtection = false
         }
     }
 }

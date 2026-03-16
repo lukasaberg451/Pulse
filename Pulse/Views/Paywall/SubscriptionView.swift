@@ -251,10 +251,9 @@ struct SubscriptionView: View {
             .task {
                 await subscriptionManager.fetchOfferings()
             }
-            .sheet(item: $safariURL) { url in
+            .fullScreenCover(item: $safariURL) { url in
                 SafariView(url: url)
                     .ignoresSafeArea()
-                    .sheetContentTransition()
             }
         }
         .presentationBackground(LinearGradient.dashboardBackground)

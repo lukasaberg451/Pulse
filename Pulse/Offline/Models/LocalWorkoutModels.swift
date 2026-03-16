@@ -24,7 +24,7 @@ final class LocalWorkoutSession {
     var syncedAt: Date?
     /// Whether the scheduled_workouts entry has already been created/updated for this session.
     /// Prevents duplicate entries when both finishWorkout() and syncSession() run.
-    var scheduledEntryCreated: Bool
+    var scheduledEntryCreated: Bool = false
     
     @Relationship(deleteRule: .cascade, inverse: \LocalWorkoutSet.session)
     var sets: [LocalWorkoutSet]?
