@@ -169,6 +169,7 @@ struct RegisterView: View {
                                 HStack {
                                     TextField("First Name", text: $firstName)
                                         .textFieldStyle(.plain)
+                                        .textContentType(.givenName)
                                         .textInputAutocapitalization(.words)
                                         .focused($focusedField, equals: .firstName)
                                         .foregroundStyle(Color.appText)
@@ -210,6 +211,7 @@ struct RegisterView: View {
                                 HStack {
                                     TextField("Last Name", text: $lastName)
                                         .textFieldStyle(.plain)
+                                        .textContentType(.familyName)
                                         .textInputAutocapitalization(.words)
                                         .focused($focusedField, equals: .lastName)
                                         .foregroundStyle(Color.appText)
@@ -251,6 +253,7 @@ struct RegisterView: View {
                                 HStack {
                                     TextField("Email", text: $email)
                                         .textFieldStyle(.plain)
+                                        .textContentType(.emailAddress)
                                         .textInputAutocapitalization(.never)
                                         .keyboardType(.emailAddress)
                                         .autocorrectionDisabled()
