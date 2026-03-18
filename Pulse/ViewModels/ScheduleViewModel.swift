@@ -104,6 +104,10 @@ class ScheduleViewModel: ObservableObject {
                 .execute()
                 .value
             userProfile = profile
+        } catch is CancellationError {
+            // Ignore — a newer refresh replaced this one
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // Ignore URL session cancellation
         } catch {
             debugLog("Failed to fetch user profile: \(error)")
         }

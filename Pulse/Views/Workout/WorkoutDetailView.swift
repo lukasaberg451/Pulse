@@ -53,6 +53,7 @@ struct WorkoutDetailView: View {
                 }
             }
         }
+        .sentryScreen("WorkoutDetail")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(LinearGradient.dashboardBackground, for: .navigationBar)
         .toolbar {

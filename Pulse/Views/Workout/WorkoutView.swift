@@ -32,6 +32,7 @@ struct WorkoutView: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
             }
+            .sentryScreen("Workout")
             .background(Color.appBackground)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .navigationDestination(item: $routineToNavigateTo) { routine in
@@ -681,7 +682,9 @@ struct RoutinePickerSheet: View {
                     .scrollContentBackground(.hidden)
                 }
             }
+            .sentryScreen("RoutinePicker")
             .navigationTitle("Select Routine")
+            .sentryScreen("CreateRoutine")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -979,6 +982,7 @@ struct RoutineContentView: View {
                 .transition(.opacity)
             }
         }
+        .sentryScreen("RoutineList")
         .animation(.easeInOut(duration: 0.35), value: viewModel.routines.isEmpty)
         .sheet(isPresented: $showingCreateSheet) {
             CreateRoutineSheet(
@@ -1098,7 +1102,6 @@ struct CreateRoutineSheet: View {
                                         y: 2
                                     )
                             }
-                            .contentShape(Rectangle())
                             .onTapGesture { focusedField = .name }
                         }
 
@@ -1152,7 +1155,6 @@ struct CreateRoutineSheet: View {
                                         y: 2
                                     )
                             }
-                            .contentShape(Rectangle())
                             .onTapGesture { focusedField = .notes }
                         }
                     }

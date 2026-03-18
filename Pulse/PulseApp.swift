@@ -50,6 +50,10 @@ private struct SignOutActionKey: EnvironmentKey {
     static let defaultValue: () async -> Void = {}
 }
 
+private struct DeleteAccountActionKey: EnvironmentKey {
+    static let defaultValue: () async -> Bool = { false }
+}
+
 private struct SplashDismissedKey: EnvironmentKey {
     static let defaultValue: Bool = false
 }
@@ -68,6 +72,11 @@ extension EnvironmentValues {
     var signOutAction: () async -> Void {
         get { self[SignOutActionKey.self] }
         set { self[SignOutActionKey.self] = newValue }
+    }
+    
+    var deleteAccountAction: () async -> Bool {
+        get { self[DeleteAccountActionKey.self] }
+        set { self[DeleteAccountActionKey.self] = newValue }
     }
 }
 
@@ -138,11 +147,6 @@ struct PulseApp: App {
                     HomeView(authViewModel: authViewModel, selectedTab: $selectedTab)
                         .environmentObject(authViewModel)
                         .environmentObject(tourManager)
-                        .overlay {
-                            if showPostLoginLoading {
-                                PostLoginLoadingView(isVisible: $showPostLoginLoading)
-                            }
-                        }
                         .onChange(of: authViewModel.isAuthenticated) { _, newValue in
                             // Start spotlight tour on first launch after user authenticates
                             if newValue && !hasCompletedFirstLaunchGuide {
@@ -174,18 +178,36 @@ struct PulseApp: App {
             .preferredColorScheme(themeManager.selectedTheme.colorScheme)
             .environment(\.splashDismissed, !showSplash && !showPostLoginLoading)
             .environment(\.signOutAction, { @MainActor in
-                // Show the loading overlay first, then sign out after it's visible
+                // Show the loading overlay first, then sign out after the fade-in
+                // completes so the user never sees the view tree swap underneath.
                 showPostLogoutLoading = true
-                // Wait a frame so the overlay renders before the view tree swaps
-                try? await Task.sleep(for: .milliseconds(50))
+                try? await Task.sleep(for: .milliseconds(400))
                 await authViewModel.signOut()
             })
+            .environment(\.deleteAccountAction, { @MainActor in
+                showPostLogoutLoading = true
+                try? await Task.sleep(for: .milliseconds(400))
+                let success = await authViewModel.deleteAccount()
+                if !success {
+                    // Deletion failed — hide the overlay since we're still signed in
+                    showPostLogoutLoading = false
+                }
+                return success
+            })
+            .overlay {
+                if showPostLoginLoading {
+                    PostLoginLoadingView(isVisible: $showPostLoginLoading)
+                        .ignoresSafeArea()
+                }
+            }
             .overlay {
                 if showPostLogoutLoading {
                     PostLoginLoadingView(isVisible: $showPostLogoutLoading)
                         .ignoresSafeArea()
+                        .transition(.opacity)
                 }
             }
+            .animation(.easeIn(duration: 0.35), value: showPostLogoutLoading)
             .overlay {
                 if showSplash {
                     SplashOverlay(
@@ -198,9 +220,11 @@ struct PulseApp: App {
             .onChange(of: authViewModel.isAuthenticated) { oldValue, isAuthenticated in
                 if !authViewModel.isInitializing {
                     if isAuthenticated && !oldValue {
-                        // User just signed in
+                        // User just signed in — show the post-login overlay and
+                        // clear isLoading so the auth view model state is clean.
                         selectedTab = .dashboard
                         showPostLoginLoading = true
+                        authViewModel.isLoading = false
                     } else if !isAuthenticated && oldValue && !showPostLogoutLoading {
                         // Signed out via another path (e.g. account deletion)
                         showPostLogoutLoading = true

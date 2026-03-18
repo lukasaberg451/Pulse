@@ -197,6 +197,7 @@ struct ActiveWorkoutViewContent: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
+            .sentryScreen("ActiveWorkout")
             .navigationTitle(routine.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
@@ -603,7 +604,6 @@ struct SwipeableSetRow: View {
     @State private var hasTriggeredHaptic = false
     @State private var weightText: String = ""
     @State private var hasInitializedWeight = false
-    @FocusState private var isWeightFieldFocused: Bool
     
     private let swipeThreshold: CGFloat = -80
     private let undoThreshold: CGFloat = 80
@@ -729,7 +729,7 @@ struct SwipeableSetRow: View {
                         
                         if !set.completed && translation < swipeThreshold {
                             // Complete the set — delay state update so the swipe animation finishes first
-                            isWeightFieldFocused = false
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             withAnimation(.easeOut(duration: 0.2)) {
                                 dragOffset = 0
                             }
@@ -832,13 +832,10 @@ struct SwipeableSetRow: View {
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
             } else {
-                TextField("0", text: $weightText)
+                SelectAllTextField(text: $weightText, placeholder: "0")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
-                    .keyboardType(.decimalPad)
-                    .focused($isWeightFieldFocused)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 50)
+                    .frame(width: 50, height: 24)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 4)
                     .background(Color.appText.opacity(0.06))
@@ -901,4 +898,51 @@ struct SwipeableSetRow: View {
     }
 }
 
-
+// MARK: - Select All TextField
+struct SelectAllTextField: UIViewRepresentable {
+    @Binding var text: String
+    var placeholder: String
+    
+    func makeUIView(context: Context) -> UITextField {
+        let textField = UITextField()
+        textField.placeholder = placeholder
+        textField.keyboardType = .decimalPad
+        textField.textAlignment = .right
+        textField.font = .preferredFont(forTextStyle: .subheadline)
+        textField.delegate = context.coordinator
+        textField.addTarget(context.coordinator, action: #selector(Coordinator.textChanged(_:)), for: .editingChanged)
+        textField.setContentHuggingPriority(.required, for: .horizontal)
+        textField.setContentCompressionResistancePriority(.required, for: .horizontal)
+        return textField
+    }
+    
+    func updateUIView(_ uiView: UITextField, context: Context) {
+        if uiView.text != text {
+            uiView.text = text
+        }
+        uiView.textColor = UIColor(Color.appText)
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(text: $text)
+    }
+    
+    class Coordinator: NSObject, UITextFieldDelegate {
+        @Binding var text: String
+        
+        init(text: Binding<String>) {
+            _text = text
+        }
+        
+        func textFieldDidBeginEditing(_ textField: UITextField) {
+            // Delay selectAll so it runs after the field is fully active
+            DispatchQueue.main.async {
+                textField.selectAll(nil)
+            }
+        }
+        
+        @objc func textChanged(_ textField: UITextField) {
+            text = textField.text ?? ""
+        }
+    }
+}

@@ -186,7 +186,6 @@ class AuthViewModel: ObservableObject{
             }
             
             self.session = result
-            self.isAuthenticated = true
             resetRateLimit()
             
             // Sync RevenueCat user identity
@@ -200,6 +199,11 @@ class AuthViewModel: ObservableObject{
             PostHogSDK.shared.identify(result.user.id.uuidString)
             
             await fetchUserProfile()
+            
+            // Set isAuthenticated last — isLoading stays true so the
+            // LoginView loading overlay covers the view-tree swap until
+            // PulseApp's PostLoginLoadingView takes over.
+            self.isAuthenticated = true
         } catch let error as AuthError {
             recordFailedAttempt()
             // Generic error message to prevent email enumeration
@@ -207,15 +211,15 @@ class AuthViewModel: ObservableObject{
             self.session = nil
             self.isAuthenticated = false
             debugLog("Sign in failed: \(error.localizedDescription)")
+            isLoading = false
         } catch {
             recordFailedAttempt()
             self.errorMessage = "An error occurred. Please try again."
             self.session = nil
             self.isAuthenticated = false
             debugLog("Sign in failed: \(error.localizedDescription)")
+            isLoading = false
         }
-        
-        isLoading = false
     }
     
     func signOut() async{
@@ -337,7 +341,6 @@ class AuthViewModel: ObservableObject{
             )
             
             self.session = session
-            self.isAuthenticated = true
             
             // Sync RevenueCat user identity
             await SubscriptionManager.shared.syncUser()
@@ -370,14 +373,17 @@ class AuthViewModel: ObservableObject{
             PostHogSDK.shared.identify(session.user.id.uuidString)
             
             await fetchUserProfile()
+            
+            // Set isAuthenticated last — isLoading stays true so the
+            // loading overlay covers the view-tree swap.
+            self.isAuthenticated = true
         } catch {
             self.errorMessage = "Sign in with Apple failed. Please try again."
             self.session = nil
             self.isAuthenticated = false
             debugLog("Sign in with Apple failed: \(error.localizedDescription)")
+            isLoading = false
         }
-        
-        isLoading = false
     }
     
     /// Generates a random string for use as a nonce.

@@ -91,6 +91,7 @@ struct UnitSelectionSheet: View {
                     Spacer()
                 }
             }
+            .sentryScreen("UnitSelection")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {

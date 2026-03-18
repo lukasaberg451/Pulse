@@ -233,6 +233,7 @@ struct SubscriptionView: View {
                     }
                 }
             }
+            .sentryScreen("Subscription")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {

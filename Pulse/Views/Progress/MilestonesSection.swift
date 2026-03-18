@@ -156,6 +156,7 @@ struct AllMilestonesView: View {
                 await viewModel.loadMilestones()
             }
         }
+        .sentryScreen("AllMilestones")
         .navigationTitle("Milestones")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)

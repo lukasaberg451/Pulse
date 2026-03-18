@@ -392,6 +392,7 @@ struct RoutineDetailView: View {
                 }
             }
         }
+        .sentryScreen("RoutineDetail")
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("")
         .toolbarBackground(Color.appBackground, for: .navigationBar)
@@ -800,6 +801,7 @@ struct ExercisePickerSheet: View {
                     .padding(.bottom, 16)
                 }
             }
+            .sentryScreen("AddExercise")
             .navigationTitle("Add Exercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
@@ -1215,7 +1217,6 @@ struct CreateCustomExerciseSheet: View {
                                     .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
                             }
                         }
-                        .contentShape(Rectangle())
                         .onTapGesture { isExerciseNameFocused = true }
                     }
                     
@@ -1275,6 +1276,7 @@ struct CreateCustomExerciseSheet: View {
                 }
                 .padding()
             }
+            .sentryScreen("CreateCustomExercise")
             .navigationTitle("Custom Exercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
@@ -1478,7 +1480,7 @@ struct ExerciseConfigSheet: View {
     
     @State private var sets = 3
     @State private var repsTarget = "8"
-    @State private var targetWeight = "0.0"
+    @State private var targetWeight = ""
     @State private var durationMinutes = 5
     @State private var durationSeconds = 0
     @State private var restSeconds = 60
@@ -1493,6 +1495,15 @@ struct ExerciseConfigSheet: View {
     
     var isCardio: Bool {
         exercise.exerciseType == "cardio"
+    }
+    
+    private var isAddDisabled: Bool {
+        if isCardio {
+            return durationMinutes == 0 && durationSeconds == 0
+        }
+        let normalized = targetWeight.replacingOccurrences(of: ",", with: ".")
+        guard let weight = Double(normalized), weight > 0 else { return true }
+        return false
     }
     
     var body: some View {
@@ -1795,7 +1806,7 @@ struct ExerciseConfigSheet: View {
                                             
                                             Spacer()
                                             
-                                            TextField("0.0", text: $targetWeight)
+                                            TextField("", text: $targetWeight)
                                                 .foregroundStyle(Color.appText)
                                                 .keyboardType(.decimalPad)
                                                 .multilineTextAlignment(.trailing)
@@ -1867,6 +1878,7 @@ struct ExerciseConfigSheet: View {
                     .padding()
                 }
             }
+            .sentryScreen("ConfigureExercise")
             .navigationTitle("Configure Exercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
@@ -1917,8 +1929,9 @@ struct ExerciseConfigSheet: View {
                             dismiss()
                         }
                     }
-                    .foregroundStyle(Color.appAccent)
+                    .foregroundStyle(isAddDisabled ? Color.appSecondaryText : Color.appAccent)
                     .fontWeight(.semibold)
+                    .disabled(isAddDisabled)
                 }
             }
         }
@@ -2015,7 +2028,6 @@ struct EditRoutineSheet: View {
                                         y: 2
                                     )
                             }
-                            .contentShape(Rectangle())
                             .onTapGesture { focusedField = .name }
                         }
 
@@ -2069,7 +2081,6 @@ struct EditRoutineSheet: View {
                                         y: 2
                                     )
                             }
-                            .contentShape(Rectangle())
                             .onTapGesture { focusedField = .notes }
                         }
                     }
@@ -2093,6 +2104,7 @@ struct EditRoutineSheet: View {
                     Spacer()
                 }
             }
+            .sentryScreen("EditRoutine")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -2136,6 +2148,15 @@ struct EditExerciseSheet: View {
         exercise.exerciseType == "cardio"
     }
     
+    private var isSaveDisabled: Bool {
+        if isCardio {
+            return durationMinutes == 0 && durationSeconds == 0
+        }
+        let normalized = targetWeight.replacingOccurrences(of: ",", with: ".")
+        guard let weight = Double(normalized), weight > 0 else { return true }
+        return false
+    }
+    
     init(routineExercise: RoutineExercise, exercise: Exercise, viewModel: RoutineDetailViewModel) {
         self.routineExercise = routineExercise
         self.exercise = exercise
@@ -2144,7 +2165,7 @@ struct EditExerciseSheet: View {
         _sets = State(initialValue: routineExercise.sets)
         _repsTarget = State(initialValue: routineExercise.repsTarget ?? "")
         let displayWeight = UnitManager.shared.displayWeight(routineExercise.targetWeight ?? 0)
-        _targetWeight = State(initialValue: String(format: "%.1f", displayWeight))
+        _targetWeight = State(initialValue: displayWeight > 0 ? String(format: "%.1f", displayWeight) : "")
         _restSeconds = State(initialValue: routineExercise.restSeconds)
         
         let totalSeconds = routineExercise.durationSeconds ?? 0
@@ -2457,7 +2478,7 @@ struct EditExerciseSheet: View {
                                             
                                             Spacer()
                                             
-                                            TextField("0.0", text: $targetWeight)
+                                            TextField("", text: $targetWeight)
                                                 .foregroundStyle(Color.appText)
                                                 .keyboardType(.decimalPad)
                                                 .multilineTextAlignment(.trailing)
@@ -2529,6 +2550,7 @@ struct EditExerciseSheet: View {
                     .padding()
                 }
             }
+            .sentryScreen("EditExercise")
             .navigationTitle("Edit Exercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
@@ -2573,8 +2595,9 @@ struct EditExerciseSheet: View {
                             dismiss()
                         }
                     }
-                    .foregroundStyle(Color.appAccent)
+                    .foregroundStyle(isSaveDisabled ? Color.appSecondaryText : Color.appAccent)
                     .fontWeight(.semibold)
+                    .disabled(isSaveDisabled)
                 }
             }
             .presentationBackground(LinearGradient.dashboardBackground)

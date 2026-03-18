@@ -68,6 +68,7 @@ class DashboardViewModel: ObservableObject {
         
         do {
             await fetchUserProfile()
+            guard !Task.isCancelled else { isLoading = false; return }
             //Load exercises first
             exercises = try await exerciseRepository.fetchAllExercises()
             
@@ -188,6 +189,10 @@ class DashboardViewModel: ObservableObject {
                 .value
             
             userProfile = profile
+        } catch is CancellationError {
+            // Ignore — a newer refresh replaced this one
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // Ignore URL session cancellation (e.g. a newer refresh replaced this one)
         } catch {
             debugLog("Failed to fetch user profile: \(error)")
         }

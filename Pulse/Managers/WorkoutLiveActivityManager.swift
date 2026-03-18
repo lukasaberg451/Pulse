@@ -22,38 +22,14 @@ final class WorkoutLiveActivityManager {
     
     /// Starts a Live Activity for the current workout.
     /// This keeps the app's process priority elevated so iOS is less likely to terminate it in the background.
+    /// NOTE: Requires a WidgetExtension target with a Live Activity view to render.
+    /// Without one the activity request can freeze the main thread.
     func startLiveActivity(routineName: String, startTime: Date, firstExerciseName: String, totalExercises: Int, totalSetsForFirstExercise: Int) {
         #if canImport(ActivityKit)
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            debugLog("📱 Live Activities not enabled, skipping")
-            return
-        }
-        
-        let attributes = WorkoutActivityAttributes(
-            routineName: routineName,
-            startTime: startTime
-        )
-        
-        let initialState = WorkoutActivityAttributes.ContentState(
-            currentExerciseName: firstExerciseName,
-            currentSetNumber: 1,
-            totalSets: totalSetsForFirstExercise,
-            completedExercises: 0,
-            totalExercises: totalExercises,
-            elapsedSeconds: 0
-        )
-        
-        let content = ActivityContent(state: initialState, staleDate: nil)
-        
-        do {
-            currentActivity = try Activity<WorkoutActivityAttributes>.request(
-                attributes: attributes,
-                content: content
-            )
-            debugLog("📱 ✅ Started workout Live Activity")
-        } catch {
-            debugLog("📱 ❌ Failed to start Live Activity: \(error.localizedDescription)")
-        }
+        // Don't start a Live Activity until a Widget Extension is added to the
+        // project to provide the presentation UI. Starting one without a widget
+        // can freeze the app's main thread.
+        debugLog("📱 Live Activity skipped — no widget extension configured yet")
         #endif
     }
     

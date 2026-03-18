@@ -114,7 +114,12 @@ class PwResetViewModel: ObservableObject {
             
             step = .success
         } catch {
-            errorMessage = "Failed to update password. Please try again."
+            let message = error.localizedDescription.lowercased()
+            if message.contains("same password") || message.contains("different password") || message.contains("should be different") {
+                errorMessage = "You can't reuse your previous password. Please choose a new one."
+            } else {
+                errorMessage = "Failed to update password. Please try again."
+            }
             showError = true
         }
         

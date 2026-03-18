@@ -230,26 +230,32 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             // Start elapsed time timer
             startWorkoutTimer()
             
-            // Launch the watch app and send workout data after a delay
-            // The watch app needs time to launch and activate its WCSession
-            if SubscriptionManager.shared.isProUser {
-                WorkoutSyncManager.shared.launchWatchApp(exercises: exercises)
-                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
-                WorkoutSyncManager.shared.sendWorkoutToWatch(
-                    routine: routine,
-                    routineExercises: routineExercises,
-                    exercises: exercises,
-                    startTime: startTime!
-                )
-            }
-            
-            // Start HKWorkoutSession to keep the app alive in the background
-            await HealthKitManager.shared.startWorkoutSession(exercises: exercises)
-            
             // Start Live Activity for resumed workout
             startWorkoutLiveActivity()
             
             isLoading = false
+            
+            // Start HKWorkoutSession for background execution (fire-and-forget, non-blocking).
+            HealthKitManager.shared.startWorkoutSession(exercises: exercises)
+            
+            // Launch the watch app and send workout data after a delay (non-blocking)
+            if SubscriptionManager.shared.isProUser {
+                let routineForWatch = routine
+                let exercisesForWatch = routineExercises
+                let allExercises = exercises
+                let watchStartTime = startTime!
+                Task.detached {
+                    await WorkoutSyncManager.shared.launchWatchApp(exercises: allExercises)
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    await WorkoutSyncManager.shared.sendWorkoutToWatch(
+                        routine: routineForWatch,
+                        routineExercises: exercisesForWatch,
+                        exercises: allExercises,
+                        startTime: watchStartTime
+                    )
+                }
+            }
+            
             return
         }
         
@@ -303,26 +309,32 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             }
         }
         
-        // Launch the watch app and send workout data after a delay
-        // The watch app needs time to launch and activate its WCSession
-        if let startTime = startTime, SubscriptionManager.shared.isProUser {
-            WorkoutSyncManager.shared.launchWatchApp(exercises: exercises)
-            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
-            WorkoutSyncManager.shared.sendWorkoutToWatch(
-                routine: routine,
-                routineExercises: routineExercises,
-                exercises: exercises,
-                startTime: startTime
-            )
-        }
-        
-        // Start HKWorkoutSession to keep the app alive in the background
-        await HealthKitManager.shared.startWorkoutSession(exercises: exercises)
-        
         // Start Live Activity for new workout
         startWorkoutLiveActivity()
         
         isLoading = false
+        
+        // Start HKWorkoutSession for background execution (fire-and-forget, non-blocking).
+        HealthKitManager.shared.startWorkoutSession(exercises: exercises)
+        
+        // Launch the watch app and send workout data after a delay (non-blocking)
+        // The watch app needs time to launch and activate its WCSession
+        // Use Task.detached to avoid inheriting @MainActor and blocking the UI
+        if let startTime = startTime, SubscriptionManager.shared.isProUser {
+            let routineForWatch = routine
+            let exercisesForWatch = routineExercises
+            let allExercises = exercises
+            Task.detached {
+                await WorkoutSyncManager.shared.launchWatchApp(exercises: allExercises)
+                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+                await WorkoutSyncManager.shared.sendWorkoutToWatch(
+                    routine: routineForWatch,
+                    routineExercises: exercisesForWatch,
+                    exercises: allExercises,
+                    startTime: startTime
+                )
+            }
+        }
     }
     
     private func startWorkoutTimer() {

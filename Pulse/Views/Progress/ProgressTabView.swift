@@ -248,6 +248,7 @@ struct ProgressTabView: View {
                 }
                 } // end else (pro user)
             }
+            .sentryScreen("Progress")
             .sheet(isPresented: $showingPaywall) {
                 SubscriptionView()
                     .sheetContentTransition()
@@ -1707,6 +1708,7 @@ struct EditHealthMetricsSheet: View {
                     }
                 }
             }
+            .sentryScreen("EditHealthMetrics")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -1923,6 +1925,7 @@ struct AllRecentWorkoutsView: View {
                 await viewModel.loadRecentSessionsPaginated()
             }
         }
+        .sentryScreen("CompletedWorkouts")
         .navigationTitle("Completed Workouts")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)

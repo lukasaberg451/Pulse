@@ -74,76 +74,80 @@ class HealthKitManager: NSObject, ObservableObject {
             return true
         }
         
-        // Not yet determined — request authorization silently
-        if status == .notDetermined {
-            let typesToShare: Set<HKSampleType> = [
-                HKObjectType.workoutType()
-            ]
-            do {
-                try await healthStore.requestAuthorization(toShare: typesToShare, read: [])
-                let newStatus = healthStore.authorizationStatus(for: HKObjectType.workoutType())
-                if newStatus == .sharingAuthorized {
-                    isAuthorized = true
-                    return true
-                }
-            } catch {
-                debugLog("❌ HealthKit background auth error: \(error.localizedDescription)")
-            }
-        }
-        
+        // If not yet determined, do NOT request authorization here.
+        // The authorization dialog can appear behind a fullScreenCover
+        // and hang the main thread indefinitely. Authorization should be
+        // requested explicitly from the settings/onboarding UI instead.
+        debugLog("📱 HealthKit not authorized (status: \(status.rawValue)) — skipping workout session")
         return false
     }
     
     // MARK: - Live Workout Session (Background Execution)
     
-    /// Starts an HKWorkoutSession which grants the app extended background execution.
-    /// This prevents iOS from terminating the app while a workout is in progress.
-    /// Always attempts to start regardless of the sync toggle — background protection
-    /// is critical for all workouts. Will auto-request HealthKit authorization if needed.
-    func startWorkoutSession(exercises: [Exercise]) async {
-        guard isAvailable else {
-            debugLog("📱 HealthKit not available on this device — no background execution protection")
-            hasActiveBackgroundProtection = false
-            return
-        }
-        
-        // Ensure we have authorization (will prompt user if not yet determined)
-        let authorized = await ensureAuthorizedForBackgroundExecution()
-        guard authorized else {
-            debugLog("📱 HealthKit not authorized — no background execution protection")
-            hasActiveBackgroundProtection = false
-            return
-        }
-        
-        // End any existing session first
-        if workoutSession != nil {
-            await endWorkoutSession()
-        }
-        
+    /// Fire-and-forget: starts an HKWorkoutSession for background execution.
+    /// Everything runs off the main actor so this never blocks the UI.
+    func startWorkoutSession(exercises: [Exercise]) {
+        // Capture everything we need before going off main actor
+        let available = isAvailable
+        let store = healthStore
+        let existingSession = workoutSession
+        let existingBuilder = workoutBuilder
         let activityType = resolveActivityType(from: exercises)
         
-        let configuration = HKWorkoutConfiguration()
-        configuration.activityType = activityType
-        configuration.locationType = .indoor
+        // Clear references immediately so we don't hold stale state
+        if existingSession != nil {
+            workoutSession = nil
+            workoutBuilder = nil
+        }
         
-        do {
-            let session = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
-            session.delegate = self
+        // Run EVERYTHING in a detached task — including auth checks.
+        // This guarantees zero blocking on the main actor.
+        Task.detached { [weak self] in
+            guard available else {
+                debugLog("📱 HealthKit not available on this device — no background execution protection")
+                if let self { await MainActor.run { self.hasActiveBackgroundProtection = false } }
+                return
+            }
             
-            let builder = session.associatedWorkoutBuilder()
-            builder.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: configuration)
+            let status = store.authorizationStatus(for: HKObjectType.workoutType())
+            guard status == .sharingAuthorized else {
+                debugLog("📱 HealthKit not authorized (status: \(status.rawValue)) — no background execution protection")
+                if let self { await MainActor.run { self.hasActiveBackgroundProtection = false } }
+                return
+            }
             
-            session.startActivity(with: Date())
-            try await builder.beginCollection(at: Date())
+            // End any existing session
+            if let existingSession {
+                existingSession.end()
+                existingBuilder?.discardWorkout()
+                debugLog("📱 Ended previous HKWorkoutSession before starting new one")
+            }
             
-            self.workoutSession = session
-            self.workoutBuilder = builder
-            hasActiveBackgroundProtection = true
+            let configuration = HKWorkoutConfiguration()
+            configuration.activityType = activityType
+            configuration.locationType = .indoor
             
-            debugLog("📱 ✅ Started HKWorkoutSession for background execution")
-        } catch {
-            hasActiveBackgroundProtection = false
-            debugLog("📱 ❌ Failed to start HKWorkoutSession: \(error.localizedDescription)")
+            do {
+                let session = try HKWorkoutSession(healthStore: store, configuration: configuration)
+                let builder = session.associatedWorkoutBuilder()
+                builder.dataSource = HKLiveWorkoutDataSource(healthStore: store, workoutConfiguration: configuration)
+                
+                session.startActivity(with: Date())
+                try await builder.beginCollection(at: Date())
+                
+                if let self {
+                    await MainActor.run {
+                        session.delegate = self
+                        self.workoutSession = session
+                        self.workoutBuilder = builder
+                        self.hasActiveBackgroundProtection = true
+                        debugLog("📱 ✅ Started HKWorkoutSession for background execution")
+                    }
+                }
+            } catch {
+                debugLog("📱 ❌ Failed to start HKWorkoutSession: \(error.localizedDescription)")
+                if let self { await MainActor.run { self.hasActiveBackgroundProtection = false } }
+            }
         }
     }
     

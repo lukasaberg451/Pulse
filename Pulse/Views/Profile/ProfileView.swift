@@ -18,6 +18,7 @@ struct ProfileView: View {
     @State private var sectionAnimationId = UUID()
     @Environment(\.tabBarBottomInset) private var tabBarBottomInset
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.splashDismissed) private var splashDismissed
     
     var body: some View {
         NavigationStack {
@@ -25,12 +26,14 @@ struct ProfileView: View {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
                 if viewModel.isLoading {
-                    VStack(spacing: 12) {
-                        ProgressView()
-                            .tint(.appAccent)
-                        Text("Loading profile…")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.appSecondaryText)
+                    if splashDismissed {
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .tint(.appAccent)
+                            Text("Loading profile…")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appSecondaryText)
+                        }
                     }
                 } else {
                     ScrollView {
@@ -250,6 +253,7 @@ struct ProfileView: View {
                     }
                 }
             }
+            .sentryScreen("Profile")
             .toolbarBackground(LinearGradient.dashboardBackground, for: .navigationBar)
             .sheet(isPresented: $showingEditNameSheet) {
                 EditNameSheet(viewModel: viewModel)
@@ -375,6 +379,7 @@ struct EditNameSheet: View {
     @State private var showingEditFirstNameSheet = false
     @State private var showingEditLastNameSheet = false
     @State private var showingChangeEmailSheet = false
+    @State private var isSaving = false
     
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
@@ -430,7 +435,19 @@ struct EditNameSheet: View {
                         .padding(.top, 8)
                     }
                 }
+                .opacity(isSaving ? 0.3 : 1)
+                
+                if isSaving {
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .tint(.appAccent)
+                        Text("Saving…")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Color.appSecondaryText)
+                    }
+                }
             }
+            .animation(.easeInOut(duration: 0.2), value: isSaving)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -440,9 +457,11 @@ struct EditNameSheet: View {
                     }
                     .foregroundStyle(Color.appAccent)
                     .fontWeight(.semibold)
+                    .disabled(isSaving)
                 }
             }
         }
+        .interactiveDismissDisabled(isSaving)
         .presentationBackground(Color.appBackground)
         .sheet(isPresented: $showingEditFirstNameSheet) {
             EditFieldSheet(
@@ -450,11 +469,14 @@ struct EditNameSheet: View {
                 value: viewModel.profile?.firstName ?? "",
                 placeholder: "First Name",
                 onSave: { newValue in
+                    let currentLastName = viewModel.profile?.lastName ?? ""
+                    isSaving = true
                     Task {
                         await viewModel.updateProfile(
                             firstName: newValue,
-                            lastName: viewModel.profile?.lastName ?? ""
+                            lastName: currentLastName
                         )
+                        isSaving = false
                     }
                 }
             )
@@ -466,11 +488,14 @@ struct EditNameSheet: View {
                 value: viewModel.profile?.lastName ?? "",
                 placeholder: "Last Name",
                 onSave: { newValue in
+                    let currentFirstName = viewModel.profile?.firstName ?? ""
+                    isSaving = true
                     Task {
                         await viewModel.updateProfile(
-                            firstName: viewModel.profile?.firstName ?? "",
+                            firstName: currentFirstName,
                             lastName: newValue
                         )
+                        isSaving = false
                     }
                 }
             )
@@ -594,7 +619,6 @@ struct EditFieldSheet: View {
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
                                 .strokeBorder(isFocused ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
                         )
-                        .contentShape(Rectangle())
                         .onTapGesture { isFocused = true }
                         
                         // Character counter (visible when close to limit)
@@ -758,7 +782,6 @@ struct FeedbackSheet: View {
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                                     .strokeBorder(focusedField == .title ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
                             )
-                            .contentShape(Rectangle())
                             .onTapGesture { focusedField = .title }
                         }
                         .padding(.horizontal)
@@ -781,7 +804,6 @@ struct FeedbackSheet: View {
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                                         .strokeBorder(focusedField == .description ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
                                 )
-                                .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .description }
                         }
                         .padding(.horizontal)
@@ -904,6 +926,7 @@ struct FeedbackSheet: View {
                     .transition(.scale(scale: 0.8).combined(with: .opacity))
                 }
             }
+            .sentryScreen("Feedback")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -922,6 +945,7 @@ struct FeedbackSheet: View {
 struct ChangeEmailSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.signOutAction) private var signOutAction
     @ObservedObject var authViewModel: AuthViewModel
     
     @State private var newEmail = ""
@@ -967,7 +991,8 @@ struct ChangeEmailSheet: View {
                         
                         PrimaryCTAButton("OK") {
                             Task {
-                                await authViewModel.signOut()
+                                dismiss()
+                                await signOutAction()
                             }
                         }
                         .padding(.horizontal)
@@ -1016,7 +1041,6 @@ struct ChangeEmailSheet: View {
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                                     .strokeBorder(focusedField == .email ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
                             )
-                            .contentShape(Rectangle())
                             .onTapGesture { focusedField = .email }
                                 
                                 // Character counter (visible when close to limit)
@@ -1051,7 +1075,6 @@ struct ChangeEmailSheet: View {
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                                         .strokeBorder(focusedField == .password ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
                                 )
-                                .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .password }
                             }
                             .padding(.horizontal)
@@ -1127,6 +1150,7 @@ struct ChangeEmailSheet: View {
 struct DeleteAccountConfirmationSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.deleteAccountAction) private var deleteAccountAction
     @Binding var isDeletingAccount: Bool
     @ObservedObject var authViewModel: AuthViewModel
     @State private var confirmationText = ""
@@ -1178,10 +1202,12 @@ struct DeleteAccountConfirmationSheet: View {
                     Button {
                         isDeletingAccount = true
                         Task {
-                            let success = await authViewModel.deleteAccount()
+                            dismiss()
+                            let success = await deleteAccountAction()
                             isDeletingAccount = false
-                            if success {
-                                dismiss()
+                            if !success {
+                                // If deletion failed, the overlay won't dismiss
+                                // because isAuthenticated didn't change
                             }
                         }
                     } label: {
@@ -1218,6 +1244,7 @@ struct DeleteAccountConfirmationSheet: View {
                     Spacer()
                 }
             }
+            .sentryScreen("DeleteAccountConfirmation")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -1372,6 +1399,7 @@ struct AllCustomExercisesView: View {
                 .padding()
             }
         }
+        .sentryScreen("AllCustomExercises")
         .navigationTitle("My Custom Exercises")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)

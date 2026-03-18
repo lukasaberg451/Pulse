@@ -140,11 +140,14 @@ struct DashboardView: View {
                         .padding(.top, 20)
                         .opacity(sectionAppeared[2] ? 1 : 0)
                         .offset(y: sectionAppeared[2] ? 0 : 18)
+
+
                     }
                     .animation(.easeOut(duration: 0.35), value: viewModel.todaysWorkouts.count)
                 }
                 .contentMargins(.bottom, tabBarBottomInset, for: .scrollContent)
             }
+            .sentryScreen("Dashboard")
             .onAppear {
                 guard !hasAppeared else { return }
                 hasAppeared = true

@@ -16,7 +16,7 @@ struct RegisterView: View {
     @State private var lastName = ""
     @State private var email = ""
     @State private var password = ""
-    @State private var confirmPassword = ""
+    @State private var showPassword = false
     @State private var errorMessage = ""
     @State private var showError = false
     @State private var agreedToTerms = false
@@ -24,7 +24,7 @@ struct RegisterView: View {
     @FocusState private var focusedField: RegisterField?
     
     private enum RegisterField {
-        case firstName, lastName, email, password, confirmPassword
+        case firstName, lastName, email, password
     }
     
     func isValidEmail(_ email: String) -> Bool {
@@ -69,17 +69,12 @@ struct RegisterView: View {
         password.range(of: "[0-9]", options: .regularExpression) != nil
     }
     
-    var passwordsMatch: Bool {
-        !confirmPassword.isEmpty && password == confirmPassword
-    }
-    
     var isValid: Bool {
         !firstName.trimmingCharacters(in: .whitespaces).isEmpty &&
         !lastName.trimmingCharacters(in: .whitespaces).isEmpty &&
         !email.trimmingCharacters(in: .whitespaces).isEmpty &&
         isValidEmail(email) &&
-        isValidPassword &&
-        passwordsMatch
+        isValidPassword
     }
     
     @Environment(\.colorScheme) private var colorScheme
@@ -188,7 +183,6 @@ struct RegisterView: View {
                                             }
                                         }
                                 }
-                                .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .firstName }
                                 
                                 if firstName.count >= 40 {
@@ -230,7 +224,6 @@ struct RegisterView: View {
                                             }
                                         }
                                 }
-                                .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .lastName }
                                 
                                 if lastName.count >= 40 {
@@ -274,7 +267,6 @@ struct RegisterView: View {
                                             }
                                         }
                                 }
-                                .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .email }
                                 
                                 if email.count >= 244 {
@@ -295,11 +287,29 @@ struct RegisterView: View {
                                     .foregroundStyle(Color.appText)
                                 
                                 HStack {
-                                    SecureField("Password", text: $password)
-                                        .textFieldStyle(.plain)
-                                        .textContentType(.newPassword)
-                                        .focused($focusedField, equals: .password)
-                                        .foregroundStyle(Color.appText)
+                                    if showPassword {
+                                        TextField("Password", text: $password)
+                                            .textFieldStyle(.plain)
+                                            .textContentType(.newPassword)
+                                            .textInputAutocapitalization(.never)
+                                            .autocorrectionDisabled()
+                                            .focused($focusedField, equals: .password)
+                                            .foregroundStyle(Color.appText)
+                                    } else {
+                                        SecureField("Password", text: $password)
+                                            .textFieldStyle(.plain)
+                                            .textContentType(.newPassword)
+                                            .focused($focusedField, equals: .password)
+                                            .foregroundStyle(Color.appText)
+                                    }
+                                    
+                                    Button {
+                                        showPassword.toggle()
+                                    } label: {
+                                        Image(systemName: showPassword ? "eye.slash" : "eye")
+                                            .foregroundStyle(Color.appTertiaryText)
+                                            .font(.body)
+                                    }
                                 }
                                 .padding()
                                 .background {
@@ -312,7 +322,6 @@ struct RegisterView: View {
                                             }
                                         }
                                 }
-                                .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .password }
                                 .onChange(of: password) { _, newValue in
                                     password = sanitizeInput(newValue, maxLength: 72)
@@ -353,62 +362,6 @@ struct RegisterView: View {
                                 }
                             }
                             .animation(.easeInOut(duration: 0.2), value: password.count >= 62)
-                            
-                            // Confirm Password
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Confirm Password")
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(Color.appText)
-                                
-                                HStack {
-                                    SecureField("Confirm Password", text: $confirmPassword)
-                                        .textFieldStyle(.plain)
-                                        .textContentType(.newPassword)
-                                        .focused($focusedField, equals: .confirmPassword)
-                                        .foregroundStyle(Color.appText)
-                                }
-                                .padding()
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                            }
-                                        }
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture { focusedField = .confirmPassword }
-                                .onChange(of: confirmPassword) { _, newValue in
-                                    confirmPassword = sanitizeInput(newValue, maxLength: 72)
-                                }
-                                
-                                // Password match indicator
-                                if !confirmPassword.isEmpty {
-                                    HStack(spacing: 6) {
-                                        Image(passwordsMatch ? "check-circle" : "xmark")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 16, height: 16)
-                                            .foregroundStyle(passwordsMatch ? .green : .red)
-                                        
-                                        Text(passwordsMatch ? "Passwords match" : "Passwords don't match")
-                                            .font(.caption.weight(.medium))
-                                            .foregroundStyle(passwordsMatch ? .green : .red)
-                                    }
-                                }
-                                
-                                if confirmPassword.count >= 62 {
-                                    HStack {
-                                        Spacer()
-                                        Text("\(confirmPassword.count)/72")
-                                            .font(.caption2)
-                                            .foregroundStyle(confirmPassword.count >= 72 ? .red : Color.appSecondaryText)
-                                    }
-                                }
-                            }
-                            .animation(.easeInOut(duration: 0.2), value: confirmPassword.count >= 62)
                             
                                 HStack(alignment: .center, spacing: 8) {
                                 Button(action: {
@@ -456,7 +409,7 @@ struct RegisterView: View {
                             // Sign up button
                             Button(action: {
                                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                if firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty {
+                                if firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty {
                                     errorMessage = "Please fill in all fields"
                                     showError = true
                                 } else if !isValidEmail(email) {
@@ -464,9 +417,6 @@ struct RegisterView: View {
                                     showError = true
                                 } else if !isValidPassword {
                                     errorMessage = "Password must be at least 8 characters with uppercase, lowercase, and number"
-                                    showError = true
-                                } else if !passwordsMatch {
-                                    errorMessage = "Passwords do not match"
                                     showError = true
                                 } else {
                                     showError = false
@@ -498,28 +448,30 @@ struct RegisterView: View {
                 }
             }
                 
-                // Fullscreen loading overlay
-                if authViewModel.isRegistering {
-                    ZStack {
-                        Color.appBackground
-                            .ignoresSafeArea()
-                        
-                        Image("LoadingLogo")
-                            .foregroundStyle(Color.appAccent)
-                    }
-                    .transition(.opacity)
-                }
             }
             .fullScreenCover(item: $safariURL) { url in
                 SafariView(url: url)
                     .ignoresSafeArea()
             }
-            .animation(.easeInOut, value: authViewModel.isRegistering)
             .animation(.easeInOut, value: authViewModel.registrationSuccess)
             .navigationBarBackButtonHidden(false)
             .toolbar {
             }
+            .sentryScreen("Register")
             .toolbarBackground(Color.appBackground, for: .navigationBar)
         }
+        .overlay {
+            if authViewModel.isRegistering {
+                ZStack {
+                    Color.appBackground
+                    LinearGradient.dashboardBackground
+                    
+                    Image("LoadingLogo")
+                }
+                .ignoresSafeArea()
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut, value: authViewModel.isRegistering)
     }
 }

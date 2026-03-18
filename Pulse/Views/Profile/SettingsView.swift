@@ -322,6 +322,7 @@ struct SettingsView: View {
                     .padding(.bottom, 20)
             }
         }
+        .sentryScreen("Settings")
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)

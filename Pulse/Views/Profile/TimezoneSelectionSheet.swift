@@ -113,6 +113,7 @@ struct TimezoneSelectionSheet: View {
                 .searchable(text: $searchText, prompt: "Search time zones")
                 .scrollContentBackground(.hidden)
             }
+            .sentryScreen("TimezoneSelection")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .navigationTitle("Time Zone")

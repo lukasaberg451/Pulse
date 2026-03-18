@@ -29,10 +29,7 @@ struct WorkoutSummaryView: View {
     
     // MARK: - Animation State
     @State private var animationTrigger = false
-    @State private var displayedDuration: Double = 0
-    @State private var displayedSets: Double = 0
-    @State private var displayedVolume: Double = 0
-    @State private var displayedExercises: Double = 0
+    @State private var celebrationTrigger = 0
     
     // MARK: - Computed Stats
     
@@ -84,19 +81,6 @@ struct WorkoutSummaryView: View {
         return parts.joined(separator: " ")
     }
     
-    private func formattedDurationFromSeconds(_ seconds: Double) -> String {
-        let totalSeconds = Int(seconds)
-        let hours = totalSeconds / 3600
-        let minutes = (totalSeconds % 3600) / 60
-        let secs = totalSeconds % 60
-        
-        var parts: [String] = []
-        if hours > 0 { parts.append("\(hours)h") }
-        if minutes > 0 { parts.append("\(minutes)m") }
-        if secs > 0 || parts.isEmpty { parts.append("\(secs)s") }
-        return parts.joined(separator: " ")
-    }
-    
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
@@ -110,7 +94,32 @@ struct WorkoutSummaryView: View {
                         VStack(spacing: 12) {
                             IconBadge(assetName: "check-circle", color: .green, size: 56)
                                 .scaleEffect(animationTrigger ? 1.0 : 0.5)
+                                .opacity(animationTrigger ? 1 : 0)
                                 .animation(.spring(response: 0.5, dampingFraction: 0.6), value: animationTrigger)
+                                .keyframeAnimator(
+                                    initialValue: CelebrationValues(),
+                                    trigger: celebrationTrigger
+                                ) { content, value in
+                                    content
+                                        .scaleEffect(value.scale)
+                                        .overlay {
+                                            Circle()
+                                                .fill(Color.green.opacity(value.glowOpacity))
+                                                .blur(radius: 24)
+                                                .scaleEffect(value.scale * 1.6)
+                                                .allowsHitTesting(false)
+                                        }
+                                } keyframes: { _ in
+                                    KeyframeTrack(\.scale) {
+                                        CubicKeyframe(1.18, duration: 0.45)
+                                        CubicKeyframe(1.0, duration: 0.6)
+                                    }
+                                    
+                                    KeyframeTrack(\.glowOpacity) {
+                                        CubicKeyframe(0.3, duration: 0.4)
+                                        CubicKeyframe(0.0, duration: 0.7)
+                                    }
+                                }
                             
                             Text("Workout Completed")
                                 .font(.title2.weight(.bold))
@@ -134,13 +143,13 @@ struct WorkoutSummaryView: View {
                                 summaryStatCard(
                                     icon: "clock",
                                     title: "Duration",
-                                    value: formattedDurationFromSeconds(displayedDuration)
+                                    value: formattedDuration
                                 )
                                 
                                 summaryStatCard(
                                     icon: "flame",
                                     title: "Total Sets",
-                                    value: "\(Int(displayedSets))"
+                                    value: "\(totalSets)"
                                 )
                             }
                             .opacity(animationTrigger ? 1 : 0)
@@ -151,13 +160,13 @@ struct WorkoutSummaryView: View {
                                 summaryStatCard(
                                     icon: "volume",
                                     title: "Volume",
-                                    value: String(format: "%.0f %@", unitManager.displayWeight(displayedVolume), unitManager.weightUnit)
+                                    value: String(format: "%.0f %@", unitManager.displayWeight(totalVolume), unitManager.weightUnit)
                                 )
                                 
                                 summaryStatCard(
                                     icon: "exercises",
                                     title: "Exercises",
-                                    value: "\(Int(displayedExercises))",
+                                    value: "\(exerciseCount)"
                                 )
                             }
                             .opacity(animationTrigger ? 1 : 0)
@@ -216,15 +225,16 @@ struct WorkoutSummaryView: View {
                 .padding(.top, 8)
             }
         }
+        .sentryScreen("WorkoutSummary")
         .interactiveDismissDisabled()
         .onAppear {
             animationTrigger = true
             
-            withAnimation(.easeOut(duration: 0.6).delay(0.4)) {
-                displayedDuration = elapsedTime
-                displayedSets = Double(totalSets)
-                displayedVolume = totalVolume
-                displayedExercises = Double(exerciseCount)
+            // Fire celebration after the header fades in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                celebrationTrigger += 1
+                let impact = UIImpactFeedbackGenerator(style: .medium)
+                impact.impactOccurred()
             }
         }
         .sheet(isPresented: $showShareSheet) {
@@ -712,4 +722,11 @@ struct SharePreviewSheet: View {
         }
         presenter.present(activityVC, animated: true)
     }
+}
+
+// MARK: - Celebration Keyframe Values
+
+private struct CelebrationValues {
+    var scale = 1.0
+    var glowOpacity = 0.0
 }

@@ -78,6 +78,7 @@ struct ThemeSelectionSheet: View {
                     Spacer()
                 }
             }
+            .sentryScreen("ThemeSelection")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {

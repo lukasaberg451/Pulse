@@ -96,7 +96,6 @@ struct LoginView: View {
                                         }
                                     }
                             }
-                            .contentShape(Rectangle())
                             .onTapGesture { focusedField = .email }
                         }
                         
@@ -126,7 +125,6 @@ struct LoginView: View {
                                         }
                                     }
                             }
-                            .contentShape(Rectangle())
                             .onTapGesture { focusedField = .password }
                         }
                         
@@ -244,26 +242,16 @@ struct LoginView: View {
                     Spacer()
                 }
                 
-                // Fullscreen loading overlay
-                if authViewModel.isLoading {
-                    ZStack {
-                        Color.appBackground
-                            .ignoresSafeArea()
-                        
-                        Image("LoadingLogo")
-                    }
-                    .transition(.opacity)
-                }
             }
             .fullScreenCover(item: $safariURL) { url in
                 SafariView(url: url)
                     .ignoresSafeArea()
             }
-            .animation(.easeInOut, value: authViewModel.isLoading)
             .navigationBarBackButtonHidden(authViewModel.isLoading)
             .toolbar {
             }
             .toolbar(authViewModel.isLoading ? .hidden : .automatic, for: .navigationBar)
+            .sentryScreen("Login")
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .sheet(isPresented: $showingForgotPassword) {
                 ForgotPasswordView()
@@ -271,6 +259,19 @@ struct LoginView: View {
                     .sheetContentTransition()
             }
         }
+        .overlay {
+            if authViewModel.isLoading {
+                ZStack {
+                    Color.appBackground
+                    LinearGradient.dashboardBackground
+                    
+                    Image("LoadingLogo")
+                }
+                .ignoresSafeArea()
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut, value: authViewModel.isLoading)
     }
 }
 
@@ -396,7 +397,6 @@ struct ForgotPasswordView: View {
                                 }
                             }
                     }
-                    .contentShape(Rectangle())
                     .onTapGesture { focusedResetField = .email }
                 }
                 
@@ -544,7 +544,6 @@ struct ForgotPasswordView: View {
                             }
                         }
                 }
-                .contentShape(Rectangle())
                 .onTapGesture { focusedResetField = .newPassword }
                 .onChange(of: viewModel.newPassword) { _, newValue in
                     viewModel.newPassword = sanitizeInput(newValue, maxLength: 72)
@@ -604,7 +603,6 @@ struct ForgotPasswordView: View {
                             }
                         }
                 }
-                .contentShape(Rectangle())
                 .onTapGesture { focusedResetField = .confirmPassword }
                 .onChange(of: viewModel.confirmPassword) { _, newValue in
                     viewModel.confirmPassword = sanitizeInput(newValue, maxLength: 72)
@@ -765,6 +763,7 @@ private struct OTPInputView: View {
                 isFocused = true
             }
         }
+        .sentryScreen("OTPInput")
         .onAppear {
             isFocused = true
         }

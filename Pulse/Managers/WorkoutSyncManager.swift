@@ -41,6 +41,11 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     
     #if os(iOS)
     func launchWatchApp(exercises: [Exercise]) {
+        guard let session = session, session.isPaired else {
+            debugLog("📱 No watch paired — skipping watch app launch")
+            return
+        }
+        
         let activityType: HKWorkoutActivityType
         let types = Set(exercises.compactMap { $0.exerciseType })
         if types == ["cardio"] {
@@ -87,6 +92,13 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             debugLog("📱 ERROR: No WCSession available")
             return
         }
+        
+        #if os(iOS)
+        guard session.isPaired else {
+            debugLog("📱 No watch paired — skipping watch sync")
+            return
+        }
+        #endif
         
         guard let firstRoutineExercise = routineExercises.first,
               let firstExercise = exercises.first(where: { $0.id == firstRoutineExercise.exerciseId }) else {

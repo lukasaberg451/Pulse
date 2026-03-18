@@ -139,33 +139,28 @@ struct RegisterSelectionView: View {
                     Spacer()
                 }
                 
-                // Fullscreen loading overlay
-                if authViewModel.isLoading {
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .ignoresSafeArea()
-                    
-                    VStack(spacing: 16) {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
-                            .scaleEffect(1.5)
-                        
-                        Text("Signing in...")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(Color.appSecondaryText)
-                    }
-                    .transition(.opacity)
-                }
             }
             .fullScreenCover(item: $safariURL) { url in
                 SafariView(url: url)
                     .ignoresSafeArea()
             }
-            .animation(.easeInOut, value: authViewModel.isLoading)
             .navigationBarBackButtonHidden(false)
             .toolbar {
             }
             .toolbarBackground(Color.appBackground, for: .navigationBar)
         }
+        .overlay {
+            if authViewModel.isLoading {
+                ZStack {
+                    Color.appBackground
+                    LinearGradient.dashboardBackground
+                    
+                    Image("LoadingLogo")
+                }
+                .ignoresSafeArea()
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut, value: authViewModel.isLoading)
     }
 }
