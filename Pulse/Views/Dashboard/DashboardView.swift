@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import PostHog
+import Supabase
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
@@ -34,6 +35,11 @@ struct DashboardView: View {
     @State private var pendingResumeAlert = false
     @Environment(\.tabBarBottomInset) private var tabBarBottomInset
     @EnvironmentObject var syncService: WorkoutSyncService
+    
+    // AI log session
+    @State private var showingLogWorkout = false
+    @State private var showingPaywall = false
+    @State private var aiAccessToken = ""
     
     var body: some View {
         NavigationStack {
@@ -146,6 +152,33 @@ struct DashboardView: View {
                     .animation(.easeOut(duration: 0.35), value: viewModel.todaysWorkouts.count)
                 }
                 .contentMargins(.bottom, tabBarBottomInset, for: .scrollContent)
+                
+                // MARK: - AI Log Session FAB
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Button {
+                            let impactMed = UIImpactFeedbackGenerator(style: .medium)
+                            impactMed.impactOccurred()
+                            guard SubscriptionManager.shared.isProUser else {
+                                showingPaywall = true
+                                return
+                            }
+                            aiAccessToken = authViewModel.session?.accessToken ?? ""
+                            showingLogWorkout = true
+                        } label: {
+                            Image(systemName: "sparkles")
+                                .font(.title3.weight(.semibold))
+                                .foregroundStyle(Color.appText)
+                                .frame(width: 52, height: 52)
+                                .background(Color.appAccent, in: Circle())
+                        }
+                        .buttonStyle(ScalePressStyle())
+                        .padding(.trailing, 20)
+                        .padding(.bottom, tabBarBottomInset + 16)
+                    }
+                }
             }
             .sentryScreen("Dashboard")
             .onAppear {
@@ -216,6 +249,104 @@ struct DashboardView: View {
                     )
                 }
             }
+            .sheet(isPresented: $showingLogWorkout) {
+                LogWorkoutSheet(
+                    accessToken: authViewModel.session?.accessToken ?? "",
+                    isOnline: syncService.isOnline,
+                    onSave: { parsed in
+                        Task { await saveAIParsedWorkout(parsed) }
+                    },
+                    onManualEntry: {
+                        // No-op: user can navigate to workout tab manually
+                    }
+                )
+            }
+            .sheet(isPresented: $showingPaywall) {
+                SubscriptionView()
+                    .sheetContentTransition()
+            }
+        }
+    }
+    
+    // MARK: - AI Workout Save
+    
+    
+    private func saveAIParsedWorkout(_ parsed: ParsedWorkout) async {
+        let repository = WorkoutRepository()
+        let exerciseRepository = ExerciseRepository.shared
+        
+        do {
+            // 1. Create a completed workout session
+            let sessionName = parsed.routineName ?? "AI Logged Workout"
+            let session = try await repository.createSession(
+                name: sessionName,
+                routineId: nil
+            )
+            
+            // 2. Complete the session with duration
+            let durationSeconds = (parsed.durationMinutes ?? 0) * 60
+            try await repository.completeSession(
+                id: session.id,
+                durationSeconds: durationSeconds > 0 ? durationSeconds : 0
+            )
+            
+            // 3. Fetch all exercises once for matching
+            let allExercises = try await exerciseRepository.fetchAllExercises()
+            
+            // 4. Create sets for each parsed exercise
+            var orderIndex = 0
+            for exercise in parsed.exercises {
+                // Try to find matching exercise by name (case-insensitive)
+                let matchedExercise = allExercises.first {
+                    $0.name.lowercased() == exercise.name.lowercased()
+                }
+                
+                let exerciseId: UUID
+                if let matched = matchedExercise {
+                    exerciseId = matched.id
+                } else {
+                    // Create a custom exercise if no match found
+                    let custom = try await exerciseRepository.createCustomExercise(
+                        name: exercise.name,
+                        exerciseType: "strength"
+                    )
+                    exerciseRepository.addToCache(custom)
+                    exerciseId = custom.id
+                }
+                
+                // Create one set entry per set count
+                for setNumber in 1...exercise.sets {
+                    _ = try await repository.createSet(
+                        sessionId: session.id,
+                        exerciseId: exerciseId,
+                        setNumber: setNumber,
+                        reps: exercise.reps,
+                        weight: exercise.weightKg,
+                        orderIndex: orderIndex
+                    )
+                }
+                orderIndex += 1
+            }
+            
+            // 5. Create completed scheduled workout entry for the calendar
+            try await repository.createCompletedScheduledWorkout(
+                sessionId: session.id,
+                date: Date()
+            )
+            
+            // 6. Track analytics
+            PostHogSDK.shared.capture("workout_logged", properties: [
+                "ai_parsed": true,
+                "exercise_count": parsed.exercises.count
+            ])
+            
+            // 7. Refresh dashboard data
+            NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
+            await viewModel.refreshAll()
+            
+            debugLog("✅ AI parsed workout saved successfully")
+        } catch {
+            debugLog("❌ Failed to save AI parsed workout: \(error)")
         }
     }
     
@@ -350,15 +481,23 @@ struct DeletedRoutineTodayCard: View {
     let scheduled: ScheduledWorkout
     let workoutName: String
 
+    private var isAILogged: Bool {
+        scheduled.routineDeleted != true && scheduled.routineId == nil
+    }
+
     var body: some View {
         DashboardCard {
             HStack {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        IconBadge(assetName: "calendar", size: 28)
-                        Text("Scheduled")
+                        if isAILogged {
+                            IconBadge(systemName: "sparkles", size: 28)
+                        } else {
+                            IconBadge(assetName: "calendar", size: 28)
+                        }
+                        Text(isAILogged ? "AI logged" : "Scheduled")
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(Color.appSecondaryText)
+                            .foregroundStyle(isAILogged ? Color.appAccent : Color.appSecondaryText)
                     }
 
                     Text(workoutName)
@@ -375,7 +514,7 @@ struct DeletedRoutineTodayCard: View {
                         }
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.green)
-                    } else {
+                    } else if !isAILogged {
                         HStack(spacing: 4) {
                             Image("trash")
                                 .resizable()

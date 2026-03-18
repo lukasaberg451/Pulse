@@ -405,6 +405,30 @@ class WorkoutRepository {
             .execute()
     }
     
+    // Create a completed scheduled workout entry without a routine (e.g. AI-parsed workouts)
+    func createCompletedScheduledWorkout(sessionId: UUID, date: Date, timeZone: TimeZone = .current) async throws {
+        struct InsertData: Encodable {
+            let scheduled_date: String
+            let workout_session_id: String
+            let completed: Bool
+        }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = timeZone
+        
+        let data = InsertData(
+            scheduled_date: formatter.string(from: date),
+            workout_session_id: sessionId.uuidString,
+            completed: true
+        )
+        
+        try await supabase
+            .from("scheduled_workouts")
+            .insert(data)
+            .execute()
+    }
+    
     // Delete uncompleted scheduled workouts for a routine (and their linked sessions)
     func deleteUncompletedScheduledWorkouts(routineId: UUID) async throws {
         // Fetch uncompleted scheduled workouts for this routine

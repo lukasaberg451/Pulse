@@ -65,6 +65,7 @@
 				Models/Exercise.swift,
 				Models/HomeTab.swift,
 				Models/Milestone.swift,
+				Models/ParsedWorkout.swift,
 				Models/Routine.swift,
 				Models/RoutineExercise.swift,
 				Models/SmartInsight.swift,

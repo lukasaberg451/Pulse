@@ -586,18 +586,26 @@ struct DeletedRoutineWorkoutCard: View {
         .animation(.spring(response: 0.25), value: isSelected)
     }
 
+    private var isAILogged: Bool {
+        scheduled.routineDeleted != true && scheduled.routineId == nil
+    }
+
     private var cardContent: some View {
         HStack(spacing: 12) {
-            IconBadge(assetName: "trash", color: Color.appTertiaryText, size: 38)
+            if isAILogged {
+                IconBadge(systemName: "sparkles", color: Color.appAccent, size: 38)
+            } else {
+                IconBadge(assetName: "trash", color: Color.appTertiaryText, size: 38)
+            }
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(sessionName)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
 
-                Text("Routine deleted")
+                Text(isAILogged ? "AI logged" : "Routine deleted")
                     .font(.caption)
-                    .foregroundStyle(Color.appTertiaryText)
+                    .foregroundStyle(isAILogged ? Color.appAccent : Color.appTertiaryText)
 
                 if scheduled.completed {
                     HStack(spacing: 4) {
