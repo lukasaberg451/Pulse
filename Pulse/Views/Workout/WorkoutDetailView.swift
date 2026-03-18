@@ -33,12 +33,24 @@ struct WorkoutDetailView: View {
                     VStack(alignment: .leading, spacing: 24) {
                         // Title rendered manually to avoid SwiftUI bug where
                         // the navigation title turns blue on cancelled swipe-back
-                        Text(viewModel.workoutSession.name)
-                            .font(.title.weight(.bold))
-                            .foregroundStyle(Color.appText)
-                            .opacity(animationTrigger ? 1 : 0)
-                            .offset(y: animationTrigger ? 0 : 16)
-                            .animation(.easeOut(duration: 0.4).delay(0.1), value: animationTrigger)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(viewModel.workoutSession.name)
+                                .font(.title.weight(.bold))
+                                .foregroundStyle(Color.appText)
+                            
+                            if viewModel.isAILogged {
+                                HStack(spacing: 5) {
+                                    Image(systemName: "sparkles")
+                                        .font(.caption2.weight(.semibold))
+                                    Text("AI Logged")
+                                        .font(.caption.weight(.semibold))
+                                }
+                                .foregroundStyle(Color.appAccent)
+                            }
+                        }
+                        .opacity(animationTrigger ? 1 : 0)
+                        .offset(y: animationTrigger ? 0 : 16)
+                        .animation(.easeOut(duration: 0.4).delay(0.1), value: animationTrigger)
                         
                         // Header Stats
                         statsSection

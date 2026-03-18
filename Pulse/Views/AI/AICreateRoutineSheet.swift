@@ -1,16 +1,15 @@
 //
-//  LogWorkoutSheet.swift
+//  AICreateRoutineSheet.swift
 //  Pulse
 //
 
 import SwiftUI
 import PostHog
 
-struct LogWorkoutSheet: View {
+struct AICreateRoutineSheet: View {
     let accessToken: String
     let isOnline: Bool
-    let onSave: (ParsedWorkout) -> Void
-    let onManualEntry: () -> Void
+    let onSave: () -> Void
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var unitManager: UnitManager
     @Environment(\.colorScheme) private var colorScheme
@@ -19,17 +18,17 @@ struct LogWorkoutSheet: View {
     
     @State private var inputText = ""
     @State private var isLoading = false
+    @State private var isSaving = false
     @State private var errorMessage: String?
-    @State private var parsedWorkout: ParsedWorkout?
+    @State private var parsedRoutine: ParsedRoutine?
     @State private var editingExerciseId: UUID?
     @FocusState private var isTextEditorFocused: Bool
     @State private var aiReadyPulse = false
-    @State private var recentSessions: [(name: String, summary: String)] = []
     
     private let maxCharacters = 800
     
     private var isAIReady: Bool {
-        inputText.trimmingCharacters(in: .whitespacesAndNewlines).count >= 20
+        inputText.trimmingCharacters(in: .whitespacesAndNewlines).count >= 15
     }
     
     var body: some View {
@@ -39,8 +38,8 @@ struct LogWorkoutSheet: View {
                 
                 if !isOnline {
                     offlineView
-                } else if let workout = parsedWorkout {
-                    confirmView(workout: workout)
+                } else if let routine = parsedRoutine {
+                    confirmView(routine: routine)
                 } else {
                     inputView
                 }
@@ -49,10 +48,10 @@ struct LogWorkoutSheet: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    if parsedWorkout != nil {
+                    if parsedRoutine != nil {
                         Button {
                             withAnimation(.easeInOut(duration: 0.25)) {
-                                parsedWorkout = nil
+                                parsedRoutine = nil
                                 errorMessage = nil
                             }
                         } label: {
@@ -73,8 +72,7 @@ struct LogWorkoutSheet: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .sheetContentTransition()
-        .sentryScreen("LogWorkoutAI")
-        .task { await loadRecentSessions() }
+        .sentryScreen("CreateRoutineAI")
     }
     
     // MARK: - Offline View
@@ -87,19 +85,13 @@ struct LogWorkoutSheet: View {
                 .font(.system(size: 44))
                 .foregroundStyle(Color.appTertiaryText)
             
-            Text("AI logging needs a connection")
+            Text("AI features need a connection")
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(Color.appText)
             
-            Text("Log manually instead")
+            Text("Connect to the internet and try again")
                 .font(.subheadline)
                 .foregroundStyle(Color.appSecondaryText)
-            
-            PrimaryCTAButton("Log manually") {
-                dismiss()
-                onManualEntry()
-            }
-            .padding(.horizontal, 40)
             
             Spacer()
         }
@@ -114,11 +106,11 @@ struct LogWorkoutSheet: View {
                 VStack(alignment: .leading, spacing: 16) {
                     // Header
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Log session with AI")
+                        Text("Create routine with AI")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
-                        Text("Start with a workout name, then your exercises")
+                        Text("Describe the routine you'd like and AI will build it")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                     }
@@ -127,7 +119,7 @@ struct LogWorkoutSheet: View {
                     // Text Editor
                     ZStack(alignment: .topLeading) {
                         if inputText.isEmpty {
-                            Text("Chest day, bench press 4x8 at 80kg, incline dumbbell press 3x10 at 30kg, cable flyes 3x12...")
+                            Text("Upper body push day, 5 exercises, focus on chest and shoulders, include bench press...")
                                 .font(.body)
                                 .foregroundStyle(Color.appTertiaryText)
                                 .padding(.horizontal, 16)
@@ -191,31 +183,17 @@ struct LogWorkoutSheet: View {
                     // Quick-add suggestion chips
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            suggestionChip("+ Exercise") {
-                                appendText("exercise name sets x reps at weight, ")
+                            suggestionChip("Push day") {
+                                appendText("Push day — chest, shoulders, triceps")
                             }
-                            suggestionChip("+ Sets/Reps") {
-                                appendText("4x8 at ")
+                            suggestionChip("Pull day") {
+                                appendText("Pull day — back, biceps")
                             }
-                            suggestionChip("+ Duration") {
-                                appendText("for 45 minutes")
+                            suggestionChip("Leg day") {
+                                appendText("Leg day — quads, hamstrings, glutes")
                             }
-                        }
-                    }
-                    
-                    // Recent sessions
-                    if !recentSessions.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Recent")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(Color.appTertiaryText)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    ForEach(recentSessions, id: \.name) { session in
-                                        recentSessionChip(name: session.name, summary: session.summary)
-                                    }
-                                }
+                            suggestionChip("Full body") {
+                                appendText("Full body workout, balanced")
                             }
                         }
                     }
@@ -224,7 +202,7 @@ struct LogWorkoutSheet: View {
                     HStack(spacing: 6) {
                         Image(systemName: "lightbulb")
                             .font(.caption2)
-                        Text("The more detail you give, the smarter the log")
+                        Text("Include muscle groups, exercise preferences, and number of exercises")
                             .font(.caption)
                     }
                     .foregroundStyle(Color.appTertiaryText)
@@ -237,12 +215,12 @@ struct LogWorkoutSheet: View {
                 .padding(.horizontal)
             }
             
-            // Parse button
+            // Generate button
             VStack(spacing: 0) {
                 Divider().opacity(0.3)
                 
                 Button {
-                    Task { await parseWorkout() }
+                    Task { await generateRoutine() }
                 } label: {
                     HStack(spacing: 8) {
                         if isLoading {
@@ -252,7 +230,7 @@ struct LogWorkoutSheet: View {
                             Image(systemName: "sparkles")
                                 .font(.body.weight(.semibold))
                         }
-                        Text("Generate session")
+                        Text("Generate routine")
                             .font(.subheadline.weight(.bold))
                     }
                     .foregroundStyle(.white)
@@ -275,7 +253,7 @@ struct LogWorkoutSheet: View {
     
     // MARK: - Confirm View (Step 2)
     
-    private func confirmView(workout: ParsedWorkout) -> some View {
+    private func confirmView(routine: ParsedRoutine) -> some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
@@ -290,37 +268,32 @@ struct LogWorkoutSheet: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(
-                    Capsule()
-                        .strokeBorder(Color.appAccent.opacity(0.4), lineWidth: 1)
-                )
+                        Capsule()
+                            .strokeBorder(Color.appAccent.opacity(0.4), lineWidth: 1)
+                    )
                     .padding(.top, 8)
                     
-                    // Routine name & duration
-                    if workout.routineName != nil || workout.durationMinutes != nil {
-                        VStack(alignment: .leading, spacing: 4) {
-                            if let name = workout.routineName {
-                                Text(name)
-                                    .font(.title3.weight(.bold))
-                                    .foregroundStyle(Color.appText)
-                            }
-                            if let minutes = workout.durationMinutes {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "clock")
-                                        .font(.caption)
-                                    Text("\(minutes) min")
-                                        .font(.subheadline)
-                                }
+                    // Routine name & description
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(routine.routineName)
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(Color.appText)
+                        
+                        if let description = routine.description, !description.isEmpty {
+                            Text(description)
+                                .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
-                            }
                         }
+                        
+                        Text("\(routine.exercises.count) exercises")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.appTertiaryText)
                     }
                     
                     // Exercise cards
-                    ForEach(Array(workout.exercises.enumerated()), id: \.element.id) { index, exercise in
-                        exerciseCard(exercise: exercise, index: index)
+                    ForEach(Array(routine.exercises.enumerated()), id: \.element.id) { index, exercise in
+                        routineExerciseCard(exercise: exercise, index: index)
                     }
-                    
-                
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 24)
@@ -330,11 +303,31 @@ struct LogWorkoutSheet: View {
             VStack(spacing: 0) {
                 Divider().opacity(0.3)
                 
-                PrimaryCTAButton("Save workout", systemIcon: "checkmark") {
-                    guard let workout = parsedWorkout else { return }
-                    onSave(workout)
-                    dismiss()
+                Button {
+                    Task { await saveRoutine() }
+                } label: {
+                    HStack(spacing: 8) {
+                        if isSaving {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Image(systemName: "checkmark")
+                                .font(.body.weight(.semibold))
+                        }
+                        Text("Save routine")
+                            .font(.subheadline.weight(.bold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(
+                        LinearGradient.accentGradient
+                            .opacity(isSaving ? 0.5 : 1.0),
+                        in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    )
                 }
+                .buttonStyle(ScalePressStyle())
+                .disabled(isSaving)
                 .padding(.horizontal)
                 .padding(.vertical, 12)
             }
@@ -344,7 +337,7 @@ struct LogWorkoutSheet: View {
     
     // MARK: - Exercise Card
     
-    private func exerciseCard(exercise: ParsedExercise, index: Int) -> some View {
+    private func routineExerciseCard(exercise: ParsedRoutineExercise, index: Int) -> some View {
         let isEditing = editingExerciseId == exercise.id
         let isLowConfidence = exercise.confidence == .low
         
@@ -368,20 +361,26 @@ struct LogWorkoutSheet: View {
                     } else {
                         HStack(spacing: 8) {
                             Text("\(exercise.sets) sets")
-                            if let reps = exercise.reps {
+                            if let reps = exercise.repsTarget {
                                 Text("·")
                                 Text("\(reps) reps")
                             }
-                            Text("·")
-                            if let weight = exercise.weightKg {
+                            if let weight = exercise.targetWeight {
+                                Text("·")
                                 Text(String(format: "%.1f %@", unitManager.displayWeight(weight), unitManager.weightUnit))
-                            } else {
-                                Text("bodyweight")
                             }
                         }
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                     }
+                    
+                    HStack(spacing: 8) {
+                        Image(systemName: "timer")
+                            .font(.caption2)
+                        Text("\(exercise.restSeconds)s rest")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(Color.appTertiaryText)
                 }
                 
                 Spacer()
@@ -419,7 +418,7 @@ struct LogWorkoutSheet: View {
             
             // Inline editor
             if isEditing {
-                inlineEditor(for: exercise, at: index)
+                routineInlineEditor(for: exercise, at: index)
             }
         }
         .padding(16)
@@ -438,57 +437,71 @@ struct LogWorkoutSheet: View {
     
     // MARK: - Inline Editor
     
-    private func inlineEditor(for exercise: ParsedExercise, at index: Int) -> some View {
+    private func routineInlineEditor(for exercise: ParsedRoutineExercise, at index: Int) -> some View {
         VStack(spacing: 10) {
             Divider().opacity(0.3)
             
             editorField(label: "Name", text: Binding(
-                get: { parsedWorkout?.exercises[index].name ?? "" },
-                set: { parsedWorkout?.exercises[index].name = $0 }
+                get: { parsedRoutine?.exercises[index].name ?? "" },
+                set: { parsedRoutine?.exercises[index].name = $0 }
             ))
             
             if exercise.isCardio {
                 HStack(spacing: 12) {
                     editorNumberField(label: "Sets", value: Binding(
-                        get: { parsedWorkout?.exercises[index].sets ?? 0 },
-                        set: { parsedWorkout?.exercises[index].sets = $0 }
+                        get: { parsedRoutine?.exercises[index].sets ?? 0 },
+                        set: { parsedRoutine?.exercises[index].sets = $0 }
                     ))
                     
                     editorNumberField(label: "Duration (min)", value: Binding(
-                        get: { (parsedWorkout?.exercises[index].durationSeconds ?? 0) / 60 },
-                        set: { parsedWorkout?.exercises[index].durationSeconds = $0 == 0 ? nil : $0 * 60 }
+                        get: { (parsedRoutine?.exercises[index].durationSeconds ?? 0) / 60 },
+                        set: { parsedRoutine?.exercises[index].durationSeconds = $0 == 0 ? nil : $0 * 60 }
+                    ))
+                    
+                    editorNumberField(label: "Rest (s)", value: Binding(
+                        get: { parsedRoutine?.exercises[index].restSeconds ?? 60 },
+                        set: { parsedRoutine?.exercises[index].restSeconds = $0 }
                     ))
                 }
             } else {
                 HStack(spacing: 12) {
                     editorNumberField(label: "Sets", value: Binding(
-                        get: { parsedWorkout?.exercises[index].sets ?? 0 },
-                        set: { parsedWorkout?.exercises[index].sets = $0 }
+                        get: { parsedRoutine?.exercises[index].sets ?? 0 },
+                        set: { parsedRoutine?.exercises[index].sets = $0 }
                     ))
                     
-                    editorNumberField(label: "Reps", value: Binding(
-                        get: { parsedWorkout?.exercises[index].reps ?? 0 },
-                        set: { parsedWorkout?.exercises[index].reps = $0 == 0 ? nil : $0 }
+                    editorField(label: "Reps", text: Binding(
+                        get: { parsedRoutine?.exercises[index].repsTarget ?? "" },
+                        set: { parsedRoutine?.exercises[index].repsTarget = $0.isEmpty ? nil : $0 }
                     ))
-                    
+                }
+                
+                HStack(spacing: 12) {
                     editorDecimalField(
                         label: "Weight (\(unitManager.weightUnit))",
                         value: Binding(
                             get: {
-                                if let kg = parsedWorkout?.exercises[index].weightKg {
+                                if let kg = parsedRoutine?.exercises[index].targetWeight {
                                     return unitManager.displayWeight(kg)
                                 }
                                 return 0
                             },
                             set: {
-                                parsedWorkout?.exercises[index].weightKg = $0 == 0 ? nil : unitManager.toKg($0)
+                                parsedRoutine?.exercises[index].targetWeight = $0 == 0 ? nil : unitManager.toKg($0)
                             }
                         )
                     )
+                    
+                    editorNumberField(label: "Rest (s)", value: Binding(
+                        get: { parsedRoutine?.exercises[index].restSeconds ?? 60 },
+                        set: { parsedRoutine?.exercises[index].restSeconds = $0 }
+                    ))
                 }
             }
         }
     }
+    
+    // MARK: - Editor Fields
     
     private func editorField(label: String, text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -552,31 +565,6 @@ struct LogWorkoutSheet: View {
         .disabled(isLoading)
     }
     
-    // MARK: - Recent Session Chip
-    
-    private func recentSessionChip(name: String, summary: String) -> some View {
-        Button {
-            inputText = summary
-        } label: {
-            HStack(spacing: 4) {
-                Text(name.count > 20 ? String(name.prefix(20)) + "…" : name)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(Color.appText)
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(Color.appTertiaryText)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                Capsule()
-                    .strokeBorder(Color(white: 0.2), lineWidth: 1)
-            )
-        }
-        .buttonStyle(ScalePressStyle())
-        .disabled(isLoading)
-    }
-    
     // MARK: - Error Banner
     
     private func errorBanner(message: String) -> some View {
@@ -602,11 +590,11 @@ struct LogWorkoutSheet: View {
     
     // MARK: - Actions
     
-    private func parseWorkout() async {
+    private func generateRoutine() async {
         let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         
-        PostHogSDK.shared.capture("ai_parse_workout_tapped", properties: [
+        PostHogSDK.shared.capture("ai_generate_routine_tapped", properties: [
             "text_length": trimmed.count
         ])
         
@@ -617,22 +605,98 @@ struct LogWorkoutSheet: View {
         impactLight.impactOccurred()
         
         do {
-            let result = try await WorkoutParserService.shared.parse(
+            let result = try await WorkoutParserService.shared.generateRoutine(
                 text: trimmed,
                 accessToken: accessToken
             )
             withAnimation(.easeInOut(duration: 0.3)) {
-                parsedWorkout = result
+                parsedRoutine = result
             }
             let impactMed = UIImpactFeedbackGenerator(style: .medium)
             impactMed.impactOccurred()
         } catch let error as ParserError {
+            debugLog("❌ AI routine ParserError: \(error.errorDescription ?? "nil")")
             errorMessage = error.errorDescription
         } catch {
+            debugLog("❌ AI routine other error: \(error)")
             errorMessage = "Something went wrong. Please try again."
         }
         
         isLoading = false
+    }
+    
+    private func saveRoutine() async {
+        guard let routine = parsedRoutine else { return }
+        
+        isSaving = true
+        
+        let routineRepo = RoutineRepository()
+        let exerciseRepo = ExerciseRepository.shared
+        
+        do {
+            // 1. Create the routine
+            let newRoutine = try await routineRepo.createRoutine(
+                name: routine.routineName,
+                description: routine.description
+            )
+            
+            // 2. Fetch all exercises for matching
+            let allExercises = try await exerciseRepo.fetchAllExercises()
+            
+            // 3. Add each exercise to the routine
+            for (index, exercise) in routine.exercises.enumerated() {
+                // Match by name (case-insensitive)
+                let matched = allExercises.first {
+                    $0.name.lowercased() == exercise.name.lowercased()
+                }
+                
+                let exerciseId: UUID
+                if let matched {
+                    exerciseId = matched.id
+                } else {
+                    let custom = try await exerciseRepo.createCustomExercise(
+                        name: exercise.name,
+                        exerciseType: exercise.exerciseType ?? "strength"
+                    )
+                    exerciseRepo.addToCache(custom)
+                    exerciseId = custom.id
+                }
+                
+                _ = try await routineRepo.addExerciseToRoutine(
+                    routineId: newRoutine.id,
+                    exerciseId: exerciseId,
+                    sets: exercise.sets,
+                    repsTarget: exercise.repsTarget,
+                    targetWeight: exercise.targetWeight,
+                    durationSeconds: exercise.durationSeconds,
+                    restSeconds: exercise.restSeconds,
+                    orderIndex: index
+                )
+            }
+            
+            // 4. Analytics
+            PostHogSDK.shared.capture("routine_created", properties: [
+                "ai_generated": true,
+                "exercise_count": routine.exercises.count
+            ])
+            
+            // 5. Notify other views
+            NotificationCenter.default.post(name: .routineDataChanged, object: nil)
+            NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
+            
+            let impactSuccess = UINotificationFeedbackGenerator()
+            impactSuccess.notificationOccurred(.success)
+            
+            onSave()
+            dismiss()
+            
+            debugLog("✅ AI generated routine saved successfully")
+        } catch {
+            errorMessage = "Failed to save routine. Please try again."
+            debugLog("❌ Failed to save AI generated routine: \(error)")
+        }
+        
+        isSaving = false
     }
     
     private func appendText(_ text: String) {
@@ -641,7 +705,6 @@ struct LogWorkoutSheet: View {
         }
         inputText += text
     }
-    
     
     private func formattedDuration(_ totalSeconds: Int) -> String {
         let minutes = totalSeconds / 60
@@ -652,61 +715,6 @@ struct LogWorkoutSheet: View {
             return "\(minutes) min"
         } else {
             return "\(seconds)s"
-        }
-    }
-    
-    private func loadRecentSessions() async {
-        let repository = WorkoutRepository()
-        let exerciseRepository = ExerciseRepository.shared
-        
-        do {
-            let sessions = try await repository.fetchRecentDistinctSessions(limit: 3)
-            let allExercises = try await exerciseRepository.fetchAllExercises()
-            let exerciseMap = Dictionary(uniqueKeysWithValues: allExercises.map { ($0.id, $0.name) })
-            
-            var results: [(name: String, summary: String)] = []
-            
-            for session in sessions {
-                let sets = try await repository.fetchSets(sessionId: session.id)
-                
-                // Group sets by exercise, preserving order
-                var exerciseOrder: [UUID] = []
-                var grouped: [UUID: (name: String, sets: Int, reps: Int?, weight: Double?)] = [:]
-                
-                for set in sets {
-                    if grouped[set.exerciseId] == nil {
-                        exerciseOrder.append(set.exerciseId)
-                        grouped[set.exerciseId] = (
-                            name: exerciseMap[set.exerciseId] ?? "Unknown",
-                            sets: 1,
-                            reps: set.reps,
-                            weight: set.weight
-                        )
-                    } else {
-                        grouped[set.exerciseId]?.sets += 1
-                    }
-                }
-                
-                // Build natural language summary
-                let exerciseParts = exerciseOrder.compactMap { id -> String? in
-                    guard let ex = grouped[id] else { return nil }
-                    var part = "\(ex.name.lowercased()) \(ex.sets)x\(ex.reps ?? 0)"
-                    if let w = ex.weight, w > 0 {
-                        let displayWeight = unitManager.displayWeight(w)
-                        part += " at \(String(format: "%.0f", displayWeight))\(unitManager.weightUnit)"
-                    }
-                    return part
-                }
-                
-                let summary = "\(session.name), \(exerciseParts.joined(separator: ", "))"
-                results.append((name: session.name, summary: summary))
-            }
-            
-            await MainActor.run {
-                recentSessions = results
-            }
-        } catch {
-            // Silently fail — recent sessions are a nice-to-have
         }
     }
 }

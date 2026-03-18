@@ -52,10 +52,80 @@ final class WorkoutParserService {
         anonKey = key
     }
     
+    func generateRoutine(text: String, accessToken: String) async throws -> ParsedRoutine {
+        let endpoint = "\(baseURL)/functions/v1/generate-routine"
+        guard let url = URL(string: endpoint) else {
+            debugLog("❌ generate-routine: invalid URL")
+            throw ParserError.unknown
+        }
+        
+        debugLog("🔵 generate-routine: calling \(endpoint)")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        request.timeoutInterval = 20
+        
+        let body = ["text": text]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            debugLog("❌ generate-routine network error: \(error)")
+            throw ParserError.networkError(error)
+        }
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            debugLog("❌ generate-routine: not an HTTP response")
+            throw ParserError.unknown
+        }
+        
+        let decoder = JSONDecoder()
+        
+        debugLog("🔵 generate-routine status: \(httpResponse.statusCode)")
+        if let raw = String(data: data, encoding: .utf8) {
+            debugLog("🔵 generate-routine body: \(raw.prefix(2000))")
+        }
+        
+        switch httpResponse.statusCode {
+        case 200:
+            do {
+                let parsed = try decoder.decode(ParseRoutineResponse.self, from: data)
+                debugLog("🔵 generate-routine decoded OK, data nil? \(parsed.data == nil)")
+                guard let routine = parsed.data else { throw ParserError.unknown }
+                return routine
+            } catch {
+                debugLog("❌ generate-routine decode error: \(error)")
+                throw error
+            }
+            
+        case 401:
+            throw ParserError.unauthorized
+            
+        case 403:
+            throw ParserError.upgradeRequired
+            
+        case 422:
+            let parsed = try? decoder.decode(ParseRoutineResponse.self, from: data)
+            let message = parsed?.message ?? "Describe the routine you'd like — e.g. Upper body push day, 5 exercises"
+            throw ParserError.offTopic(message)
+            
+        case 429:
+            let parsed = try? decoder.decode(ParseRoutineResponse.self, from: data)
+            let message = parsed?.message ?? "You've reached your daily AI limit. Try again tomorrow."
+            throw ParserError.rateLimitExceeded(message)
+            
+        default:
+            throw ParserError.unknown
+        }
+    }
+    
     func parse(text: String, accessToken: String) async throws -> ParsedWorkout {
         let endpoint = "\(baseURL)/functions/v1/parse-workout"
-        debugLog("🤖 Calling: \(endpoint)")
-        debugLog("🤖 Token empty: \(accessToken.isEmpty)")
         guard let url = URL(string: endpoint) else { throw ParserError.unknown }
         
         var request = URLRequest(url: url)
@@ -72,17 +142,11 @@ final class WorkoutParserService {
         do {
             (data, response) = try await URLSession.shared.data(for: request)
         } catch {
-            debugLog("🤖 Network error: \(error)")
             throw ParserError.networkError(error)
         }
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ParserError.unknown
-        }
-        
-        debugLog("🤖 Parse workout response: \(httpResponse.statusCode)")
-        if let bodyString = String(data: data, encoding: .utf8) {
-            debugLog("🤖 Response body: \(bodyString)")
         }
         
         let decoder = JSONDecoder()

@@ -22,6 +22,10 @@ class WorkoutDetailViewModel: ObservableObject {
     private let supabase = SupabaseManager.shared.client
     private var userProfile: Profile?
     
+    var isAILogged: Bool {
+        workoutSession.routineId == nil && workoutSession.routineDeleted != true
+    }
+    
     init(workoutSession: WorkoutSession) {
         self.workoutSession = workoutSession
     }

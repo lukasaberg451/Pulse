@@ -14,12 +14,19 @@ class WorkoutRepository {
     
     // Start a new workout session
     func createSession(name: String, routineId: UUID?) async throws -> WorkoutSession {
+        struct SessionInsert: Encodable {
+            let name: String
+            let routine_id: String?
+        }
+        
+        let insertData = SessionInsert(
+            name: name,
+            routine_id: routineId?.uuidString
+        )
+        
         let session: WorkoutSession = try await supabase
             .from("workout_sessions")
-            .insert([
-                "name": name,
-                "routine_id": routineId?.uuidString ?? ""
-            ])
+            .insert(insertData)
             .select()
             .single()
             .execute()
@@ -77,6 +84,31 @@ class WorkoutRepository {
         return response
     }
     
+    // Fetch recent completed sessions with distinct names (for AI log sheet)
+    func fetchRecentDistinctSessions(limit: Int = 3) async throws -> [WorkoutSession] {
+        let response: [WorkoutSession] = try await supabase
+            .from("workout_sessions")
+            .select()
+            .not("completed_at", operator: .is, value: "null")
+            .order("started_at", ascending: false)
+            .limit(20)
+            .execute()
+            .value
+        
+        // Deduplicate by name client-side
+        var seen = Set<String>()
+        var unique: [WorkoutSession] = []
+        for session in response {
+            let key = session.name.lowercased()
+            if !seen.contains(key) {
+                seen.insert(key)
+                unique.append(session)
+            }
+            if unique.count >= limit { break }
+        }
+        return unique
+    }
+    
     // Fetch sets for a session
     func fetchSets(sessionId: UUID) async throws -> [WorkoutSet] {
         let response: [WorkoutSet] = try await supabase
@@ -97,7 +129,9 @@ class WorkoutRepository {
         setNumber: Int,
         reps: Int?,
         weight: Double?,
-        orderIndex: Int? = nil
+        durationSeconds: Int? = nil,
+        orderIndex: Int? = nil,
+        completed: Bool = false
     ) async throws -> WorkoutSet {
         struct InsertData: Encodable {
             let session_id: String
@@ -105,6 +139,7 @@ class WorkoutRepository {
             let set_number: Int
             let reps: Int?
             let weight: Double?
+            let duration_seconds: Int?
             let completed: Bool
             let order_index: Int?
         }
@@ -115,7 +150,8 @@ class WorkoutRepository {
             set_number: setNumber,
             reps: reps,
             weight: weight,
-            completed: false,
+            duration_seconds: durationSeconds,
+            completed: completed,
             order_index: orderIndex
         )
         

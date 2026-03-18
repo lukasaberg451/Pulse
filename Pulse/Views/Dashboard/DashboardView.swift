@@ -36,8 +36,10 @@ struct DashboardView: View {
     @Environment(\.tabBarBottomInset) private var tabBarBottomInset
     @EnvironmentObject var syncService: WorkoutSyncService
     
-    // AI log session
+    // AI features
+    @State private var showingAIActionSheet = false
     @State private var showingLogWorkout = false
+    @State private var showingCreateRoutine = false
     @State private var showingPaywall = false
     @State private var aiAccessToken = ""
     
@@ -166,7 +168,7 @@ struct DashboardView: View {
                                 return
                             }
                             aiAccessToken = authViewModel.session?.accessToken ?? ""
-                            showingLogWorkout = true
+                            showingAIActionSheet = true
                         } label: {
                             Image(systemName: "sparkles")
                                 .font(.title3.weight(.semibold))
@@ -249,6 +251,16 @@ struct DashboardView: View {
                     )
                 }
             }
+            .sheet(isPresented: $showingAIActionSheet) {
+                AIActionSheet(
+                    onLogWorkout: {
+                        showingLogWorkout = true
+                    },
+                    onCreateRoutine: {
+                        showingCreateRoutine = true
+                    }
+                )
+            }
             .sheet(isPresented: $showingLogWorkout) {
                 LogWorkoutSheet(
                     accessToken: authViewModel.session?.accessToken ?? "",
@@ -258,6 +270,15 @@ struct DashboardView: View {
                     },
                     onManualEntry: {
                         // No-op: user can navigate to workout tab manually
+                    }
+                )
+            }
+            .sheet(isPresented: $showingCreateRoutine) {
+                AICreateRoutineSheet(
+                    accessToken: authViewModel.session?.accessToken ?? "",
+                    isOnline: syncService.isOnline,
+                    onSave: {
+                        Task { await viewModel.refreshAll() }
                     }
                 )
             }
@@ -277,7 +298,7 @@ struct DashboardView: View {
         
         do {
             // 1. Create a completed workout session
-            let sessionName = parsed.routineName ?? "AI Logged Workout"
+            let sessionName = parsed.routineName ?? "Workout"
             let session = try await repository.createSession(
                 name: sessionName,
                 routineId: nil
@@ -308,7 +329,7 @@ struct DashboardView: View {
                     // Create a custom exercise if no match found
                     let custom = try await exerciseRepository.createCustomExercise(
                         name: exercise.name,
-                        exerciseType: "strength"
+                        exerciseType: exercise.exerciseType ?? "strength"
                     )
                     exerciseRepository.addToCache(custom)
                     exerciseId = custom.id
@@ -320,9 +341,11 @@ struct DashboardView: View {
                         sessionId: session.id,
                         exerciseId: exerciseId,
                         setNumber: setNumber,
-                        reps: exercise.reps,
-                        weight: exercise.weightKg,
-                        orderIndex: orderIndex
+                        reps: exercise.isCardio ? nil : exercise.reps,
+                        weight: exercise.isCardio ? nil : exercise.weightKg,
+                        durationSeconds: exercise.isCardio ? exercise.durationSeconds : nil,
+                        orderIndex: orderIndex,
+                        completed: true
                     )
                 }
                 orderIndex += 1
@@ -495,7 +518,7 @@ struct DeletedRoutineTodayCard: View {
                         } else {
                             IconBadge(assetName: "calendar", size: 28)
                         }
-                        Text(isAILogged ? "AI logged" : "Scheduled")
+                        Text(isAILogged ? "AI Logged" : "Scheduled")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(isAILogged ? Color.appAccent : Color.appSecondaryText)
                     }
