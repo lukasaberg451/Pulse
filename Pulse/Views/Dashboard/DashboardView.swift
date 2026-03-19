@@ -36,13 +36,14 @@ struct DashboardView: View {
     @Environment(\.tabBarBottomInset) private var tabBarBottomInset
     @EnvironmentObject var syncService: WorkoutSyncService
     
+    /*
     // AI features
     @State private var showingAIActionSheet = false
     @State private var showingLogWorkout = false
     @State private var showingCreateRoutine = false
     @State private var showingPaywall = false
     @State private var aiAccessToken = ""
-    
+    */
     var body: some View {
         NavigationStack {
             ZStack {
@@ -156,6 +157,7 @@ struct DashboardView: View {
                 .contentMargins(.bottom, tabBarBottomInset, for: .scrollContent)
                 
                 // MARK: - AI Log Session FAB
+                /*
                 VStack {
                     Spacer()
                     HStack {
@@ -180,7 +182,7 @@ struct DashboardView: View {
                         .padding(.trailing, 20)
                         .padding(.bottom, tabBarBottomInset + 16)
                     }
-                }
+                } */
             }
             .sentryScreen("Dashboard")
             .onAppear {
@@ -251,7 +253,7 @@ struct DashboardView: View {
                     )
                 }
             }
-            .sheet(isPresented: $showingAIActionSheet) {
+            /*  .sheet(isPresented: $showingAIActionSheet) {
                 AIActionSheet(
                     onLogWorkout: {
                         showingLogWorkout = true
@@ -285,13 +287,13 @@ struct DashboardView: View {
             .sheet(isPresented: $showingPaywall) {
                 SubscriptionView()
                     .sheetContentTransition()
-            }
+            } */
         }
     }
     
     // MARK: - AI Workout Save
     
-    
+    /*
     private func saveAIParsedWorkout(_ parsed: ParsedWorkout) async {
         let repository = WorkoutRepository()
         let exerciseRepository = ExerciseRepository.shared
@@ -372,7 +374,7 @@ struct DashboardView: View {
             debugLog("❌ Failed to save AI parsed workout: \(error)")
         }
     }
-    
+     */
     private func checkForInProgressWorkout() async {
         let repository = OfflineWorkoutRepository(modelContext: modelContext)
         
