@@ -309,6 +309,8 @@ struct RegisterView: View {
                                         Image(systemName: showPassword ? "eye.slash" : "eye")
                                             .foregroundStyle(Color.appTertiaryText)
                                             .font(.body)
+                                            .frame(width: 24, height: 24)
+                                            .contentTransition(.symbolEffect(.replace))
                                     }
                                 }
                                 .padding()

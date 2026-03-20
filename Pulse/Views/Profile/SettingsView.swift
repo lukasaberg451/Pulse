@@ -213,7 +213,9 @@ struct SettingsView: View {
                             Button {
                                 let impactLight = UIImpactFeedbackGenerator(style: .light)
                                 impactLight.impactOccurred()
-                                openSupportEmail()
+                                if let url = URL(string: "https://pulsefitness.io/support/") {
+                                    UIApplication.shared.open(url)
+                                }
                             } label: {
                                 HStack(spacing: 14) {
                                     IconBadge(assetName: "question-mark-circle", size: 32)
@@ -224,10 +226,10 @@ struct SettingsView: View {
                                     
                                     Spacer()
                                     
-                                    Image("envelope")
+                                    Image("chevron-right")
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: 14, height: 14)
+                                        .frame(width: 13, height: 13)
                                         .foregroundStyle(Color.appTertiaryText)
                                 }
                                 .padding(14)
@@ -393,11 +395,5 @@ struct SettingsView: View {
         }
     }
     
-    private func openSupportEmail() {
-        let subject = "Pulse Support Request"
-        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
-        if let url = URL(string: "mailto:support@pulsefitness.io?subject=\(encodedSubject)") {
-            UIApplication.shared.open(url)
-        }
-    }
+
 }
