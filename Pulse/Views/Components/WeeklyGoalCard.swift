@@ -67,6 +67,7 @@ struct WeeklyGoalCard: View {
                                 .foregroundStyle(Color.appTertiaryText)
                         }
                         .buttonStyle(ScalePressStyle())
+                        .accessibilityIdentifier("editWeeklyGoalButton")
 
                         Text("\(Int(progress * 100))%")
                             .font(.system(size: 18, weight: .bold, design: .rounded))
@@ -120,6 +121,7 @@ struct WeeklyGoalCard: View {
                 .strokeBorder(Color.appAccent, lineWidth: 2)
                 .opacity(glowOpacity)
         }
+        .accessibilityIdentifier("weeklyGoalCard")
         .onChange(of: celebrate) { _, newValue in
             guard newValue else { return }
             runCelebration()

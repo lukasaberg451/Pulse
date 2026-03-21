@@ -149,10 +149,12 @@ struct RegisterView: View {
                                     Text(errorMessage)
                                         .foregroundStyle(.red)
                                         .font(.caption.weight(.medium))
+                                        .accessibilityIdentifier("registerErrorText")
                                 }
                                 .padding(12)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .accessibilityIdentifier("registerErrorBox")
                             }
                             
                             // First Name
@@ -168,6 +170,7 @@ struct RegisterView: View {
                                         .textInputAutocapitalization(.words)
                                         .focused($focusedField, equals: .firstName)
                                         .foregroundStyle(Color.appText)
+                                        .accessibilityIdentifier("registerFirstNameField")
                                         .onChange(of: firstName) { _, newValue in
                                             firstName = sanitizeInput(newValue, maxLength: 50)
                                         }
@@ -209,6 +212,7 @@ struct RegisterView: View {
                                         .textInputAutocapitalization(.words)
                                         .focused($focusedField, equals: .lastName)
                                         .foregroundStyle(Color.appText)
+                                        .accessibilityIdentifier("registerLastNameField")
                                         .onChange(of: lastName) { _, newValue in
                                             lastName = sanitizeInput(newValue, maxLength: 50)
                                         }
@@ -252,6 +256,7 @@ struct RegisterView: View {
                                         .autocorrectionDisabled()
                                         .focused($focusedField, equals: .email)
                                         .foregroundStyle(Color.appText)
+                                        .accessibilityIdentifier("registerEmailField")
                                         .onChange(of: email) { _, newValue in
                                             email = sanitizeInput(newValue, maxLength: 254)
                                         }
@@ -295,12 +300,14 @@ struct RegisterView: View {
                                             .autocorrectionDisabled()
                                             .focused($focusedField, equals: .password)
                                             .foregroundStyle(Color.appText)
+                                            .accessibilityIdentifier("registerPasswordField")
                                     } else {
                                         SecureField("Password", text: $password)
                                             .textFieldStyle(.plain)
                                             .textContentType(.newPassword)
                                             .focused($focusedField, equals: .password)
                                             .foregroundStyle(Color.appText)
+                                            .accessibilityIdentifier("registerPasswordField")
                                     }
                                     
                                     Button {
@@ -442,6 +449,7 @@ struct RegisterView: View {
                             }
                             .buttonStyle(ScalePressStyle())
                             .disabled(!isValid || !agreedToTerms || authViewModel.rateLimitSecondsRemaining > 0)
+                            .accessibilityIdentifier("registerButton")
                             .padding(.top, 10)
                         }
                         .padding(.horizontal, 24)

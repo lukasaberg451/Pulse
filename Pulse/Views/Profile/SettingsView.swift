@@ -83,6 +83,7 @@ struct SettingsView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                             .profileCardShadow(colorScheme: colorScheme)
                         }
+                        .accessibilityIdentifier("settingsPlanButton")
                         .buttonStyle(ScalePressStyle())
                         .padding(.horizontal)
                     }
@@ -97,6 +98,7 @@ struct SettingsView: View {
                             ProfileSettingsRow(icon: "brush", title: "Appearance", value: themeManager.selectedTheme.rawValue) {
                                 showingThemeSheet = true
                             }
+                            .accessibilityIdentifier("settingsAppearanceRow")
                             
                             ProfileDivider()
                             
@@ -104,6 +106,7 @@ struct SettingsView: View {
                             ProfileSettingsRow(icon: "ruler", title: "Units", value: unitManager.unitSystem.displayName) {
                                 showingUnitSheet = true
                             }
+                            .accessibilityIdentifier("settingsUnitsRow")
                             
                             ProfileDivider()
                             
@@ -111,6 +114,7 @@ struct SettingsView: View {
                             ProfileSettingsRow(icon: "clock", title: "Time Zone", value: viewModel.profile?.timezone ?? TimeZone.current.identifier, lineLimit: 1) {
                                 showingTimezoneSheet = true
                             }
+                            .accessibilityIdentifier("settingsTimezoneRow")
                             
                             if healthKitManager.isAvailable {
                                 ProfileDivider()
@@ -206,6 +210,7 @@ struct SettingsView: View {
                             ProfileSettingsRow(icon: "clipboard-text", title: "Send Feedback") {
                                 showingFeedbackSheet = true
                             }
+                            .accessibilityIdentifier("settingsFeedbackRow")
                             
                             ProfileDivider()
                             
@@ -257,6 +262,7 @@ struct SettingsView: View {
                         .background(Color.red.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
+                    .accessibilityIdentifier("settingsSignOutButton")
                     .buttonStyle(ScalePressStyle())
                     .padding(.horizontal)
                     
@@ -286,6 +292,7 @@ struct SettingsView: View {
                         .background(Color.red.opacity(0.06))
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
+                    .accessibilityIdentifier("settingsDeleteAccountButton")
                     .buttonStyle(ScalePressStyle())
                     .disabled(isDeletingAccount)
                     .padding(.horizontal)

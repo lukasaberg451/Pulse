@@ -32,6 +32,10 @@
 	<string>$(UITEST_EMAIL)</string>
 	<key>UITEST_PASSWORD</key>
 	<string>$(UITEST_PASSWORD)</string>
+	<key>UITEST_FREE_EMAIL</key>
+	<string>$(UITEST_FREE_EMAIL)</string>
+	<key>UITEST_FREE_PASSWORD</key>
+	<string>$(UITEST_FREE_PASSWORD)</string>
 	<key>WCSupportsAlwaysOnDisplay</key>
 	<true/>
 	<key>NSSupportsLiveActivities</key>

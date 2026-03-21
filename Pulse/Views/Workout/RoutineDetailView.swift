@@ -252,7 +252,8 @@ struct RoutineDetailView: View {
                                 // Edit Routine
                                 DetailActionButton(
                                     icon: "pencil",
-                                    title: "Edit Routine"
+                                    title: "Edit Routine",
+                                    identifier: "editRoutineButton"
                                 ) {
                                     cancelEditMode()
                                     let impactLight = UIImpactFeedbackGenerator(style: .light)
@@ -265,7 +266,8 @@ struct RoutineDetailView: View {
                                 // Add Exercise
                                 DetailActionButton(
                                     icon: "plus",
-                                    title: "Add Exercise"
+                                    title: "Add Exercise",
+                                    identifier: "addExerciseButton"
                                 ) {
                                     cancelEditMode()
                                     let impactLight = UIImpactFeedbackGenerator(style: .light)
@@ -560,6 +562,7 @@ struct ExercisePickerSheet: View {
                             TextField("Search exercises...", text: $searchText)
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appText)
+                                .accessibilityIdentifier("exerciseSearchField")
                                 .onChange(of: searchText) { _, newValue in
                                     searchTask?.cancel()
                                     searchTask = Task {
@@ -815,6 +818,7 @@ struct ExercisePickerSheet: View {
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appAccent)
                     }
+                    .accessibilityIdentifier("customExerciseToolbarButton")
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
@@ -1208,6 +1212,7 @@ struct CreateCustomExerciseSheet: View {
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appText)
                                 .focused($isExerciseNameFocused)
+                                .accessibilityIdentifier("customExerciseNameField")
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
@@ -1274,6 +1279,7 @@ struct CreateCustomExerciseSheet: View {
                     }
                     .buttonStyle(ScalePressStyle())
                     .disabled(exerciseName.trimmingCharacters(in: .whitespaces).isEmpty || isCreating)
+                    .accessibilityIdentifier("createCustomExerciseButton")
                 }
                 .padding()
             }
@@ -1820,6 +1826,7 @@ struct ExerciseConfigSheet: View {
                                                         targetWeight = sanitized
                                                     }
                                                 }
+                                                .accessibilityIdentifier("exerciseWeightField")
                                         }
                                         .padding()
                                     }
@@ -1933,6 +1940,7 @@ struct ExerciseConfigSheet: View {
                     .foregroundStyle(isAddDisabled ? Color.appSecondaryText : Color.appAccent)
                     .fontWeight(.semibold)
                     .disabled(isAddDisabled)
+                    .accessibilityIdentifier("addExerciseToRoutineButton")
                 }
             }
         }
@@ -2006,6 +2014,7 @@ struct EditRoutineSheet: View {
                                     .focused($focusedField, equals: .name)
                                     .submitLabel(.next)
                                     .onSubmit { focusedField = .notes }
+                                    .accessibilityIdentifier("editRoutineNameField")
                             }
                             .padding(14)
                             .background {
@@ -2101,6 +2110,7 @@ struct EditRoutineSheet: View {
                     .opacity(name.isEmpty ? 0.5 : 1.0)
                     .disabled(name.isEmpty || isSaving)
                     .padding(.horizontal)
+                    .accessibilityIdentifier("saveRoutineChangesButton")
 
                     Spacer()
                 }
@@ -2621,6 +2631,7 @@ struct EditExerciseSheet: View {
 private struct DetailActionButton: View {
     let icon: String
     let title: String
+    var identifier: String? = nil
     let action: () -> Void
 
     var body: some View {
@@ -2639,5 +2650,6 @@ private struct DetailActionButton: View {
             .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .buttonStyle(ScalePressStyle())
+        .accessibilityIdentifier(identifier ?? "")
     }
 }

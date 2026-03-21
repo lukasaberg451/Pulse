@@ -52,6 +52,7 @@ struct ProfileView: View {
                                         .background(Color.appSurface)
                                         .clipShape(Circle())
                                 }
+                                .accessibilityIdentifier("profileSettingsButton")
                                 .spotlightTarget("settingsButton")
                                 .padding(.trailing, 16)
                             }
@@ -104,6 +105,7 @@ struct ProfileView: View {
                                                     .fill(Color.appAccentSubtle)
                                             )
                                     }
+                                    .accessibilityIdentifier("profileEditButton")
                                     .buttonStyle(ScalePressStyle())
                                     .padding(.top, 4)
                                 }
@@ -132,6 +134,7 @@ struct ProfileView: View {
                                                 .font(.subheadline.weight(.medium))
                                                 .foregroundStyle(Color.appAccent)
                                         }
+                                        .accessibilityIdentifier("customExercisesSeeAll")
                                     }
                                 }
                                 .padding(.horizontal)
@@ -167,6 +170,7 @@ struct ProfileView: View {
                                 }
                             }
                             }
+                            .accessibilityIdentifier("profileCustomExercisesSection")
                             .id("exercises-\(sectionAnimationId)")
                             
                             // Completed Workouts
@@ -220,6 +224,7 @@ struct ProfileView: View {
                                 }
                             }
                             }
+                            .accessibilityIdentifier("profileCompletedWorkoutsSection")
                             .id("workouts-\(sectionAnimationId)")
                             
                             // Lifetime Stats
@@ -258,6 +263,7 @@ struct ProfileView: View {
                                 .padding(.horizontal)
                             }
                             }
+                            .accessibilityIdentifier("profileLifetimeStatsSection")
                             .id("stats-\(sectionAnimationId)")
                         }
                         .padding(.top, 8)
@@ -448,6 +454,7 @@ struct EditNameSheet: View {
                             EditNameRow(icon: "profile", label: "First Name", value: (viewModel.profile?.firstName?.isEmpty == false ? viewModel.profile?.firstName : nil) ?? "Not set") {
                                 showingEditFirstNameSheet = true
                             }
+                            .accessibilityIdentifier("editFirstNameRow")
                             
                             ProfileDivider()
                             
@@ -455,6 +462,7 @@ struct EditNameSheet: View {
                             EditNameRow(icon: "profile", label: "Last Name", value: (viewModel.profile?.lastName?.isEmpty == false ? viewModel.profile?.lastName : nil) ?? "Not set") {
                                 showingEditLastNameSheet = true
                             }
+                            .accessibilityIdentifier("editLastNameRow")
                             
                             // Only show email row if it's not a private relay address
                             if let email = viewModel.profile?.email,
@@ -1413,6 +1421,7 @@ struct AllCustomExercisesView: View {
                                     .foregroundStyle(Color.appTertiaryText)
                                     .frame(width: 44, height: 44)
                             }
+                            .accessibilityIdentifier("customExerciseMenu")
                         }
                         .padding(14)
                         .background {

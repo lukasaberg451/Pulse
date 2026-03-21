@@ -62,6 +62,7 @@ struct DashboardView: View {
                             Text(authViewModel.firstName.isEmpty ? "Welcome!" : "Welcome \(authViewModel.firstName)!")
                                 .font(.system(size: 30, weight: .bold, design: .rounded))
                                 .foregroundStyle(Color.appText)
+                                .accessibilityIdentifier("dashboardWelcomeText")
 
                             Text(viewModel.formattedToday)
                                 .font(.subheadline)
@@ -478,6 +479,7 @@ struct TodayWorkoutCard: View {
                         .foregroundStyle(routineExercises.isEmpty ? Color.appTertiaryText : Color.appAccent)
                     }
                     .buttonStyle(ScalePressStyle())
+                    .accessibilityIdentifier("dashboardStartWorkoutButton")
                     .disabled(routineExercises.isEmpty)
                 } else {
                     Image("check-circle")
@@ -489,6 +491,7 @@ struct TodayWorkoutCard: View {
             }
         }
         .spotlightTarget("todaySection")
+        .accessibilityIdentifier("dashboardTodayWorkoutCard")
         .padding(.horizontal)
         .fullScreenCover(isPresented: $showingActiveWorkout) {
             ActiveWorkoutView(
@@ -610,6 +613,7 @@ struct EmptyTodayCard: View {
                     .foregroundStyle(Color.appAccent)
                 }
                 .buttonStyle(ScalePressStyle())
+                .accessibilityIdentifier("dashboardAddWorkoutButton")
             }
         }
         .spotlightTarget("todaySection")
@@ -662,6 +666,7 @@ struct StatsBar: View {
                 )
             }
         }
+        .accessibilityIdentifier("dashboardStatsBar")
         .overlay {
             GeometryReader { geo in
                 // Wave shimmer that sweeps from top-right to bottom-left

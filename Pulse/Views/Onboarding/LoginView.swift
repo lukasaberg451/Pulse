@@ -61,10 +61,12 @@ struct LoginView: View {
                                 Text(errorMessage)
                                     .foregroundStyle(.red)
                                     .font(.caption.weight(.medium))
+                                    .accessibilityIdentifier("loginErrorText")
                             }
                             .padding(12)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .accessibilityIdentifier("loginErrorBox")
                         }
                         
                         // Email field
@@ -138,6 +140,7 @@ struct LoginView: View {
                             }
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appAccent)
+                            .accessibilityIdentifier("forgotPasswordButton")
                         }
                         
                         // Sign in button
@@ -700,10 +703,12 @@ struct ForgotPasswordView: View {
                     .font(.caption.weight(.medium))
                     .fixedSize(horizontal: false, vertical: true)
                     .lineLimit(3)
+                    .accessibilityIdentifier("forgotPasswordErrorText")
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .accessibilityIdentifier("forgotPasswordErrorBox")
         }
     }
 }

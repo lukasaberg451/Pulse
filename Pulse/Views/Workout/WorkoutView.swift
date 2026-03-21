@@ -264,6 +264,7 @@ private struct ScheduledSectionCard: View {
                     }
                     .buttonStyle(ScalePressStyle())
                     .disabled(selectedScheduledIds.isEmpty)
+                    .accessibilityIdentifier("deleteScheduledWorkoutsButton")
                 } else if !workouts.isEmpty && uncompletedWorkouts.count > 0 {
                     Button {
                         withAnimation(.spring(response: 0.3)) {
@@ -274,6 +275,7 @@ private struct ScheduledSectionCard: View {
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.appAccent)
                     }
+                    .accessibilityIdentifier("modifyScheduleButton")
                 }
             }
 
@@ -291,6 +293,7 @@ private struct ScheduledSectionCard: View {
                         impactLight.impactOccurred()
                         showingRoutinePicker = true
                     }
+                    .accessibilityIdentifier("addScheduledWorkoutButton")
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
@@ -363,6 +366,7 @@ private struct ScheduledSectionCard: View {
                             }
                         }
                         .buttonStyle(ScalePressStyle())
+                        .accessibilityIdentifier("addScheduledWorkoutButton")
                     }
                 }
             }
@@ -440,6 +444,7 @@ struct ScheduledWorkoutCard: View {
                 onTap()
             }
         }
+        .accessibilityIdentifier("scheduledWorkoutCard")
         .animation(.spring(response: 0.3), value: isSelectMode)
         .animation(.spring(response: 0.25), value: isSelected)
         .fullScreenCover(isPresented: $showingActiveWorkout) {
@@ -504,6 +509,7 @@ struct ScheduledWorkoutCard: View {
                 }
                 .buttonStyle(ScalePressStyle())
                 .disabled(isSelectMode || exerciseCount == 0)
+                .accessibilityIdentifier("startScheduledWorkoutButton")
             } else {
                 Image("chevron-right")
                     .resizable()
@@ -582,6 +588,7 @@ struct DeletedRoutineWorkoutCard: View {
                 onTap()
             }
         }
+        .accessibilityIdentifier("deletedRoutineWorkoutCard")
         .animation(.spring(response: 0.3), value: isSelectMode)
         .animation(.spring(response: 0.25), value: isSelected)
     }
@@ -781,6 +788,7 @@ struct RoutinePickerRow: View {
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
+        .accessibilityIdentifier("routinePickerRow")
     }
 }
 
@@ -882,6 +890,7 @@ struct RoutineContentView: View {
                                     .background(LinearGradient.accentGradient, in: Capsule())
                                 }
                                 .buttonStyle(ScalePressStyle())
+                                .accessibilityIdentifier("newRoutineButton")
                             }
 
                             Spacer()
@@ -921,6 +930,7 @@ struct RoutineContentView: View {
                                         .font(.subheadline.weight(.medium))
                                         .foregroundStyle(Color.appAccent)
                                 }
+                                .accessibilityIdentifier("modifyRoutinesButton")
                             }
                         }
                         .padding(.horizontal)
@@ -1087,6 +1097,7 @@ struct CreateRoutineSheet: View {
                                     .focused($focusedField, equals: .name)
                                     .submitLabel(.next)
                                     .onSubmit { focusedField = .notes }
+                                    .accessibilityIdentifier("routineNameField")
                             }
                             .padding(14)
                             .background {
@@ -1182,6 +1193,7 @@ struct CreateRoutineSheet: View {
                     .opacity(name.isEmpty ? 0.5 : 1.0)
                     .disabled(name.isEmpty || isCreating)
                     .padding(.horizontal)
+                    .accessibilityIdentifier("createRoutineButton")
 
                     Spacer()
                 }

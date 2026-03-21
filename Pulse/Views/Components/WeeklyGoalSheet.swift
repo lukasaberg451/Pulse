@@ -98,6 +98,7 @@ struct WeeklyGoalSheet: View {
                     }
                     .foregroundStyle(Color.appAccent)
                     .fontWeight(.semibold)
+                    .accessibilityIdentifier("saveWeeklyGoalButton")
                 }
             }
         }
@@ -150,5 +151,6 @@ struct GoalButton: View {
             }
         }
         .buttonStyle(ScalePressStyle())
+        .accessibilityIdentifier("goalButton_\(minutes)")
     }
 }

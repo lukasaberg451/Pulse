@@ -62,6 +62,7 @@ struct ProgressTabView: View {
                         
                         Spacer()
                     }
+                    .accessibilityIdentifier("progressPaywallPrompt")
                 } else {
                 
                 ScrollView {
@@ -75,6 +76,7 @@ struct ProgressTabView: View {
                                 .padding(.horizontal)
                             
                             SmartInsightCard(insight: insight)
+                                .accessibilityIdentifier("smartInsightCard")
                         }
                         
                         // Activity Section
@@ -136,6 +138,7 @@ struct ProgressTabView: View {
                                 .modifier(CardShadowModifier())
                         }
                         .padding(.horizontal)
+                        .accessibilityIdentifier("progressStreakCard")
                         
                         // Total Workouts
                         HStack(spacing: 14) {
@@ -160,6 +163,7 @@ struct ProgressTabView: View {
                                 .modifier(CardShadowModifier())
                         }
                         .padding(.horizontal)
+                        .accessibilityIdentifier("progressWorkoutsCard")
                         
                         // Volume Lifted
                         VStack(spacing: 16) {
@@ -197,9 +201,11 @@ struct ProgressTabView: View {
                                 .modifier(CardShadowModifier())
                         }
                         .padding(.horizontal)
+                        .accessibilityIdentifier("progressVolumeCard")
                         
                         // Estimated 1RM Section
                         Estimated1RMSection(viewModel: viewModel)
+                            .accessibilityIdentifier("progressEstimated1RMSection")
                         
                         // Strength Progress
                         VStack(alignment: .leading, spacing: 12) {
@@ -216,6 +222,7 @@ struct ProgressTabView: View {
                                             .font(.subheadline.weight(.medium))
                                             .foregroundStyle(Color.appAccent)
                                     }
+                                    .accessibilityIdentifier("strengthProgressSeeAllButton")
                                 }
                             }
                             .padding(.horizontal)
@@ -228,9 +235,11 @@ struct ProgressTabView: View {
                                 }
                             }
                         }
+                        .accessibilityIdentifier("progressStrengthSection")
                         
                         // Body Metrics Section
                         HealthMetricsSection()
+                            .accessibilityIdentifier("progressBodyMetricsSection")
                     }
                     .padding(.top, 30)
                     .padding(.bottom)
@@ -491,6 +500,7 @@ struct Estimated1RMSection: View {
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.appAccent)
                     }
+                    .accessibilityIdentifier("estimated1RMSeeAllButton")
                 }
             }
             .padding(.horizontal)
@@ -569,6 +579,7 @@ struct Estimated1RMCard: View {
             }
             .buttonStyle(.plain)
             .padding(.leading, 52)
+            .accessibilityIdentifier("trainingWeightsToggle")
 
             if showTrainingWeights {
                 TrainingWeightsGrid(estimated1rm: stat.bestEstimated1rm)
@@ -770,6 +781,7 @@ struct HealthMetricsSection: View {
                         .foregroundStyle(Color.appAccent)
                 }
                 .buttonStyle(ScalePressStyle())
+                .accessibilityIdentifier("editBodyMetricsButton")
             }
             .padding(.horizontal)
             

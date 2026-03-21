@@ -48,4 +48,18 @@ enum TestSecrets {
         }
         return value
     }
+
+    static var uitestFreeEmail: String {
+        guard let value = values["UITEST_FREE_EMAIL"] else {
+            fatalError("UITEST_FREE_EMAIL not found in Secrets.xcconfig")
+        }
+        return value
+    }
+
+    static var uitestFreePassword: String {
+        guard let value = values["UITEST_FREE_PASSWORD"] else {
+            fatalError("UITEST_FREE_PASSWORD not found in Secrets.xcconfig")
+        }
+        return value
+    }
 }

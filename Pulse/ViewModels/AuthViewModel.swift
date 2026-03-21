@@ -41,6 +41,16 @@ class AuthViewModel: ObservableObject{
                 return
             }
 
+            if args.contains("--skip-auth-free") {
+                // Sign in with the free test account so UI tests can
+                // verify paywall and subscription-gated behaviour.
+                Task {
+                    await signInWithFreeTestCredentials()
+                    self.isInitializing = false
+                }
+                return
+            }
+
             if args.contains("--skip-auth") {
                 // Programmatically sign in with test credentials so UI tests
                 // land on the home screen without touching the login UI.
@@ -98,6 +108,27 @@ class AuthViewModel: ObservableObject{
             self.isAuthenticated = true
         } catch {
             debugLog("⚠️ --skip-auth sign-in failed: \(error.localizedDescription), falling back to session restore")
+            await restoreSession()
+        }
+    }
+
+    /// Signs in with the free test account read from Info.plist (UITEST_FREE_EMAIL / UITEST_FREE_PASSWORD).
+    /// Falls back to restoring an existing session if the credentials are missing or sign-in fails.
+    private func signInWithFreeTestCredentials() async {
+        guard let email = Bundle.main.object(forInfoDictionaryKey: "UITEST_FREE_EMAIL") as? String,
+              let password = Bundle.main.object(forInfoDictionaryKey: "UITEST_FREE_PASSWORD") as? String,
+              !email.isEmpty, !password.isEmpty else {
+            debugLog("⚠️ --skip-auth-free: no free test credentials in Info.plist, falling back to session restore")
+            await restoreSession()
+            return
+        }
+
+        do {
+            let result = try await supabase.auth.signIn(email: email, password: password)
+            self.session = result
+            self.isAuthenticated = true
+        } catch {
+            debugLog("⚠️ --skip-auth-free sign-in failed: \(error.localizedDescription), falling back to session restore")
             await restoreSession()
         }
     }
