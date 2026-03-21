@@ -69,20 +69,32 @@ struct ProfileView: View {
                                             .foregroundStyle(Color.appAccent)
                                     }
                                     
-                                    Text("\(viewModel.profile?.firstName ?? "") \(viewModel.profile?.lastName ?? "")")
-                                        .font(.title2.weight(.bold))
-                                        .foregroundStyle(Color.appText)
-                                    
-                                    Text(viewModel.profile?.email ?? "")
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.appSecondaryText)
+                                    if let displayName = profileDisplayName {
+                                        Text(displayName)
+                                            .font(.title2.weight(.bold))
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        if let email = displayEmail {
+                                            Text(email)
+                                                .font(.subheadline)
+                                                .foregroundStyle(Color.appSecondaryText)
+                                        }
+                                    } else if let email = displayEmail {
+                                        Text(email)
+                                            .font(.title2.weight(.bold))
+                                            .foregroundStyle(Color.appText)
+                                    } else {
+                                        Text("Pulse Member")
+                                            .font(.title2.weight(.bold))
+                                            .foregroundStyle(Color.appText)
+                                    }
                                     
                                     Button {
                                         let impactLight = UIImpactFeedbackGenerator(style: .light)
                                         impactLight.impactOccurred()
                                         showingEditNameSheet = true
                                     } label: {
-                                        Text("Edit Profile")
+                                        Text(profileDisplayName == nil ? "Add Name" : "Edit Profile")
                                             .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appAccent)
                                             .padding(.horizontal, 24)
@@ -268,6 +280,25 @@ struct ProfileView: View {
         }
         }
     
+    // Whether the email is an Apple private relay address
+    private var isPrivateRelayEmail: Bool {
+        viewModel.profile?.email?.contains("privaterelay.appleid.com") == true
+    }
+    
+    // Email to display — nil when it's a private relay address
+    private var displayEmail: String? {
+        guard let email = viewModel.profile?.email, !isPrivateRelayEmail else { return nil }
+        return email
+    }
+    
+    // Formatted display name, nil when both first and last are empty
+    private var profileDisplayName: String? {
+        let first = viewModel.profile?.firstName ?? ""
+        let last = viewModel.profile?.lastName ?? ""
+        let combined = "\(first) \(last)".trimmingCharacters(in: .whitespaces)
+        return combined.isEmpty ? nil : combined
+    }
+    
     // Helper function to get user initials
     func getUserInitials() -> String {
         let firstName = viewModel.profile?.firstName ?? ""
@@ -277,6 +308,10 @@ struct ProfileView: View {
         let lastInitial = lastName.first?.uppercased() ?? ""
         
         if firstInitial.isEmpty && lastInitial.isEmpty {
+            // Fall back to the first letter of the email, but not for private relay
+            if let email = displayEmail, let initial = email.first?.uppercased() {
+                return initial
+            }
             return "?"
         }
         
@@ -410,22 +445,26 @@ struct EditNameSheet: View {
                         // Account Details Card
                         VStack(spacing: 0) {
                             // First Name Row
-                            EditNameRow(icon: "profile", label: "First Name", value: viewModel.profile?.firstName ?? "Not set") {
+                            EditNameRow(icon: "profile", label: "First Name", value: (viewModel.profile?.firstName?.isEmpty == false ? viewModel.profile?.firstName : nil) ?? "Not set") {
                                 showingEditFirstNameSheet = true
                             }
                             
                             ProfileDivider()
                             
                             // Last Name Row
-                            EditNameRow(icon: "profile", label: "Last Name", value: viewModel.profile?.lastName ?? "Not set") {
+                            EditNameRow(icon: "profile", label: "Last Name", value: (viewModel.profile?.lastName?.isEmpty == false ? viewModel.profile?.lastName : nil) ?? "Not set") {
                                 showingEditLastNameSheet = true
                             }
                             
-                            ProfileDivider()
-                            
-                            // Email Row
-                            EditNameRow(icon: "envelope", label: "Email", value: viewModel.profile?.email ?? "Not set") {
-                                showingChangeEmailSheet = true
+                            // Only show email row if it's not a private relay address
+                            if let email = viewModel.profile?.email,
+                               !email.contains("privaterelay.appleid.com") {
+                                ProfileDivider()
+                                
+                                // Email Row
+                                EditNameRow(icon: "envelope", label: "Email", value: email) {
+                                    showingChangeEmailSheet = true
+                                }
                             }
                         }
                         .background(Color.appSurface)

@@ -27,12 +27,14 @@ final class WorkoutLoggingTests: XCTestCase {
         let resumeAlert = app.alerts["Resume Workout?"]
         if resumeAlert.waitForExistence(timeout: 5) {
             resumeAlert.buttons["Discard"].tap()
+            sleep(1)
         }
 
-        // 1. Tap the Workout tab
+        // 1. Tap the Workout tab and wait for it to settle
         let workoutTab = app.buttons["Workout"]
         XCTAssertTrue(workoutTab.waitForExistence(timeout: 15), "Workout tab not found")
         workoutTab.tap()
+        sleep(2)
 
         // 2. Switch to Routines sub-tab and wait for page transition
         let routinesPill = app.buttons["Routines"]
@@ -51,7 +53,7 @@ final class WorkoutLoggingTests: XCTestCase {
         startWorkoutButton.tap()
 
         // 5. Verify active workout screen appeared
-        let finishButton = app.buttons["Finish"]
+        let finishButton = app.buttons["finishWorkoutButton"]
         XCTAssertTrue(finishButton.waitForExistence(timeout: 10), "Finish button not found — active workout screen may not have appeared")
 
         // 6. Enter a weight in the first set's weight field
@@ -61,11 +63,14 @@ final class WorkoutLoggingTests: XCTestCase {
         // SelectAllTextField auto-selects text on focus, so typing replaces it
         weightField.typeText("80")
 
-        // 7. Dismiss keyboard, then swipe left on the set row to complete it
-        // Tap elsewhere to dismiss the keyboard first
-        app.swipeDown()
+        // 7. Dismiss keyboard, then tap the set number pill to complete the set
+        app.navigationBars.firstMatch.tap()
         sleep(1)
-        weightField.swipeLeft()
+
+        // The set number "1" pill acts as a toggle button for set completion
+        let setOnePill = app.buttons.matching(NSPredicate(format: "label == '1'")).firstMatch
+        XCTAssertTrue(setOnePill.waitForExistence(timeout: 5), "Set 1 pill not found")
+        setOnePill.tap()
         sleep(1) // Wait for completion animation
 
         // 8. Tap "Finish" to end the workout (now with completed sets)

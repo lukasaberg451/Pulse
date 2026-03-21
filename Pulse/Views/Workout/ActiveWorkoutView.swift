@@ -427,13 +427,14 @@ struct ExerciseCard: View {
                 
                 VStack(spacing: 0) {
                     ForEach(sets) { set in
-                        SwipeableSetRow(
+                        SetRow(
                             viewModel: viewModel,
                             set: set,
                             exercise: exercise,
                             routineExercise: routineExercise,
                             isFirstIncomplete: isFirstIncompleteSet(set),
-                            isCurrent: status == .current
+                            isCurrent: status == .current,
+                            isLocked: status == .completed
                         )
                         
                         if set.id != sets.last?.id {
@@ -443,25 +444,27 @@ struct ExerciseCard: View {
                         }
                     }
                     
-                    // Add set button
-                    Button {
-                        Task {
-                            await viewModel.addSet(exerciseId: exercise.id, targetSets: routineExercise.sets, orderIndex: routineExercise.orderIndex)
+                    // Add set button (hidden for completed exercises)
+                    if status != .completed {
+                        Button {
+                            Task {
+                                await viewModel.addSet(exerciseId: exercise.id, targetSets: routineExercise.sets, orderIndex: routineExercise.orderIndex)
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image("plus")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 12, height: 12)
+                                Text("Add Set")
+                                    .font(.caption.weight(.semibold))
+                            }
+                            .foregroundStyle(Color.appAccent)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
                         }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image("plus")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 12, height: 12)
-                            Text("Add Set")
-                                .font(.caption.weight(.semibold))
-                        }
-                        .foregroundStyle(Color.appAccent)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
+                        .buttonStyle(ScalePressStyle())
                     }
-                    .buttonStyle(ScalePressStyle())
                 }
             }
         }
@@ -593,7 +596,7 @@ struct ExerciseCard: View {
 }
 
 // MARK: - Set Row
-struct SwipeableSetRow: View {
+struct SetRow: View {
     @ObservedObject var viewModel: OfflineActiveWorkoutViewModel
     @EnvironmentObject var unitManager: UnitManager
     let set: LocalWorkoutSet
@@ -601,6 +604,7 @@ struct SwipeableSetRow: View {
     let routineExercise: RoutineExercise
     let isFirstIncomplete: Bool
     let isCurrent: Bool
+    var isLocked: Bool = false
     
     @State private var weightText: String = ""
     @State private var hasInitializedWeight = false
@@ -683,6 +687,9 @@ struct SwipeableSetRow: View {
     }
     
     private func toggleSetCompletion() {
+        // Prevent undoing sets on completed/locked exercises
+        if isLocked && set.completed { return }
+        
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         
         if set.completed {

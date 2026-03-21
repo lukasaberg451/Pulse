@@ -213,7 +213,7 @@ struct SubscriptionView: View {
                             // Legal
                             HStack(spacing: 16) {
                                 Button("Terms of Service") {
-                                    safariURL = URL(string: "https://pulsefitness.io/terms-app.html")
+                                    safariURL = Constants.URLs.termsOfService
                                 }
                                 .font(.caption2)
                                 .foregroundStyle(Color.appAccent)
@@ -222,7 +222,7 @@ struct SubscriptionView: View {
                                     .foregroundStyle(Color.appTertiaryText)
                                 
                                 Button("Privacy Policy") {
-                                    safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
+                                    safariURL = Constants.URLs.privacyPolicy
                                 }
                                 .font(.caption2)
                                 .foregroundStyle(Color.appAccent)

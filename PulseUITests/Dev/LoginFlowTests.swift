@@ -49,12 +49,12 @@ final class LoginFlowTests: XCTestCase {
         let emailField = app.textFields["loginEmailField"]
         XCTAssertTrue(emailField.waitForExistence(timeout: 10), "Email field not found")
         emailField.tap()
-        emailField.typeText("lukas19991@live.se")
+        emailField.typeText(TestSecrets.uitestEmail)
 
         let passwordField = app.secureTextFields["loginPasswordField"]
         XCTAssertTrue(passwordField.waitForExistence(timeout: 3), "Password field not found")
         passwordField.tap()
-        passwordField.typeText("Lukas99!")
+        passwordField.typeText(TestSecrets.uitestPassword)
 
         let loginButton = app.buttons["loginButton"]
         XCTAssertTrue(loginButton.waitForExistence(timeout: 3), "Login button not found")

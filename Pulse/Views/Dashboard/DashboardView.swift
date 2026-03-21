@@ -59,7 +59,7 @@ struct DashboardView: View {
                         
                         // MARK: - Hero Header
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Welcome \(authViewModel.firstName)!")
+                            Text(authViewModel.firstName.isEmpty ? "Welcome!" : "Welcome \(authViewModel.firstName)!")
                                 .font(.system(size: 30, weight: .bold, design: .rounded))
                                 .foregroundStyle(Color.appText)
 

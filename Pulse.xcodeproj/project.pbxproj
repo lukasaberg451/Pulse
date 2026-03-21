@@ -73,6 +73,7 @@
 			membershipExceptions = (
 				Assets.xcassets,
 				Extensions/ColorExtensions.swift,
+				Extensions/Constants.swift,
 				Extensions/DebugLog.swift,
 				Extensions/InputSanitization.swift,
 				Extensions/SharedFormatters.swift,

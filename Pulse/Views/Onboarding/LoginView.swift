@@ -216,7 +216,7 @@ struct LoginView: View {
                                 .foregroundStyle(Color.appTertiaryText)
                             
                             Button(action: {
-                                safariURL = URL(string: "https://pulsefitness.io/terms-app.html")
+                                safariURL = Constants.URLs.termsOfService
                             }) {
                                 Text("Terms of Service")
                                     .font(.caption2)
@@ -229,7 +229,7 @@ struct LoginView: View {
                                 .foregroundStyle(Color.appTertiaryText)
                             
                             Button(action: {
-                                safariURL = URL(string: "https://pulsefitness.io/privacy-app.html")
+                                safariURL = Constants.URLs.privacyPolicy
                             }) {
                                 Text("Privacy Policy")
                                     .font(.caption2)
