@@ -81,6 +81,7 @@ struct LoginView: View {
                                     .autocorrectionDisabled()
                                     .focused($focusedField, equals: .email)
                                     .foregroundStyle(Color.appText)
+                                    .accessibilityIdentifier("loginEmailField")
                                     .onChange(of: email) {
                                         showError = false
                                     }
@@ -110,6 +111,7 @@ struct LoginView: View {
                                     .textFieldStyle(.plain)
                                     .focused($focusedField, equals: .password)
                                     .foregroundStyle(Color.appText)
+                                    .accessibilityIdentifier("loginPasswordField")
                                     .onChange(of: password) {
                                         showError = false
                                     }
@@ -167,6 +169,7 @@ struct LoginView: View {
                                 }
                             }
                         }
+                        .accessibilityIdentifier("loginButton")
                         .disabled(authViewModel.rateLimitSecondsRemaining > 0)
                         .padding(.top, 4)
                         

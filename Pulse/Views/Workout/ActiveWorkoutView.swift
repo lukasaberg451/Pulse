@@ -197,6 +197,7 @@ struct ActiveWorkoutViewContent: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
+            .accessibilityIdentifier("activeWorkoutView")
             .sentryScreen("ActiveWorkout")
             .navigationTitle(routine.name)
             .navigationBarTitleDisplayMode(.inline)
@@ -219,6 +220,7 @@ struct ActiveWorkoutViewContent: View {
                             let hasCompletedSets = viewModel.sets.contains { $0.completed }
                             alertType = hasCompletedSets ? .finish : .emptyFinish
                         }
+                        .accessibilityIdentifier("finishWorkoutButton")
                         .foregroundStyle(Color.appAccent)
                         .fontWeight(.semibold)
                     }
@@ -590,7 +592,7 @@ struct ExerciseCard: View {
     }
 }
 
-// MARK: - Swipeable Set Row
+// MARK: - Set Row
 struct SwipeableSetRow: View {
     @ObservedObject var viewModel: OfflineActiveWorkoutViewModel
     @EnvironmentObject var unitManager: UnitManager
@@ -600,184 +602,76 @@ struct SwipeableSetRow: View {
     let isFirstIncomplete: Bool
     let isCurrent: Bool
     
-    @State private var dragOffset: CGFloat = 0
-    @State private var hasTriggeredHaptic = false
     @State private var weightText: String = ""
     @State private var hasInitializedWeight = false
     
-    private let swipeThreshold: CGFloat = -80
-    private let undoThreshold: CGFloat = 80
-    
     var body: some View {
-        ZStack {
-            // Background revealed on swipe - only render when actively dragging
-            if dragOffset != 0 {
-                HStack {
-                    // Undo action (swipe right on completed sets)
-                    if set.completed {
-                        HStack(spacing: 6) {
-                            Image("undo")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 15, height: 15)
-                            Text("Undo")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                        }
-                        .foregroundStyle(.white)
-                        .frame(maxHeight: .infinity)
-                        .padding(.horizontal, 20)
-                        .background(Color.orange)
-                    }
+        // Foreground row content
+        HStack(spacing: 14) {
+            // Set number pill — tap target for complete/undo
+            Button {
+                toggleSetCompletion()
+            } label: {
+                ZStack {
+                    Color.clear
+                        .frame(width: 44, height: 44)
                     
-                    Spacer()
-                    
-                    // Complete action (swipe left on incomplete sets)
-                    if !set.completed {
-                        HStack(spacing: 6) {
-                            Text("Complete")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            Image("check-circle")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 15, height: 15)
-                        }
-                        .foregroundStyle(.white)
-                        .frame(maxHeight: .infinity)
-                        .padding(.horizontal, 20)
-                        .background(Color.green)
-                    }
+                    Text("\(set.setNumber)")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(set.completed ? .white : Color.appText)
+                        .frame(width: 28, height: 28)
+                        .background(
+                            Circle()
+                                .fill(set.completed ? Color.green : Color.appText.opacity(0.08))
+                        )
                 }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            
+            if exercise.exerciseType == "strength" {
+                strengthContent
+            } else {
+                cardioContent
             }
             
-            // Foreground row content
-            HStack(spacing: 14) {
-                // Set number pill
-                Text("\(set.setNumber)")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(set.completed ? .white : Color.appText)
-                    .frame(width: 28, height: 28)
-                    .background(
-                        Circle()
-                            .fill(set.completed ? Color.green : Color.appText.opacity(0.08))
-                    )
-                
-                if exercise.exerciseType == "strength" {
-                    strengthContent
-                } else {
-                    cardioContent
-                }
-                
-                Spacer()
-                
-                // Status indicator
-                if set.completed {
-                    Image("check-circle")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 17, height: 17)
-                        .foregroundStyle(Color.green)
-                } else if isFirstIncomplete && isCurrent {
-                    HStack(spacing: 4) {
-                        Text("Swipe")
-                            .font(.caption2.weight(.medium))
-                            .foregroundStyle(Color.appAccent.opacity(0.6))
-                        Image("chevron-left")
+            Spacer()
+            
+            // Status indicator — primary tap target for complete/undo
+            Button {
+                toggleSetCompletion()
+            } label: {
+                ZStack {
+                    // Invisible hit area for minimum 44pt touch target
+                    Color.clear
+                        .frame(width: 44, height: 44)
+                    
+                    if set.completed {
+                        Image("check-circle")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 8, height: 8)
-                            .foregroundStyle(Color.appAccent.opacity(0.6))
+                            .frame(width: 22, height: 22)
+                            .foregroundStyle(Color.green)
+                    } else {
+                        Circle()
+                            .strokeBorder(isFirstIncomplete && isCurrent ? Color.appAccent.opacity(0.5) : Color.appText.opacity(0.15), lineWidth: 1.5)
+                            .frame(width: 22, height: 22)
                     }
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 11)
+        .background(
+            ZStack {
+                Color.appSurface
+                if set.completed {
+                    Color.green.opacity(0.04)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 11)
-            .background(
-                ZStack {
-                    Color.appSurface
-                    if set.completed {
-                        Color.green.opacity(0.04)
-                    }
-                }
-            )
-            .offset(x: dragOffset)
-            .gesture(
-                DragGesture(minimumDistance: 20)
-                    .onChanged { value in
-                        let translation = value.translation.width
-                        
-                        // Only allow swipe left on incomplete sets, swipe right on completed sets
-                        if !set.completed && translation < 0 {
-                            dragOffset = translation
-                            if translation < swipeThreshold && !hasTriggeredHaptic {
-                                let impact = UIImpactFeedbackGenerator(style: .medium)
-                                impact.impactOccurred()
-                                hasTriggeredHaptic = true
-                            }
-                        } else if set.completed && translation > 0 {
-                            dragOffset = translation
-                            if translation > undoThreshold && !hasTriggeredHaptic {
-                                let impact = UIImpactFeedbackGenerator(style: .light)
-                                impact.impactOccurred()
-                                hasTriggeredHaptic = true
-                            }
-                        }
-                    }
-                    .onEnded { value in
-                        let translation = value.translation.width
-                        
-                        if !set.completed && translation < swipeThreshold {
-                            // Complete the set — delay state update so the swipe animation finishes first
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                dragOffset = 0
-                            }
-                            
-                            let targetReps = routineExercise.repsTarget.flatMap { Int($0) }
-                            let actualWeight = exercise.exerciseType == "strength" ? (enteredWeight ?? routineExercise.targetWeight) : routineExercise.targetWeight
-                            let targetDuration = routineExercise.durationSeconds
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
-                                    viewModel.updateSet(
-                                        set: set,
-                                        reps: targetReps,
-                                        weight: actualWeight,
-                                        durationSeconds: targetDuration,
-                                        completed: true
-                                    )
-                                }
-                            }
-                        } else if set.completed && translation > undoThreshold {
-                            // Undo the set
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                dragOffset = 0
-                            }
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
-                                    viewModel.updateSet(
-                                        set: set,
-                                        reps: set.reps,
-                                        weight: set.weight,
-                                        durationSeconds: set.durationSeconds,
-                                        completed: false
-                                    )
-                                }
-                            }
-                        } else {
-                            // Snap back
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                dragOffset = 0
-                            }
-                        }
-                        
-                        hasTriggeredHaptic = false
-                    }
-            )
-        }
-        .clipShape(Rectangle())
+        )
         .onAppear {
             if !hasInitializedWeight {
                 let target = routineExercise.targetWeight ?? 0
@@ -786,8 +680,43 @@ struct SwipeableSetRow: View {
                 hasInitializedWeight = true
             }
         }
-        .onChange(of: set.completed) {
-            dragOffset = 0
+    }
+    
+    private func toggleSetCompletion() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        
+        if set.completed {
+            // Undo — light haptic
+            let impact = UIImpactFeedbackGenerator(style: .light)
+            impact.impactOccurred()
+            
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                viewModel.updateSet(
+                    set: set,
+                    reps: set.reps,
+                    weight: set.weight,
+                    durationSeconds: set.durationSeconds,
+                    completed: false
+                )
+            }
+        } else {
+            // Complete — medium haptic
+            let impact = UIImpactFeedbackGenerator(style: .medium)
+            impact.impactOccurred()
+            
+            let targetReps = routineExercise.repsTarget.flatMap { Int($0) }
+            let actualWeight = exercise.exerciseType == "strength" ? (enteredWeight ?? routineExercise.targetWeight) : routineExercise.targetWeight
+            let targetDuration = routineExercise.durationSeconds
+            
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                viewModel.updateSet(
+                    set: set,
+                    reps: targetReps,
+                    weight: actualWeight,
+                    durationSeconds: targetDuration,
+                    completed: true
+                )
+            }
         }
     }
     
@@ -832,7 +761,7 @@ struct SwipeableSetRow: View {
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
             } else {
-                SelectAllTextField(text: $weightText, placeholder: "0")
+                SelectAllTextField(text: $weightText, placeholder: "0", identifier: "weightField_\(set.setNumber)")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
                     .frame(width: 50, height: 24)
@@ -902,6 +831,7 @@ struct SwipeableSetRow: View {
 struct SelectAllTextField: UIViewRepresentable {
     @Binding var text: String
     var placeholder: String
+    var identifier: String?
     
     func makeUIView(context: Context) -> UITextField {
         let textField = UITextField()
@@ -913,6 +843,7 @@ struct SelectAllTextField: UIViewRepresentable {
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textChanged(_:)), for: .editingChanged)
         textField.setContentHuggingPriority(.required, for: .horizontal)
         textField.setContentCompressionResistancePriority(.required, for: .horizontal)
+        textField.accessibilityIdentifier = identifier
         return textField
     }
     

@@ -213,6 +213,7 @@ private struct HomeTabBar: View {
         .padding(.bottom, 2)
         .padding(.horizontal, 4)
         .background(Color.appBackground.opacity(0.95))
+        .accessibilityIdentifier("mainTabBar")
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(Color.appText.opacity(0.06))

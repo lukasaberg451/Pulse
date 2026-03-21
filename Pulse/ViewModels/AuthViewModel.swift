@@ -30,6 +30,27 @@ class AuthViewModel: ObservableObject{
     private var rateLimitTimer: Task<Void, Never>?
     
     init() {
+            let args = ProcessInfo.processInfo.arguments
+
+            if args.contains("--reset-auth") {
+                // Force sign-out so login tests start from unauthenticated state
+                Task {
+                    try? await supabase.auth.signOut()
+                    self.isInitializing = false
+                }
+                return
+            }
+
+            if args.contains("--skip-auth") {
+                // Programmatically sign in with test credentials so UI tests
+                // land on the home screen without touching the login UI.
+                Task {
+                    await signInWithTestCredentials()
+                    self.isInitializing = false
+                }
+                return
+            }
+
             // Restore session on init
             Task {
                 await restoreSession()
@@ -60,6 +81,27 @@ class AuthViewModel: ObservableObject{
             }
         }
     
+    /// Signs in with test credentials read from Info.plist (UITEST_EMAIL / UITEST_PASSWORD).
+    /// Falls back to restoring an existing session if the credentials are missing or sign-in fails.
+    private func signInWithTestCredentials() async {
+        guard let email = Bundle.main.object(forInfoDictionaryKey: "UITEST_EMAIL") as? String,
+              let password = Bundle.main.object(forInfoDictionaryKey: "UITEST_PASSWORD") as? String,
+              !email.isEmpty, !password.isEmpty else {
+            debugLog("⚠️ --skip-auth: no test credentials in Info.plist, falling back to session restore")
+            await restoreSession()
+            return
+        }
+
+        do {
+            let result = try await supabase.auth.signIn(email: email, password: password)
+            self.session = result
+            self.isAuthenticated = true
+        } catch {
+            debugLog("⚠️ --skip-auth sign-in failed: \(error.localizedDescription), falling back to session restore")
+            await restoreSession()
+        }
+    }
+
     func getInitialSession() async {
         do {
             let current = try await supabase.auth.session

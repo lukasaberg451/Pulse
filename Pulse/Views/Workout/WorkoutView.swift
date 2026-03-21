@@ -1298,6 +1298,7 @@ struct RoutineRow: View {
             }
         }
         .buttonStyle(ScalePressStyle())
+        .accessibilityIdentifier("routineRow")
         .animation(.spring(response: 0.3), value: isSelectMode)
         .animation(.spring(response: 0.25), value: isSelected)
     }

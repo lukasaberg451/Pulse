@@ -94,9 +94,13 @@ struct PulseApp: App {
     @StateObject private var unitManager = UnitManager.shared
     @StateObject private var tourManager = OnboardingTourManager()
 
+    private static var isUITesting: Bool {
+        ProcessInfo.processInfo.arguments.contains("--uitesting")
+    }
+
     @State private var showPostLoginLoading = false
     @State private var showPostLogoutLoading = false
-    @State private var showSplash = true
+    @State private var showSplash = !PulseApp.isUITesting
     @State private var selectedTab: HomeTab = .dashboard
     
     // SwiftData model container for offline support
@@ -149,7 +153,7 @@ struct PulseApp: App {
                         .environmentObject(tourManager)
                         .onChange(of: authViewModel.isAuthenticated) { _, newValue in
                             // Start spotlight tour on first launch after user authenticates
-                            if newValue && !hasCompletedFirstLaunchGuide {
+                            if newValue && !hasCompletedFirstLaunchGuide && !PulseApp.isUITesting {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                                     hasCompletedFirstLaunchGuide = true
                                     tourManager.start()
@@ -157,7 +161,7 @@ struct PulseApp: App {
                             }
                         }
                         .onAppear {
-                            if authViewModel.isAuthenticated && !hasCompletedFirstLaunchGuide {
+                            if authViewModel.isAuthenticated && !hasCompletedFirstLaunchGuide && !PulseApp.isUITesting {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                                     hasCompletedFirstLaunchGuide = true
                                     tourManager.start()
@@ -218,7 +222,7 @@ struct PulseApp: App {
                 }
             }
             .onChange(of: authViewModel.isAuthenticated) { oldValue, isAuthenticated in
-                if !authViewModel.isInitializing {
+                if !authViewModel.isInitializing && !PulseApp.isUITesting {
                     if isAuthenticated && !oldValue {
                         // User just signed in — show the post-login overlay and
                         // clear isLoading so the auth view model state is clean.

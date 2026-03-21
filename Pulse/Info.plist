@@ -28,6 +28,10 @@
 	<string>$(SUPABASE_KEY)</string>
 	<key>SUPABASE_URL</key>
 	<string>$(SUPABASE_URL)</string>
+	<key>UITEST_EMAIL</key>
+	<string>$(UITEST_EMAIL)</string>
+	<key>UITEST_PASSWORD</key>
+	<string>$(UITEST_PASSWORD)</string>
 	<key>WCSupportsAlwaysOnDisplay</key>
 	<true/>
 	<key>NSSupportsLiveActivities</key>

@@ -246,6 +246,7 @@ struct RoutineDetailView: View {
                                     )
                                 }
                                 .buttonStyle(ScalePressStyle())
+                                .accessibilityIdentifier("startWorkoutButton")
                                 .disabled(viewModel.routineExercises.isEmpty)
                                 
                                 // Edit Routine

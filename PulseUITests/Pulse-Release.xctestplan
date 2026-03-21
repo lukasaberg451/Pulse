@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "1B2B7B8F-26C3-495E-A799-CB0EFB07CA76",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Pulse.xcodeproj",
+        "identifier" : "3162D7EB2F6DD6A0001B40D5",
+        "name" : "PulseUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

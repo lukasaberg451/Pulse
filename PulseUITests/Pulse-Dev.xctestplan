@@ -1,0 +1,33 @@
+{
+  "configurations" : [
+    {
+      "id" : "FD0A0206-A7D6-48BB-B35A-2A01D27883C0",
+      "name" : "Configuration 1",
+      "options" : {
+        "environmentVariableEntries" : [
+
+        ]
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Pulse.xcodeproj",
+        "identifier" : "3162D7EB2F6DD6A0001B40D5",
+        "name" : "PulseUITests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Pulse.xcodeproj",
+        "identifier" : "3162D7FA2F6DD872001B40D5",
+        "name" : "PulseTests"
+      }
+    }
+  ],
+  "version" : 1
+}
