@@ -11,6 +11,7 @@ import Supabase
 
 extension Notification.Name {
     static let customExerciseCreated = Notification.Name("customExerciseCreated")
+    static let profileUpdated = Notification.Name("profileUpdated")
 }
 
 @MainActor
@@ -166,6 +167,8 @@ class ProfileViewModel: ObservableObject {
             
             // Reload profile
             await loadProfile()
+            
+            NotificationCenter.default.post(name: .profileUpdated, object: nil)
         } catch {
             debugLog("Failed to update profile: \(error)")
         }

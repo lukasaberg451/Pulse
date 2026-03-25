@@ -169,7 +169,7 @@ struct ActiveWorkoutViewContent: View {
                         HStack(spacing: 12) {
                             IconBadge(assetName: "watch", size: 28)
                             
-                            Text("Open Pulse on your Apple Watch to track along")
+                            Text("Use Pulse on your Apple Watch to track along")
                                 .font(.caption)
                                 .foregroundStyle(Color.appText)
                             
@@ -392,6 +392,56 @@ struct RestTimerBanner: View {
     }
 }
 
+// MARK: - Hold to Add Set Button
+struct HoldToAddSetButton: View {
+    let onAdd: () -> Void
+    
+    @State private var isPressed = false
+    @State private var holdProgress: CGFloat = 0
+    @State private var holdCompleted = false
+    @GestureState private var isDetectingLongPress = false
+    
+    private let holdDuration: Double = 0.5
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            Image("plus")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 12, height: 12)
+            Text("Hold to Add Set")
+                .font(.caption.weight(.semibold))
+        }
+        .foregroundStyle(Color.appAccent.opacity(isDetectingLongPress ? 0.5 : 1.0))
+        .scaleEffect(isDetectingLongPress ? 0.95 : 1.0)
+        .animation(.easeInOut(duration: 0.15), value: isDetectingLongPress)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(alignment: .leading) {
+            GeometryReader { geo in
+                Color.appAccent.opacity(0.08)
+                    .frame(width: geo.size.width * holdProgress)
+                    .animation(.linear(duration: holdDuration), value: holdProgress)
+            }
+        }
+        .contentShape(Rectangle())
+        .gesture(
+            LongPressGesture(minimumDuration: holdDuration)
+                .updating($isDetectingLongPress) { currentState, gestureState, _ in
+                    gestureState = currentState
+                }
+                .onEnded { _ in
+                    let generator = UIImpactFeedbackGenerator(style: .medium)
+                    generator.impactOccurred()
+                    onAdd()
+                }
+        )
+        .onChange(of: isDetectingLongPress) { _, pressing in
+            holdProgress = pressing ? 1.0 : 0.0
+        }
+    }
+}
+
 // MARK: - Exercise Card
 struct ExerciseCard: View {
     @ObservedObject var viewModel: OfflineActiveWorkoutViewModel
@@ -446,24 +496,11 @@ struct ExerciseCard: View {
                     
                     // Add set button (hidden for completed exercises)
                     if status != .completed {
-                        Button {
+                        HoldToAddSetButton {
                             Task {
                                 await viewModel.addSet(exerciseId: exercise.id, targetSets: routineExercise.sets, orderIndex: routineExercise.orderIndex)
                             }
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image("plus")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 12, height: 12)
-                                Text("Add Set")
-                                    .font(.caption.weight(.semibold))
-                            }
-                            .foregroundStyle(Color.appAccent)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
                         }
-                        .buttonStyle(ScalePressStyle())
                     }
                 }
             }

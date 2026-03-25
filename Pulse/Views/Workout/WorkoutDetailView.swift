@@ -217,7 +217,7 @@ struct WorkoutDetailView: View {
                 .offset(y: animationTrigger ? 0 : 16)
                 .animation(.easeOut(duration: 0.35).delay(0.4), value: animationTrigger)
             
-            ForEach(Array(viewModel.groupedSets.enumerated()), id: \.element.orderIndex) { index, exercise in
+            ForEach(Array(viewModel.groupedSets.enumerated()), id: \.offset) { index, exercise in
                 exerciseCard(
                     name: exercise.exerciseName,
                     sets: exercise.sets,

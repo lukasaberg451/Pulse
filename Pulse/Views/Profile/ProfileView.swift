@@ -999,6 +999,7 @@ struct ChangeEmailSheet: View {
     @State private var password = ""
     @State private var isLoading = false
     @State private var showSuccess = false
+    @State private var isDismissing = false
     @State private var errorMessage: String?
     @FocusState private var focusedField: EmailField?
     let onEmailChanged: () -> Void
@@ -1037,16 +1038,20 @@ struct ChangeEmailSheet: View {
                             .padding(.horizontal)
                         
                         PrimaryCTAButton("OK") {
+                            isDismissing = true
                             Task {
-                                dismiss()
+                                // Wait for the fade-out animation to finish
+                                try? await Task.sleep(for: .milliseconds(350))
                                 await signOutAction()
                             }
                         }
+                        .disabled(isDismissing)
                         .padding(.horizontal)
                         .padding(.top, 8)
                         
                         Spacer()
                     }
+                    .transition(.opacity)
                 } else {
                     // Form view
                     ScrollView {
@@ -1070,7 +1075,7 @@ struct ChangeEmailSheet: View {
                                     .foregroundStyle(Color.appSecondaryText)
                                 
                                 HStack {
-                                TextField("email@example.com", text: $newEmail)
+                                TextField("Enter new email", text: $newEmail)
                                     .textFieldStyle(.plain)
                                     .textInputAutocapitalization(.never)
                                     .foregroundStyle(Color.appText)
@@ -1150,13 +1155,32 @@ struct ChangeEmailSheet: View {
                         }
                         .padding(.bottom, 24)
                     }
+                    .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: 0.3), value: showSuccess)
+            .overlay {
+                if isDismissing {
+                    Color.appBackground
+                        .ignoresSafeArea()
+                        .overlay {
+                            VStack(spacing: 12) {
+                                ProgressView()
+                                    .tint(.appAccent)
+                                Text("Signing out…")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+                            }
+                        }
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeOut(duration: 0.3), value: isDismissing)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    if !showSuccess {
+                    if !showSuccess && !isDismissing {
                         Button("Cancel") {
                             dismiss()
                         }
@@ -1166,7 +1190,7 @@ struct ChangeEmailSheet: View {
             }
         }
         .presentationBackground(Color.appBackground)
-        .interactiveDismissDisabled(showSuccess)
+        .interactiveDismissDisabled(showSuccess || isDismissing)
         .onAppear { focusedField = .email }
     }
     
@@ -1178,6 +1202,7 @@ struct ChangeEmailSheet: View {
     }
     
     func changeEmail() async {
+        focusedField = nil // Dismiss keyboard before transition
         isLoading = true
         errorMessage = nil
         
@@ -1468,7 +1493,7 @@ struct AllCustomExercisesView: View {
             }
         } message: {
             if let exercise = exerciseToDelete {
-                Text("Are you sure you want to delete '\(exercise.name)'? This action cannot be undone.")
+                Text("Are you sure you want to delete '\(exercise.name)'? This will remove the exercise from routines, stats and all past workouts. This action cannot be undone.")
             }
         }
     }

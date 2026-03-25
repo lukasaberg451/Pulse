@@ -332,7 +332,7 @@ struct WorkoutSummaryView: View {
                 .offset(y: animationTrigger ? 0 : 20)
                 .animation(.easeOut(duration: 0.35).delay(0.7), value: animationTrigger)
             
-            ForEach(Array(groupedSets.enumerated()), id: \.element.orderIndex) { index, group in
+            ForEach(Array(groupedSets.enumerated()), id: \.offset) { index, group in
                 exerciseCard(
                     name: group.exercise.name,
                     sets: group.sets,

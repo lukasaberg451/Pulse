@@ -214,7 +214,21 @@ class ScheduleViewModel: ObservableObject {
         
         return scheduledWorkouts
             .filter { $0.scheduledDate == dateString }
-            .sorted { !$0.completed && $1.completed }
+            .sorted { a, b in
+                // Uncompleted first, then completed sorted by most recently completed
+                if a.completed != b.completed {
+                    return !a.completed
+                }
+                if a.completed && b.completed {
+                    let aDate = a.workoutSessionId.flatMap { workoutSessions[$0]?.completedAt }
+                    let bDate = b.workoutSessionId.flatMap { workoutSessions[$0]?.completedAt }
+                    if let aDate, let bDate {
+                        return aDate > bDate
+                    }
+                    return aDate != nil
+                }
+                return false
+            }
     }
     
     func hasScheduledWorkout(on date: Date) -> Bool {

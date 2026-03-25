@@ -86,6 +86,7 @@ class RoutineDetailViewModel: ObservableObject {
     
     func addExercise(exerciseId: UUID, sets: Int, repsTarget: String?, targetWeight: Double?, durationSeconds: Int?, restSeconds: Int) async {
         do {
+            let nextOrderIndex = (routineExercises.map(\.orderIndex).max() ?? -1) + 1
             let newExercise = try await routineRepository.addExerciseToRoutine(
                 routineId: routine.id,
                 exerciseId: exerciseId,
@@ -94,7 +95,7 @@ class RoutineDetailViewModel: ObservableObject {
                 targetWeight: targetWeight,
                 durationSeconds: durationSeconds,
                 restSeconds: restSeconds,
-                orderIndex: routineExercises.count
+                orderIndex: nextOrderIndex
             )
             routineExercises.append(newExercise)
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)

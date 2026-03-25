@@ -28,8 +28,17 @@ class AuthViewModel: ObservableObject{
     private var failedAttempts = 0
     private var lockedUntil: Date?
     private var rateLimitTimer: Task<Void, Never>?
+    private var cancellables = Set<AnyCancellable>()
     
     init() {
+            NotificationCenter.default.publisher(for: .profileUpdated)
+                .sink { [weak self] _ in
+                    Task { @MainActor [weak self] in
+                        await self?.fetchUserProfile()
+                    }
+                }
+                .store(in: &cancellables)
+            
             let args = ProcessInfo.processInfo.arguments
 
             if args.contains("--reset-auth") {

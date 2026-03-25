@@ -20,6 +20,7 @@ struct SpotlightOverlay: View {
     @State private var animatedFrame: CGRect = .zero
     @State private var animatedCornerRadius: CGFloat = 22
     @State private var cardSize: CGSize = CGSize(width: 300, height: 220)
+    @State private var isDismissing = false
 
     private var currentStep: TourStep? { manager.currentStep }
 
@@ -100,9 +101,12 @@ struct SpotlightOverlay: View {
                         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: animatedFrame)
                 }
             }
+            .opacity(isDismissing ? 0 : 1)
+            .scaleEffect(isDismissing ? 1.04 : 1)
             .ignoresSafeArea()
             .onTapGesture { advanceOrFinish() }
             .onAppear {
+                isDismissing = false
                 animatedFrame = targetFrame
                 animatedCornerRadius = targetCornerRadius
             }
@@ -118,6 +122,7 @@ struct SpotlightOverlay: View {
                     animatedFrame = newFrame
                 }
             }
+            .animation(.easeOut(duration: 0.3), value: isDismissing)
         }
     }
 
@@ -154,10 +159,7 @@ struct SpotlightOverlay: View {
             HStack(spacing: 12) {
                 if manager.currentIndex < manager.steps.count - 1 {
                     Button {
-                        manager.skip()
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
-                            selectedTab = .dashboard
-                        }
+                        dismissOverlay(isSkip: true)
                     } label: {
                         Text("Skip")
                             .font(.subheadline.weight(.medium))
@@ -200,10 +202,20 @@ struct SpotlightOverlay: View {
         if manager.currentIndex < manager.steps.count - 1 {
             manager.next()
         } else {
-            manager.next()
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
-                selectedTab = .dashboard
+            dismissOverlay(isSkip: false)
+        }
+    }
+
+    private func dismissOverlay(isSkip: Bool) {
+        guard !isDismissing else { return }
+        isDismissing = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            if isSkip {
+                manager.skip()
+            } else {
+                manager.next()
             }
+            selectedTab = .dashboard
         }
     }
 

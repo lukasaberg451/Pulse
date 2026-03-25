@@ -97,7 +97,6 @@ class DashboardViewModel: ObservableObject {
                 endDate: endOfToday,
                 timeZone: tz
             )
-            .sorted { !$0.completed && $1.completed }
             
             // Build session lookup for today's scheduled workouts
             let todaySessionIds = Set(todaysWorkouts.compactMap { $0.workoutSessionId })
@@ -111,6 +110,22 @@ class DashboardViewModel: ObservableObject {
                 if let session = sessions.first {
                     workoutSessions[session.id] = session
                 }
+            }
+            
+            // Sort: uncompleted first, then completed by most recently completed
+            todaysWorkouts.sort { a, b in
+                if a.completed != b.completed {
+                    return !a.completed
+                }
+                if a.completed && b.completed {
+                    let aDate = a.workoutSessionId.flatMap { workoutSessions[$0]?.completedAt }
+                    let bDate = b.workoutSessionId.flatMap { workoutSessions[$0]?.completedAt }
+                    if let aDate, let bDate {
+                        return aDate > bDate
+                    }
+                    return aDate != nil
+                }
+                return false
             }
             
             // Load recently completed (last 5) using pagination
