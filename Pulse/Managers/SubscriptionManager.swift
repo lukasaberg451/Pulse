@@ -11,7 +11,7 @@ import RevenueCat
 import Supabase
 
 @MainActor
-class SubscriptionManager: ObservableObject {
+class SubscriptionManager: NSObject, ObservableObject {
     static let shared = SubscriptionManager()
     
     @Published var isProUser = false
@@ -24,7 +24,7 @@ class SubscriptionManager: ObservableObject {
     static let freeRoutineLimit = 3
     private static let entitlementID = "pulse_pro"
     
-    private init() {}
+    private override init() { super.init() }
     
     // MARK: - Configuration
     
@@ -33,7 +33,11 @@ class SubscriptionManager: ObservableObject {
         guard let apiKey = Bundle.main.object(forInfoDictionaryKey: "REVENUECAT_API_KEY") as? String else {
             fatalError("Missing RevenueCat configuration in Info.plist. Ensure Secrets.xcconfig is set up correctly.")
         }
+        #if DEBUG
         Purchases.logLevel = .debug
+        #else
+        Purchases.logLevel = .warn
+        #endif
         
         // Try to get the existing Supabase user ID so RevenueCat starts identified
         if let userId = SupabaseManager.shared.client.auth.currentSession?.user.id.uuidString {
@@ -41,13 +45,18 @@ class SubscriptionManager: ObservableObject {
         } else {
             Purchases.configure(withAPIKey: apiKey)
         }
+        
+        // Listen for real-time subscription status changes (expiration, renewal, revocation)
+        Purchases.shared.delegate = self
     }
     
     /// Sync the current Supabase user with RevenueCat
     func syncUser() async {
         do {
+            Purchases.shared.invalidateCustomerInfoCache()
             let session = try await SupabaseManager.shared.client.auth.session
             let userID = session.user.id.uuidString
+            debugLog("RevenueCat syncing user: \(userID)")
             let (customerInfo, _) = try await Purchases.shared.logIn(userID)
             self.customerInfo = customerInfo
             updateProStatus(from: customerInfo)
@@ -124,6 +133,9 @@ class SubscriptionManager: ObservableObject {
     
     func refreshStatus() async {
         do {
+            // Invalidate cache so RevenueCat makes a fresh network request
+            // (the default customerInfo() returns cached data which won't reflect server-side expiration)
+            Purchases.shared.invalidateCustomerInfoCache()
             let customerInfo = try await Purchases.shared.customerInfo()
             self.customerInfo = customerInfo
             updateProStatus(from: customerInfo)
@@ -133,6 +145,21 @@ class SubscriptionManager: ObservableObject {
     }
     
     private func updateProStatus(from customerInfo: CustomerInfo) {
-        isProUser = customerInfo.entitlements[Self.entitlementID]?.isActive == true
+        let entitlement = customerInfo.entitlements[Self.entitlementID]
+        let newStatus = entitlement?.isActive == true
+        debugLog("RevenueCat status — user: \(customerInfo.originalAppUserId), entitlement: \(entitlement != nil ? "found" : "nil"), isActive: \(entitlement?.isActive ?? false), expiresDate: \(entitlement?.expirationDate?.description ?? "nil"), isProUser: \(isProUser) → \(newStatus)")
+        isProUser = newStatus
+    }
+}
+
+// MARK: - PurchasesDelegate
+
+extension SubscriptionManager: PurchasesDelegate {
+    /// Called by RevenueCat whenever customer info changes (e.g. subscription expires, renews, or is revoked).
+    nonisolated func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo) {
+        Task { @MainActor in
+            self.customerInfo = customerInfo
+            self.updateProStatus(from: customerInfo)
+        }
     }
 }

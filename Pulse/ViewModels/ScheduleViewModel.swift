@@ -18,8 +18,11 @@ class ScheduleViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var routineExerciseCounts: [UUID: Int] = [:]
     @Published var routineExerciseMap: [UUID: [RoutineExercise]] = [:]
-    @Published var exercises: [Exercise] = []
     @Published var workoutSessions: [UUID: WorkoutSession] = [:]
+    
+    /// Exercises are accessed via the singleton cache to avoid storing a
+    /// duplicate copy of the entire exercises table in this view model.
+    var exercises: [Exercise] { exerciseRepository.exercises }
     
     private(set) var hasLoaded = false
     private(set) var userProfile: Profile?
@@ -120,8 +123,8 @@ class ScheduleViewModel: ObservableObject {
         do {
             await fetchUserProfile()
             
-            //Load exercises first
-            exercises = try await exerciseRepository.fetchAllExercises()
+            // Warm the exercise cache (shared singleton — no local copy stored)
+            _ = try await exerciseRepository.fetchAllExercises()
             
             // Load routines
             routines = try await routineRepository.fetchRoutines()

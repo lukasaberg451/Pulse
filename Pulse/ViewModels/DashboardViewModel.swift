@@ -19,7 +19,6 @@ class DashboardViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var routineExercisesMap: [UUID: [RoutineExercise]] = [:]
     @Published var routineExerciseCounts: [UUID: Int] = [:]
-    @Published var exercises: [Exercise] = []
     @Published var weeklyWorkoutMinutes: Int = 0
     @Published var weeklyGoalMinutes: Int = 150
     @Published var userProfile: Profile?
@@ -28,6 +27,10 @@ class DashboardViewModel: ObservableObject {
     @Published var bestStreak: Int = 0
     @Published var latestPR: PersonalRecord?
     @Published var totalWorkoutCount: Int = 0
+    
+    /// Exercises are accessed via the singleton cache to avoid storing a
+    /// duplicate copy of the entire exercises table in this view model.
+    var exercises: [Exercise] { exerciseRepository.exercises }
     
     private let workoutRepository = WorkoutRepository()
     private let routineRepository = RoutineRepository()
@@ -69,8 +72,8 @@ class DashboardViewModel: ObservableObject {
         do {
             await fetchUserProfile()
             guard !Task.isCancelled else { isLoading = false; return }
-            //Load exercises first
-            exercises = try await exerciseRepository.fetchAllExercises()
+            // Warm the exercise cache (shared singleton — no local copy stored)
+            _ = try await exerciseRepository.fetchAllExercises()
             
             // Load routines
             routines = try await routineRepository.fetchRoutines()

@@ -31,8 +31,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                 options.dsn = sentryDSN
                 options.debug = false
                 options.tracesSampleRate = 0.2
-                options.attachScreenshot = false
+                options.attachScreenshot = true
                 options.attachViewHierarchy = false
+                options.enableAppHangTracking = true
+                options.appHangTimeoutInterval = 2
             }
         }
 
@@ -242,6 +244,15 @@ struct PulseApp: App {
                     }
                     WorkoutSyncManager.shared.syncProStatus(subscriptionManager.isProUser)
                 }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                guard authViewModel.isAuthenticated else { return }
+                Task {
+                    await subscriptionManager.refreshStatus()
+                }
+            }
+            .onChange(of: subscriptionManager.isProUser) { _, newValue in
+                WorkoutSyncManager.shared.syncProStatus(newValue)
             }
 
         }

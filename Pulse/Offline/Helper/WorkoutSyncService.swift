@@ -57,9 +57,11 @@ class WorkoutSyncService: ObservableObject {
         }
         monitor.start(queue: queue)
         
-        // Set up periodic sync every 30 seconds
+        // Set up periodic sync for pending local workouts and server-side changes
         startPeriodicSync()
     }
+    
+    private var serverSyncCounter = 0
     
     private func startPeriodicSync() {
         // Cancel any existing periodic sync
@@ -68,7 +70,7 @@ class WorkoutSyncService: ObservableObject {
         // Start new periodic sync task
         periodicSyncTask = Task { @MainActor in
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 30 * 1_000_000_000) // 30 seconds
+                try? await Task.sleep(nanoseconds: 60 * 1_000_000_000) // 60 seconds
                 guard !Task.isCancelled else { break }
                 
                 // Always check connectivity with a real network probe,
@@ -83,14 +85,22 @@ class WorkoutSyncService: ObservableObject {
                 }
                 
                 if isOnline {
-                    debugLog("⏰ Running periodic sync...")
+                    // Always sync pending local workouts (lightweight when nothing pending)
                     await syncPendingWorkouts()
-                    await syncFromServer()
+                    
+                    // Only sync from server every 5th cycle (~5 minutes) to reduce
+                    // memory and network overhead from the full session comparison
+                    serverSyncCounter += 1
+                    if serverSyncCounter >= 5 {
+                        serverSyncCounter = 0
+                        debugLog("⏰ Running periodic server sync...")
+                        await syncFromServer()
+                    }
                 }
             }
         }
         
-        debugLog("✅ Periodic sync started (every 30 seconds)")
+        debugLog("✅ Periodic sync started (pending: every 60s, server: every ~5min)")
     }
     
     /// Perform a lightweight network request to verify actual connectivity
@@ -114,8 +124,10 @@ class WorkoutSyncService: ObservableObject {
         debugLog("🔽 Syncing from server...")
         
         do {
-            // Fetch recent remote sessions (last 500 for sync comparison)
-            let remoteSessions = try await WorkoutRepository().fetchSessions(limit: 500)
+            // Fetch recent remote sessions for sync comparison.
+            // A smaller limit reduces memory usage; only recent sessions
+            // are likely to be deleted or changed server-side.
+            let remoteSessions = try await WorkoutRepository().fetchSessions(limit: 50)
             debugLog("🔽 Found \(remoteSessions.count) remote sessions")
             let remoteSessionIds = Set(remoteSessions.map { $0.id })
             

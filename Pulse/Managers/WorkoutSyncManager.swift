@@ -150,6 +150,9 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     }
     
     func sendRestTimerUpdate(timeRemaining: Int) {
+        #if os(iOS)
+        guard SubscriptionManager.shared.isProUser else { return }
+        #endif
         guard let session = session, session.isReachable else { return }
         
         let message = ["restTimer": timeRemaining]
@@ -157,6 +160,9 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     }
     
     func sendRestTimerStopped() {
+        #if os(iOS)
+        guard SubscriptionManager.shared.isProUser else { return }
+        #endif
         guard let session = session else { return }
         
         let message: [String: Any] = ["restTimerStopped": true]
@@ -176,6 +182,9 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     }
     
     func sendWorkoutFinished() {
+        #if os(iOS)
+        guard SubscriptionManager.shared.isProUser else { return }
+        #endif
         guard let session = session, session.isReachable else { return }
         
         let message = ["workoutFinished": true]
@@ -208,6 +217,13 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     }
     
     func sendCurrentExercise(exercise: Exercise, routineExercise: RoutineExercise, currentSetNumber: Int = 1, totalSets: Int? = nil, restStopped: Bool = false, restStarted: Bool = false, restDuration: Int = 0) {
+        #if os(iOS)
+        guard SubscriptionManager.shared.isProUser else {
+            debugLog("📱 Skipping watch sync — user is not pro")
+            return
+        }
+        #endif
+        
         guard let session = session else {
             debugLog("📱 ERROR: No WCSession available")
             return

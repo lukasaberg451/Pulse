@@ -16,6 +16,15 @@ class ExerciseRepository {
     private var cacheDate: Date?
     private let cacheTTL: TimeInterval = 300 // 5 minutes
     
+    /// Public read-only access to the cached exercises.
+    /// Returns an empty array if the cache hasn't been populated yet.
+    var exercises: [Exercise] { cachedExercises ?? [] }
+    
+    /// Shared in-flight task to prevent duplicate concurrent fetches.
+    /// When multiple callers request all exercises before the cache is populated,
+    /// they all await the same task instead of each making a separate network request.
+    private var inflightFetchTask: Task<[Exercise], Error>?
+    
     func fetchExercises(
         page: Int = 0,
         pageSize: Int = 50,
@@ -63,32 +72,49 @@ class ExerciseRepository {
             return cached
         }
         
-        // Supabase defaults to max 1000 rows per request.
-        // Paginate to ensure we fetch every exercise in the table.
-        let pageSize = 1000
-        var allExercises: [Exercise] = []
-        var offset = 0
-        
-        while true {
-            let page: [Exercise] = try await supabase
-                .from("exercises")
-                .select()
-                .order("name")
-                .range(from: offset, to: offset + pageSize - 1)
-                .execute()
-                .value
-            
-            allExercises.append(contentsOf: page)
-            
-            if page.count < pageSize {
-                break
-            }
-            offset += pageSize
+        // If there's already an in-flight fetch, await it instead of
+        // starting a duplicate network request. This prevents the race
+        // condition where multiple callers (e.g. DashboardViewModel and
+        // ScheduleViewModel) all check the empty cache simultaneously
+        // and each fire their own full fetch.
+        if let existing = inflightFetchTask {
+            return try await existing.value
         }
         
-        cachedExercises = allExercises
-        cacheDate = Date()
-        return allExercises
+        let task = Task<[Exercise], Error> { [weak self] in
+            guard let self else { return [] }
+            defer { self.inflightFetchTask = nil }
+            
+            // Supabase defaults to max 1000 rows per request.
+            // Paginate to ensure we fetch every exercise in the table.
+            let pageSize = 1000
+            var allExercises: [Exercise] = []
+            var offset = 0
+            
+            while true {
+                let page: [Exercise] = try await self.supabase
+                    .from("exercises")
+                    .select()
+                    .order("name")
+                    .range(from: offset, to: offset + pageSize - 1)
+                    .execute()
+                    .value
+                
+                allExercises.append(contentsOf: page)
+                
+                if page.count < pageSize {
+                    break
+                }
+                offset += pageSize
+            }
+            
+            self.cachedExercises = allExercises
+            self.cacheDate = Date()
+            return allExercises
+        }
+        
+        inflightFetchTask = task
+        return try await task.value
     }
     
     /// Adds an exercise to the cache without a full refresh.

@@ -11,7 +11,6 @@ import SwiftUI
 struct HealthKitPermissionSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-    @EnvironmentObject var healthKitManager: HealthKitManager
 
     var body: some View {
         ZStack {
@@ -44,7 +43,7 @@ struct HealthKitPermissionSheet: View {
                     .multilineTextAlignment(.center)
 
                 // Description
-                Text("Pulse uses Apple Health to keep your app running in the background during workouts.")
+                Text("Pulse works best with Apple Health. It keeps your workouts running in the background and syncs your data automatically.")
                     .font(.subheadline)
                     .foregroundStyle(Color.appSecondaryText)
                     .multilineTextAlignment(.center)
@@ -65,39 +64,29 @@ struct HealthKitPermissionSheet: View {
                 }
                 .padding(.horizontal, 4)
 
+                Text("You can enable Apple Health anytime from your profile settings in Pulse.")
+                    .font(.caption)
+                    .foregroundStyle(Color.appTertiaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 8)
+
                 Spacer()
 
-                // CTA button
-                Button {
-                    Task {
-                        await healthKitManager.requestAuthorization()
-                        dismiss()
-                    }
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "heart.fill")
-                            .font(.subheadline.weight(.bold))
-                        Text("Allow Apple Health")
-                            .font(.subheadline.weight(.bold))
-                    }
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(
-                        LinearGradient.accentGradient,
-                        in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    )
-                }
-                .buttonStyle(ScalePressStyle())
-
-                // Skip button
+                // Dismiss button
                 Button {
                     dismiss()
                 } label: {
-                    Text("Not Now")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Color.appSecondaryText)
+                    Text("Got It")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(
+                            LinearGradient.accentGradient,
+                            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        )
                 }
+                .buttonStyle(ScalePressStyle())
                 .padding(.bottom, 8)
             }
             .padding(.horizontal, 24)

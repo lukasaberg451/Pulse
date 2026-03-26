@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		310D83362F54BF8900478C32 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 310D83352F54BF8900478C32 /* RevenueCat */; };
 		310D83382F54BF8900478C32 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 310D83372F54BF8900478C32 /* RevenueCatUI */; };
-		310D834C2F54E2A300478C32 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 310D834B2F54E2A300478C32 /* Secrets.xcconfig */; };
 		3149B7262F435C1000A61B9F /* PulseWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3149B71C2F435C0F00A61B9F /* PulseWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		315DA9A52F5350A9001C58D9 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 315DA9A42F5350A9001C58D9 /* PostHog */; };
 		31F564332F5761D8001EA7BC /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 31F564322F5761D8001EA7BC /* Sentry */; };
@@ -308,7 +307,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2630;
-				LastUpgradeCheck = 2630;
+				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					3149B71B2F435C0F00A61B9F = {
 						CreatedOnToolsVersion = 26.2;
@@ -380,7 +379,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				310D834C2F54E2A300478C32 /* Secrets.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -757,10 +755,11 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = V6H588482S;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -811,10 +810,11 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = V6H588482S;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
