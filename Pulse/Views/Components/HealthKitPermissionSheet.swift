@@ -64,17 +64,14 @@ struct HealthKitPermissionSheet: View {
                 }
                 .padding(.horizontal, 4)
 
-                Text("You can enable Apple Health anytime from your profile settings in Pulse.")
-                    .font(.caption)
-                    .foregroundStyle(Color.appTertiaryText)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 8)
-
                 Spacer()
 
                 // Dismiss button
                 Button {
-                    dismiss()
+                    Task {
+                        await HealthKitManager.shared.requestAuthorization()
+                        dismiss()
+                    }
                 } label: {
                     Text("Got It")
                         .font(.subheadline.weight(.bold))
