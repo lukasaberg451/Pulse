@@ -550,6 +550,48 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             
             // Update Live Activity with current progress
             updateWorkoutLiveActivity()
+        } else {
+            // Undo path — a previously completed set was uncompleted
+            
+            // Stop the rest timer since the user is going back
+            stopRestTimer()
+            
+            // Find the routine exercise that owns this set
+            let undoneExerciseId = set.exerciseId
+            let undoneOrderIndex = set.orderIndex
+            
+            if let routineExercise = allWorkoutExercises.first(where: {
+                $0.exerciseId == undoneExerciseId && $0.orderIndex == undoneOrderIndex
+            }) {
+                // If the exercise was already completed and removed from
+                // routineExercises, re-insert it at the front so the watch
+                // and Live Activity reflect the correct current exercise.
+                let isStillInQueue = routineExercises.contains(where: {
+                    $0.exerciseId == undoneExerciseId && $0.orderIndex == undoneOrderIndex
+                })
+                if !isStillInQueue {
+                    routineExercises.insert(routineExercise, at: 0)
+                }
+                
+                // Send corrected state to the watch
+                let setsForExercise = sets.filter {
+                    $0.exerciseId == undoneExerciseId && $0.orderIndex == undoneOrderIndex
+                }
+                let completedSetsCount = setsForExercise.filter { $0.completed }.count
+                
+                if let exercise = exercises.first(where: { $0.id == undoneExerciseId }) {
+                    WorkoutSyncManager.shared.sendCurrentExercise(
+                        exercise: exercise,
+                        routineExercise: routineExercise,
+                        currentSetNumber: completedSetsCount + 1,
+                        totalSets: setsForExercise.count,
+                        restStopped: true
+                    )
+                }
+            }
+            
+            // Update Live Activity with corrected progress
+            updateWorkoutLiveActivity()
         }
     }
 

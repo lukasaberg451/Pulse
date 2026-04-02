@@ -464,14 +464,32 @@ struct EditNameSheet: View {
                             }
                             .accessibilityIdentifier("editLastNameRow")
                             
-                            // Only show email row if it's not a private relay address
-                            if let email = viewModel.profile?.email,
-                               !email.contains("privaterelay.appleid.com") {
+                            if let email = viewModel.profile?.email {
                                 ProfileDivider()
                                 
-                                // Email Row
-                                EditNameRow(icon: "envelope", label: "Email", value: email) {
-                                    showingChangeEmailSheet = true
+                                if authViewModel.isAppleUser {
+                                    // Read-only display for Apple Sign-In users
+                                    HStack(spacing: 14) {
+                                        IconBadge(assetName: "envelope", size: 32)
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Email")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appSecondaryText)
+                                            
+                                            Text(email)
+                                                .font(.body)
+                                                .foregroundStyle(Color.appSecondaryText)
+                                        }
+                                        
+                                        Spacer()
+                                    }
+                                    .padding(14)
+                                } else {
+                                    // Editable for email/password users
+                                    EditNameRow(icon: "envelope", label: "Email", value: email) {
+                                        showingChangeEmailSheet = true
+                                    }
                                 }
                             }
                         }

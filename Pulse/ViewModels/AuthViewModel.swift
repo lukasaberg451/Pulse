@@ -364,6 +364,14 @@ class AuthViewModel: ObservableObject{
         return fullName.components(separatedBy: " ").first ?? ""
     }
     
+    /// Whether the current user signed in with Apple (cannot change email via password flow).
+    var isAppleUser: Bool {
+        if case .string(let provider) = session?.user.appMetadata["provider"] {
+            return provider == "apple"
+        }
+        return false
+    }
+    
     func changeEmail(newEmail: String, password: String) async -> Bool {
         do {
             // Re-authenticate with current password before allowing email change

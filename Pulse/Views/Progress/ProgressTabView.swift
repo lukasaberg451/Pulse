@@ -66,7 +66,7 @@ struct ProgressTabView: View {
                 } else {
                 
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 14) {
                         // Smart Insight
                         if let insight = viewModel.currentInsight {
                             Text("Smart Insights")
@@ -87,17 +87,17 @@ struct ProgressTabView: View {
                             .padding(.horizontal)
                         
                         // Streak Card
-                        VStack(spacing: 16) {
-                            HStack(spacing: 14) {
-                                IconBadge(assetName: "flame", color: .orange, size: 44)
+                        VStack(spacing: 10) {
+                            HStack(spacing: 12) {
+                                IconBadge(assetName: "flame", color: .orange, size: 36)
                                 
-                                VStack(alignment: .leading, spacing: 3) {
+                                VStack(alignment: .leading, spacing: 2) {
                                     Text("Current Streak")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
                                     
                                     Text("\(viewModel.currentStreak) \(viewModel.currentStreak == 1 ? "day" : "days")")
-                                        .font(.title2.weight(.bold))
+                                        .font(.title3.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
                                 
@@ -108,7 +108,7 @@ struct ProgressTabView: View {
                                 .background(Color.appText.opacity(0.06))
                             
                             HStack {
-                                VStack(alignment: .leading, spacing: 3) {
+                                VStack(alignment: .leading, spacing: 2) {
                                     Text("Longest Streak")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
@@ -120,7 +120,7 @@ struct ProgressTabView: View {
                                 
                                 Spacer()
                                 
-                                VStack(alignment: .trailing, spacing: 3) {
+                                VStack(alignment: .trailing, spacing: 2) {
                                     Text("Last Workout")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
@@ -131,9 +131,9 @@ struct ProgressTabView: View {
                                 }
                             }
                         }
-                        .padding(16)
+                        .padding(12)
                         .background {
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .fill(Color.appSurface)
                                 .modifier(CardShadowModifier())
                         }
@@ -141,24 +141,37 @@ struct ProgressTabView: View {
                         .accessibilityIdentifier("progressStreakCard")
                         
                         // Total Workouts
-                        HStack(spacing: 14) {
-                            IconBadge(assetName: "strengthtraining", color: .appAccent, size: 44)
-                            
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("\(viewModel.lifetimeWorkouts) workouts completed")
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(Color.appText)
+                        VStack(spacing: 10) {
+                            HStack(spacing: 12) {
+                                IconBadge(assetName: "strengthtraining", color: .appAccent, size: 36)
                                 
-                                Text("\(viewModel.monthlyWorkouts) this month")
-                                    .font(.caption.weight(.medium))
-                                    .foregroundStyle(Color.appSecondaryText)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Workouts Completed")
+                                        .font(.caption.weight(.medium))
+                                        .foregroundStyle(Color.appSecondaryText)
+                                    
+                                    Text("This month: \(viewModel.monthlyWorkouts)")
+                                        .font(.subheadline.weight(.bold))
+                                        .foregroundStyle(Color.appText)
+                                }
+                                
+                                Spacer()
                             }
                             
-                            Spacer()
+                            Divider()
+                                .background(Color.appText.opacity(0.06))
+                            
+                            HStack {
+                                Text("All time: \(viewModel.lifetimeWorkouts)")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+                                
+                                Spacer()
+                            }
                         }
-                        .padding(16)
+                        .padding(12)
                         .background {
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .fill(Color.appSurface)
                                 .modifier(CardShadowModifier())
                         }
@@ -166,11 +179,11 @@ struct ProgressTabView: View {
                         .accessibilityIdentifier("progressWorkoutsCard")
                         
                         // Volume Lifted
-                        VStack(spacing: 16) {
-                            HStack(spacing: 14) {
-                                IconBadge(assetName: "volume", color: .blue, size: 44)
+                        VStack(spacing: 10) {
+                            HStack(spacing: 12) {
+                                IconBadge(assetName: "volume", color: .blue, size: 36)
                                 
-                                VStack(alignment: .leading, spacing: 3) {
+                                VStack(alignment: .leading, spacing: 2) {
                                     Text("Volume Lifted")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
@@ -194,9 +207,9 @@ struct ProgressTabView: View {
                                 Spacer()
                             }
                         }
-                        .padding(16)
+                        .padding(12)
                         .background {
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .fill(Color.appSurface)
                                 .modifier(CardShadowModifier())
                         }
@@ -314,30 +327,15 @@ struct StrengthProgressCard: View {
     @EnvironmentObject var unitManager: UnitManager
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 12) {
-                IconBadge(assetName: "trophy", color: .appAccent, size: 40)
+                IconBadge(assetName: "trophy", color: .appAccent, size: 36)
 
                 Text(progress.exerciseName)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
 
                 Spacer()
-
-                if progress.improvementPercent != 0 {
-                    Text(progress.improvementPercent > 0
-                         ? "+\(Int(progress.improvementPercent))%"
-                         : "\(Int(progress.improvementPercent))%")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(progress.improvementPercent > 0 ? .green : .red)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            (progress.improvementPercent > 0 ? Color.green : Color.red)
-                                .opacity(0.12),
-                            in: Capsule()
-                        )
-                }
             }
 
             HStack(spacing: 16) {
@@ -362,14 +360,28 @@ struct StrengthProgressCard: View {
                 Spacer()
 
                 if progress.improvementPercent != 0 {
-                    Text("since start")
-                        .font(.caption2)
-                        .foregroundStyle(Color.appTertiaryText)
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(progress.improvementPercent > 0
+                             ? "+\(Int(progress.improvementPercent))%"
+                             : "\(Int(progress.improvementPercent))%")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(progress.improvementPercent > 0 ? .green : .red)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                (progress.improvementPercent > 0 ? Color.green : Color.red)
+                                    .opacity(0.12),
+                                in: Capsule()
+                            )
+                        Text("since start")
+                            .font(.caption2)
+                            .foregroundStyle(Color.appTertiaryText)
+                    }
                 }
             }
-            .padding(.leading, 52)
+            .padding(.leading, 48)
         }
-        .padding(14)
+        .padding(12)
         .background {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(Color.appSurface)
@@ -527,10 +539,10 @@ struct Estimated1RMCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             // Header row
             HStack(spacing: 12) {
-                IconBadge(assetName: "crown", color: .orange, size: 40)
+                IconBadge(assetName: "crown", color: .orange, size: 36)
 
                 Text(stat.exerciseName)
                     .font(.subheadline.weight(.semibold))
@@ -543,33 +555,14 @@ struct Estimated1RMCard: View {
                     .foregroundStyle(Color.appAccent)
             }
 
-            // Details row
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Based on")
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(Color.appSecondaryText)
-                    Text("\(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color.appText)
-                }
-
-                Spacer()
-
-                Text(formattedDate)
-                    .font(.caption2)
-                    .foregroundStyle(Color.appTertiaryText)
-            }
-            .padding(.leading, 52)
-
-            // Training weights toggle
+            // Details toggle
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) {
                     showTrainingWeights.toggle()
                 }
             } label: {
                 HStack(spacing: 4) {
-                    Text("Training Weights")
+                    Text("Details")
                         .font(.caption.weight(.medium))
                         .foregroundStyle(Color.appAccent)
                     Image(systemName: showTrainingWeights ? "chevron.up" : "chevron.down")
@@ -578,16 +571,35 @@ struct Estimated1RMCard: View {
                 }
             }
             .buttonStyle(.plain)
-            .padding(.leading, 52)
+            .padding(.leading, 48)
             .accessibilityIdentifier("trainingWeightsToggle")
 
             if showTrainingWeights {
-                TrainingWeightsGrid(estimated1rm: stat.bestEstimated1rm)
-                    .padding(.leading, 52)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Based on")
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
+                            Text("\(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.appText)
+                        }
+
+                        Spacer()
+
+                        Text(formattedDate)
+                            .font(.caption2)
+                            .foregroundStyle(Color.appTertiaryText)
+                    }
+
+                    TrainingWeightsGrid(estimated1rm: stat.bestEstimated1rm)
+                }
+                .padding(.leading, 48)
+                .transition(.opacity)
             }
         }
-        .padding(14)
+        .padding(12)
         .background {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(Color.appSurface)
@@ -799,23 +811,13 @@ struct HealthMetricsSection: View {
                         )
                         
                         // Weight Card
-                        Button {
-                            if profile.weightKg != nil {
-                                let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                impactLight.impactOccurred()
-                                showingWeightChart = true
-                            }
-                        } label: {
-                            HealthMetricCard(
-                                icon: "scale",
-                                title: "Weight",
-                                value: profile.weightKg != nil ? String(format: "%.1f", unitManager.displayWeight(profile.weightKg!)) : "--",
-                                unit: unitManager.weightUnit,
-                                color: .blue,
-                                showChevron: profile.weightKg != nil
-                            )
-                        }
-                        .buttonStyle(ScalePressStyle())
+                        HealthMetricCard(
+                            icon: "scale",
+                            title: "Weight",
+                            value: profile.weightKg != nil ? String(format: "%.1f", unitManager.displayWeight(profile.weightKg!)) : "--",
+                            unit: unitManager.weightUnit,
+                            color: .blue
+                        )
                     }
                     .padding(.horizontal)
                     
@@ -824,62 +826,73 @@ struct HealthMetricsSection: View {
                        let startWeight = viewModel.startWeightKg,
                        startWeight > 0 {
                         
-                        VStack(spacing: 12) {
-                            // Header
-                            HStack(spacing: 14) {
-                                IconBadge(assetName: "scale", color: .appAccent, size: 40)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Weight Trend")
-                                        .font(.subheadline.weight(.semibold))
-                                        .foregroundStyle(Color.appText)
-                                    
-                                    let change = currentWeight - startWeight
-                                    let displayChange = abs(unitManager.displayWeight(currentWeight) - unitManager.displayWeight(startWeight))
-                                    
-                                    if abs(change) >= 0.1 {
-                                        let arrow = change > 0 ? "↑" : "↓"
-                                        Text("\(arrow) \(String(format: "%.1f", displayChange)) \(unitManager.weightUnit) since start")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appSecondaryText)
-                                    } else {
-                                        Text("No change since start")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appSecondaryText)
-                                    }
-                                }
-                                
-                                Spacer()
-                            }
-                            
-                            // Target (optional)
-                            if let targetWeight = profile.targetWeightKg, targetWeight > 0 {
-                                Divider()
-                                
-                                let remaining = abs(currentWeight - targetWeight)
-                                
+                        Button {
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                            showingWeightChart = true
+                        } label: {
+                            VStack(spacing: 12) {
+                                // Header
                                 HStack(spacing: 14) {
-                                    IconBadge(assetName: "circle-dashed", color: .appSecondaryText, size: 40)
+                                    IconBadge(assetName: "scale", color: .appAccent, size: 40)
                                     
-                                    Text("Target: \(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit)")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundStyle(Color.appSecondaryText)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Weight Trend")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        let change = currentWeight - startWeight
+                                        let displayChange = abs(unitManager.displayWeight(currentWeight) - unitManager.displayWeight(startWeight))
+                                        
+                                        if abs(change) >= 0.1 {
+                                            let arrow = change > 0 ? "↑" : "↓"
+                                            Text("\(arrow) \(String(format: "%.1f", displayChange)) \(unitManager.weightUnit) since start")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appSecondaryText)
+                                        } else {
+                                            Text("No change since start")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appSecondaryText)
+                                        }
+                                    }
                                     
                                     Spacer()
                                     
-                                    Text("\(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) from target")
-                                        .font(.caption.weight(.medium))
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
                                         .foregroundStyle(Color.appSecondaryText)
                                 }
+                                
+                                // Target (optional)
+                                if let targetWeight = profile.targetWeightKg, targetWeight > 0 {
+                                    Divider()
+                                    
+                                    let remaining = abs(currentWeight - targetWeight)
+                                    
+                                    HStack(spacing: 14) {
+                                        IconBadge(assetName: "circle-dashed", color: .appSecondaryText, size: 40)
+                                        
+                                        Text("Target: \(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit)")
+                                            .font(.caption.weight(.medium))
+                                            .foregroundStyle(Color.appSecondaryText)
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) from target")
+                                            .font(.caption.weight(.medium))
+                                            .foregroundStyle(Color.appSecondaryText)
+                                    }
+                                }
                             }
+                            .padding(16)
+                            .background {
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .modifier(CardShadowModifier())
+                            }
+                            .padding(.horizontal)
                         }
-                        .padding(16)
-                        .background {
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .fill(Color.appSurface)
-                                .modifier(CardShadowModifier())
-                        }
-                        .padding(.horizontal)
+                        .buttonStyle(ScalePressStyle())
                     }
                     
                     // BMI Card

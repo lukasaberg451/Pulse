@@ -1511,6 +1511,7 @@ struct ExerciseConfigSheet: View {
         }
         let normalized = targetWeight.replacingOccurrences(of: ",", with: ".")
         guard let weight = Double(normalized), weight > 0 else { return true }
+        guard let reps = Int(repsTarget), reps > 0 else { return true }
         return false
     }
     
@@ -1792,7 +1793,7 @@ struct ExerciseConfigSheet: View {
                                             
                                             Spacer()
                                             
-                                            TextField("10", text: $repsTarget)
+                                            TextField("8", text: $repsTarget)
                                                 .foregroundStyle(Color.appText)
                                                 .keyboardType(.numberPad)
                                                 .multilineTextAlignment(.trailing)
@@ -2166,6 +2167,7 @@ struct EditExerciseSheet: View {
         }
         let normalized = targetWeight.replacingOccurrences(of: ",", with: ".")
         guard let weight = Double(normalized), weight > 0 else { return true }
+        guard let reps = Int(repsTarget), reps > 0 else { return true }
         return false
     }
     
@@ -2468,7 +2470,7 @@ struct EditExerciseSheet: View {
                                             
                                             Spacer()
                                             
-                                            TextField("10", text: $repsTarget)
+                                            TextField("8", text: $repsTarget)
                                                 .foregroundStyle(Color.appText)
                                                 .keyboardType(.numberPad)
                                                 .multilineTextAlignment(.trailing)

@@ -231,10 +231,8 @@ struct SettingsView: View {
                                     
                                     Spacer()
                                     
-                                    Image("chevron-right")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 13, height: 13)
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.system(size: 11, weight: .semibold))
                                         .foregroundStyle(Color.appTertiaryText)
                                 }
                                 .padding(14)

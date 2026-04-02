@@ -126,6 +126,7 @@ class ProgressStatsViewModel: ObservableObject {
         }
         
         let weekdayIndex = calendar.component(.weekday, from: Date())
+        let dayOfMonth = calendar.component(.day, from: Date())
         
         let insights = SmartInsightEngine.generateInsights(
             currentStreak: currentStreak,
@@ -144,7 +145,8 @@ class ProgressStatsViewModel: ObservableObject {
             improvingExerciseCount: strengthProgress.filter { $0.improvementPercent > 0 }.count,
             daysSinceLastWorkout: daysSinceLastWorkout,
             lifetimeWorkouts: lifetimeWorkouts,
-            weekdayIndex: weekdayIndex
+            weekdayIndex: weekdayIndex,
+            dayOfMonth: dayOfMonth
         )
         currentInsight = insights.first
     }

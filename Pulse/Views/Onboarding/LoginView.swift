@@ -78,6 +78,7 @@ struct LoginView: View {
                             HStack {
                                 TextField("Email", text: $email)
                                     .textFieldStyle(.plain)
+                                    .textContentType(.emailAddress)
                                     .textInputAutocapitalization(.never)
                                     .keyboardType(.emailAddress)
                                     .autocorrectionDisabled()
@@ -111,6 +112,7 @@ struct LoginView: View {
                             HStack {
                                 SecureField("Password", text: $password)
                                     .textFieldStyle(.plain)
+                                    .textContentType(.password)
                                     .focused($focusedField, equals: .password)
                                     .foregroundStyle(Color.appText)
                                     .accessibilityIdentifier("loginPasswordField")
@@ -407,6 +409,7 @@ struct ForgotPasswordView: View {
                 }
                 
                 PrimaryCTAButton("Send Code") {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     let trimmed = viewModel.email.trimmingCharacters(in: .whitespaces)
                     if trimmed.isEmpty {
                         viewModel.errorMessage = "Email is required"
@@ -464,6 +467,7 @@ struct ForgotPasswordView: View {
                     .padding(.vertical, 4)
                 
                 PrimaryCTAButton("Verify Code") {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     Task {
                         await viewModel.verifyOTP()
                     }
@@ -641,6 +645,7 @@ struct ForgotPasswordView: View {
             .animation(.easeInOut(duration: 0.2), value: viewModel.confirmPassword.count >= 62)
             
             Button {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                 Task {
                     await viewModel.updatePassword()
                 }

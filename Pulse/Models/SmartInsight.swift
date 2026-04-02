@@ -44,7 +44,8 @@ enum SmartInsightEngine {
         improvingExerciseCount: Int,
         daysSinceLastWorkout: Int?,
         lifetimeWorkouts: Int,
-        weekdayIndex: Int
+        weekdayIndex: Int,
+        dayOfMonth: Int
     ) -> [SmartInsight] {
         var insights: [SmartInsight] = []
         
@@ -75,8 +76,8 @@ enum SmartInsightEngine {
             ))
         }
         
-        // 3. Monthly workout frequency increase
-        if lastMonthWorkouts > 0 && monthlyWorkouts > lastMonthWorkouts {
+        // 3. Monthly workout frequency increase (skip first week — not enough data)
+        if dayOfMonth >= 8 && lastMonthWorkouts > 0 && monthlyWorkouts > lastMonthWorkouts {
             let increase = Int(Double(monthlyWorkouts - lastMonthWorkouts) / Double(lastMonthWorkouts) * 100)
             if increase >= 20 {
                 insights.append(SmartInsight(
@@ -88,8 +89,8 @@ enum SmartInsightEngine {
             }
         }
         
-        // 4. Monthly workout frequency decrease
-        if lastMonthWorkouts > 0 && monthlyWorkouts < lastMonthWorkouts {
+        // 4. Monthly workout frequency decrease (skip first week — not enough data)
+        if dayOfMonth >= 8 && lastMonthWorkouts > 0 && monthlyWorkouts < lastMonthWorkouts {
             let decrease = Int(Double(lastMonthWorkouts - monthlyWorkouts) / Double(lastMonthWorkouts) * 100)
             if decrease >= 30 {
                 insights.append(SmartInsight(
@@ -101,8 +102,8 @@ enum SmartInsightEngine {
             }
         }
         
-        // 5. Volume progressive overload
-        if lastMonthVolume > 0 && monthlyVolume > lastMonthVolume {
+        // 5. Volume progressive overload (skip first week — not enough data)
+        if dayOfMonth >= 8 && lastMonthVolume > 0 && monthlyVolume > lastMonthVolume {
             let increase = Int(Double(monthlyVolume - lastMonthVolume) / Double(lastMonthVolume) * 100)
             if increase >= 10 {
                 insights.append(SmartInsight(
@@ -114,8 +115,8 @@ enum SmartInsightEngine {
             }
         }
         
-        // 6. Volume declining
-        if lastMonthVolume > 0 && monthlyVolume < lastMonthVolume {
+        // 6. Volume declining (skip first week — not enough data)
+        if dayOfMonth >= 8 && lastMonthVolume > 0 && monthlyVolume < lastMonthVolume {
             let decrease = Int(Double(lastMonthVolume - monthlyVolume) / Double(lastMonthVolume) * 100)
             if decrease >= 20 {
                 insights.append(SmartInsight(
@@ -127,8 +128,8 @@ enum SmartInsightEngine {
             }
         }
         
-        // 7. Muscle imbalance — one group dominates
-        if let topName = topMuscleGroupName, topMuscleGroupPercentage > 0.40 && muscleGroupCount >= 2 {
+        // 7. Muscle imbalance — one group dominates (need enough workouts for meaningful distribution)
+        if let topName = topMuscleGroupName, topMuscleGroupPercentage > 0.40 && muscleGroupCount >= 2 && monthlyWorkouts >= 4 {
             let pct = Int(topMuscleGroupPercentage * 100)
             insights.append(SmartInsight(
                 title: "Balance Your Training",
