@@ -188,8 +188,12 @@ struct ActiveWorkoutViewContent: View {
                             }
                         }
                         .padding(14)
-                        .background(.ultraThinMaterial)
+                        .background(Color.appSurface)
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .strokeBorder(Color.appText.opacity(0.1), lineWidth: 1)
+                        )
                         .padding(.horizontal)
                         
                         Spacer()

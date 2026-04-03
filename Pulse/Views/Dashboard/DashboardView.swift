@@ -69,7 +69,7 @@ struct DashboardView: View {
                                 .foregroundStyle(Color.appSecondaryText)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 40)
+                        .padding(.top, 28)
                         .padding(.horizontal)
                         .opacity(sectionAppeared[0] ? 1 : 0)
                         .offset(y: sectionAppeared[0] ? 0 : 18)

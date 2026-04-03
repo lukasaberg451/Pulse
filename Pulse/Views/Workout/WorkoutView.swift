@@ -53,6 +53,7 @@ struct WorkoutView: View {
 // Schedule tab content
 struct ScheduleContentView: View {
     @ObservedObject var viewModel: ScheduleViewModel
+    @EnvironmentObject var syncService: WorkoutSyncService
     @StateObject private var exerciseViewModel = ExerciseListViewModel()
     @State private var selectedDate = Date()
     @State private var showingRoutinePicker = false
@@ -73,6 +74,11 @@ struct ScheduleContentView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
+                    OfflineStatusBanner(subtitle: "Workouts can only be started from the routine during offline mode. Your workout will sync when you're back online.")
+                        .padding(.top, 4)
+                        .padding(.bottom, -4)
+                        .animation(.easeInOut, value: syncService.isOnline)
+
                     // Month/Year selector
                     HStack {
                         Button {
@@ -1336,6 +1342,17 @@ struct CalendarGridView: View {
         }
     }
 
+    private var numberOfRows: Int {
+        let totalCells = viewModel.calendarDays.count
+        return (totalCells + 6) / 7 // ceiling division
+    }
+
+    private var gridHeight: CGFloat {
+        let rows = CGFloat(numberOfRows)
+        // rows × 48pt + (rows - 1) gaps × 10pt
+        return rows * 48 + (rows - 1) * 10
+    }
+
     var body: some View {
         VStack(spacing: 6) {
             // Day headers
@@ -1348,7 +1365,7 @@ struct CalendarGridView: View {
                 }
             }
 
-            // Calendar days — fixed height for 6 rows so layout doesn't jump between months
+            // Calendar days — height adapts to the number of rows in the current month
             LazyVGrid(columns: columns, spacing: 10) {
                 ForEach(calendarItems) { item in
                     if let date = item.date {
@@ -1374,8 +1391,7 @@ struct CalendarGridView: View {
                     }
                 }
             }
-            // 6 rows × 48pt + 5 gaps × 10pt = 338pt
-            .frame(height: 338, alignment: .top)
+            .frame(height: gridHeight, alignment: .top)
         }
         .padding(.horizontal)
         .padding(.vertical, 8)

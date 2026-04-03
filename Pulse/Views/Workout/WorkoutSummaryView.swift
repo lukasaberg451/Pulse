@@ -564,10 +564,6 @@ struct ShareableWorkoutCard: View {
                     Text("Workout Completed")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
-                    
-                    Text(routineName)
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.6))
                 }
                 
                 // Stats

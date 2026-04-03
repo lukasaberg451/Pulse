@@ -92,7 +92,6 @@ struct ThemeSelectionSheet: View {
             }
         }
         .presentationBackground(Color.appBackground)
-        .preferredColorScheme(themeManager.selectedTheme.colorScheme)
     }
     
     func iconForTheme(_ theme: AppTheme) -> String {

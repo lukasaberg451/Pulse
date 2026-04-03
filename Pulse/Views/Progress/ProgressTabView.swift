@@ -931,19 +931,19 @@ struct HealthMetricsSection: View {
                                         // Background gradient
                                         HStack(spacing: 0) {
                                             Rectangle()
-                                                .fill(Color.blue.opacity(0.3))
+                                                .fill(Color.blue.opacity(0.5))
                                                 .frame(width: geometry.size.width * 0.25)
                                             
                                             Rectangle()
-                                                .fill(Color.green.opacity(0.3))
+                                                .fill(Color.green.opacity(0.5))
                                                 .frame(width: geometry.size.width * 0.25)
                                             
                                             Rectangle()
-                                                .fill(Color.orange.opacity(0.3))
+                                                .fill(Color.orange.opacity(0.5))
                                                 .frame(width: geometry.size.width * 0.25)
                                             
                                             Rectangle()
-                                                .fill(Color.red.opacity(0.3))
+                                                .fill(Color.red.opacity(0.5))
                                                 .frame(width: geometry.size.width * 0.25)
                                         }
                                         .cornerRadius(12)

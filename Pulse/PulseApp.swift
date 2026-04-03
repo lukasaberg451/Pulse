@@ -181,7 +181,7 @@ struct PulseApp: App {
             .environmentObject(subscriptionManager)
             .environmentObject(healthKitManager)
             .environmentObject(unitManager)
-            .preferredColorScheme(themeManager.selectedTheme.colorScheme)
+            .onAppear { themeManager.applyToAllWindows() }
             .environment(\.splashDismissed, !showSplash && !showPostLoginLoading && !authViewModel.isLoading)
             .environment(\.signOutAction, { @MainActor in
                 // Show the loading overlay first, then sign out after the fade-in

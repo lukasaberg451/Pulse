@@ -62,11 +62,10 @@ class WorkoutDetailViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        await fetchUserProfile()
-        
         do {
-            // Fetch all sets for this workout
-            let sets: [WorkoutSet] = try await supabase
+            // Fetch profile and sets concurrently
+            async let profileTask: Void = fetchUserProfile()
+            async let setsTask: [WorkoutSet] = supabase
                 .from("workout_sets")
                 .select()
                 .eq("session_id", value: workoutSession.id.uuidString)
@@ -74,34 +73,40 @@ class WorkoutDetailViewModel: ObservableObject {
                 .execute()
                 .value
             
+            let (_, sets) = try await (profileTask, setsTask)
             workoutSets = sets
             
             // Get unique exercise IDs
-            let exerciseIds = Set(sets.map { $0.exerciseId })
+            let exerciseIds = Array(Set(sets.map { $0.exerciseId }))
             
-            // Fetch exercise names and types
-            for exerciseId in exerciseIds {
-                if let exercise: Exercise = try? await supabase
-                    .from("exercises")
-                    .select("id, name, exercise_type")
-                    .eq("id", value: exerciseId.uuidString)
-                    .single()
-                    .execute()
-                    .value {
-                    exerciseNames[exerciseId] = exercise.name
-                    exerciseTypes[exerciseId] = exercise.exerciseType
-                }
-            }
+            // Fetch exercises in a single query and routine exercises concurrently
+            async let exercisesTask: [Exercise] = supabase
+                .from("exercises")
+                .select("id, name, exercise_type")
+                .in("id", values: exerciseIds.map { $0.uuidString })
+                .execute()
+                .value
             
-            // Fetch routine exercises for target values
             if let routineId = workoutSession.routineId {
-                let fetched: [RoutineExercise] = try await supabase
+                async let routineTask: [RoutineExercise] = supabase
                     .from("routine_exercises")
                     .select()
                     .eq("routine_id", value: routineId.uuidString)
                     .execute()
                     .value
+                
+                let (exercises, fetched) = try await (exercisesTask, routineTask)
+                for exercise in exercises {
+                    exerciseNames[exercise.id] = exercise.name
+                    exerciseTypes[exercise.id] = exercise.exerciseType
+                }
                 routineExercises = fetched
+            } else {
+                let exercises = try await exercisesTask
+                for exercise in exercises {
+                    exerciseNames[exercise.id] = exercise.name
+                    exerciseTypes[exercise.id] = exercise.exerciseType
+                }
             }
             
         } catch {
