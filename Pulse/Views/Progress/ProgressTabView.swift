@@ -1415,6 +1415,13 @@ struct EditHealthMetricsSheet: View {
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var showDeleteConfirmation = false
+    
+    // Track initial values to detect actual changes
+    private let initialWeightText: String
+    private let initialHeightText: String
+    private let initialHeightFeet: String
+    private let initialHeightInches: String
+    private let initialTargetWeightText: String
 
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
@@ -1432,17 +1439,30 @@ struct EditHealthMetricsSheet: View {
         nf.minimumFractionDigits = 1
         nf.maximumFractionDigits = 1
 
-        _weightText = State(initialValue: weightKg > 0 ? (nf.string(from: NSNumber(value: displayWeight)) ?? "") : "")
-        _targetWeightText = State(initialValue: targetWeightKg > 0 ? (nf.string(from: NSNumber(value: displayTargetWeight)) ?? "") : "")
-        _heightText = State(initialValue: heightCm > 0 ? String(format: "%.0f", heightCm) : "")
-
+        let weightStr = weightKg > 0 ? (nf.string(from: NSNumber(value: displayWeight)) ?? "") : ""
+        let targetWeightStr = targetWeightKg > 0 ? (nf.string(from: NSNumber(value: displayTargetWeight)) ?? "") : ""
+        let heightStr = heightCm > 0 ? String(format: "%.0f", heightCm) : ""
+        let feetStr: String
+        let inchesStr: String
         if heightCm > 0 {
-            _heightFeet = State(initialValue: "\(um.feetFromCm(heightCm))")
-            _heightInches = State(initialValue: "\(um.inchesFromCm(heightCm))")
+            feetStr = "\(um.feetFromCm(heightCm))"
+            inchesStr = "\(um.inchesFromCm(heightCm))"
         } else {
-            _heightFeet = State(initialValue: "")
-            _heightInches = State(initialValue: "")
+            feetStr = ""
+            inchesStr = ""
         }
+
+        _weightText = State(initialValue: weightStr)
+        _targetWeightText = State(initialValue: targetWeightStr)
+        _heightText = State(initialValue: heightStr)
+        _heightFeet = State(initialValue: feetStr)
+        _heightInches = State(initialValue: inchesStr)
+        
+        self.initialWeightText = weightStr
+        self.initialTargetWeightText = targetWeightStr
+        self.initialHeightText = heightStr
+        self.initialHeightFeet = feetStr
+        self.initialHeightInches = inchesStr
     }
 
     var body: some View {
@@ -1752,10 +1772,23 @@ struct EditHealthMetricsSheet: View {
         showError = false
         errorMessage = ""
         
+        // Detect which fields the user actually changed
+        let weightChanged = weightText != initialWeightText
+        let heightChanged = unitManager.unitSystem == .metric
+            ? heightText != initialHeightText
+            : (heightFeet != initialHeightFeet || heightInches != initialHeightInches)
+        let targetWeightChanged = targetWeightText != initialTargetWeightText
+        
+        // If nothing changed, just dismiss
+        guard weightChanged || heightChanged || targetWeightChanged else {
+            dismiss()
+            return
+        }
+        
         // Validate weight
         let weight = parseDecimal(weightText)
         
-        if let weight = weight, weight <= 0 {
+        if weightChanged, let weight = weight, weight <= 0 {
             errorMessage = "Weight must be greater than 0"
             showError = true
             return
@@ -1768,7 +1801,7 @@ struct EditHealthMetricsSheet: View {
         let heightCm: Double?
         if unitManager.unitSystem == .metric {
             let height = parseDecimal(heightText)
-            if let height = height, height <= 0 {
+            if heightChanged, let height = height, height <= 0 {
                 errorMessage = "Height must be greater than 0"
                 showError = true
                 return
@@ -1779,7 +1812,7 @@ struct EditHealthMetricsSheet: View {
             let inches = Int(heightInches) ?? 0
             if feet == 0 && inches == 0 && heightFeet.isEmpty && heightInches.isEmpty {
                 heightCm = nil
-            } else if feet <= 0 && inches <= 0 {
+            } else if heightChanged && feet <= 0 && inches <= 0 {
                 errorMessage = "Height must be greater than 0"
                 showError = true
                 return
@@ -1792,8 +1825,15 @@ struct EditHealthMetricsSheet: View {
         let targetWeight = parseDecimal(targetWeightText)
         let targetWeightKg = targetWeight.map { unitManager.toKg($0) }
         
-        // Save to database
-        let success = await viewModel.updateHealthMetrics(weightKg: weightKg, heightCm: heightCm, targetWeightKg: targetWeightKg)
+        // Save only changed fields to database
+        let success = await viewModel.updateHealthMetrics(
+            weightKg: weightKg,
+            heightCm: heightCm,
+            targetWeightKg: targetWeightKg,
+            weightChanged: weightChanged,
+            heightChanged: heightChanged,
+            targetWeightChanged: targetWeightChanged
+        )
         
         if success {
             dismiss()

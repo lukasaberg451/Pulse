@@ -435,7 +435,7 @@ class AuthViewModel: ObservableObject{
             // Sync RevenueCat user identity
             await SubscriptionManager.shared.syncUser()
             
-            // Update user metadata with full name if Apple provided it (first sign-in only)
+            // Update user metadata and profile with full name if Apple provided it (first sign-in only)
             if let fullName = appleIDCredential.fullName {
                 let firstName = fullName.givenName ?? ""
                 let lastName = fullName.familyName ?? ""
@@ -452,6 +452,25 @@ class AuthViewModel: ObservableObject{
                             ]
                         )
                     )
+                    
+                    // Sync name to profiles table (the DB trigger created
+                    // the row before the metadata was available)
+                    struct UpdateAppleProfile: Encodable {
+                        let first_name: String
+                        let last_name: String
+                        let full_name: String
+                        let email: String?
+                    }
+                    _ = try? await supabase
+                        .from("profiles")
+                        .update(UpdateAppleProfile(
+                            first_name: firstName,
+                            last_name: lastName,
+                            full_name: displayName,
+                            email: session.user.email
+                        ))
+                        .eq("id", value: session.user.id.uuidString)
+                        .execute()
                 }
             }
             

@@ -285,7 +285,15 @@ class ProfileViewModel: ObservableObject {
         }
     }
     
-    func updateHealthMetrics(weightKg: Double?, heightCm: Double?, targetWeightKg: Double?) async -> Bool {
+    func updateHealthMetrics(
+        weightKg: Double?, heightCm: Double?, targetWeightKg: Double?,
+        weightChanged: Bool, heightChanged: Bool, targetWeightChanged: Bool
+    ) async -> Bool {
+        // If nothing changed, just return success
+        guard weightChanged || heightChanged || targetWeightChanged else {
+            return true
+        }
+        
         isSubmitting = true
         errorMessage = nil
         
@@ -296,20 +304,50 @@ class ProfileViewModel: ObservableObject {
                 return false
             }
             
-            struct UpdateHealthMetrics: Encodable {
-                let weight_kg: Double?
-                let height_cm: Double?
-                let target_weight_kg: Double?
+            // Only encode fields that actually changed
+            struct SelectiveHealthMetrics: Encodable {
+                let weightKg: Double?
+                let heightCm: Double?
+                let targetWeightKg: Double?
+                let includeWeight: Bool
+                let includeHeight: Bool
+                let includeTargetWeight: Bool
+                
+                enum CodingKeys: String, CodingKey {
+                    case weightKg = "weight_kg"
+                    case heightCm = "height_cm"
+                    case targetWeightKg = "target_weight_kg"
+                }
+                
+                func encode(to encoder: Encoder) throws {
+                    var container = encoder.container(keyedBy: CodingKeys.self)
+                    if includeWeight {
+                        try container.encode(weightKg, forKey: .weightKg)
+                    }
+                    if includeHeight {
+                        try container.encode(heightCm, forKey: .heightCm)
+                    }
+                    if includeTargetWeight {
+                        try container.encode(targetWeightKg, forKey: .targetWeightKg)
+                    }
+                }
             }
             
             try await supabase
                 .from("profiles")
-                .update(UpdateHealthMetrics(weight_kg: weightKg, height_cm: heightCm, target_weight_kg: targetWeightKg))
+                .update(SelectiveHealthMetrics(
+                    weightKg: weightKg,
+                    heightCm: heightCm,
+                    targetWeightKg: targetWeightKg,
+                    includeWeight: weightChanged,
+                    includeHeight: heightChanged,
+                    includeTargetWeight: targetWeightChanged
+                ))
                 .eq("id", value: userId.uuidString)
                 .execute()
             
-            // Log weight to history if provided
-            if let weightKg {
+            // Log weight to history only if weight actually changed
+            if weightChanged, let weightKg {
                 try? await weightHistoryRepo.logWeight(weightKg)
             }
             
