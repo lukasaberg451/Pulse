@@ -307,11 +307,11 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundStyle(Color.appSecondaryText)
                     }
-                    
+
                     Text("·")
                         .font(.caption)
                         .foregroundStyle(Color.appTertiaryText)
-                    
+
                     Button(action: {
                         safariURL = Constants.URLs.privacyPolicy
                     }) {
@@ -320,6 +320,7 @@ struct SettingsView: View {
                             .foregroundStyle(Color.appSecondaryText)
                     }
                 }
+                .frame(maxWidth: .infinity)
                 .padding(.bottom, 8)
                 
                 Text(appVersion)

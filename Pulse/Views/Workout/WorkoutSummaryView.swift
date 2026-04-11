@@ -676,7 +676,7 @@ struct SharePreviewSheet: View {
                     Button {
                         dismiss()
                     } label: {
-                        Text("Cancel")
+                        Text("Done")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appText)
                             .frame(maxWidth: .infinity)
