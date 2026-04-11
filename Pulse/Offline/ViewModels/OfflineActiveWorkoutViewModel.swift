@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import Combine
 import Supabase
+import PostHog
 
 @MainActor
 class OfflineActiveWorkoutViewModel: ObservableObject {
@@ -645,7 +646,14 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         
         offlineRepository.completeSession(session, durationSeconds: durationSeconds)
         debugLog("✅ Workout completed locally")
-        
+
+        PostHogSDK.shared.capture("workout_completed", properties: [
+            "session_id": session.id.uuidString,
+            "duration_seconds": durationSeconds,
+            "exercise_count": exercises.count,
+            "routine_name": routine.name
+        ])
+
         // End the Live Activity
         WorkoutLiveActivityManager.shared.endLiveActivity(completed: true)
         
