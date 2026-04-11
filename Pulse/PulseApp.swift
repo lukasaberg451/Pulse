@@ -202,6 +202,19 @@ struct PulseApp: App {
                 return success
             })
             .overlay {
+                // Bridging overlay: covers the view tree swap while
+                // isLoading is still true but PostLoginLoadingView
+                // hasn't been activated yet (prevents dashboard flash).
+                if authViewModel.isLoading && !showPostLoginLoading {
+                    ZStack {
+                        Color.appBackground
+                        LinearGradient.dashboardBackground
+                        Image("LoadingLogo")
+                    }
+                    .ignoresSafeArea()
+                }
+            }
+            .overlay {
                 if showPostLoginLoading {
                     PostLoginLoadingView(isVisible: $showPostLoginLoading)
                         .ignoresSafeArea()
