@@ -15,6 +15,7 @@ class RoutineListViewModel: ObservableObject {
     @Published var routines: [Routine] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var actionError: String?
     @Published var routineExerciseCounts: [UUID: Int] = [:]
     private(set) var hasLoaded = false
     private let routineRepository = RoutineRepository()
@@ -72,7 +73,7 @@ class RoutineListViewModel: ObservableObject {
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
             return newRoutine
         } catch {
-            errorMessage = "Failed to create routine: \(error.localizedDescription)"
+            actionError = "Failed to create routine. Please try again."
             return nil
         }
     }
@@ -92,7 +93,7 @@ class RoutineListViewModel: ObservableObject {
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
             return newRoutine
         } catch {
-            errorMessage = "Failed to duplicate routine: \(error.localizedDescription)"
+            actionError = "Failed to duplicate routine. Please try again."
             return nil
         }
     }
@@ -115,7 +116,7 @@ class RoutineListViewModel: ObservableObject {
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
         } catch {
-            errorMessage = "Failed to delete routine: \(error.localizedDescription)"
+            actionError = "Failed to delete routine. Please try again."
         }
     }
     
@@ -134,7 +135,7 @@ class RoutineListViewModel: ObservableObject {
                 try await workoutRepository.markSessionsAsRoutineDeleted(routineId: routine.id)
                 try await repository.deleteRoutine(id: routine.id)
             } catch {
-                errorMessage = "Failed to delete routine: \(error.localizedDescription)"
+                actionError = "Failed to delete routine. Please try again."
             }
         }
         

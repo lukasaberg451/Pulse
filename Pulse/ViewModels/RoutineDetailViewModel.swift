@@ -17,6 +17,7 @@ class RoutineDetailViewModel: ObservableObject {
     @Published var exercises: [Exercise] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var actionError: String?
     @Published var routine: Routine
     
     private let routineRepository = RoutineRepository()
@@ -100,7 +101,7 @@ class RoutineDetailViewModel: ObservableObject {
             routineExercises.append(newExercise)
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
         } catch {
-            errorMessage = "Failed to add exercise: \(error.localizedDescription)"
+            actionError = "Failed to add exercise. Please try again."
         }
     }
     
@@ -123,7 +124,7 @@ class RoutineDetailViewModel: ObservableObject {
             // Reload exercises
             await loadRoutineExercises()
         } catch {
-            errorMessage = "Failed to update exercise: \(error.localizedDescription)"
+            actionError = "Failed to update exercise. Please try again."
         }
     }
     
@@ -133,7 +134,7 @@ class RoutineDetailViewModel: ObservableObject {
             routineExercises.removeAll { $0.id == routineExercise.id }
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
         } catch {
-            errorMessage = "Failed to delete exercise: \(error.localizedDescription)"
+            actionError = "Failed to delete exercise. Please try again."
         }
     }
 
@@ -148,7 +149,7 @@ class RoutineDetailViewModel: ObservableObject {
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
             
         } catch {
-            errorMessage = "Failed to update routine: \(error.localizedDescription)"
+            actionError = "Failed to update routine. Please try again."
         }
     }
     
@@ -161,7 +162,7 @@ class RoutineDetailViewModel: ObservableObject {
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
             return newRoutine
         } catch {
-            errorMessage = "Failed to duplicate routine: \(error.localizedDescription)"
+            actionError = "Failed to duplicate routine. Please try again."
             return nil
         }
     }
@@ -197,7 +198,7 @@ class RoutineDetailViewModel: ObservableObject {
             // Reload to reflect new order
             await loadRoutineExercises()
         } catch {
-            errorMessage = "Failed to reorder exercises: \(error.localizedDescription)"
+            actionError = "Failed to reorder exercises. Please try again."
         }
     }
     
@@ -217,7 +218,7 @@ class RoutineDetailViewModel: ObservableObject {
             // Then reload to ensure consistency
             await loadRoutineExercises()
         } catch {
-            errorMessage = "Failed to save exercise order: \(error.localizedDescription)"
+            actionError = "Failed to save exercise order. Please try again."
         }
     }
 }

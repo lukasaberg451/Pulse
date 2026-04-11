@@ -100,9 +100,8 @@ struct LoginView: View {
                                         }
                                     }
                             }
-                            .onTapGesture { focusedField = .email }
-                        }
-                        
+                                }
+
                         // Password field
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Password")
@@ -131,9 +130,8 @@ struct LoginView: View {
                                         }
                                     }
                             }
-                            .onTapGesture { focusedField = .password }
-                        }
-                        
+                                }
+
                         // Forgot password
                         HStack {
                             Spacer()
@@ -405,9 +403,8 @@ struct ForgotPasswordView: View {
                                 }
                             }
                     }
-                    .onTapGesture { focusedResetField = .email }
                 }
-                
+
                 PrimaryCTAButton("Send Code") {
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     let trimmed = viewModel.email.trimmingCharacters(in: .whitespaces)
@@ -554,7 +551,6 @@ struct ForgotPasswordView: View {
                             }
                         }
                 }
-                .onTapGesture { focusedResetField = .newPassword }
                 .onChange(of: viewModel.newPassword) { _, newValue in
                     viewModel.newPassword = sanitizeInput(newValue, maxLength: 72)
                 }
@@ -613,7 +609,6 @@ struct ForgotPasswordView: View {
                             }
                         }
                 }
-                .onTapGesture { focusedResetField = .confirmPassword }
                 .onChange(of: viewModel.confirmPassword) { _, newValue in
                     viewModel.confirmPassword = sanitizeInput(newValue, maxLength: 72)
                 }

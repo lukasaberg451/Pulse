@@ -433,6 +433,14 @@ struct RoutineDetailView: View {
         } message: {
             Text("A copy of '\(viewModel.routine.name)' has been created. You can find it in your routine list.")
         }
+        .alert("Error", isPresented: Binding(
+            get: { viewModel.actionError != nil },
+            set: { if !$0 { viewModel.actionError = nil } }
+        )) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(viewModel.actionError ?? "")
+        }
         .task {
             // Inject modelContext for offline support
             viewModel.modelContext = modelContext
@@ -2040,7 +2048,6 @@ struct EditRoutineSheet: View {
                                         y: 2
                                     )
                             }
-                            .onTapGesture { focusedField = .name }
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
@@ -2093,7 +2100,6 @@ struct EditRoutineSheet: View {
                                         y: 2
                                     )
                             }
-                            .onTapGesture { focusedField = .notes }
                         }
                     }
                     .padding(.horizontal)

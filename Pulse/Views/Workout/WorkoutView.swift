@@ -1040,6 +1040,14 @@ struct RoutineContentView: View {
                 Text("Are you sure you want to delete \(selectedRoutineIds.count) routines? All past workouts related to these routines will not be deleted. This action cannot be undone.")
             }
         }
+        .alert("Error", isPresented: Binding(
+            get: { viewModel.actionError != nil },
+            set: { if !$0 { viewModel.actionError = nil } }
+        )) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(viewModel.actionError ?? "")
+        }
         .task {
             if !viewModel.hasLoaded {
                 await viewModel.loadRoutines()
@@ -1061,6 +1069,7 @@ struct CreateRoutineSheet: View {
     @State private var name = ""
     @State private var description = ""
     @State private var isCreating = false
+    @State private var showError = false
     @FocusState private var focusedField: Field?
 
     private enum Field { case name, notes }
@@ -1086,6 +1095,24 @@ struct CreateRoutineSheet: View {
                             .multilineTextAlignment(.center)
                     }
                     .padding(.top, 20)
+
+                    // Error banner
+                    if showError {
+                        HStack(spacing: 8) {
+                            Image("error")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 16, height: 16)
+                                .foregroundStyle(.red)
+                            Text("Failed to create routine. Please try again.")
+                                .foregroundStyle(.red)
+                                .font(.caption.weight(.medium))
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .padding(.horizontal)
+                    }
 
                     // Form fields
                     VStack(spacing: 16) {
@@ -1127,7 +1154,6 @@ struct CreateRoutineSheet: View {
                                         y: 2
                                     )
                             }
-                            .onTapGesture { focusedField = .name }
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
@@ -1180,7 +1206,6 @@ struct CreateRoutineSheet: View {
                                         y: 2
                                     )
                             }
-                            .onTapGesture { focusedField = .notes }
                         }
                     }
                     .padding(.horizontal)
@@ -1188,10 +1213,14 @@ struct CreateRoutineSheet: View {
                     // CTA Button
                     PrimaryCTAButton("Create Routine", icon: "check") {
                         isCreating = true
+                        showError = false
                         Task {
                             if let newRoutine = await viewModel.createRoutine(name: name, description: description) {
                                 onRoutineCreated(newRoutine)
                                 dismiss()
+                            } else {
+                                showError = true
+                                viewModel.actionError = nil
                             }
                             isCreating = false
                         }

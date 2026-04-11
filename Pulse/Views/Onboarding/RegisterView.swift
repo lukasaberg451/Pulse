@@ -186,8 +186,7 @@ struct RegisterView: View {
                                             }
                                         }
                                 }
-                                .onTapGesture { focusedField = .firstName }
-                                
+
                                 if firstName.count >= 40 {
                                     HStack {
                                         Spacer()
@@ -228,8 +227,7 @@ struct RegisterView: View {
                                             }
                                         }
                                 }
-                                .onTapGesture { focusedField = .lastName }
-                                
+
                                 if lastName.count >= 40 {
                                     HStack {
                                         Spacer()
@@ -272,8 +270,7 @@ struct RegisterView: View {
                                             }
                                         }
                                 }
-                                .onTapGesture { focusedField = .email }
-                                
+
                                 if email.count >= 244 {
                                     HStack {
                                         Spacer()
@@ -331,7 +328,6 @@ struct RegisterView: View {
                                             }
                                         }
                                 }
-                                .onTapGesture { focusedField = .password }
                                 .onChange(of: password) { _, newValue in
                                     password = sanitizeInput(newValue, maxLength: 72)
                                 }
