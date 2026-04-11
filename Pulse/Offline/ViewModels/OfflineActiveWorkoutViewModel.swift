@@ -649,7 +649,23 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         // End the Live Activity
         WorkoutLiveActivityManager.shared.endLiveActivity(completed: true)
         
-        // Sync completed workout to Supabase if online
+        // Run sync, scheduled entry, 1RM updates, and HealthKit save concurrently
+        // since they are independent operations.
+        
+        // HealthKit save (independent of network operations)
+        let healthKitTask = Task {
+            if HealthKitManager.shared.isWorkoutSessionActive {
+                await HealthKitManager.shared.endWorkoutSession(name: routine.name)
+            } else {
+                await HealthKitManager.shared.saveWorkout(
+                    name: routine.name,
+                    startDate: startTime,
+                    durationSeconds: durationSeconds,
+                    exercises: exercises
+                )
+            }
+        }
+        
         if syncService.isOnline {
             debugLog("🔄 Syncing completed workout to Supabase...")
             
@@ -660,8 +676,10 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             }
             await syncService.syncPendingWorkouts()
             
-            // Mark scheduled workout as completed if this was a scheduled workout.
-            // Guard with scheduledEntryCreated to prevent duplicates if syncSession() also runs.
+            // Start 1RM updates concurrently (the main bottleneck)
+            async let onermResult: Void = updateEstimated1RMForCompletedSets()
+            
+            // Mark scheduled workout as completed (1-2 calls, runs while 1RM updates are in flight)
             if !session.scheduledEntryCreated {
                 if let scheduledWorkoutId = scheduledWorkoutId {
                     do {
@@ -676,10 +694,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                         debugLog("❌ Failed to mark scheduled workout as completed: \(error)")
                     }
                 } else {
-                    // Non-scheduled workout: create a completed scheduled entry so it appears on the calendar
-                    // This must happen after sync so the workout_session exists in Supabase
                     do {
-                        // Fetch user's timezone setting so the date is stored correctly
                         let userTimeZone = await Self.fetchUserTimeZone()
                         try await WorkoutRepository().createCompletedScheduledWorkout(
                             routineId: routine.id,
@@ -696,33 +711,21 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 }
             }
             
-            // Update estimated 1RM for each completed strength set
-            await updateEstimated1RMForCompletedSets()
+            // Await 1RM updates to finish
+            await onermResult
             
             // Post notification to refresh UI
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
             debugLog("📢 Posted workoutDataChanged notification")
         } else {
-            // If offline, mark scheduled workout locally to be synced later
             if let scheduledWorkoutId = scheduledWorkoutId {
                 debugLog("📱 Offline - will mark scheduled workout \(scheduledWorkoutId) as completed when back online")
-                // TODO: Add offline scheduled workout completion tracking
             }
             debugLog("📱 Offline - workout will sync when back online")
         }
         
-        // End HKWorkoutSession (saves workout to HealthKit automatically).
-        // Falls back to legacy saveWorkout() if no session was started.
-        if HealthKitManager.shared.isWorkoutSessionActive {
-            await HealthKitManager.shared.endWorkoutSession(name: routine.name)
-        } else {
-            await HealthKitManager.shared.saveWorkout(
-                name: routine.name,
-                startDate: startTime,
-                durationSeconds: durationSeconds,
-                exercises: exercises
-            )
-        }
+        // Ensure HealthKit save completes before returning
+        await healthKitTask.value
         
         // Tell the watch the workout has ended so it dismisses
         WorkoutSyncManager.shared.sendWorkoutEnded()
@@ -770,44 +773,84 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     private func updateEstimated1RMForCompletedSets() async {
         guard let userId = SupabaseManager.shared.client.auth.currentUser?.id else { return }
         
-        let repository = WorkoutRepository()
         let completedSets = sets.filter { $0.completed }
+        
+        // Filter to eligible strength sets upfront
+        let eligibleSets = completedSets.filter { set in
+            guard let weight = set.weight, weight > 0,
+                  let reps = set.reps, reps >= 1, reps <= 10 else { return false }
+            let exercise = exercises.first { $0.id == set.exerciseId }
+            return exercise?.exerciseType != "cardio"
+        }
+        
+        guard !eligibleSets.isEmpty else { return }
+        
+        // Prepare all data upfront so the task group closures only capture Sendable values
+        struct SetInput: Sendable {
+            let exerciseId: UUID
+            let name: String
+            let weight: Double
+            let reps: Int
+        }
+        
+        let inputs: [SetInput] = eligibleSets.map { set in
+            let exercise = exercises.first { $0.id == set.exerciseId }
+            return SetInput(
+                exerciseId: set.exerciseId,
+                name: exercise?.name ?? "Unknown",
+                weight: set.weight!,
+                reps: set.reps!
+            )
+        }
+        
+        let supabaseClient = SupabaseManager.shared.client
+        
+        // Run all 1RM update calls concurrently
+        let results: [(exerciseId: UUID, name: String, response: Update1RMResponse)] = await withTaskGroup(
+            of: (UUID, String, Update1RMResponse)?.self
+        ) { group in
+            for input in inputs {
+                group.addTask {
+                    do {
+                        let data = try await supabaseClient
+                            .rpc("update_exercise_1rm", params: [
+                                "p_user_id": userId.uuidString,
+                                "p_exercise_id": input.exerciseId.uuidString,
+                                "p_weight": String(input.weight),
+                                "p_reps": String(input.reps)
+                            ])
+                            .execute()
+                            .data
+                        let decoder = JSONDecoder()
+                        decoder.keyDecodingStrategy = .convertFromSnakeCase
+                        let response = try decoder.decode(Update1RMResponse.self, from: data)
+                        if response.isNewPr {
+                            debugLog("🏆 New 1RM PR for exercise \(input.name): \(response.estimated1rm ?? 0)")
+                        }
+                        return (input.exerciseId, input.name, response)
+                    } catch {
+                        debugLog("Failed to update 1RM for exercise \(input.exerciseId): \(error)")
+                        return nil
+                    }
+                }
+            }
+            
+            var collected: [(UUID, String, Update1RMResponse)] = []
+            for await result in group {
+                if let result { collected.append(result) }
+            }
+            return collected
+        }
         
         // Track the best response per exercise (a set with higher estimated 1RM wins)
         var bestPerExercise: [UUID: (name: String, response: Update1RMResponse)] = [:]
-        
-        for set in completedSets {
-            guard let weight = set.weight, weight > 0,
-                  let reps = set.reps, reps >= 1, reps <= 10 else { continue }
-            
-            // Skip cardio exercises
-            let exercise = exercises.first { $0.id == set.exerciseId }
-            if exercise?.exerciseType == "cardio" { continue }
-            
-            do {
-                let response = try await repository.updateExercise1RM(
-                    userId: userId,
-                    exerciseId: set.exerciseId,
-                    weight: weight,
-                    reps: reps
-                )
-                
-                let name = exercise?.name ?? "Unknown"
-                
-                // Keep the response with the highest estimated 1RM per exercise
-                if let existing = bestPerExercise[set.exerciseId] {
-                    if (response.estimated1rm ?? 0) > (existing.response.estimated1rm ?? 0) {
-                        bestPerExercise[set.exerciseId] = (name, response)
-                    }
-                } else {
-                    bestPerExercise[set.exerciseId] = (name, response)
+        for (exerciseId, name, response) in results {
+            if let existing = bestPerExercise[exerciseId] {
+                if (response.estimated1rm ?? 0) > (existing.response.estimated1rm ?? 0) {
+                    bestPerExercise[exerciseId] = (name, response)
                 }
-                
-                if response.isNewPr {
-                    debugLog("🏆 New 1RM PR for exercise \(name): \(response.estimated1rm ?? 0)")
-                }
-            } catch {
-                debugLog("Failed to update 1RM for exercise \(set.exerciseId): \(error)")
+            } else {
+                bestPerExercise[exerciseId] = (name, response)
             }
         }
         

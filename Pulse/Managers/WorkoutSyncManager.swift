@@ -24,17 +24,29 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     private let session: WCSession? = WCSession.isSupported() ? WCSession.default : nil
     #if os(iOS)
     private let healthStore = HKHealthStore()
+    /// The mirrored workout session received from the watch via HealthKit mirroring.
+    private var mirroredSession: HKWorkoutSession?
     #endif
     
     private override init() {
         super.init()
-        
+
         guard let session = session else {
             return
         }
-        
+
         session.delegate = self
         session.activate()
+
+        #if os(iOS)
+        // Handle mirrored workout sessions started from the watch.
+        // This keeps the iPhone app aware of the active session and prevents
+        // the system from terminating the connection.
+        healthStore.workoutSessionMirroringStartHandler = { [weak self] mirroredSession in
+            debugLog("📱 Received mirrored workout session from Watch")
+            self?.mirroredSession = mirroredSession
+        }
+        #endif
     }
     
     // MARK: - Launch Watch App

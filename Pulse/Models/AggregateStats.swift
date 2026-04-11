@@ -91,7 +91,7 @@ struct Exercise1RMRow: Codable, Identifiable {
 }
 
 /// Response from `update_exercise_1rm` RPC
-struct Update1RMResponse: Codable {
+struct Update1RMResponse: Sendable {
     let isNewPr: Bool
     let estimated1rm: Double?
     let previousBest: Double?
@@ -100,6 +100,15 @@ struct Update1RMResponse: Codable {
         case isNewPr = "is_new_pr"
         case estimated1rm = "estimated_1rm"
         case previousBest = "previous_best"
+    }
+}
+
+extension Update1RMResponse: Decodable {
+    nonisolated init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        isNewPr = try container.decode(Bool.self, forKey: .isNewPr)
+        estimated1rm = try container.decodeIfPresent(Double.self, forKey: .estimated1rm)
+        previousBest = try container.decodeIfPresent(Double.self, forKey: .previousBest)
     }
 }
 
