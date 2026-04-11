@@ -104,6 +104,7 @@ struct PulseApp: App {
     @State private var showPostLogoutLoading = false
     @State private var showSplash = !PulseApp.isUITesting
     @State private var selectedTab: HomeTab = .dashboard
+    @State private var availableAppUpdate: String?
     
     // SwiftData model container for offline support
     let modelContainer: ModelContainer
@@ -253,6 +254,26 @@ struct PulseApp: App {
             }
             .onChange(of: subscriptionManager.isProUser) { _, newValue in
                 WorkoutSyncManager.shared.syncProStatus(newValue)
+            }
+            .onChange(of: showSplash) { _, splashVisible in
+                guard !splashVisible else { return }
+                Task {
+                    availableAppUpdate = await AppUpdateChecker.shared.availableUpdate()
+                }
+            }
+            .onChange(of: showPostLoginLoading) { _, loading in
+                guard !loading && !showSplash else { return }
+                Task {
+                    availableAppUpdate = await AppUpdateChecker.shared.availableUpdate()
+                }
+            }
+            .sheet(isPresented: Binding(
+                get: { availableAppUpdate != nil },
+                set: { if !$0 { availableAppUpdate = nil } }
+            )) {
+                if let version = availableAppUpdate {
+                    AppUpdateSheet(latestVersion: version)
+                }
             }
 
         }

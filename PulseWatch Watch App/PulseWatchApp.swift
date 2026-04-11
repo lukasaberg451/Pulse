@@ -100,14 +100,8 @@ class WatchWorkoutSessionManager: NSObject, ObservableObject, HKWorkoutSessionDe
         session.end()
 
         // Discard the workout (we don't save it to HealthKit — the app is just for tracking sets)
-        Task {
-            do {
-                try await builder?.discardWorkout()
-                debugLog("⌚ Workout builder discarded")
-            } catch {
-                debugLog("⌚ Failed to discard workout: \(error.localizedDescription)")
-            }
-        }
+        builder?.discardWorkout()
+        debugLog("⌚ Workout builder discarded")
 
         workoutSession = nil
         builder = nil
