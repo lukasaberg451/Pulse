@@ -190,6 +190,10 @@ class ProgressStatsViewModel: ObservableObject {
             lifetimeHours = stats.lifetimeHours
             currentStreak = stats.currentStreak
             bestStreak = stats.bestStreak
+        } catch is CancellationError {
+            // Ignore — a newer refresh replaced this one
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // Ignore URL session cancellation
         } catch {
             debugLog("Failed to load progress stats: \(error)")
         }
@@ -216,6 +220,10 @@ class ProgressStatsViewModel: ObservableObject {
             topMuscleGroups = rows.map { row in
                 MuscleGroupStat(name: row.name, sets: row.sets, percentage: row.percentage)
             }
+        } catch is CancellationError {
+            // Ignore — a newer refresh replaced this one
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // Ignore URL session cancellation
         } catch {
             debugLog("Failed to load muscle group stats: \(error)")
             topMuscleGroups = []
@@ -237,6 +245,10 @@ class ProgressStatsViewModel: ObservableObject {
                     improvementPercent: row.improvementPercent
                 )
             }
+        } catch is CancellationError {
+            // Ignore — a newer refresh replaced this one
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // Ignore URL session cancellation
         } catch {
             debugLog("Failed to load strength progress: \(error)")
             strengthProgress = []
@@ -249,6 +261,10 @@ class ProgressStatsViewModel: ObservableObject {
         
         do {
             exercise1RMStats = try await workoutRepository.fetchExercise1RMStats(userId: userId)
+        } catch is CancellationError {
+            // Ignore — a newer refresh replaced this one
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // Ignore URL session cancellation
         } catch {
             debugLog("Failed to load 1RM stats: \(error)")
             exercise1RMStats = []
@@ -258,6 +274,10 @@ class ProgressStatsViewModel: ObservableObject {
     private func loadRecentSessions() async {
         do {
             recentSessions = try await workoutRepository.fetchCompletedSessions(limit: 3, offset: 0)
+        } catch is CancellationError {
+            // Ignore — a newer refresh replaced this one
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // Ignore URL session cancellation
         } catch {
             debugLog("Failed to load recent sessions: \(error)")
             recentSessions = []

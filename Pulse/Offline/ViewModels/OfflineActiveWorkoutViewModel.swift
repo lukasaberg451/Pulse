@@ -732,9 +732,9 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             debugLog("📱 Offline - workout will sync when back online")
         }
         
-        // Ensure HealthKit save completes before returning
-        await healthKitTask.value
-        
+        // Let HealthKit save finish in the background — don't block the UI
+        debugLog("📱 HealthKit save running in background, not blocking workout completion")
+
         // Tell the watch the workout has ended so it dismisses
         WorkoutSyncManager.shared.sendWorkoutEnded()
     }
@@ -829,9 +829,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                             ])
                             .execute()
                             .data
-                        let decoder = JSONDecoder()
-                        decoder.keyDecodingStrategy = .convertFromSnakeCase
-                        let response = try decoder.decode(Update1RMResponse.self, from: data)
+                        let response = try JSONDecoder().decode(Update1RMResponse.self, from: data)
                         if response.isNewPr {
                             debugLog("🏆 New 1RM PR for exercise \(input.name): \(response.estimated1rm ?? 0)")
                         }

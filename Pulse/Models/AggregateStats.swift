@@ -106,7 +106,7 @@ struct Update1RMResponse: Sendable {
 extension Update1RMResponse: Decodable {
     nonisolated init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        isNewPr = try container.decode(Bool.self, forKey: .isNewPr)
+        isNewPr = try container.decodeIfPresent(Bool.self, forKey: .isNewPr) ?? false
         estimated1rm = try container.decodeIfPresent(Double.self, forKey: .estimated1rm)
         previousBest = try container.decodeIfPresent(Double.self, forKey: .previousBest)
     }
