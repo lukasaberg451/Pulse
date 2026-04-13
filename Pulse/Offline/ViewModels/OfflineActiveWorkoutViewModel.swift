@@ -661,7 +661,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         // since they are independent operations.
         
         // HealthKit save (independent of network operations)
-        let healthKitTask = Task {
+        Task {
             if HealthKitManager.shared.isWorkoutSessionActive {
                 await HealthKitManager.shared.endWorkoutSession(name: routine.name)
             } else {
