@@ -270,15 +270,11 @@ struct PulseApp: App {
             }
             .onChange(of: showSplash) { _, splashVisible in
                 guard !splashVisible else { return }
-                Task {
-                    availableAppUpdate = await AppUpdateChecker.shared.availableUpdate()
-                }
+                checkForAppUpdate()
             }
             .onChange(of: showPostLoginLoading) { _, loading in
                 guard !loading && !showSplash else { return }
-                Task {
-                    availableAppUpdate = await AppUpdateChecker.shared.availableUpdate()
-                }
+                checkForAppUpdate()
             }
             .sheet(isPresented: Binding(
                 get: { availableAppUpdate != nil },
@@ -286,12 +282,20 @@ struct PulseApp: App {
             )) {
                 if let version = availableAppUpdate {
                     AppUpdateSheet(latestVersion: version)
+                        .onAppear {
+                            AppUpdateChecker.shared.recordSheetShown()
+                        }
                 }
             }
 
         }
         .modelContainer(modelContainer)
     }
-    
 
+    private func checkForAppUpdate() {
+        guard !AppUpdateChecker.shared.wasSheetShownToday else { return }
+        Task {
+            availableAppUpdate = await AppUpdateChecker.shared.availableUpdate()
+        }
+    }
 }

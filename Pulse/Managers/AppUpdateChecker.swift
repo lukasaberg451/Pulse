@@ -9,6 +9,7 @@ struct AppUpdateChecker {
     private let cacheKey = "AppUpdateChecker.lastCheck"
     private let cacheVersionKey = "AppUpdateChecker.latestVersion"
     private let cacheTTL: TimeInterval = 24 * 60 * 60 // 24 hours
+    private let sheetShownKey = "AppUpdateChecker.lastSheetShown"
 
     var appStoreURL: URL {
         URL(string: "itms-apps://apps.apple.com/app/id\(appStoreId)")!
@@ -32,6 +33,19 @@ struct AppUpdateChecker {
         saveCache(version: latestVersion)
 
         return isNewer(latestVersion, than: currentVersion) ? latestVersion : nil
+    }
+
+    /// Whether the update sheet was already shown in the last 24 hours.
+    var wasSheetShownToday: Bool {
+        guard let lastShown = UserDefaults.standard.object(forKey: sheetShownKey) as? Date else {
+            return false
+        }
+        return Date().timeIntervalSince(lastShown) < cacheTTL
+    }
+
+    /// Call when the update sheet is presented to the user.
+    func recordSheetShown() {
+        UserDefaults.standard.set(Date(), forKey: sheetShownKey)
     }
 
     // MARK: - Network
