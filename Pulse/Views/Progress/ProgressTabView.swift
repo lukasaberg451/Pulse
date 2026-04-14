@@ -396,10 +396,10 @@ struct StrengthProgressCard: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Last")
+                    Text("Start")
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(Color.appSecondaryText)
-                    Text("\(unitManager.displayWeight(progress.lastWeight), specifier: "%.1f") \(unitManager.weightUnit)")
+                    Text("\(unitManager.displayWeight(progress.firstWeight), specifier: "%.1f") \(unitManager.weightUnit)")
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(Color.appText)
                 }
