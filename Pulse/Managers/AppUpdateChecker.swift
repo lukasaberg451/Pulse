@@ -1,15 +1,22 @@
 import Foundation
+import Supabase
+
+enum AppUpdateStatus: Equatable {
+    /// Current version is below minimum — user must update.
+    case forceUpdate(latestVersion: String)
+    /// Current version is supported but outdated — user can dismiss.
+    case softUpdate(latestVersion: String)
+    /// App is up to date (or check failed).
+    case upToDate
+}
 
 struct AppUpdateChecker {
 
     static let shared = AppUpdateChecker()
 
-    private let bundleId = "com.fyrafemett.Pulse"
     private let appStoreId = "6759346770"
-    private let cacheKey = "AppUpdateChecker.lastCheck"
-    private let cacheVersionKey = "AppUpdateChecker.latestVersion"
-    private let cacheTTL: TimeInterval = 24 * 60 * 60 // 24 hours
-    private let sheetShownKey = "AppUpdateChecker.lastSheetShown"
+    private let softSheetShownKey = "AppUpdateChecker.lastSoftSheetShown"
+    private let cooldown: TimeInterval = 24 * 60 * 60 // 24 hours
 
     var appStoreURL: URL {
         URL(string: "itms-apps://apps.apple.com/app/id\(appStoreId)")!
@@ -17,85 +24,67 @@ struct AppUpdateChecker {
 
     // MARK: - Public
 
-    /// Returns the latest App Store version string when an update is available,
-    /// or `nil` when the local version is current (or on any failure).
-    /// A `minimumVersion` parameter can be added here later for hard-gate logic.
-    func availableUpdate() async -> String? {
+    /// Checks Supabase remote config and returns the appropriate update status.
+    func checkUpdate() async -> AppUpdateStatus {
         let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
 
-        // Check cache first
-        if let cached = cachedVersion() {
-            return isNewer(cached, than: currentVersion) ? cached : nil
+        guard let config = await fetchRemoteConfig() else { return .upToDate }
+
+        if isNewer(config.minimumSupportedVersion, than: currentVersion) {
+            return .forceUpdate(latestVersion: config.latestVersion)
         }
 
-        guard let latestVersion = await fetchLatestVersion() else { return nil }
+        if isNewer(config.latestVersion, than: currentVersion) {
+            return .softUpdate(latestVersion: config.latestVersion)
+        }
 
-        saveCache(version: latestVersion)
-
-        return isNewer(latestVersion, than: currentVersion) ? latestVersion : nil
+        return .upToDate
     }
 
-    /// Whether the update sheet was already shown in the last 24 hours.
-    var wasSheetShownToday: Bool {
-        guard let lastShown = UserDefaults.standard.object(forKey: sheetShownKey) as? Date else {
+    /// Whether the soft-update sheet was already shown in the last 24 hours.
+    var wasSoftSheetShownToday: Bool {
+        guard let lastShown = UserDefaults.standard.object(forKey: softSheetShownKey) as? Date else {
             return false
         }
-        return Date().timeIntervalSince(lastShown) < cacheTTL
+        return Date().timeIntervalSince(lastShown) < cooldown
     }
 
-    /// Call when the update sheet is presented to the user.
-    func recordSheetShown() {
-        UserDefaults.standard.set(Date(), forKey: sheetShownKey)
+    /// Call when the soft-update sheet is presented to the user.
+    func recordSoftSheetShown() {
+        UserDefaults.standard.set(Date(), forKey: softSheetShownKey)
     }
 
-    // MARK: - Network
+    // MARK: - Supabase
 
-    private func fetchLatestVersion() async -> String? {
-        guard let url = URL(string: "https://itunes.apple.com/lookup?bundleId=\(bundleId)&country=se") else {
-            return nil
+    private struct RemoteConfig: Decodable {
+        let minimumSupportedVersion: String
+        let latestVersion: String
+
+        enum CodingKeys: String, CodingKey {
+            case minimumSupportedVersion = "minimum_supported_version"
+            case latestVersion = "latest_version"
         }
+    }
 
+    private func fetchRemoteConfig() async -> RemoteConfig? {
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let response = try JSONDecoder().decode(ITunesLookupResponse.self, from: data)
-            return response.results.first?.version
+            let response: RemoteConfig = try await SupabaseManager.shared.client
+                .from("app_config")
+                .select("minimum_supported_version, latest_version")
+                .single()
+                .execute()
+                .value
+            return response
         } catch {
-            debugLog("AppUpdateChecker: failed to fetch version – \(error)")
+            debugLog("AppUpdateChecker: failed to fetch remote config – \(error)")
             return nil
         }
-    }
-
-    // MARK: - Cache
-
-    private func cachedVersion() -> String? {
-        let defaults = UserDefaults.standard
-        guard let lastCheck = defaults.object(forKey: cacheKey) as? Date,
-              Date().timeIntervalSince(lastCheck) < cacheTTL,
-              let version = defaults.string(forKey: cacheVersionKey) else {
-            return nil
-        }
-        return version
-    }
-
-    private func saveCache(version: String) {
-        let defaults = UserDefaults.standard
-        defaults.set(Date(), forKey: cacheKey)
-        defaults.set(version, forKey: cacheVersionKey)
     }
 
     // MARK: - Version comparison
 
+    /// Returns true when `remote` is strictly greater than `local`.
     private func isNewer(_ remote: String, than local: String) -> Bool {
         remote.compare(local, options: .numeric) == .orderedDescending
-    }
-}
-
-// MARK: - iTunes Lookup Response
-
-private struct ITunesLookupResponse: Decodable {
-    let results: [AppResult]
-
-    struct AppResult: Decodable {
-        let version: String
     }
 }
