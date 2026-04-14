@@ -200,6 +200,34 @@ struct SettingsView: View {
                         .padding(.horizontal)
                     }
                     
+                    // Rate Pulse
+                    Button {
+                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                        impactLight.impactOccurred()
+                        if let url = URL(string: "itms-apps://apps.apple.com/app/id6759346770") {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        HStack(spacing: 14) {
+                            IconBadge(assetName: "star", size: 32)
+                            
+                            Text("Enjoying Pulse? Rate us!")
+                                .font(.body)
+                                .foregroundStyle(Color.appText)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "arrow.up.right")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(Color.appTertiaryText)
+                        }
+                        .padding(14)
+                    }
+                    .background(Color.appSurface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .profileCardShadow(colorScheme: colorScheme)
+                    .padding(.horizontal)
+                    
                     // Support Section
                     VStack(alignment: .leading, spacing: 10) {
                         DashboardSectionHeader(title: "Support")
