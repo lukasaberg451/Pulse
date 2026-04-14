@@ -801,15 +801,30 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             let reps: Int
         }
         
-        let inputs: [SetInput] = eligibleSets.map { set in
+        // Pick only the best set per exercise (highest estimated 1RM via Epley)
+        // so we get one clean history entry per exercise per workout.
+        var bestSetPerExercise: [UUID: SetInput] = [:]
+        for set in eligibleSets {
+            let weight = set.weight!
+            let reps = set.reps!
+            let estimated1rm = weight * (1 + 0.0333 * Double(reps))
             let exercise = exercises.first { $0.id == set.exerciseId }
-            return SetInput(
+            let input = SetInput(
                 exerciseId: set.exerciseId,
                 name: exercise?.name ?? "Unknown",
-                weight: set.weight!,
-                reps: set.reps!
+                weight: weight,
+                reps: reps
             )
+            if let existing = bestSetPerExercise[set.exerciseId] {
+                let existingEstimate = existing.weight * (1 + 0.0333 * Double(existing.reps))
+                if estimated1rm > existingEstimate {
+                    bestSetPerExercise[set.exerciseId] = input
+                }
+            } else {
+                bestSetPerExercise[set.exerciseId] = input
+            }
         }
+        let inputs = Array(bestSetPerExercise.values)
         
         let supabaseClient = SupabaseManager.shared.client
         
@@ -848,33 +863,19 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             return collected
         }
         
-        // Track the best response per exercise (a set with higher estimated 1RM wins)
-        var bestPerExercise: [UUID: (name: String, response: Update1RMResponse)] = [:]
-        for (exerciseId, name, response) in results {
-            if let existing = bestPerExercise[exerciseId] {
-                if (response.estimated1rm ?? 0) > (existing.response.estimated1rm ?? 0) {
-                    bestPerExercise[exerciseId] = (name, response)
-                }
-            } else {
-                bestPerExercise[exerciseId] = (name, response)
-            }
-        }
-        
-        // Build highlights from best responses (only include exercises that had a valid estimated 1RM)
-        let highlights = bestPerExercise.compactMap { exerciseId, entry -> Strength1RMHighlight? in
-            guard let estimated1rm = entry.response.estimated1rm else { return nil }
+        // Build highlights (one per exercise since we already picked the best set)
+        let highlights = results.compactMap { exerciseId, name, response -> Strength1RMHighlight? in
+            guard let estimated1rm = response.estimated1rm else { return nil }
             return Strength1RMHighlight(
                 id: exerciseId,
-                exerciseName: entry.name,
+                exerciseName: name,
                 estimated1rm: estimated1rm,
-                isNewPr: entry.response.isNewPr,
-                previousBest: entry.response.previousBest ?? 0
+                isNewPr: response.isNewPr,
+                previousBest: response.previousBest ?? 0
             )
         }.sorted { $0.estimated1rm > $1.estimated1rm }
         
-        await MainActor.run {
-            self.strength1RMHighlights = highlights
-        }
+        self.strength1RMHighlights = highlights
     }
     
     deinit {

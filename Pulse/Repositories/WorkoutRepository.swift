@@ -646,6 +646,25 @@ class WorkoutRepository {
         return response
     }
     
+    /// Fetches historical 1RM entries for a specific exercise via server-side RPC.
+    func fetchExercise1RMHistory(userId: UUID, exerciseId: UUID, limit: Int = 100) async throws -> [Exercise1RMHistoryRow] {
+        let rows: [Exercise1RMHistoryRow] = try await supabase
+            .rpc("get_exercise_1rm_history", params: [
+                "p_user_id": userId.uuidString,
+                "p_exercise_id": exerciseId.uuidString,
+                "p_limit": String(limit)
+            ])
+            .execute()
+            .value
+        return rows
+    }
+
+    /// Fetches historical 1RM entries for the current user and a specific exercise.
+    func fetchExercise1RMHistoryForCurrentUser(exerciseId: UUID, limit: Int = 100) async throws -> [Exercise1RMHistoryRow] {
+        guard let userId = supabase.auth.currentUser?.id else { return [] }
+        return try await fetchExercise1RMHistory(userId: userId, exerciseId: exerciseId, limit: limit)
+    }
+
     /// Fetches strength progress per exercise via server-side RPC.
     func fetchStrengthProgress(userId: UUID) async throws -> [StrengthProgressRow] {
         let rows: [StrengthProgressRow] = try await supabase

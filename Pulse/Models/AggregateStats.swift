@@ -90,6 +90,23 @@ struct Exercise1RMRow: Codable, Identifiable {
     }
 }
 
+/// Row from `get_exercise_1rm_history` RPC
+struct Exercise1RMHistoryRow: Codable, Identifiable {
+    let id: UUID
+    let estimated1rm: Double
+    let weight: Double
+    let reps: Int
+    let recordedAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case estimated1rm = "estimated_1rm"
+        case weight
+        case reps
+        case recordedAt = "recorded_at"
+    }
+}
+
 /// Response from `update_exercise_1rm` RPC
 struct Update1RMResponse: Sendable {
     let isNewPr: Bool

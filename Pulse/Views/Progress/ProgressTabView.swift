@@ -532,80 +532,41 @@ struct Estimated1RMSection: View {
 struct Estimated1RMCard: View {
     let stat: Exercise1RMRow
     @EnvironmentObject var unitManager: UnitManager
-    @State private var showTrainingWeights = false
-
-    private var formattedDate: String {
-        SharedFormatters.mediumDate.string(from: stat.achievedAt)
-    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Header row
+        NavigationLink(destination: Exercise1RMDetailView(stat: stat).hidesTabBar()) {
             HStack(spacing: 12) {
                 IconBadge(assetName: "crown", color: .orange, size: 36)
 
-                Text(stat.exerciseName)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.appText)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(stat.exerciseName)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.appText)
+
+                    Text("Based on \(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps")
+                        .font(.caption)
+                        .foregroundStyle(Color.appSecondaryText)
+                }
 
                 Spacer()
 
                 Text("\(unitManager.displayWeight(stat.bestEstimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(Color.appAccent)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption2)
+                    .foregroundStyle(Color.appTertiaryText)
             }
-
-            // Details toggle
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showTrainingWeights.toggle()
-                }
-            } label: {
-                HStack(spacing: 4) {
-                    Text("Details")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(Color.appAccent)
-                    Image(systemName: showTrainingWeights ? "chevron.up" : "chevron.down")
-                        .font(.caption2)
-                        .foregroundStyle(Color.appAccent)
-                }
+            .padding(12)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.appSurface)
+                    .modifier(CardShadowModifier())
             }
-            .buttonStyle(.plain)
-            .padding(.leading, 48)
-            .accessibilityIdentifier("trainingWeightsToggle")
-
-            if showTrainingWeights {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Based on")
-                                .font(.caption2.weight(.medium))
-                                .foregroundStyle(Color.appSecondaryText)
-                            Text("\(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(Color.appText)
-                        }
-
-                        Spacer()
-
-                        Text(formattedDate)
-                            .font(.caption2)
-                            .foregroundStyle(Color.appTertiaryText)
-                    }
-
-                    TrainingWeightsGrid(estimated1rm: stat.bestEstimated1rm)
-                }
-                .padding(.leading, 48)
-                .transition(.opacity)
-            }
+            .padding(.horizontal)
         }
-        .padding(12)
-        .background {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.appSurface)
-                .modifier(CardShadowModifier())
-        }
-        .padding(.horizontal)
+        .buttonStyle(ScalePressStyle())
     }
 }
 
@@ -649,6 +610,340 @@ struct TrainingWeightsGrid: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Exercise 1RM Detail View
+struct Exercise1RMDetailView: View {
+    let stat: Exercise1RMRow
+    @EnvironmentObject var unitManager: UnitManager
+    @State private var history: [Exercise1RMHistoryRow] = []
+    @State private var isLoading = true
+    @State private var selectedEntry: Exercise1RMHistoryRow?
+
+    private var displayHistory: [(date: Date, value: Double)] {
+        history.map { entry in
+            (date: entry.recordedAt, value: unitManager.displayWeight(entry.estimated1rm))
+        }
+    }
+
+    private var yMin: Double {
+        guard let minVal = displayHistory.map(\.value).min(),
+              let maxVal = displayHistory.map(\.value).max() else { return 0 }
+        let range = maxVal - minVal
+        let padding = Swift.max(range * 0.15, 1)
+        return (minVal - padding).rounded(.down)
+    }
+
+    private var yMax: Double {
+        guard let minVal = displayHistory.map(\.value).min(),
+              let maxVal = displayHistory.map(\.value).max() else { return 100 }
+        let range = maxVal - minVal
+        let padding = Swift.max(range * 0.15, 1)
+        return (maxVal + padding).rounded(.up)
+    }
+
+    private var formattedDate: String {
+        SharedFormatters.mediumDate.string(from: stat.achievedAt)
+    }
+
+    var body: some View {
+        ZStack {
+            LinearGradient.dashboardBackground
+                .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header
+                    VStack(spacing: 8) {
+                        IconBadge(assetName: "crown", color: .orange, size: 48)
+
+                        Text(stat.exerciseName)
+                            .font(.title2.weight(.bold))
+                            .foregroundStyle(Color.appText)
+
+                        Text("Estimated 1RM: \(unitManager.displayWeight(stat.bestEstimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
+
+                        if !isLoading, let first = history.first, history.count >= 2 {
+                            let change = stat.bestEstimated1rm - first.estimated1rm
+                            let displayChange = abs(unitManager.displayWeight(stat.bestEstimated1rm) - unitManager.displayWeight(first.estimated1rm))
+                            if abs(change) >= 0.1 {
+                                let sign = change > 0 ? "+" : "-"
+                                Text("\(sign)\(displayChange, specifier: "%.1f") \(unitManager.weightUnit) since first entry")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(change > 0 ? Color.green : Color.red)
+                            }
+                        }
+                    }
+                    .padding(.top, 20)
+
+                    // Chart
+                    if isLoading {
+                        ProgressView()
+                            .tint(Color.appAccent)
+                            .frame(height: 220)
+                    } else if displayHistory.count < 2 {
+                        VStack(spacing: 14) {
+                            IconBadge(assetName: "progressup", size: 48)
+
+                            Text("Not enough data yet")
+                                .font(.headline.weight(.semibold))
+                                .foregroundStyle(Color.appText)
+
+                            Text("You need at least 2 personal records logged to see your 1RM progression chart.")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appSecondaryText)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(24)
+                        .background {
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(Color.appSurface)
+                                .modifier(CardShadowModifier())
+                        }
+                        .padding(.horizontal)
+                    } else {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("1RM Progression (\(unitManager.weightUnit))")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
+
+                            chartView
+                                .frame(height: 220)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        selectedEntry = nil
+                                    }
+                                }
+
+                            // X-axis date labels
+                            if let first = displayHistory.first, let last = displayHistory.last {
+                                HStack {
+                                    Text(formatShortDate(first.date))
+                                        .font(.caption2)
+                                        .foregroundStyle(Color.appSecondaryText.opacity(0.6))
+
+                                    Spacer()
+
+                                    Text(formatShortDate(last.date))
+                                        .font(.caption2)
+                                        .foregroundStyle(Color.appSecondaryText.opacity(0.6))
+                                }
+                                .padding(.horizontal, 30)
+                            }
+
+                            if let selected = selectedEntry {
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(formatDate(selected.recordedAt))
+                                            .font(.caption.weight(.medium))
+                                            .foregroundStyle(Color.appSecondaryText)
+                                        Text("\(unitManager.displayWeight(selected.estimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
+                                            .font(.title3.weight(.bold))
+                                            .foregroundStyle(Color.appText)
+                                        Text("\(unitManager.displayWeight(selected.weight), specifier: "%.1f") \(unitManager.weightUnit) × \(selected.reps) reps")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appSecondaryText)
+                                    }
+                                    Spacer()
+                                }
+                                .padding(12)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(Color.appAccent.opacity(0.1))
+                                }
+                            }
+                        }
+                        .padding(16)
+                        .background {
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(Color.appSurface)
+                                .modifier(CardShadowModifier())
+                        }
+                        .padding(.horizontal)
+                    }
+
+                    // Training Weights Grid
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Training Weights")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.appText)
+
+                            Spacer()
+                        }
+
+                        HStack(spacing: 16) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Based on")
+                                    .font(.caption2.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+                                Text("\(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Color.appText)
+                            }
+
+                            Spacer()
+
+                            Text(formattedDate)
+                                .font(.caption2)
+                                .foregroundStyle(Color.appTertiaryText)
+                        }
+
+                        TrainingWeightsGrid(estimated1rm: stat.bestEstimated1rm)
+                    }
+                    .padding(16)
+                    .background {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(Color.appSurface)
+                            .modifier(CardShadowModifier())
+                    }
+                    .padding(.horizontal)
+
+                    Spacer(minLength: 20)
+                }
+            }
+        }
+        .navigationTitle("Estimated 1RM")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.appBackground, for: .navigationBar)
+        .task {
+            await loadHistory()
+        }
+    }
+
+    private func loadHistory() async {
+        do {
+            history = try await WorkoutRepository().fetchExercise1RMHistoryForCurrentUser(exerciseId: stat.exerciseId)
+        } catch {
+            debugLog("Failed to load 1RM history: \(error)")
+        }
+        isLoading = false
+    }
+
+    @ViewBuilder
+    private var chartView: some View {
+        let data = displayHistory
+
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
+            let range = yMax - yMin
+
+            ZStack {
+                // Grid lines
+                ForEach(0..<5) { i in
+                    let y = height - (CGFloat(i) / 4.0) * height
+                    let value = yMin + (Double(i) / 4.0) * range
+
+                    Path { path in
+                        path.move(to: CGPoint(x: 0, y: y))
+                        path.addLine(to: CGPoint(x: width, y: y))
+                    }
+                    .stroke(Color.appSecondaryText.opacity(0.15), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+
+                    Text(String(format: "%.0f", value))
+                        .font(.caption2)
+                        .foregroundStyle(Color.appSecondaryText.opacity(0.6))
+                        .position(x: 16, y: y - 8)
+                }
+
+                if data.count >= 2 {
+                    // Line
+                    Path { path in
+                        for (index, point) in data.enumerated() {
+                            let x = xPosition(for: index, count: data.count, width: width)
+                            let y = yPosition(for: point.value, height: height, range: range)
+
+                            if index == 0 {
+                                path.move(to: CGPoint(x: x, y: y))
+                            } else {
+                                path.addLine(to: CGPoint(x: x, y: y))
+                            }
+                        }
+                    }
+                    .stroke(Color.appAccent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+
+                    // Gradient fill
+                    Path { path in
+                        for (index, point) in data.enumerated() {
+                            let x = xPosition(for: index, count: data.count, width: width)
+                            let y = yPosition(for: point.value, height: height, range: range)
+
+                            if index == 0 {
+                                path.move(to: CGPoint(x: x, y: y))
+                            } else {
+                                path.addLine(to: CGPoint(x: x, y: y))
+                            }
+                        }
+                        path.addLine(to: CGPoint(x: xPosition(for: data.count - 1, count: data.count, width: width), y: height))
+                        path.addLine(to: CGPoint(x: xPosition(for: 0, count: data.count, width: width), y: height))
+                        path.closeSubpath()
+                    }
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.appAccent.opacity(0.3), Color.appAccent.opacity(0.0)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+
+                    // Data points
+                    ForEach(Array(data.enumerated()), id: \.offset) { index, point in
+                        let x = xPosition(for: index, count: data.count, width: width)
+                        let y = yPosition(for: point.value, height: height, range: range)
+                        let isSelected = selectedEntry?.id == history[index].id
+
+                        Circle()
+                            .fill(isSelected ? Color.appAccent : Color.appSurface)
+                            .frame(width: isSelected ? 10 : 7, height: isSelected ? 10 : 7)
+                            .overlay {
+                                Circle()
+                                    .stroke(Color.appAccent, lineWidth: 2)
+                            }
+                            .position(x: x, y: y)
+                            .onTapGesture {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    if selectedEntry?.id == history[index].id {
+                                        selectedEntry = nil
+                                    } else {
+                                        selectedEntry = history[index]
+                                    }
+                                }
+                            }
+                    }
+                }
+            }
+        }
+    }
+
+    private func xPosition(for index: Int, count: Int, width: CGFloat) -> CGFloat {
+        guard count > 1 else { return width / 2 }
+        let padding: CGFloat = 30
+        let usableWidth = width - (padding * 2)
+        return padding + usableWidth * CGFloat(index) / CGFloat(count - 1)
+    }
+
+    private func yPosition(for value: Double, height: CGFloat, range: Double) -> CGFloat {
+        guard range > 0 else { return height / 2 }
+        return height - CGFloat((value - yMin) / range) * height
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+
+    private func formatShortDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM yyyy"
+        return formatter.string(from: date)
     }
 }
 
