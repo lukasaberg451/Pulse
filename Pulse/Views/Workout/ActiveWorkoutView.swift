@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import StoreKit
 import WatchConnectivity
 
 enum WorkoutAlertType {
@@ -47,6 +48,7 @@ struct ActiveWorkoutViewContent: View {
     @StateObject private var viewModel: OfflineActiveWorkoutViewModel
     @EnvironmentObject var syncService: WorkoutSyncService
     @Environment(\.dismiss) var dismiss
+    @Environment(\.requestReview) private var requestReview
     @State private var alertType: WorkoutAlertType?
     @State private var showWorkoutSummary = false
     @State private var summaryElapsedTime: TimeInterval = 0
@@ -285,6 +287,10 @@ struct ActiveWorkoutViewContent: View {
                     onDismiss: {
                         showWorkoutSummary = false
                         dismiss()
+                        Task {
+                            try? await Task.sleep(for: .seconds(2))
+                            requestReview()
+                        }
                     }
                 )
             }
