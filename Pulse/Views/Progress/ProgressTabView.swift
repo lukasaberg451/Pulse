@@ -15,6 +15,15 @@ struct ProgressTabView: View {
     @State private var showingPaywall = false
     @Environment(\.tabBarBottomInset) private var tabBarBottomInset
     
+    private func formattedDuration(_ minutes: Int) -> String {
+        let hours = minutes / 60
+        let mins = minutes % 60
+        if hours > 0 {
+            return "\(hours)h \(mins)m"
+        }
+        return "\(mins)m"
+    }
+
     private func formattedVolume(_ value: Double) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -215,7 +224,45 @@ struct ProgressTabView: View {
                         }
                         .padding(.horizontal)
                         .accessibilityIdentifier("progressVolumeCard")
-                        
+
+                        // Workout Time
+                        VStack(spacing: 10) {
+                            HStack(spacing: 12) {
+                                IconBadge(assetName: "clock", color: .green, size: 36)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Workout Time")
+                                        .font(.caption.weight(.medium))
+                                        .foregroundStyle(Color.appSecondaryText)
+
+                                    Text("This week: \(formattedDuration(viewModel.weeklyDurationMinutes))")
+                                        .font(.subheadline.weight(.bold))
+                                        .foregroundStyle(Color.appText)
+                                }
+
+                                Spacer()
+                            }
+
+                            Divider()
+                                .background(Color.appText.opacity(0.06))
+
+                            HStack {
+                                Text("All time: \(viewModel.lifetimeHours)h")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+
+                                Spacer()
+                            }
+                        }
+                        .padding(12)
+                        .background {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color.appSurface)
+                                .modifier(CardShadowModifier())
+                        }
+                        .padding(.horizontal)
+                        .accessibilityIdentifier("progressWorkoutTimeCard")
+
                         // Estimated 1RM Section
                         Estimated1RMSection(viewModel: viewModel)
                             .accessibilityIdentifier("progressEstimated1RMSection")

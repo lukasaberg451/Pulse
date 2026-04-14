@@ -35,6 +35,7 @@ struct MuscleGroupStat {
 @MainActor
 class ProgressStatsViewModel: ObservableObject {
     @Published var weeklyVolume: Int = 0
+    @Published var weeklyDurationMinutes: Int = 0
     @Published var monthlyVolume: Int = 0
     @Published var monthlyWorkouts: Int = 0
     
@@ -179,6 +180,7 @@ class ProgressStatsViewModel: ObservableObject {
             )
             
             weeklyVolume = stats.weeklyVolume
+            weeklyDurationMinutes = stats.weeklyDurationMinutes
             monthlyVolume = stats.monthlyVolume
             monthlyWorkouts = stats.monthlyWorkouts
             avgDuration = stats.avgDurationMinutes
