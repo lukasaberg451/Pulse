@@ -56,6 +56,11 @@ struct ActiveWorkoutViewContent: View {
     @State private var summary1RMHighlights: [Strength1RMHighlight] = []
     @AppStorage("hasSeenWatchTip") private var hasSeenWatchTip = false
     @State private var expandedCompletedExercises: Set<UUID> = []
+
+    /// Tracks the ID of the current (active) exercise for auto-scrolling
+    private var currentExerciseId: UUID? {
+        viewModel.allWorkoutExercises.first(where: { exerciseStatus($0) == .current })?.id
+    }
     
     init(routine: Routine, routineExercises: [RoutineExercise], exercises: [Exercise], scheduledWorkoutId: UUID? = nil, workoutSessionId: UUID? = nil, resumingSession: LocalWorkoutSession? = nil, modelContext: ModelContext) {
         self.routine = routine
@@ -104,61 +109,70 @@ struct ActiveWorkoutViewContent: View {
             ZStack {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
-                ScrollView {
-                    VStack(spacing: 14) {
-                        // Offline Status Banner
-                        OfflineStatusBanner()
-                            .animation(.easeInOut, value: syncService.isOnline)
-                        
-                        // Workout Timer Header Card
-                        TimerHeaderCard(
-                            elapsedTimeText: viewModel.formatElapsedTime()
-                        )
-                        .padding(.horizontal)
-                        
-                        // Rest Timer Banner
-                        if viewModel.isRestTimerActive {
-                            RestTimerBanner(
-                                timeRemaining: viewModel.restTimeRemaining,
-                                onSkip: {
-                                    viewModel.stopRestTimer()
-                                }
+                ScrollViewReader { scrollProxy in
+                    ScrollView {
+                        VStack(spacing: 14) {
+                            // Offline Status Banner
+                            OfflineStatusBanner()
+                                .animation(.easeInOut, value: syncService.isOnline)
+
+                            // Workout Timer Header Card
+                            TimerHeaderCard(
+                                elapsedTimeText: viewModel.formatElapsedTime()
                             )
                             .padding(.horizontal)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                        }
-                        
-                        // Exercise Cards
-                        ForEach(viewModel.allWorkoutExercises) { routineExercise in
-                            if let exercise = exercises.first(where: { $0.id == routineExercise.exerciseId }) {
-                                let status = exerciseStatus(routineExercise)
-                                
-                                ExerciseCard(
-                                    viewModel: viewModel,
-                                    routineExercise: routineExercise,
-                                    exercise: exercise,
-                                    status: status,
-                                    isExpanded: status == .current || expandedCompletedExercises.contains(routineExercise.id),
-                                    onToggleExpand: {
-                                        if status == .completed {
-                                            withAnimation(.spring(response: 0.3)) {
-                                                if expandedCompletedExercises.contains(routineExercise.id) {
-                                                    expandedCompletedExercises.remove(routineExercise.id)
-                                                } else {
-                                                    expandedCompletedExercises.insert(routineExercise.id)
-                                                }
-                                            }
-                                        }
+
+                            // Rest Timer Banner
+                            if viewModel.isRestTimerActive {
+                                RestTimerBanner(
+                                    timeRemaining: viewModel.restTimeRemaining,
+                                    onSkip: {
+                                        viewModel.stopRestTimer()
                                     }
                                 )
                                 .padding(.horizontal)
-                                .animation(.spring(response: 0.4, dampingFraction: 0.85), value: status)
+                                .transition(.move(edge: .top).combined(with: .opacity))
                             }
+
+                            // Exercise Cards
+                            ForEach(viewModel.allWorkoutExercises) { routineExercise in
+                                if let exercise = exercises.first(where: { $0.id == routineExercise.exerciseId }) {
+                                    let status = exerciseStatus(routineExercise)
+
+                                    ExerciseCard(
+                                        viewModel: viewModel,
+                                        routineExercise: routineExercise,
+                                        exercise: exercise,
+                                        status: status,
+                                        isExpanded: status == .current || expandedCompletedExercises.contains(routineExercise.id),
+                                        onToggleExpand: {
+                                            if status == .completed {
+                                                withAnimation(.spring(response: 0.3)) {
+                                                    if expandedCompletedExercises.contains(routineExercise.id) {
+                                                        expandedCompletedExercises.remove(routineExercise.id)
+                                                    } else {
+                                                        expandedCompletedExercises.insert(routineExercise.id)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    )
+                                    .id(routineExercise.id)
+                                    .padding(.horizontal)
+                                    .animation(.spring(response: 0.4, dampingFraction: 0.85), value: status)
+                                }
+                            }
+
+                            Spacer(minLength: 40)
                         }
-                        
-                        Spacer(minLength: 40)
+                        .padding(.top, 8)
                     }
-                    .padding(.top, 8)
+                    .onChange(of: currentExerciseId) { _, newId in
+                        guard let newId else { return }
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                            scrollProxy.scrollTo(newId, anchor: .center)
+                        }
+                    }
                 }
                 .scrollDismissesKeyboard(.interactively)
                 .onTapGesture {
