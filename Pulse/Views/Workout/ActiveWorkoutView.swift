@@ -553,6 +553,18 @@ struct ExerciseCard: View {
                 }
                 
                 exerciseSubtitle
+                
+                if exercise.exerciseType != "cardio",
+                   let lastWeight = viewModel.lastWeights[exercise.id] {
+                    let displayWeight = UnitManager.shared.displayWeight(lastWeight)
+                    let unit = UnitManager.shared.weightUnit
+                    let formatted = displayWeight.truncatingRemainder(dividingBy: 1) == 0
+                        ? String(format: "%.0f", displayWeight)
+                        : String(format: "%.1f", displayWeight)
+                    Text("Last session best: \(formatted) \(unit)")
+                        .font(.caption)
+                        .foregroundStyle(Color.appAccent)
+                }
             }
             
             Spacer()

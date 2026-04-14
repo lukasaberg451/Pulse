@@ -32,6 +32,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     @Published var routineExercises: [RoutineExercise]
     @Published private(set) var allWorkoutExercises: [RoutineExercise] // All exercises in this workout session
     @Published var strength1RMHighlights: [Strength1RMHighlight] = []
+    @Published var lastWeights: [UUID: Double] = [:]
     private let originalRoutineExercises: [RoutineExercise] // Store original list for watch
     
     private var currentSession: LocalWorkoutSession?
@@ -257,6 +258,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 }
             }
             
+            Task { await loadLastWeights() }
             return
         }
         
@@ -335,6 +337,23 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                     startTime: startTime
                 )
             }
+        }
+        
+        Task { await loadLastWeights() }
+    }
+    
+    private func loadLastWeights() async {
+        guard !isOfflineMode else { return }
+        
+        let strengthIds = allWorkoutExercises.compactMap { re -> UUID? in
+            guard let exercise = exercises.first(where: { $0.id == re.exerciseId }),
+                  exercise.exerciseType != "cardio" else { return nil }
+            return re.exerciseId
+        }
+        do {
+            lastWeights = try await WorkoutRepository().fetchLastWeights(exerciseIds: strengthIds)
+        } catch {
+            debugLog("⚠️ Failed to load last weights: \(error)")
         }
     }
     
