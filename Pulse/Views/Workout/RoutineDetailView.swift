@@ -481,8 +481,8 @@ struct ExercisePickerSheet: View {
     @State private var searchTask: Task<Void, Never>?
     
     let muscleOptions = [
-        "Back", "Biceps", "Calves", "Cardio", "Chest", "Core",
-        "Forearms", "Full Body", "Glutes", "Hamstrings",
+        "Adductors", "Back", "Biceps", "Calves", "Cardio", "Chest", "Core",
+        "Delts", "Forearms", "Full Body", "Glutes", "Hamstrings", "Hip",
         "Upper Back", "Lower Back", "Quads", "Shoulders", "Traps", "Triceps"
     ]
     
