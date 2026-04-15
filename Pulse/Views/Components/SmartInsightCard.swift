@@ -8,27 +8,16 @@ import SwiftUI
 struct SmartInsightCard: View {
     let insight: SmartInsight
     
-    /// Whether the icon name refers to an SF Symbol (contains a dot) or a custom asset.
-    private var isSystemImage: Bool {
-        insight.iconAsset.contains(".")
-    }
-    
     @State private var isAnimating = false
     @State private var waveOffset: CGFloat = -1.5
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             IconBadge(
-                systemName: isSystemImage ? insight.iconAsset : "lightbulb.fill",
+                assetName: insight.iconAsset.contains(".") ? "lightbulb" : insight.iconAsset,
                 color: .appAccent,
                 size: 44
             )
-            .opacity(isSystemImage ? 1 : 0)
-            .overlay {
-                if !isSystemImage {
-                    IconBadge(assetName: insight.iconAsset, color: .appAccent, size: 44)
-                }
-            }
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(insight.title)

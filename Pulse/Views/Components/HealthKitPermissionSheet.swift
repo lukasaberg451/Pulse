@@ -21,8 +21,10 @@ struct HealthKitPermissionSheet: View {
                 Spacer().frame(height: 8)
 
                 // Icon
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 44))
+                Image("heart")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 44, height: 44)
                     .foregroundStyle(
                         LinearGradient(
                             colors: [Color.red, Color.pink],
@@ -30,7 +32,7 @@ struct HealthKitPermissionSheet: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .padding(20)
+                    .frame(width: 84, height: 84)
                     .background {
                         Circle()
                             .fill(Color.red.opacity(0.12))

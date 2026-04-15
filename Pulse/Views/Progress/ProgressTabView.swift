@@ -602,9 +602,11 @@ struct Estimated1RMCard: View {
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(Color.appAccent)
 
-                Image(systemName: "chevron.right")
-                    .font(.caption2)
-                    .foregroundStyle(Color.appTertiaryText)
+                Image("chevron-right")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 12, height: 12)
+                    .foregroundStyle(Color.appSecondaryText)
             }
             .padding(12)
             .background {
@@ -1230,8 +1232,10 @@ struct HealthMetricsSection: View {
                                     
                                     Spacer()
                                     
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
+                                    Image("chevron-right")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 12, height: 12)
                                         .foregroundStyle(Color.appSecondaryText)
                                 }
                                 

@@ -173,8 +173,10 @@ struct DashboardView: View {
                             aiAccessToken = authViewModel.session?.accessToken ?? ""
                             showingAIActionSheet = true
                         } label: {
-                            Image(systemName: "sparkles")
-                                .font(.title3.weight(.semibold))
+                            Image("sparkles")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 22, height: 22)
                                 .foregroundStyle(Color.appText)
                                 .frame(width: 52, height: 52)
                                 .background(Color.appAccent, in: Circle())
@@ -519,7 +521,7 @@ struct DeletedRoutineTodayCard: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
                         if isAILogged {
-                            IconBadge(systemName: "sparkles", size: 28)
+                            IconBadge(assetName: "sparkles", size: 28)
                         } else {
                             IconBadge(assetName: "calendar", size: 28)
                         }

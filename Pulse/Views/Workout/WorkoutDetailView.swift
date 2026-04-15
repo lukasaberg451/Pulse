@@ -40,8 +40,10 @@ struct WorkoutDetailView: View {
                             
                             if viewModel.isAILogged {
                                 HStack(spacing: 5) {
-                                    Image(systemName: "sparkles")
-                                        .font(.caption2.weight(.semibold))
+                                    Image("sparkles")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 12, height: 12)
                                     Text("AI Logged")
                                         .font(.caption.weight(.semibold))
                                 }

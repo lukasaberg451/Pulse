@@ -251,12 +251,8 @@ struct WatchWorkoutView: View {
                     } else {
                         // Not connected or no workout
                         VStack(spacing: 8) {
-                            Image(systemName: "applewatch.slash")
-                                .font(.title)
-                                .foregroundStyle(Color.appText)
-                                .padding(.top, 20)
-
                             Text("No Active Workout")
+                                .padding(.top, 20)
                                 .font(.footnote)
                                 .fontWeight(.semibold)
 

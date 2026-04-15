@@ -613,7 +613,7 @@ struct DeletedRoutineWorkoutCard: View {
     private var cardContent: some View {
         HStack(spacing: 12) {
             if isAILogged {
-                IconBadge(systemName: "sparkles", color: Color.appAccent, size: 38)
+                IconBadge(assetName: "sparkles", color: Color.appAccent, size: 38)
             } else {
                 IconBadge(assetName: "trash", color: Color.appTertiaryText, size: 38)
             }

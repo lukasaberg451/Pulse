@@ -16,8 +16,10 @@ struct AIActionSheet: View {
             // Header
             VStack(spacing: 6) {
                 HStack(spacing: 6) {
-                    Image(systemName: "sparkles")
-                        .font(.caption.weight(.semibold))
+                    Image("sparkles")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 14, height: 14)
                     Text("AI Assistant")
                         .font(.caption.weight(.semibold))
                 }

@@ -217,8 +217,10 @@ struct SettingsView: View {
                             
                             Spacer()
                             
-                            Image(systemName: "arrow.up.right")
-                                .font(.system(size: 11, weight: .semibold))
+                            Image("arrow-angular-top-right")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 11, height: 11)
                                 .foregroundStyle(Color.appTertiaryText)
                         }
                         .padding(14)
@@ -259,8 +261,10 @@ struct SettingsView: View {
                                     
                                     Spacer()
                                     
-                                    Image(systemName: "arrow.up.right")
-                                        .font(.system(size: 11, weight: .semibold))
+                                    Image("arrow-angular-top-right")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 11, height: 11)
                                         .foregroundStyle(Color.appTertiaryText)
                                 }
                                 .padding(14)
