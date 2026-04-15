@@ -168,14 +168,15 @@ class WorkoutDetailViewModel: ObservableObject {
         }
     }
     
-    // Format duration
+    // Format duration (rounds to nearest minute)
     var formattedDuration: String {
         guard let duration = workoutSession.durationSeconds else { return "N/A" }
-        let hours = duration / 3600
-        let minutes = (duration % 3600) / 60
-        
+        let totalMinutes = Int(round(Double(duration) / 60.0))
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+
         if hours > 0 {
-            return "\(hours)h \(minutes)m"
+            return minutes > 0 ? "\(hours)h \(minutes)m" : "\(hours)h"
         } else {
             return "\(minutes)m"
         }

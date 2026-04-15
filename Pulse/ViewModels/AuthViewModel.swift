@@ -79,9 +79,9 @@ class AuthViewModel: ObservableObject{
     
     private func restoreSession() async {
             do {
-                // Try to get existing session
+                // Try to get existing session from Keychain
                 let session = try await supabase.auth.session
-                
+
                 // Check if session is expired
                 if session.isExpired {
                     debugLog("⚠️ Session is expired, signing out")
@@ -90,13 +90,22 @@ class AuthViewModel: ObservableObject{
                     try? await supabase.auth.signOut()
                     return
                 }
-                
-                self.session = session
+
+                // Validate session server-side by refreshing it.
+                // Keychain tokens persist across app reinstalls, so a deleted
+                // user would still have a local token. Refreshing will fail if
+                // the user no longer exists, preventing a ghost login.
+                let refreshedSession = try await supabase.auth.refreshSession()
+
+                self.session = refreshedSession
                 self.isAuthenticated = true
                 await fetchUserProfile()
             } catch {
                 debugLog("❌ No existing session: \(error.localizedDescription)")
+                self.session = nil
                 self.isAuthenticated = false
+                // Clear any stale Keychain tokens
+                try? await supabase.auth.signOut()
             }
         }
     
@@ -319,10 +328,14 @@ class AuthViewModel: ObservableObject{
     func deleteAccount() async -> Bool {
         do {
             try await supabase.rpc("delete_user_account").execute()
-            try await supabase.auth.signOut()
+            // Sign out to clear Keychain tokens. Use try? because the server
+            // may reject the call if the auth user was already removed by the
+            // RPC — but we still need local cleanup to happen.
+            try? await supabase.auth.signOut()
             self.session = nil
             self.isAuthenticated = false
             self.userProfile = nil
+            ExerciseRepository.shared.clearCache()
             return true
         } catch {
             errorMessage = "Failed to delete account: \(error.localizedDescription)"
