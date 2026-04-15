@@ -67,7 +67,7 @@ class ProgressStatsViewModel: ObservableObject {
     private let pageSize: Int = 20
     private var isLoadingInitialPage: Bool = false
     
-    private var userProfile: Profile?
+    private(set) var userProfile: Profile?
     private let supabase = SupabaseManager.shared.client
     private let workoutRepository = WorkoutRepository()
     private(set) var hasLoaded = false

@@ -568,7 +568,7 @@ struct Estimated1RMSection: View {
                 Empty1RMCard()
             } else {
                 ForEach(viewModel.exercise1RMStats.prefix(3)) { stat in
-                    Estimated1RMCard(stat: stat)
+                    Estimated1RMCard(stat: stat, timeZone: viewModel.userProfile?.resolvedTimeZone ?? .current)
                 }
             }
         }
@@ -578,10 +578,11 @@ struct Estimated1RMSection: View {
 // MARK: - Estimated 1RM Card
 struct Estimated1RMCard: View {
     let stat: Exercise1RMRow
+    var timeZone: TimeZone = .current
     @EnvironmentObject var unitManager: UnitManager
 
     var body: some View {
-        NavigationLink(destination: Exercise1RMDetailView(stat: stat).hidesTabBar()) {
+        NavigationLink(destination: Exercise1RMDetailView(stat: stat, timeZone: timeZone).hidesTabBar()) {
             HStack(spacing: 12) {
                 IconBadge(assetName: "crown", color: .orange, size: 36)
 
@@ -663,6 +664,7 @@ struct TrainingWeightsGrid: View {
 // MARK: - Exercise 1RM Detail View
 struct Exercise1RMDetailView: View {
     let stat: Exercise1RMRow
+    var timeZone: TimeZone = .current
     @EnvironmentObject var unitManager: UnitManager
     @State private var history: [Exercise1RMHistoryRow] = []
     @State private var isLoading = true
@@ -691,7 +693,9 @@ struct Exercise1RMDetailView: View {
     }
 
     private var formattedDate: String {
-        SharedFormatters.mediumDate.string(from: stat.achievedAt)
+        let formatter = SharedFormatters.mediumDate
+        formatter.timeZone = timeZone
+        return formatter.string(from: stat.achievedAt)
     }
 
     var body: some View {
@@ -984,12 +988,14 @@ struct Exercise1RMDetailView: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
+        formatter.timeZone = timeZone
         return formatter.string(from: date)
     }
 
     private func formatShortDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM yyyy"
+        formatter.timeZone = timeZone
         return formatter.string(from: date)
     }
 }
@@ -1048,7 +1054,7 @@ struct AllEstimated1RMView: View {
                         .padding(.top, 100)
                     } else {
                         StaggeredList(items: viewModel.exercise1RMStats, id: \.id) { stat in
-                            Estimated1RMCard(stat: stat)
+                            Estimated1RMCard(stat: stat, timeZone: viewModel.userProfile?.resolvedTimeZone ?? .current)
                         }
                     }
                 }
@@ -1841,6 +1847,7 @@ struct WeightProgressionChart: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
+        formatter.timeZone = viewModel.profile?.resolvedTimeZone ?? .current
         return formatter.string(from: date)
     }
 }
