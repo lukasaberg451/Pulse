@@ -222,6 +222,11 @@ private struct ScheduledSectionCard: View {
         workouts.filter { !$0.completed }
     }
 
+    private var isSelectedDateInPast: Bool {
+        let calendar = viewModel.userCalendar
+        return calendar.startOfDay(for: selectedDate) < calendar.startOfDay(for: Date())
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header row
@@ -294,12 +299,14 @@ private struct ScheduledSectionCard: View {
                         .font(.subheadline)
                         .foregroundStyle(Color.appSecondaryText)
 
-                    PrimaryCTAButton("Add Workout", icon: "plus") {
-                        let impactLight = UIImpactFeedbackGenerator(style: .light)
-                        impactLight.impactOccurred()
-                        showingRoutinePicker = true
+                    if !isSelectedDateInPast {
+                        PrimaryCTAButton("Add Workout", icon: "plus") {
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                            showingRoutinePicker = true
+                        }
+                        .accessibilityIdentifier("addScheduledWorkoutButton")
                     }
-                    .accessibilityIdentifier("addScheduledWorkoutButton")
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
@@ -349,7 +356,7 @@ private struct ScheduledSectionCard: View {
                     }
 
                     // Inline add button
-                    if !isSelectMode {
+                    if !isSelectMode && !isSelectedDateInPast {
                         Button {
                             let impactLight = UIImpactFeedbackGenerator(style: .light)
                             impactLight.impactOccurred()
