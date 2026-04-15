@@ -59,7 +59,7 @@ struct DashboardView: View {
                         
                         // MARK: - Hero Header
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(authViewModel.firstName.isEmpty ? "Welcome!" : "Welcome \(authViewModel.firstName)!")
+                            Text(authViewModel.firstName.isEmpty ? String(localized: "Welcome!") : String(localized: "Welcome \(authViewModel.firstName)!"))
                                 .font(.system(size: 30, weight: .bold, design: .rounded))
                                 .foregroundStyle(Color.appText)
                                 .accessibilityIdentifier("dashboardWelcomeText")
@@ -525,7 +525,7 @@ struct DeletedRoutineTodayCard: View {
                         } else {
                             IconBadge(assetName: "calendar", size: 28)
                         }
-                        Text(isAILogged ? "AI Logged" : "Scheduled")
+                        Text(isAILogged ? String(localized: "AI Logged") : String(localized: "Scheduled"))
                             .font(.caption.weight(.medium))
                             .foregroundStyle(isAILogged ? Color.appAccent : Color.appSecondaryText)
                     }

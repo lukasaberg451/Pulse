@@ -623,7 +623,7 @@ struct DeletedRoutineWorkoutCard: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
 
-                Text(isAILogged ? "AI Logged" : "Routine deleted")
+                Text(isAILogged ? String(localized: "AI Logged") : String(localized: "Routine deleted"))
                     .font(.caption)
                     .foregroundStyle(isAILogged ? Color.appAccent : Color.appTertiaryText)
 

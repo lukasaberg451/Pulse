@@ -56,7 +56,7 @@ class RoutineListViewModel: ObservableObject {
             }
             hasLoaded = true
         } catch {
-            errorMessage = "Failed to load routines: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load routines: \(error.localizedDescription)")
         }
         
         isLoading = false
@@ -73,7 +73,7 @@ class RoutineListViewModel: ObservableObject {
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
             return newRoutine
         } catch {
-            actionError = "Failed to create routine. Please try again."
+            actionError = String(localized: "Failed to create routine. Please try again.")
             return nil
         }
     }
@@ -82,7 +82,7 @@ class RoutineListViewModel: ObservableObject {
         do {
             let newRoutine = try await routineRepository.duplicateRoutine(
                 fromRoutineId: routine.id,
-                newName: "\(routine.name) - Copy"
+                newName: String(localized: "\(routine.name) - Copy")
             )
             routines.append(newRoutine)
             
@@ -93,7 +93,7 @@ class RoutineListViewModel: ObservableObject {
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
             return newRoutine
         } catch {
-            actionError = "Failed to duplicate routine. Please try again."
+            actionError = String(localized: "Failed to duplicate routine. Please try again.")
             return nil
         }
     }
@@ -116,7 +116,7 @@ class RoutineListViewModel: ObservableObject {
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
         } catch {
-            actionError = "Failed to delete routine. Please try again."
+            actionError = String(localized: "Failed to delete routine. Please try again.")
         }
     }
     
@@ -135,7 +135,7 @@ class RoutineListViewModel: ObservableObject {
                 try await workoutRepository.markSessionsAsRoutineDeleted(routineId: routine.id)
                 try await repository.deleteRoutine(id: routine.id)
             } catch {
-                actionError = "Failed to delete routine. Please try again."
+                actionError = String(localized: "Failed to delete routine. Please try again.")
             }
         }
         

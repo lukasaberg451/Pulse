@@ -423,7 +423,7 @@ struct AICreateRoutineSheet: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 12, height: 12)
-                    Text(exercise.note ?? "Low confidence — please verify")
+                    Text(exercise.note ?? String(localized: "Low confidence — please verify"))
                         .font(.caption)
                 }
                 .foregroundStyle(.orange)
@@ -637,7 +637,7 @@ struct AICreateRoutineSheet: View {
             errorMessage = error.errorDescription
         } catch {
             debugLog("❌ AI routine other error: \(error)")
-            errorMessage = "Something went wrong. Please try again."
+            errorMessage = String(localized: "Something went wrong. Please try again.")
         }
         
         isLoading = false
@@ -710,7 +710,7 @@ struct AICreateRoutineSheet: View {
             
             debugLog("✅ AI generated routine saved successfully")
         } catch {
-            errorMessage = "Failed to save routine. Please try again."
+            errorMessage = String(localized: "Failed to save routine. Please try again.")
             debugLog("❌ Failed to save AI generated routine: \(error)")
         }
         

@@ -328,7 +328,7 @@ struct ProgressTabView: View {
 
 // MARK: - Stat Card
 struct StatCard: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
     let unit: String
     let icon: String
@@ -408,9 +408,10 @@ struct StrengthProgressCard: View {
 
                 if progress.improvementPercent != 0 {
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(progress.improvementPercent > 0
-                             ? "+\(Int(progress.improvementPercent))%"
-                             : "\(Int(progress.improvementPercent))%")
+                        Text({
+                            let formatted = (abs(progress.improvementPercent) / 100).formatted(.percent.precision(.fractionLength(0)))
+                            return progress.improvementPercent > 0 ? "+\(formatted)" : "-\(formatted)"
+                        }())
                             .font(.caption.weight(.bold))
                             .foregroundStyle(progress.improvementPercent > 0 ? .green : .red)
                             .padding(.horizontal, 8)
@@ -495,7 +496,7 @@ struct ComparisonRow: View {
                     HStack(spacing: 4) {
                         Image(change > 0 ? "arrow-up" : "arrow-down")
                             .font(.caption)
-                        Text("\(abs(change)) (\(abs(changePercentage), specifier: "%.0f")%)")
+                        Text("\(abs(change)) (\((abs(changePercentage) / 100).formatted(.percent.precision(.fractionLength(0)))))")
                             .font(.caption)
                     }
                     .foregroundStyle(change > 0 ? Color.green : Color.red)
@@ -1901,7 +1902,7 @@ struct EditHeightSheet: View {
                             Text("Height")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
-                            Text(viewModel.profile?.heightCm != nil ? "Update your height" : "Add your height")
+                            Text(viewModel.profile?.heightCm != nil ? String(localized: "Update your height") : String(localized: "Add your height"))
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                         }
@@ -2049,7 +2050,7 @@ struct EditHeightSheet: View {
         if unitManager.unitSystem == .metric {
             let height = parseDecimal(heightText)
             if let height = height, height <= 0 {
-                errorMessage = "Height must be greater than 0"
+                errorMessage = String(localized: "Height must be greater than 0")
                 showError = true
                 return
             }
@@ -2061,7 +2062,7 @@ struct EditHeightSheet: View {
                 dismiss()
                 return
             } else if feet <= 0 && inches <= 0 {
-                errorMessage = "Height must be greater than 0"
+                errorMessage = String(localized: "Height must be greater than 0")
                 showError = true
                 return
             } else {
@@ -2226,7 +2227,7 @@ struct EditWeightSheet: View {
         showError = false
         let weight = parseDecimal(weightText)
         guard let weight = weight, weight > 0 else {
-            errorMessage = "Weight must be greater than 0"
+            errorMessage = String(localized: "Weight must be greater than 0")
             showError = true
             return
         }
@@ -2405,7 +2406,7 @@ struct EditTargetWeightSheet: View {
         showError = false
         let targetWeight = parseDecimal(targetWeightText)
         if let targetWeight = targetWeight, targetWeight <= 0 {
-            errorMessage = "Target weight must be greater than 0"
+            errorMessage = String(localized: "Target weight must be greater than 0")
             showError = true
             return
         }

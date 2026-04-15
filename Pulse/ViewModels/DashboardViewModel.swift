@@ -140,7 +140,7 @@ class DashboardViewModel: ObservableObject {
         } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
             // Ignore URL session cancellation
         } catch {
-            errorMessage = "Failed to load data: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load data: \(error.localizedDescription)")
         }
         
         isLoading = false

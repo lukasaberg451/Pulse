@@ -95,7 +95,7 @@ struct ProfileView: View {
                                         impactLight.impactOccurred()
                                         showingEditNameSheet = true
                                     } label: {
-                                        Text(profileDisplayName == nil ? "Add Name" : "Edit Profile")
+                                        Text(profileDisplayName == nil ? String(localized: "Add Name") : String(localized: "Edit Profile"))
                                             .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appAccent)
                                             .padding(.horizontal, 24)
@@ -330,7 +330,7 @@ struct ProfileView: View {
 
 struct ProfileSettingsRow: View {
     let icon: String
-    let title: String
+    let title: LocalizedStringKey
     var value: String? = nil
     var lineLimit: Int? = nil
     var isSystemImage: Bool = false

@@ -13,13 +13,13 @@ struct AppUpdateSheet: View {
                 .font(.system(size: 56))
                 .foregroundStyle(Color.appAccent)
 
-            Text(isForced ? "Update Required" : "Update Available")
+            Text(isForced ? String(localized: "Update Required") : String(localized: "Update Available"))
                 .font(.title2.bold())
                 .foregroundStyle(Color.appText)
 
             Text(isForced
-                 ? "Your version of Pulse is no longer supported. Please update to continue using the app."
-                 : "A new version (\(latestVersion)) of Pulse is available. Update now to get the latest features and improvements.")
+                 ? String(localized: "Your version of Pulse is no longer supported. Please update to continue using the app.")
+                 : String(localized: "A new version (\(latestVersion)) of Pulse is available. Update now to get the latest features and improvements."))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Color.appText.opacity(0.7))
                 .padding(.horizontal, 32)

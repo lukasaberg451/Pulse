@@ -106,7 +106,7 @@ struct MilestoneCard: View {
                     advanceToNext()
                 } label: {
                     HStack(spacing: 6) {
-                        Text(viewModel.dashboardMilestone != nil ? "Next Achievement" : "Done")
+                        Text(viewModel.dashboardMilestone != nil ? String(localized: "Next Achievement") : String(localized: "Done"))
                             .font(.subheadline.weight(.bold))
                         if viewModel.dashboardMilestone != nil {
                             Image("chevron-right")
@@ -145,7 +145,7 @@ struct MilestoneCard: View {
 
                 Spacer()
 
-                Text("\(Int(milestone.progress * 100))%")
+                Text(milestone.progress.formatted(.percent.precision(.fractionLength(0))))
                     .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.appAccent)
             }

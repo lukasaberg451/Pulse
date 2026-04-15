@@ -422,7 +422,7 @@ struct LogWorkoutSheet: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 12, height: 12)
-                    Text(exercise.note ?? "Low confidence — please verify")
+                    Text(exercise.note ?? String(localized: "Low confidence — please verify"))
                         .font(.caption)
                 }
                 .foregroundStyle(.orange)
@@ -647,7 +647,7 @@ struct LogWorkoutSheet: View {
         } catch let error as ParserError {
             errorMessage = error.errorDescription
         } catch {
-            errorMessage = "Something went wrong. Please try again."
+            errorMessage = String(localized: "Something went wrong. Please try again.")
         }
         
         isLoading = false

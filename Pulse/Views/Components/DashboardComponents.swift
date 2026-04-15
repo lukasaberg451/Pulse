@@ -46,12 +46,12 @@ struct DashboardCard<Content: View>: View {
 
 /// An orange-gradient CTA button with scale press effect.
 struct PrimaryCTAButton: View {
-    let title: String
+    let title: LocalizedStringKey
     let icon: String?
     let systemIcon: String?
     let action: () -> Void
 
-    init(_ title: String, icon: String? = nil, systemIcon: String? = nil, action: @escaping () -> Void) {
+    init(_ title: LocalizedStringKey, icon: String? = nil, systemIcon: String? = nil, action: @escaping () -> Void) {
         self.title = title
         self.icon = icon
         self.systemIcon = systemIcon
@@ -86,12 +86,12 @@ struct PrimaryCTAButton: View {
 
 /// An orange-gradient CTA as a NavigationLink.
 struct PrimaryCTALink<Destination: View>: View {
-    let title: String
+    let title: LocalizedStringKey
     let icon: String?
     let systemIcon: String?
     let destination: () -> Destination
 
-    init(_ title: String, icon: String? = nil, systemIcon: String? = nil, @ViewBuilder destination: @escaping () -> Destination) {
+    init(_ title: LocalizedStringKey, icon: String? = nil, systemIcon: String? = nil, @ViewBuilder destination: @escaping () -> Destination) {
         self.title = title
         self.icon = icon
         self.systemIcon = systemIcon
@@ -278,7 +278,7 @@ struct StatPill: View {
 // MARK: - Section Header
 
 struct DashboardSectionHeader: View {
-    let title: String
+    let title: LocalizedStringKey
 
     var body: some View {
         Text(title)

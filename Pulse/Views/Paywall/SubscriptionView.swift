@@ -147,7 +147,7 @@ struct SubscriptionView: View {
                                                 .frame(height: 52)
                                                 .background(LinearGradient.accentGradient.opacity(0.7), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                                         } else {
-                                            Text(subscriptionManager.trialEligible ? "Start Free Trial" : "Continue")
+                                            Text(subscriptionManager.trialEligible ? String(localized: "Start Free Trial") : String(localized: "Continue"))
                                                 .font(.subheadline.weight(.bold))
                                                 .foregroundStyle(.white)
                                                 .frame(maxWidth: .infinity)
@@ -265,8 +265,8 @@ struct SubscriptionView: View {
 
 private struct SubscriptionFeatureRow: View {
     let icon: String
-    let title: String
-    let subtitle: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
     var isSystemImage: Bool = false
     
     var body: some View {

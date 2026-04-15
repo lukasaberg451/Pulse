@@ -180,7 +180,7 @@ class ProfileViewModel: ObservableObject {
         
         do {
             guard let userId = supabase.auth.currentUser?.id else {
-                errorMessage = "User not authenticated"
+                errorMessage = String(localized: "User not authenticated")
                 isSubmitting = false
                 return false
             }
@@ -209,7 +209,7 @@ class ProfileViewModel: ObservableObject {
             isSubmitting = false
             return true
         } catch {
-            errorMessage = "Failed to submit feedback: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to submit feedback: \(error.localizedDescription)")
             isSubmitting = false
             return false
         }
@@ -239,7 +239,7 @@ class ProfileViewModel: ObservableObject {
         
         do {
             guard let userId = supabase.auth.currentUser?.id else {
-                errorMessage = "User not authenticated"
+                errorMessage = String(localized: "User not authenticated")
                 isSubmitting = false
                 return false
             }
@@ -279,7 +279,7 @@ class ProfileViewModel: ObservableObject {
             isSubmitting = false
             return true
         } catch {
-            errorMessage = "Failed to clear body metrics: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to clear body metrics: \(error.localizedDescription)")
             isSubmitting = false
             return false
         }
@@ -299,7 +299,7 @@ class ProfileViewModel: ObservableObject {
         
         do {
             guard let userId = supabase.auth.currentUser?.id else {
-                errorMessage = "User not authenticated"
+                errorMessage = String(localized: "User not authenticated")
                 isSubmitting = false
                 return false
             }
@@ -356,7 +356,7 @@ class ProfileViewModel: ObservableObject {
             isSubmitting = false
             return true
         } catch {
-            errorMessage = "Failed to update health metrics: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to update health metrics: \(error.localizedDescription)")
             isSubmitting = false
             return false
         }

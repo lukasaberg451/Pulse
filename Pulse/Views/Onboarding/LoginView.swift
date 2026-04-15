@@ -150,13 +150,13 @@ struct LoginView: View {
                         ) {
                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             if email.trimmingCharacters(in: .whitespaces).isEmpty {
-                                errorMessage = "Email is required"
+                                errorMessage = String(localized: "Email is required")
                                 showError = true
                             } else if !isValidEmail(email) {
-                                errorMessage = "Please enter a valid email address"
+                                errorMessage = String(localized: "Please enter a valid email address")
                                 showError = true
                             } else if password.isEmpty {
-                                errorMessage = "Password is required"
+                                errorMessage = String(localized: "Password is required")
                                 showError = true
                             } else {
                                 showError = false
@@ -203,7 +203,7 @@ struct LoginView: View {
                                 }
                             case .failure(let error):
                                 if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
-                                    errorMessage = "Sign in with Apple failed."
+                                    errorMessage = String(localized: "Sign in with Apple failed.")
                                     showError = true
                                 }
                             }
@@ -409,10 +409,10 @@ struct ForgotPasswordView: View {
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     let trimmed = viewModel.email.trimmingCharacters(in: .whitespaces)
                     if trimmed.isEmpty {
-                        viewModel.errorMessage = "Email is required"
+                        viewModel.errorMessage = String(localized: "Email is required")
                         viewModel.showError = true
                     } else if !isValidEmail(trimmed) {
-                        viewModel.errorMessage = "Please enter a valid email address"
+                        viewModel.errorMessage = String(localized: "Please enter a valid email address")
                         viewModel.showError = true
                     } else {
                         Task {
@@ -622,7 +622,7 @@ struct ForgotPasswordView: View {
                             .frame(width: 16, height: 16)
                             .foregroundStyle(viewModel.passwordsMatch ? .green : .red)
                         
-                        Text(viewModel.passwordsMatch ? "Passwords match" : "Passwords don't match")
+                        Text(viewModel.passwordsMatch ? String(localized: "Passwords match") : String(localized: "Passwords don't match"))
                             .font(.caption.weight(.medium))
                             .foregroundStyle(viewModel.passwordsMatch ? .green : .red)
                     }

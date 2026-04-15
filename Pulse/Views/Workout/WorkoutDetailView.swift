@@ -192,7 +192,7 @@ struct WorkoutDetailView: View {
         .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 16, x: 0, y: 6)
     }
     
-    private func detailStatCard(icon: String, title: String, value: String) -> some View {
+    private func detailStatCard(icon: String, title: LocalizedStringKey, value: String) -> some View {
         VStack(spacing: 8) {
             IconBadge(assetName: icon, size: 36)
             

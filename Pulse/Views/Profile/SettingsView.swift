@@ -68,7 +68,7 @@ struct SettingsView: View {
                                 
                                 Spacer()
                                 
-                                Text(subscriptionManager.isProUser ? "Pro" : "Free")
+                                Text(subscriptionManager.isProUser ? String(localized: "Pro") : String(localized: "Free"))
                                     .font(.subheadline.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                                 
@@ -176,7 +176,7 @@ struct SettingsView: View {
                                     Spacer()
                                     
                                     if subscriptionManager.isProUser {
-                                        Text(WorkoutSyncManager.shared.isPaired == true ? "Connected" : "Not Connected")
+                                        Text(WorkoutSyncManager.shared.isPaired == true ? String(localized: "Connected") : String(localized: "Not Connected"))
                                             .font(.subheadline.weight(.medium))
                                             .foregroundStyle(WorkoutSyncManager.shared.isPaired == true ? .green : Color.appSecondaryText)
                                     } else {

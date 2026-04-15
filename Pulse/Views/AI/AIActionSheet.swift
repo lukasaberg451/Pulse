@@ -66,7 +66,7 @@ struct AIActionSheet: View {
         .sheetContentTransition()
     }
     
-    private func actionCard(icon: String, title: String, subtitle: String, action: @escaping () -> Void) -> some View {
+    private func actionCard(icon: String, title: LocalizedStringKey, subtitle: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 12) {
                 Image(systemName: icon)

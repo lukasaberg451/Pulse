@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct OfflineStatusBanner: View {
-    var subtitle: String = "Your workouts will sync when you're back online"
+    var subtitle: LocalizedStringKey = "Your workouts will sync when you're back online"
     @EnvironmentObject var syncService: WorkoutSyncService
     @Environment(\.colorScheme) private var colorScheme
     

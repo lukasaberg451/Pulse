@@ -93,7 +93,7 @@ struct RegisterSelectionView: View {
                                 }
                             case .failure(let error):
                                 if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
-                                    errorMessage = "Sign up with Apple failed."
+                                    errorMessage = String(localized: "Sign up with Apple failed.")
                                     showError = true
                                 }
                             }

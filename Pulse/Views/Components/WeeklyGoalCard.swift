@@ -69,7 +69,7 @@ struct WeeklyGoalCard: View {
                         .buttonStyle(ScalePressStyle())
                         .accessibilityIdentifier("editWeeklyGoalButton")
 
-                        Text("\(Int(progress * 100))%")
+                        Text(progress.formatted(.percent.precision(.fractionLength(0))))
                             .font(.system(size: 18, weight: .bold, design: .rounded))
                             .foregroundStyle(goalReached ? .green : Color.appAccent)
                             .contentTransition(.numericText())

@@ -356,7 +356,7 @@ struct RoutineDetailView: View {
                                             .scaledToFit()
                                             .frame(width: 12, height: 12)
                                     }
-                                    Text(editMode == .active ? "Done" : "Reorder")
+                                    Text(editMode == .active ? String(localized: "Done") : String(localized: "Reorder"))
                                         .font(.subheadline.weight(.medium))
                                 }
                                 .foregroundStyle(editMode == .active ? Color.green : Color.appAccent)
@@ -1326,7 +1326,7 @@ struct CreateCustomExerciseSheet: View {
                 dismiss()
                 onCreated(exercise)
             } catch {
-                errorMessage = "Failed to create exercise. Please try again."
+                errorMessage = String(localized: "Failed to create exercise. Please try again.")
             }
             isCreating = false
         }
@@ -1654,7 +1654,7 @@ struct ExerciseConfigSheet: View {
                                     
                                     // Duration picker
                                     VStack(alignment: .leading, spacing: 8) {
-                                        Text(cardioMode == .intervals ? "Duration (per interval)" : "Duration")
+                                        Text(cardioMode == .intervals ? String(localized: "Duration (per interval)") : String(localized: "Duration"))
                                             .font(.subheadline)
                                             .fontWeight(.medium)
                                             .foregroundStyle(Color.appText)
@@ -2329,7 +2329,7 @@ struct EditExerciseSheet: View {
                                     
                                     // Duration picker
                                     VStack(alignment: .leading, spacing: 8) {
-                                        Text(cardioMode == .intervals ? "Duration (per interval)" : "Duration")
+                                        Text(cardioMode == .intervals ? String(localized: "Duration (per interval)") : String(localized: "Duration"))
                                             .font(.subheadline)
                                             .fontWeight(.medium)
                                             .foregroundStyle(Color.appText)

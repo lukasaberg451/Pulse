@@ -284,10 +284,10 @@ struct ActiveWorkoutViewContent: View {
                     Text("This workout will not be saved.")
                 } else if alertType == .emptyFinish {
                     Text("Complete at least one set before finishing your workout. Would you like to continue or discard?")
+                } else if viewModel.isOfflineMode {
+                    Text("Your workout will be saved locally and synced when you're back online.")
                 } else {
-                    Text(viewModel.isOfflineMode
-                        ? "Your workout will be saved locally and synced when you're back online."
-                        : "Are you sure you want to finish this workout?")
+                    Text("Are you sure you want to finish this workout?")
                 }
             }
             .fullScreenCover(isPresented: $showWorkoutSummary) {

@@ -169,7 +169,7 @@ struct SpotlightOverlay: View {
                 }
 
                 Button { advanceOrFinish() } label: {
-                    Text(manager.currentIndex < manager.steps.count - 1 ? "Next" : "Done")
+                    Text(manager.currentIndex < manager.steps.count - 1 ? String(localized: "Next") : String(localized: "Done"))
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)

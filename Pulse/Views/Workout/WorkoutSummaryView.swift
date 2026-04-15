@@ -561,7 +561,7 @@ struct WorkoutSummaryView: View {
     
     // MARK: - Stat Card
     
-    private func summaryStatCard(icon: String, title: String, value: String, isSystemImage: Bool = false) -> some View {
+    private func summaryStatCard(icon: String, title: LocalizedStringKey, value: String, isSystemImage: Bool = false) -> some View {
         VStack(spacing: 8) {
             if isSystemImage {
                 IconBadge(systemName: icon, size: 36)

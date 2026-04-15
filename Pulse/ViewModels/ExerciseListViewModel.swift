@@ -33,7 +33,7 @@ class ExerciseListViewModel: ObservableObject {
             exercises = results
             hasMoreExercises = results.count == pageSize
         } catch {
-            errorMessage = "Failed to load exercises: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load exercises: \(error.localizedDescription)")
         }
         isLoading = false
     }
@@ -59,7 +59,7 @@ class ExerciseListViewModel: ObservableObject {
             exercises.append(contentsOf: results)
             hasMoreExercises = results.count == pageSize
         } catch {
-            errorMessage = "Failed to load more exercises: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load more exercises: \(error.localizedDescription)")
         }
         
         isLoadingMore = false
@@ -91,7 +91,7 @@ class ExerciseListViewModel: ObservableObject {
             exercises = results
             hasMoreExercises = results.count == pageSize
         } catch {
-            errorMessage = "Failed to load exercises: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load exercises: \(error.localizedDescription)")
         }
         isLoading = false
     }

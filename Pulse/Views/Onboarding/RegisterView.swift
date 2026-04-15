@@ -415,13 +415,13 @@ struct RegisterView: View {
                             Button(action: {
                                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                                 if firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty {
-                                    errorMessage = "Please fill in all fields"
+                                    errorMessage = String(localized: "Please fill in all fields")
                                     showError = true
                                 } else if !isValidEmail(email) {
-                                    errorMessage = "Please enter a valid email address"
+                                    errorMessage = String(localized: "Please enter a valid email address")
                                     showError = true
                                 } else if !isValidPassword {
-                                    errorMessage = "Password must be at least 8 characters with uppercase, lowercase, and number"
+                                    errorMessage = String(localized: "Password must be at least 8 characters with uppercase, lowercase, and number")
                                     showError = true
                                 } else {
                                     showError = false
