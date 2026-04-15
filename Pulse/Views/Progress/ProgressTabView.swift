@@ -267,10 +267,10 @@ struct ProgressTabView: View {
                         Estimated1RMSection(viewModel: viewModel)
                             .accessibilityIdentifier("progressEstimated1RMSection")
                         
-                        // Strength Progress
+                        // Weight Progress
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Strength Progress")
+                                Text("Weight Progress")
                                     .font(.title3.weight(.bold))
                                     .foregroundStyle(Color.appText)
                                 
@@ -368,7 +368,7 @@ struct StatCard: View {
     }
 }
 
-// MARK: - Strength Progress Card
+// MARK: - Weight Progress Card
 struct StrengthProgressCard: View {
     let progress: StrengthProgress
     @EnvironmentObject var unitManager: UnitManager
@@ -447,7 +447,7 @@ struct EmptyStrengthProgressCard: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.appText)
 
-            Text("Complete workouts to start tracking your strength progress!")
+            Text("Complete workouts to start tracking your weight progress!")
                 .font(.caption)
                 .foregroundStyle(Color.appSecondaryText)
                 .multilineTextAlignment(.center)
@@ -1064,7 +1064,7 @@ struct AllEstimated1RMView: View {
     }
 }
 
-// MARK: - All Strength Progress View
+// MARK: - All Weight Progress View
 struct AllStrengthProgressView: View {
     @ObservedObject var viewModel: ProgressStatsViewModel
 
@@ -1083,7 +1083,7 @@ struct AllStrengthProgressView: View {
                                 .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
 
-                            Text("Complete workouts to start tracking your strength progress!")
+                            Text("Complete workouts to start tracking your weight progress!")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -1102,7 +1102,7 @@ struct AllStrengthProgressView: View {
                 await viewModel.loadStats()
             }
         }
-        .navigationTitle("Strength Progress")
+        .navigationTitle("Weight Progress")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
     }
