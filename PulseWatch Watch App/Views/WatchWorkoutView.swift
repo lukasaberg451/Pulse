@@ -33,6 +33,7 @@ struct WatchWorkoutView: View {
     @State private var isEditingWeight: Bool = false
     @State private var actualWeightWhole: Int = 0
     @State private var actualWeightDecimal: Int = 0
+    @FocusState private var isWeightWholeFocused: Bool
 
     var body: some View {
         // TimelineView keeps updating even when the watch enters the always-on
@@ -157,6 +158,7 @@ struct WatchWorkoutView: View {
                                         }
                                         .pickerStyle(.wheel)
                                         .frame(width: 55, height: 80)
+                                        .focused($isWeightWholeFocused)
 
                                         Text(".")
                                             .font(.title3.weight(.semibold))
@@ -455,6 +457,7 @@ struct WatchWorkoutView: View {
         withAnimation(.easeInOut(duration: 0.2)) {
             isEditingWeight = true
         }
+        isWeightWholeFocused = true
     }
 
     func logSetWithActualWeight() {
