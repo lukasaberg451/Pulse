@@ -53,7 +53,7 @@ struct MilestoneCard: View {
                 IconBadge(assetName: milestone.icon, color: .green, size: 38)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Achievement Complete!")
+                    Text("Achievement Complete!", comment: "Milestone card status")
                         .font(.caption.weight(.medium))
                         .foregroundStyle(.green)
 
@@ -88,7 +88,7 @@ struct MilestoneCard: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 14, height: 14)
-                        Text("Unlock Achievement")
+                        Text("Unlock Achievement", comment: "Milestone unlock button")
                             .font(.subheadline.weight(.bold))
                     }
                     .foregroundStyle(.white)
@@ -134,7 +134,7 @@ struct MilestoneCard: View {
                 IconBadge(assetName: milestone.icon, color: .appAccent, size: 38)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Next Milestone")
+                    Text("Next Milestone", comment: "In-progress milestone label")
                         .font(.caption.weight(.medium))
                         .foregroundStyle(Color.appSecondaryText)
 

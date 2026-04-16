@@ -62,7 +62,7 @@ struct SettingsView: View {
                             HStack(spacing: 14) {
                                 IconBadge(assetName: "starshine", size: 32)
                                 
-                                Text("Plan")
+                                Text("Plan", comment: "Subscription plan label")
                                     .font(.body)
                                     .foregroundStyle(Color.appText)
                                 
@@ -95,7 +95,7 @@ struct SettingsView: View {
                         
                         VStack(spacing: 0) {
                             // Appearance
-                            ProfileSettingsRow(icon: "brush", title: "Appearance", value: themeManager.selectedTheme.rawValue) {
+                            ProfileSettingsRow(icon: "brush", title: "Appearance", value: themeManager.selectedTheme.displayName) {
                                 showingThemeSheet = true
                             }
                             .accessibilityIdentifier("settingsAppearanceRow")
@@ -143,11 +143,11 @@ struct SettingsView: View {
                                         Spacer()
                                         
                                         if healthKitManager.isSyncEnabled {
-                                            Text("Connected")
+                                            Text("Connected", comment: "Health connection status")
                                                 .font(.subheadline.weight(.medium))
                                                 .foregroundStyle(.green)
                                         } else {
-                                            Text("Connect")
+                                            Text("Connect", comment: "Health connection action")
                                                 .font(.subheadline.weight(.semibold))
                                                 .foregroundStyle(Color.appAccent)
                                         }
@@ -180,7 +180,7 @@ struct SettingsView: View {
                                             .font(.subheadline.weight(.medium))
                                             .foregroundStyle(WorkoutSyncManager.shared.isPaired == true ? .green : Color.appSecondaryText)
                                     } else {
-                                        Text("Upgrade to Pro")
+                                        Text("Upgrade to Pro", comment: "Upsell label")
                                             .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appAccent)
                                         
@@ -211,7 +211,7 @@ struct SettingsView: View {
                         HStack(spacing: 14) {
                             IconBadge(assetName: "star", size: 32)
                             
-                            Text("Enjoying Pulse? Rate us!")
+                            Text("Enjoying Pulse? Rate us!", comment: "Rate app prompt")
                                 .font(.body)
                                 .foregroundStyle(Color.appText)
                             
@@ -255,7 +255,7 @@ struct SettingsView: View {
                                 HStack(spacing: 14) {
                                     IconBadge(assetName: "question-mark-circle", size: 32)
                                     
-                                    Text("Help & Support")
+                                    Text("Help & Support", comment: "Settings row")
                                         .font(.body)
                                         .foregroundStyle(Color.appText)
                                     
@@ -283,7 +283,7 @@ struct SettingsView: View {
                         showingSignOutAlert = true
                     } label: {
                         HStack(spacing: 8) {
-                            Text("Sign Out")
+                            Text("Sign Out", comment: "Settings action")
                                 .font(.subheadline.weight(.semibold))
                         }
                         .foregroundStyle(.red)
@@ -312,7 +312,7 @@ struct SettingsView: View {
                                     .scaledToFit()
                                     .frame(width: 16, height: 16)
                                     .font(.subheadline.weight(.semibold))
-                                Text("Delete Account")
+                                Text("Delete Account", comment: "Settings action")
                                     .font(.subheadline.weight(.semibold))
                             }
                         }
@@ -335,7 +335,7 @@ struct SettingsView: View {
                     Button(action: {
                         safariURL = Constants.URLs.termsOfService
                     }) {
-                        Text("Terms of Service")
+                        Text("Terms of Service", comment: "Legal link")
                             .font(.caption)
                             .foregroundStyle(Color.appSecondaryText)
                     }
@@ -347,7 +347,7 @@ struct SettingsView: View {
                     Button(action: {
                         safariURL = Constants.URLs.privacyPolicy
                     }) {
-                        Text("Privacy Policy")
+                        Text("Privacy Policy", comment: "Legal link")
                             .font(.caption)
                             .foregroundStyle(Color.appSecondaryText)
                     }
@@ -366,23 +366,23 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
-        .alert("Sign Out", isPresented: $showingSignOutAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Sign Out", role: .destructive) {
+        .alert(String(localized: "Sign Out"), isPresented: $showingSignOutAlert) {
+            Button(String(localized: "Cancel"), role: .cancel) { }
+            Button(String(localized: "Sign Out"), role: .destructive) {
                 Task {
                     await signOutAction()
                 }
             }
         } message: {
-            Text("Are you sure you want to sign out?")
+            Text("Are you sure you want to sign out?", comment: "Sign out confirmation")
         }
-        .alert("Delete Account", isPresented: $showingDeleteAccountAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Continue", role: .destructive) {
+        .alert(String(localized: "Delete Account"), isPresented: $showingDeleteAccountAlert) {
+            Button(String(localized: "Cancel"), role: .cancel) { }
+            Button(String(localized: "Continue"), role: .destructive) {
                 showingDeleteConfirmation = true
             }
         } message: {
-            Text("Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data will be removed.")
+            Text("Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data will be removed.", comment: "Delete account confirmation")
         }
         .sheet(isPresented: $showingDeleteConfirmation) {
             DeleteAccountConfirmationSheet(

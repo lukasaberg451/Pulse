@@ -44,7 +44,7 @@ struct WorkoutDetailView: View {
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 12, height: 12)
-                                    Text("AI Logged")
+                                    Text("AI Logged", comment: "AI logged badge")
                                         .font(.caption.weight(.semibold))
                                 }
                                 .foregroundStyle(Color.appAccent)
@@ -94,8 +94,8 @@ struct WorkoutDetailView: View {
                 }
             }
         }
-        .alert("Delete Workout", isPresented: $viewModel.showDeleteConfirmation) {
-            Button("Delete", role: .destructive) {
+        .alert(String(localized: "Delete Workout"), isPresented: $viewModel.showDeleteConfirmation) {
+            Button(String(localized: "Delete"), role: .destructive) {
                 Task {
                     let success = await viewModel.deleteWorkout()
                     if success {
@@ -103,9 +103,9 @@ struct WorkoutDetailView: View {
                     }
                 }
             }
-            Button("Cancel", role: .cancel) {}
+            Button(String(localized: "Cancel"), role: .cancel) {}
         } message: {
-            Text("Are you sure you want to delete this workout? This action cannot be undone.")
+            Text("Are you sure you want to delete this workout? This action cannot be undone.", comment: "Delete workout confirmation")
         }
         .task {
             await viewModel.loadWorkoutDetails()
@@ -212,7 +212,7 @@ struct WorkoutDetailView: View {
     // MARK: - Exercises Section
     var exercisesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Exercises")
+            Text("Exercises", comment: "Section header")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
                 .opacity(animationTrigger ? 1 : 0)
@@ -249,17 +249,17 @@ struct WorkoutDetailView: View {
             VStack(spacing: 4) {
                 // Header
                 HStack {
-                    Text("SET")
+                    Text("SET", comment: "Column header")
                         .frame(width: 50, alignment: .leading)
-                    
+
                     if isCardio {
-                        Text("DURATION")
+                        Text("DURATION", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
                     } else {
-                        Text("WEIGHT")
+                        Text("WEIGHT", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
-                        
-                        Text("REPS")
+
+                        Text("REPS", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                     

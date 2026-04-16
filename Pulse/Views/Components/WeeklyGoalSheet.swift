@@ -29,11 +29,11 @@ struct WeeklyGoalSheet: View {
                     VStack(spacing: 8) {
                         IconBadge(assetName: "goal", color: .appAccent, size: 48)
 
-                        Text("Weekly Workout Goal")
+                        Text("Weekly Workout Goal", comment: "Goal sheet title")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
 
-                        Text("Set your target workout minutes per week")
+                        Text("Set your target workout minutes per week", comment: "Goal sheet subtitle")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
@@ -48,7 +48,7 @@ struct WeeklyGoalSheet: View {
                             .contentTransition(.numericText())
                             .animation(.spring(response: 0.3), value: goalMinutes)
 
-                        Text("minutes per week")
+                        Text("minutes per week", comment: "Unit label for weekly goal")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.appTertiaryText)
 
@@ -63,15 +63,15 @@ struct WeeklyGoalSheet: View {
 
                     // Suggested goals
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Suggested Goals")
+                        Text("Suggested Goals", comment: "Section header for suggested goals")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appSecondaryText)
                             .padding(.horizontal, 4)
 
                         HStack(spacing: 10) {
-                            GoalButton(minutes: 150, currentGoal: $goalMinutes, label: "Balanced")
-                            GoalButton(minutes: 210, currentGoal: $goalMinutes, label: "Consistent")
-                            GoalButton(minutes: 300, currentGoal: $goalMinutes, label: "Dedicated")
+                            GoalButton(minutes: 150, currentGoal: $goalMinutes, label: String(localized: "Balanced"))
+                            GoalButton(minutes: 210, currentGoal: $goalMinutes, label: String(localized: "Consistent"))
+                            GoalButton(minutes: 300, currentGoal: $goalMinutes, label: String(localized: "Dedicated"))
                         }
                     }
                     .padding(.horizontal)

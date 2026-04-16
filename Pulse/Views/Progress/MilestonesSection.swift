@@ -19,7 +19,7 @@ struct MilestonesSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Milestones")
+                Text("Milestones", comment: "Section header")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(Color.appText)
 
@@ -27,7 +27,7 @@ struct MilestonesSection: View {
 
                 if !viewModel.allMilestones.isEmpty {
                     NavigationLink(destination: AllMilestonesView(viewModel: viewModel).hidesTabBar()) {
-                        Text("See All")
+                        Text("See All", comment: "Navigation link")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.appAccent)
                     }
@@ -39,11 +39,11 @@ struct MilestonesSection: View {
                 VStack(spacing: 14) {
                     IconBadge(assetName: "trophy", size: 48)
 
-                    Text("No Milestones Yet")
+                    Text("No Milestones Yet", comment: "Empty state title")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
 
-                    Text("Complete your first workout to start tracking milestones!")
+                    Text("Complete your first workout to start tracking milestones!", comment: "Empty state message")
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
@@ -92,7 +92,7 @@ struct AllMilestonesView: View {
                     // Ready to Unlock
                     if !viewModel.pendingUnlockMilestones.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Ready to Unlock")
+                            Text("Ready to Unlock", comment: "Milestone section header")
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(Color.appSecondaryText)
                                 .textCase(.uppercase)
@@ -107,7 +107,7 @@ struct AllMilestonesView: View {
                     // In Progress
                     if !viewModel.inProgressMilestones.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("In Progress")
+                            Text("In Progress", comment: "Milestone section header")
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(Color.appSecondaryText)
                                 .textCase(.uppercase)
@@ -126,7 +126,7 @@ struct AllMilestonesView: View {
                     // Completed (Unlocked)
                     if !viewModel.unlockedMilestones.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Completed")
+                            Text("Completed", comment: "Milestone section header")
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(Color.appSecondaryText)
                                 .textCase(.uppercase)
@@ -157,7 +157,7 @@ struct AllMilestonesView: View {
             }
         }
         .sentryScreen("AllMilestones")
-        .navigationTitle("Milestones")
+        .navigationTitle(String(localized: "Milestones"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
     }
@@ -251,7 +251,7 @@ struct UnlockableMilestoneRow: View {
                     Button {
                         performUnlock()
                     } label: {
-                        Text("Unlock")
+                        Text("Unlock", comment: "Milestone unlock button")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 14)

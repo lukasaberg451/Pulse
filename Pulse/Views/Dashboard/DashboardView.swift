@@ -231,11 +231,11 @@ struct DashboardView: View {
                 WeeklyGoalSheet(viewModel: viewModel)
                     .sheetContentTransition()
             }
-            .alert("Resume Workout?", isPresented: $showingResumeAlert) {
-                Button("Resume", role: .cancel) {
+            .alert(String(localized: "Resume Workout?"), isPresented: $showingResumeAlert) {
+                Button(String(localized: "Resume"), role: .cancel) {
                     showingResumeWorkout = true
                 }
-                Button("Discard", role: .destructive) {
+                Button(String(localized: "Discard"), role: .destructive) {
                     discardInProgressWorkout()
                 }
             } message: {
@@ -435,7 +435,7 @@ struct TodayWorkoutCard: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
                         IconBadge(assetName: "calendar", size: 28)
-                        Text("Scheduled")
+                        Text("Scheduled", comment: "Workout status label")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appSecondaryText)
                     }
@@ -450,12 +450,12 @@ struct TodayWorkoutCard: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 14, height: 14)
-                            Text("Completed")
+                            Text("Completed", comment: "Workout status")
                         }
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.green)
                     } else {
-                        Text("Not started")
+                        Text("Not started", comment: "Workout status")
                             .font(.caption)
                             .foregroundStyle(Color.appSecondaryText)
                     }
@@ -475,7 +475,7 @@ struct TodayWorkoutCard: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 32, height: 32)
-                            Text("Start")
+                            Text("Start", comment: "Start workout button")
                                 .font(.caption.weight(.semibold))
                         }
                         .foregroundStyle(routineExercises.isEmpty ? Color.appTertiaryText : Color.appAccent)
@@ -540,7 +540,7 @@ struct DeletedRoutineTodayCard: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 14, height: 14)
-                            Text("Completed")
+                            Text("Completed", comment: "Workout status")
                         }
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.green)
@@ -550,7 +550,7 @@ struct DeletedRoutineTodayCard: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 12, height: 12)
-                            Text("Routine deleted")
+                            Text("Routine deleted", comment: "Workout status")
                                 .font(.caption)
                         }
                         .foregroundStyle(Color.appTertiaryText)
@@ -583,16 +583,16 @@ struct EmptyTodayCard: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
                         IconBadge(assetName: "calendar", size: 28)
-                        Text("Today")
+                        Text("Today", comment: "Section label")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appSecondaryText)
                     }
 
-                    Text("No workouts scheduled")
+                    Text("No workouts scheduled", comment: "Empty state")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
 
-                    Text("Plan your workout for today")
+                    Text("Plan your workout for today", comment: "Empty state hint")
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                 }
@@ -609,7 +609,7 @@ struct EmptyTodayCard: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 32, height: 32)
-                        Text("Add")
+                        Text("Add", comment: "Add workout button")
                             .font(.caption.weight(.semibold))
                     }
                     .foregroundStyle(Color.appAccent)
@@ -648,7 +648,7 @@ struct StatsBar: View {
                 StatBarItem(
                     icon: "flame",
                     value: "\(streak)",
-                    label: "Daily Streak"
+                    label: String(localized: "Daily Streak")
                 )
 
                 StatBarDivider()
@@ -656,7 +656,7 @@ struct StatsBar: View {
                 StatBarItem(
                     icon: "check-circle",
                     value: "\(totalWorkouts)",
-                    label: "Workouts"
+                    label: String(localized: "Workouts")
                 )
 
                 StatBarDivider()
@@ -664,7 +664,7 @@ struct StatsBar: View {
                 StatBarItem(
                     icon: "stopwatch",
                     value: formattedWeeklyTime,
-                    label: "This Week"
+                    label: String(localized: "This Week")
                 )
             }
         }

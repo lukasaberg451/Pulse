@@ -123,9 +123,10 @@ struct WorkoutSummaryView: View {
                                     }
                                 }
                             
-                            Text("Workout Completed")
+                            Text("Workout Completed", comment: "Summary header")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
+                                .multilineTextAlignment(.center)
                                 .opacity(animationTrigger ? 1 : 0)
                                 .offset(y: animationTrigger ? 0 : 8)
                                 .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
@@ -301,7 +302,7 @@ struct WorkoutSummaryView: View {
     
     private var strengthHighlightsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Strength Highlights")
+            Text("Strength Highlights", comment: "Section header")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
             
@@ -312,7 +313,7 @@ struct WorkoutSummaryView: View {
                             IconBadge(assetName: "crown", color: .orange, size: 36)
 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("New PR")
+                                Text("New PR", comment: "Personal record badge")
                                     .font(.caption.weight(.bold))
                                     .foregroundStyle(Color.orange)
 
@@ -320,7 +321,7 @@ struct WorkoutSummaryView: View {
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
 
-                                Text("Estimated 1RM")
+                                Text("Estimated 1RM", comment: "1RM label")
                                     .font(.caption2)
                                     .foregroundStyle(Color.appTertiaryText.opacity(0.7))
                             }
@@ -349,7 +350,7 @@ struct WorkoutSummaryView: View {
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 13, height: 13)
-                                Text("Share PR")
+                                Text("Share PR", comment: "Share button")
                                     .font(.caption.weight(.semibold))
                             }
                             .foregroundStyle(Color.orange)
@@ -378,7 +379,7 @@ struct WorkoutSummaryView: View {
     
     private var exercisesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Exercises")
+            Text("Exercises", comment: "Section header")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
                 .opacity(animationTrigger ? 1 : 0)
@@ -413,17 +414,17 @@ struct WorkoutSummaryView: View {
             VStack(spacing: 4) {
                 // Header
                 HStack {
-                    Text("SET")
+                    Text("SET", comment: "Column header")
                         .frame(width: 50, alignment: .leading)
-                    
+
                     if isCardio {
-                        Text("DURATION")
+                        Text("DURATION", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
                     } else {
-                        Text("WEIGHT")
+                        Text("WEIGHT", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
-                        
-                        Text("REPS")
+
+                        Text("REPS", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                     
@@ -614,28 +615,29 @@ struct ShareableWorkoutCard: View {
                         .frame(width: 56, height: 56)
                         .foregroundStyle(Color.green)
                     
-                    Text("Workout Completed")
+                    Text("Workout Completed", comment: "Share card header")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
                 }
-                
+
                 // Stats
                 VStack(spacing: 0) {
-                    shareStatItem(icon: "clock", value: formattedDuration, label: "Duration")
+                    shareStatItem(icon: "clock", value: formattedDuration, label: String(localized: "Duration"))
                         .padding(.vertical, 16)
                     
                     Rectangle()
                         .fill(.white.opacity(0.08))
                         .frame(height: 1)
                     
-                    shareStatItem(icon: "volume", value: totalVolume, label: "Volume")
+                    shareStatItem(icon: "volume", value: totalVolume, label: String(localized: "Volume"))
                         .padding(.vertical, 16)
                     
                     Rectangle()
                         .fill(.white.opacity(0.08))
                         .frame(height: 1)
                     
-                    shareStatItem(icon: "list", value: "\(exerciseCount)", label: "Exercises")
+                    shareStatItem(icon: "list", value: "\(exerciseCount)", label: String(localized: "Exercises"))
                         .padding(.vertical, 16)
                 }
                 .padding(.horizontal, 20)
@@ -653,7 +655,7 @@ struct ShareableWorkoutCard: View {
                 Text("Pulse")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(accentColor)
-                Text("Workout Tracker")
+                Text("Workout Tracker", comment: "Branding text")
                     .font(.system(size: 16))
                     .foregroundStyle(.white.opacity(0.35))
             }
@@ -717,9 +719,10 @@ struct Shareable1RMCard: View {
                         .frame(width: 56, height: 56)
                         .foregroundStyle(Color.orange)
 
-                    Text("New Personal Record")
+                    Text("New Personal Record", comment: "Share card header")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
                 }
 
                 // Exercise name
@@ -729,7 +732,7 @@ struct Shareable1RMCard: View {
 
                 // 1RM value
                 VStack(spacing: 12) {
-                    Text("Estimated 1RM")
+                    Text("Estimated 1RM", comment: "1RM label on share card")
                         .font(.system(size: 14))
                         .foregroundStyle(.white.opacity(0.45))
 
@@ -744,7 +747,7 @@ struct Shareable1RMCard: View {
                     }
 
                     if let previousBest {
-                        Text("Previous: \(previousBest)")
+                        Text("Previous: \(previousBest)", comment: "Previous best 1RM")
                             .font(.system(size: 14))
                             .foregroundStyle(.white.opacity(0.35))
                     }
@@ -766,7 +769,7 @@ struct Shareable1RMCard: View {
                 Text("Pulse")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(accentColor)
-                Text("Workout Tracker")
+                Text("Workout Tracker", comment: "Branding text")
                     .font(.system(size: 16))
                     .foregroundStyle(.white.opacity(0.35))
             }
@@ -800,7 +803,7 @@ struct SharePreviewSheet: View {
                     IconBadge(assetName: "share", size: 48)
                         .padding(.top, 24)
                     
-                    Text("Share Preview")
+                    Text("Share Preview", comment: "Sheet title")
                         .font(.title3.weight(.bold))
                         .foregroundStyle(Color.appText)
                 }

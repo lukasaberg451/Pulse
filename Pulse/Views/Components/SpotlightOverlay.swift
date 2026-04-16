@@ -131,7 +131,7 @@ struct SpotlightOverlay: View {
     @ViewBuilder
     private func cardContent(for step: TourStep, width: CGFloat) -> some View {
         VStack(spacing: 12) {
-            Text("Step \(manager.progress.current) of \(manager.progress.total)")
+            Text("\(String(localized: "Step")) \(manager.progress.current) \(String(localized: "of")) \(manager.progress.total)")
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(Color.appAccent)
 
@@ -161,7 +161,7 @@ struct SpotlightOverlay: View {
                     Button {
                         dismissOverlay(isSkip: true)
                     } label: {
-                        Text("Skip")
+                        Text("Skip", comment: "Skip tutorial button")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.appTertiaryText)
                     }

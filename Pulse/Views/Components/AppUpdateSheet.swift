@@ -32,7 +32,7 @@ struct AppUpdateSheet: View {
                         UIApplication.shared.open(url)
                     }
                 } label: {
-                    Text("Update Now")
+                    Text("Update Now", comment: "App update button")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
@@ -45,7 +45,7 @@ struct AppUpdateSheet: View {
                     Button {
                         dismiss()
                     } label: {
-                        Text("Later")
+                        Text("Later", comment: "Dismiss update button")
                             .font(.subheadline)
                             .foregroundStyle(Color.appText.opacity(0.6))
                     }

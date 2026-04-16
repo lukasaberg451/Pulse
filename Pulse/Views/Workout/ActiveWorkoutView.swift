@@ -185,7 +185,7 @@ struct ActiveWorkoutViewContent: View {
                         HStack(spacing: 12) {
                             IconBadge(assetName: "watch", size: 28)
                             
-                            Text("Use Pulse on your Apple Watch to track along")
+                            Text("Use Pulse on your Apple Watch to track along", comment: "Watch tip")
                                 .font(.caption)
                                 .foregroundStyle(Color.appText)
                             
@@ -224,7 +224,7 @@ struct ActiveWorkoutViewContent: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(String(localized: "Cancel")) {
                         alertType = .cancel
                     }
                     .foregroundStyle(Color.appSecondaryText)
@@ -236,7 +236,7 @@ struct ActiveWorkoutViewContent: View {
                         ProgressView()
                             .tint(Color.appAccent)
                     } else {
-                        Button("Finish") {
+                        Button(String(localized: "Finish")) {
                             let hasCompletedSets = viewModel.sets.contains { $0.completed }
                             alertType = hasCompletedSets ? .finish : .emptyFinish
                         }
@@ -246,30 +246,30 @@ struct ActiveWorkoutViewContent: View {
                     }
                 }
             }
-            .alert(alertType == .emptyFinish ? "No Sets Completed" : (alertType == .cancel ? "Cancel Workout?" : "Finish Workout?"),
+            .alert(alertType == .emptyFinish ? String(localized: "No Sets Completed") : (alertType == .cancel ? String(localized: "Cancel Workout?") : String(localized: "Finish Workout?")),
                    isPresented: Binding(
                        get: { alertType != nil },
                        set: { if !$0 { alertType = nil } }
                    )) {
                 if alertType == .cancel {
-                    Button("Continue Workout", role: .cancel) { }
-                    Button("Discard", role: .destructive) {
+                    Button(String(localized: "Continue Workout"), role: .cancel) { }
+                    Button(String(localized: "Discard"), role: .destructive) {
                         Task {
                             await viewModel.cancelWorkout()
                             dismiss()
                         }
                     }
                 } else if alertType == .emptyFinish {
-                    Button("Continue Workout", role: .cancel) { }
-                    Button("Discard", role: .destructive) {
+                    Button(String(localized: "Continue Workout"), role: .cancel) { }
+                    Button(String(localized: "Discard"), role: .destructive) {
                         Task {
                             await viewModel.cancelWorkout()
                             dismiss()
                         }
                     }
                 } else {
-                    Button("Cancel", role: .cancel) { }
-                    Button("Finish") {
+                    Button(String(localized: "Cancel"), role: .cancel) { }
+                    Button(String(localized: "Finish")) {
                         Task {
                             summaryElapsedTime = viewModel.elapsedTime
                             summarySets = viewModel.sets
@@ -281,13 +281,13 @@ struct ActiveWorkoutViewContent: View {
                 }
             } message: {
                 if alertType == .cancel {
-                    Text("This workout will not be saved.")
+                    Text("This workout will not be saved.", comment: "Cancel workout alert message")
                 } else if alertType == .emptyFinish {
-                    Text("Complete at least one set before finishing your workout. Would you like to continue or discard?")
+                    Text("Complete at least one set before finishing your workout. Would you like to continue or discard?", comment: "Empty finish alert message")
                 } else if viewModel.isOfflineMode {
-                    Text("Your workout will be saved locally and synced when you're back online.")
+                    Text("Your workout will be saved locally and synced when you're back online.", comment: "Offline finish alert message")
                 } else {
-                    Text("Are you sure you want to finish this workout?")
+                    Text("Are you sure you want to finish this workout?", comment: "Finish workout alert message")
                 }
             }
             .fullScreenCover(isPresented: $showWorkoutSummary) {
@@ -328,7 +328,7 @@ struct TimerHeaderCard: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("WORKOUT TIME")
+                Text("WORKOUT TIME", comment: "Timer header label")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(Color.appSecondaryText)
                 Text(elapsedTimeText)
@@ -371,7 +371,7 @@ struct RestTimerBanner: View {
                     .symbolEffect(.pulse, options: .repeating)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("REST TIME")
+                    Text("REST TIME", comment: "Rest timer label")
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(Color.appSecondaryText)
                     Text(formatTime(timeRemaining))
@@ -386,7 +386,7 @@ struct RestTimerBanner: View {
             Button {
                 onSkip()
             } label: {
-                Text("Skip")
+                Text("Skip", comment: "Skip rest timer")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appAccent)
                     .padding(.horizontal, 16)
@@ -433,7 +433,7 @@ struct HoldToAddSetButton: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 12, height: 12)
-            Text("Hold to Add Set")
+            Text("Hold to Add Set", comment: "Add set button")
                 .font(.caption.weight(.semibold))
         }
         .foregroundStyle(Color.appAccent.opacity(isDetectingLongPress ? 0.5 : 1.0))
@@ -562,7 +562,7 @@ struct ExerciseCard: View {
                         .foregroundStyle(status == .upcoming ? Color.appSecondaryText : Color.appText)
                     
                     if status == .current {
-                        Text("Active")
+                        Text("Active", comment: "Exercise status badge")
                             .font(.caption2.weight(.bold))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 8)
@@ -581,7 +581,7 @@ struct ExerciseCard: View {
                     let formatted = displayWeight.truncatingRemainder(dividingBy: 1) == 0
                         ? String(format: "%.0f", displayWeight)
                         : String(format: "%.1f", displayWeight)
-                    Text("Last session best: \(formatted) \(unit)")
+                    Text("\(String(localized: "Last session best:")) \(formatted) \(unit)")
                         .font(.caption)
                         .foregroundStyle(Color.appAccent)
                 }
@@ -630,32 +630,32 @@ struct ExerciseCard: View {
     private var exerciseSubtitle: some View {
         switch status {
         case .completed:
-            Text("\(completedSetsCount)/\(totalSetsCount) sets completed")
+            Text("\(completedSetsCount)/\(totalSetsCount) \(String(localized: "sets completed"))")
                 .font(.caption)
                 .foregroundStyle(.green)
         case .current:
             if let reps = routineExercise.repsTarget {
-                Text("\(completedSetsCount)/\(totalSetsCount) sets \u{2022} \(reps) reps \u{2022} \(routineExercise.restSeconds)s rest")
+                Text("\(completedSetsCount)/\(totalSetsCount) \(String(localized: "sets")) \u{2022} \(reps) \(String(localized: "reps")) \u{2022} \(routineExercise.restSeconds)s \(String(localized: "rest"))")
                     .font(.caption)
                     .foregroundStyle(Color.appSecondaryText)
             } else if let durationSeconds = routineExercise.durationSeconds {
                 let minutes = durationSeconds / 60
                 let seconds = durationSeconds % 60
                 let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
-                Text("\(completedSetsCount)/\(totalSetsCount) sets \u{2022} \(durationText) \u{2022} \(routineExercise.restSeconds)s rest")
+                Text("\(completedSetsCount)/\(totalSetsCount) \(String(localized: "sets")) \u{2022} \(durationText) \u{2022} \(routineExercise.restSeconds)s \(String(localized: "rest"))")
                     .font(.caption)
                     .foregroundStyle(Color.appSecondaryText)
             }
         case .upcoming:
             if let reps = routineExercise.repsTarget {
-                Text("\(routineExercise.sets) sets \u{00d7} \(reps) reps")
+                Text("\(routineExercise.sets) \(String(localized: "sets")) \u{00d7} \(reps) \(String(localized: "reps"))")
                     .font(.caption)
                     .foregroundStyle(Color.appTertiaryText)
             } else if let durationSeconds = routineExercise.durationSeconds {
                 let minutes = durationSeconds / 60
                 let seconds = durationSeconds % 60
                 let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
-                Text("\(routineExercise.sets) sets \u{00d7} \(durationText)")
+                Text("\(routineExercise.sets) \(String(localized: "sets")) \u{00d7} \(durationText)")
                     .font(.caption)
                     .foregroundStyle(Color.appTertiaryText)
             }
@@ -866,7 +866,7 @@ struct SetRow: View {
             Text(routineExercise.repsTarget ?? "—")
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(Color.appText)
-            Text("reps")
+            Text("reps", comment: "Reps label in set row")
                 .font(.caption2)
                 .foregroundStyle(Color.appSecondaryText)
         }

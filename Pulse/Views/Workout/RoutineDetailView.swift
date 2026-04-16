@@ -93,20 +93,20 @@ struct RoutineDetailView: View {
                         .foregroundStyle(Color.appText)
                     
                     if let reps = routineExercise.repsTarget {
-                        Text("\(routineExercise.sets) sets × \(reps) reps")
+                        Text("\(routineExercise.sets) \(String(localized: "sets")) × \(reps) \(String(localized: "reps"))")
                             .font(.caption)
                             .foregroundStyle(Color.appSecondaryText)
                     } else if let durationSeconds = routineExercise.durationSeconds {
                         let minutes = durationSeconds / 60
                         let seconds = durationSeconds % 60
                         let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
-                        Text("\(routineExercise.sets) sets × \(durationText)")
+                        Text("\(routineExercise.sets) \(String(localized: "sets")) × \(durationText)")
                             .font(.caption)
                             .foregroundStyle(Color.appSecondaryText)
                     }
-                    
+
                     if routineExercise.restSeconds > 0 {
-                        Text("\(routineExercise.restSeconds)s rest")
+                        Text("\(routineExercise.restSeconds)s \(String(localized: "rest"))")
                             .font(.caption)
                             .foregroundStyle(Color.appTertiaryText)
                     }
@@ -121,9 +121,9 @@ struct RoutineDetailView: View {
                             let impactLight = UIImpactFeedbackGenerator(style: .light)
                             impactLight.impactOccurred()
                         } label: {
-                            Label { Text("Edit Exercise") } icon: { Image("pencil").resizable().scaledToFit().frame(width: 16, height: 16) }
+                            Label { Text("Edit Exercise", comment: "Menu action") } icon: { Image("pencil").resizable().scaledToFit().frame(width: 16, height: 16) }
                         }
-                        
+
                         Button(role: .destructive) {
                             let notificationFeedback = UINotificationFeedbackGenerator()
                             notificationFeedback.notificationOccurred(.warning)
@@ -131,7 +131,7 @@ struct RoutineDetailView: View {
                                 await viewModel.deleteExercise(routineExercise)
                             }
                         } label: {
-                            Label { Text("Delete Exercise") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
+                            Label { Text("Delete Exercise", comment: "Menu action") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
                         }
                     } label: {
                         Image("ellipsis-horizontal")
@@ -169,14 +169,14 @@ struct RoutineDetailView: View {
                 VStack(spacing: 12) {
                     ProgressView()
                         .tint(Color.appAccent)
-                    Text("Loading routine...")
+                    Text("Loading routine...", comment: "Loading state")
                         .font(.subheadline)
                         .foregroundStyle(Color.appSecondaryText)
                 }
             } else if let error = viewModel.errorMessage {
                 VStack(spacing: 14) {
                     IconBadge(assetName: "error", color: .red, size: 48)
-                    Text("Something went wrong")
+                    Text("Something went wrong", comment: "Error state")
                         .font(.headline)
                         .foregroundStyle(Color.appText)
                     Text(error)
@@ -211,7 +211,7 @@ struct RoutineDetailView: View {
                             }
 
                             // Exercise count pill
-                            Text("\(viewModel.routineExercises.count) exercise\(viewModel.routineExercises.count == 1 ? "" : "s")")
+                            Text("\(viewModel.routineExercises.count) \(viewModel.routineExercises.count == 1 ? String(localized: "exercise") : String(localized: "exercises"))")
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(Color.appSecondaryText)
                                 .padding(.top, 2)
@@ -233,7 +233,7 @@ struct RoutineDetailView: View {
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 12, height: 12)
-                                        Text("Start Workout")
+                                        Text("Start Workout", comment: "Action button")
                                             .font(.subheadline.weight(.semibold))
                                     }
                                     .foregroundStyle(.white)
@@ -253,7 +253,7 @@ struct RoutineDetailView: View {
                                 // Edit Routine
                                 DetailActionButton(
                                     icon: "pencil",
-                                    title: "Edit Routine",
+                                    title: String(localized: "Edit Routine"),
                                     identifier: "editRoutineButton"
                                 ) {
                                     cancelEditMode()
@@ -267,7 +267,7 @@ struct RoutineDetailView: View {
                                 // Add Exercise
                                 DetailActionButton(
                                     icon: "plus",
-                                    title: "Add Exercise",
+                                    title: String(localized: "Add Exercise"),
                                     identifier: "addExerciseButton"
                                 ) {
                                     cancelEditMode()
@@ -304,7 +304,7 @@ struct RoutineDetailView: View {
                                                 .scaledToFit()
                                                 .frame(width: 12, height: 12)
                                         }
-                                        Text("Copy Routine")
+                                        Text("Copy Routine", comment: "Action button")
                                             .font(.subheadline.weight(.medium))
                                     }
                                     .foregroundStyle(Color.appText)
@@ -381,10 +381,10 @@ struct RoutineDetailView: View {
                                 assetName: "clipboard-text",
                                 size: 56
                             )
-                            Text("No Exercises Yet")
+                            Text("No Exercises Yet", comment: "Empty state")
                                 .font(.title3.weight(.semibold))
                                 .foregroundStyle(Color.appText)
-                            Text("Add exercises to build your routine")
+                            Text("Add exercises to build your routine", comment: "Empty state hint")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                             Spacer()
@@ -428,16 +428,16 @@ struct RoutineDetailView: View {
                 workoutSessionId: nil
             )
         }
-        .alert("Routine Copied", isPresented: $showingCopySuccess) {
-            Button("OK", role: .cancel) { }
+        .alert(String(localized: "Routine Copied"), isPresented: $showingCopySuccess) {
+            Button(String(localized: "OK"), role: .cancel) { }
         } message: {
-            Text("A copy of '\(viewModel.routine.name)' has been created. You can find it in your routine list.")
+            Text("A copy of '\(viewModel.routine.name)' has been created. You can find it in your routine list.", comment: "Copy routine success message")
         }
-        .alert("Error", isPresented: Binding(
+        .alert(String(localized: "Error"), isPresented: Binding(
             get: { viewModel.actionError != nil },
             set: { if !$0 { viewModel.actionError = nil } }
         )) {
-            Button("OK", role: .cancel) { }
+            Button(String(localized: "OK"), role: .cancel) { }
         } message: {
             Text(viewModel.actionError ?? "")
         }
@@ -568,7 +568,7 @@ struct ExercisePickerSheet: View {
                                 .scaledToFit()
                                 .frame(width: 15, height: 15)
                                 .foregroundStyle(Color.appTertiaryText)
-                            TextField("Search exercises...", text: $searchText)
+                            TextField(String(localized: "Search exercises..."), text: $searchText)
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appText)
                                 .accessibilityIdentifier("exerciseSearchField")
@@ -662,7 +662,7 @@ struct ExercisePickerSheet: View {
                                     selectedMuscle = nil
                                     selectedEquipment = nil
                                 } label: {
-                                    Text("Clear all")
+                                    Text("Clear all", comment: "Clear filters button")
                                         .font(.caption.weight(.semibold))
                                         .foregroundStyle(Color.red)
                                         .padding(.horizontal, 12)
@@ -677,7 +677,7 @@ struct ExercisePickerSheet: View {
                     
                     // Results count
                     HStack {
-                        Text("\(filteredExercises.count) exercises")
+                        Text("\(filteredExercises.count) \(filteredExercises.count == 1 ? String(localized: "exercise") : String(localized: "exercises"))")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appTertiaryText)
                         Spacer()
@@ -690,11 +690,11 @@ struct ExercisePickerSheet: View {
                         VStack(spacing: 14) {
                             IconBadge(assetName: "search", size: 48)
                             
-                            Text("No exercises found")
+                            Text("No exercises found", comment: "Empty search state")
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
-                            
-                            Text("Try adjusting your search or filters, or create a custom exercise")
+
+                            Text("Try adjusting your search or filters, or create a custom exercise", comment: "Empty search state hint")
                                 .font(.caption)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -724,7 +724,7 @@ struct ExercisePickerSheet: View {
                                                     .scaledToFit()
                                                     .frame(width: 14, height: 14)
                                                     .foregroundStyle(Color.appAccent)
-                                                Text("My Exercises")
+                                                Text("My Exercises", comment: "Custom exercises section header")
                                                     .font(.subheadline.weight(.semibold))
                                                     .foregroundStyle(Color.appText)
                                                 
@@ -755,7 +755,7 @@ struct ExercisePickerSheet: View {
                                     
                                     // Divider between sections
                                     HStack {
-                                        Text("All Exercises")
+                                        Text("All Exercises", comment: "All exercises section header")
                                             .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appText)
                                         Spacer()
@@ -802,7 +802,7 @@ struct ExercisePickerSheet: View {
                     HStack(spacing: 8) {
                         Image("check-circle")
                             .foregroundStyle(.green)
-                        Text("\(name) added")
+                        Text("\(name) \(String(localized: "added"))")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appText)
                     }
@@ -815,7 +815,7 @@ struct ExercisePickerSheet: View {
                 }
             }
             .sentryScreen("AddExercise")
-            .navigationTitle("Add Exercise")
+            .navigationTitle(String(localized: "Add Exercise"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
@@ -823,14 +823,14 @@ struct ExercisePickerSheet: View {
                     Button {
                         showingCreateCustomSheet = true
                     } label: {
-                        Text("Custom")
+                        Text("Custom", comment: "Custom exercise toolbar button")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appAccent)
                     }
                     .accessibilityIdentifier("customExerciseToolbarButton")
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
+                    Button(String(localized: "Done")) {
                         let notificationFeedback = UINotificationFeedbackGenerator()
                         notificationFeedback.notificationOccurred(.success)
                         dismiss()
@@ -914,7 +914,7 @@ struct ExercisePickerSheet: View {
                             .lineLimit(1)
                         
                         if exercise.isCustom == true {
-                            Text("Custom")
+                            Text("Custom", comment: "Custom exercise badge")
                                 .font(.system(size: 9, weight: .bold))
                                 .foregroundStyle(Color.appAccent)
                                 .padding(.horizontal, 6)
@@ -1027,7 +1027,7 @@ struct FilterSheet: View {
                             HStack {
                                 HStack(spacing: 8) {
                                     IconBadge(assetName: "musclegroup", size: 28)
-                                    Text("Muscle Group")
+                                    Text("Muscle Group", comment: "Filter section header")
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -1035,7 +1035,7 @@ struct FilterSheet: View {
                                 Spacer()
                                 
                                 if tempMuscle != nil {
-                                    Button("Clear") {
+                                    Button(String(localized: "Clear")) {
                                         withAnimation(.spring(response: 0.3)) {
                                             tempMuscle = nil
                                         }
@@ -1089,7 +1089,7 @@ struct FilterSheet: View {
                             HStack {
                                 HStack(spacing: 8) {
                                     IconBadge(assetName: "equipment", size: 28)
-                                    Text("Equipment")
+                                    Text("Equipment", comment: "Filter section header")
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -1097,7 +1097,7 @@ struct FilterSheet: View {
                                 Spacer()
                                 
                                 if tempEquipment != nil {
-                                    Button("Clear") {
+                                    Button(String(localized: "Clear")) {
                                         withAnimation(.spring(response: 0.3)) {
                                             tempEquipment = nil
                                         }
@@ -1149,19 +1149,19 @@ struct FilterSheet: View {
                     .padding()
                 }
             }
-            .navigationTitle("Filters")
+            .navigationTitle(String(localized: "Filters"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(String(localized: "Cancel")) {
                         dismiss()
                     }
                     .foregroundStyle(Color.appSecondaryText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Apply") {
+                    Button(String(localized: "Apply")) {
                         selectedMuscle = tempMuscle
                         selectedEquipment = tempEquipment
                         dismiss()
@@ -1194,29 +1194,36 @@ struct CreateCustomExerciseSheet: View {
     enum ExerciseType: String, CaseIterable {
         case strength = "Strength"
         case cardio = "Cardio"
-        
+
         var databaseValue: String {
             switch self {
             case .strength: return "strength"
             case .cardio: return "cardio"
             }
         }
+
+        var displayName: String {
+            switch self {
+            case .strength: return String(localized: "Strength")
+            case .cardio: return String(localized: "Cardio")
+            }
+        }
     }
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
-                
+
                 VStack(spacing: 20) {
                     // Exercise name
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Exercise Name")
+                        Text("Exercise Name", comment: "Custom exercise name label")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appText)
-                        
+
                         HStack {
-                            TextField("e.g. Reverse Nordic Curl", text: $exerciseName)
+                            TextField(String(localized: "e.g. Reverse Nordic Curl"), text: $exerciseName)
                                 .textFieldStyle(.plain)
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appText)
@@ -1237,19 +1244,19 @@ struct CreateCustomExerciseSheet: View {
                     
                     // Exercise type
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Type")
+                        Text("Type", comment: "Exercise type label")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appText)
                         
-                        Picker("Type", selection: $exerciseType) {
+                        Picker(String(localized: "Type"), selection: $exerciseType) {
                             ForEach(ExerciseType.allCases, id: \.self) { type in
-                                Text(type.rawValue).tag(type)
+                                Text(type.displayName).tag(type)
                             }
                         }
                         .pickerStyle(.segmented)
                     }
                     
-                    Text("To delete custom exercises, go to your profile.")
+                    Text("To delete custom exercises, go to your profile.", comment: "Custom exercise hint")
                         .font(.footnote)
                         .foregroundStyle(Color.appSecondaryText.opacity(0.8))
                     
@@ -1273,7 +1280,7 @@ struct CreateCustomExerciseSheet: View {
                                 Image("plus")
                                     .font(.subheadline)
                             }
-                            Text("Create Exercise")
+                            Text("Create Exercise", comment: "Create custom exercise button")
                                 .font(.subheadline.weight(.semibold))
                         }
                         .foregroundStyle(.white)
@@ -1293,12 +1300,12 @@ struct CreateCustomExerciseSheet: View {
                 .padding()
             }
             .sentryScreen("CreateCustomExercise")
-            .navigationTitle("Custom Exercise")
+            .navigationTitle(String(localized: "Custom Exercise"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(String(localized: "Cancel")) {
                         dismiss()
                     }
                     .foregroundStyle(Color.appSecondaryText)
@@ -1442,7 +1449,7 @@ struct Exercise1RMBanner: View {
                     IconBadge(assetName: "crown", color: .orange, size: 36)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Estimated 1RM")
+                        Text("Estimated 1RM", comment: "1RM banner label")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appSecondaryText)
                         Text("\(unitManager.displayWeight(stat.bestEstimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
@@ -1453,7 +1460,7 @@ struct Exercise1RMBanner: View {
                     Spacer()
 
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text("Based on")
+                        Text("Based on", comment: "1RM basis label")
                             .font(.caption2.weight(.medium))
                             .foregroundStyle(Color.appTertiaryText)
                         Text("\(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps)")
@@ -1544,7 +1551,7 @@ struct ExerciseConfigSheet: View {
                                         .foregroundStyle(Color.appText)
                                     
                                     if exercise.isCustom == true {
-                                        Text("Custom")
+                                        Text("Custom", comment: "Custom exercise badge")
                                             .font(.caption2.weight(.semibold))
                                             .foregroundStyle(Color.appAccent)
                                             .padding(.horizontal, 6)
@@ -1577,7 +1584,7 @@ struct ExerciseConfigSheet: View {
                         
                         // Configuration Section
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("CONFIGURATION")
+                            Text("CONFIGURATION", comment: "Exercise config section header")
                                 .font(.caption2.weight(.semibold))
                                 .foregroundStyle(Color.appTertiaryText)
                                 .tracking(0.5)
@@ -1586,14 +1593,14 @@ struct ExerciseConfigSheet: View {
                                 if isCardio {
                                     // Cardio mode picker
                                     VStack(alignment: .leading, spacing: 8) {
-                                        Text("Mode")
+                                        Text("Mode", comment: "Cardio mode label")
                                             .font(.subheadline)
                                             .fontWeight(.medium)
                                             .foregroundStyle(Color.appText)
                                         
                                         Picker("Mode", selection: $cardioMode) {
                                             ForEach(CardioMode.allCases, id: \.self) { mode in
-                                                Text(mode.rawValue).tag(mode)
+                                                Text(mode == .continuous ? String(localized: "Continuous") : String(localized: "Intervals")).tag(mode)
                                             }
                                         }
                                         .pickerStyle(.segmented)
@@ -1605,7 +1612,7 @@ struct ExerciseConfigSheet: View {
                                     if cardioMode == .intervals {
                                         VStack(spacing: 0) {
                                             HStack {
-                                                Text("Intervals")
+                                                Text("Intervals", comment: "Cardio intervals label")
                                                     .font(.subheadline)
                                                     .fontWeight(.medium)
                                                     .foregroundStyle(Color.appText)
@@ -1669,7 +1676,7 @@ struct ExerciseConfigSheet: View {
                                             .frame(maxWidth: .infinity)
                                             .clipped()
                                             
-                                            Text("min")
+                                            Text("min", comment: "Minutes abbreviation")
                                                 .font(.subheadline)
                                                 .foregroundStyle(Color.appText.opacity(0.6))
                                             
@@ -1682,7 +1689,7 @@ struct ExerciseConfigSheet: View {
                                             .frame(maxWidth: .infinity)
                                             .clipped()
                                             
-                                            Text("sec")
+                                            Text("sec", comment: "Seconds abbreviation")
                                                 .font(.subheadline)
                                                 .foregroundStyle(Color.appText.opacity(0.6))
                                         }
@@ -1695,7 +1702,7 @@ struct ExerciseConfigSheet: View {
                                     if cardioMode == .intervals {
                                         VStack(spacing: 0) {
                                             HStack {
-                                                Text("Rest Between Intervals")
+                                                Text("Rest Between Intervals", comment: "Cardio rest label")
                                                     .font(.subheadline)
                                                     .fontWeight(.medium)
                                                     .foregroundStyle(Color.appText)
@@ -1746,7 +1753,7 @@ struct ExerciseConfigSheet: View {
                                     // Sets
                                     VStack(spacing: 0) {
                                         HStack {
-                                            Text("Sets")
+                                            Text("Sets", comment: "Exercise sets label")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
@@ -1794,7 +1801,7 @@ struct ExerciseConfigSheet: View {
                                     // Reps
                                     VStack(spacing: 0) {
                                         HStack {
-                                            Text("Reps")
+                                            Text("Reps", comment: "Exercise reps label")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
@@ -1816,7 +1823,7 @@ struct ExerciseConfigSheet: View {
                                     // Weight
                                     VStack(spacing: 0) {
                                         HStack {
-                                            Text("Weight (\(unitManager.weightUnit))")
+                                            Text("\(String(localized: "Weight")) (\(unitManager.weightUnit))")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
@@ -1845,7 +1852,7 @@ struct ExerciseConfigSheet: View {
                                     // Rest
                                     VStack(spacing: 0) {
                                         HStack {
-                                            Text("Rest Between Sets")
+                                            Text("Rest Between Sets", comment: "Exercise rest label")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
@@ -1897,19 +1904,19 @@ struct ExerciseConfigSheet: View {
                 }
             }
             .sentryScreen("ConfigureExercise")
-            .navigationTitle("Configure Exercise")
+            .navigationTitle(String(localized: "Configure Exercise"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(String(localized: "Cancel")) {
                         dismiss()
                     }
                     .foregroundStyle(Color.appSecondaryText)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") {
+                    Button(String(localized: "Add")) {
                         let notificationFeedback = UINotificationFeedbackGenerator()
                         notificationFeedback.notificationOccurred(.success)
                         Task {
@@ -1998,11 +2005,11 @@ struct EditRoutineSheet: View {
                     VStack(spacing: 8) {
                         IconBadge(assetName: "edit-pencil", color: .appAccent, size: 48)
 
-                        Text("Edit Routine")
+                        Text("Edit Routine", comment: "Edit routine sheet title")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
 
-                        Text("Update your routine details")
+                        Text("Update your routine details", comment: "Edit routine sheet subtitle")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                     }
@@ -2011,13 +2018,13 @@ struct EditRoutineSheet: View {
                     // Form fields
                     VStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Routine Name")
+                            Text("Routine Name", comment: "Edit routine field label")
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(Color.appSecondaryText)
                                 .padding(.horizontal, 4)
 
                             HStack {
-                                TextField("Push Day", text: $name)
+                                TextField(String(localized: "Push Day"), text: $name)
                                     .textFieldStyle(.plain)
                                     .font(.body)
                                     .foregroundStyle(Color.appText)
@@ -2052,7 +2059,7 @@ struct EditRoutineSheet: View {
 
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                Text("Notes (Optional)")
+                                Text("Notes (Optional)", comment: "Edit routine notes label")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                                     .padding(.horizontal, 4)
@@ -2066,7 +2073,7 @@ struct EditRoutineSheet: View {
                             }
 
                             HStack(alignment: .top) {
-                                TextField("Add a description or notes", text: $description, axis: .vertical)
+                                TextField(String(localized: "Add a description or notes"), text: $description, axis: .vertical)
                                     .textFieldStyle(.plain)
                                     .font(.body)
                                     .foregroundStyle(Color.appText)
@@ -2128,7 +2135,7 @@ struct EditRoutineSheet: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(String(localized: "Cancel")) {
                         dismiss()
                     }
                     .foregroundStyle(Color.appText)
@@ -2219,7 +2226,7 @@ struct EditExerciseSheet: View {
                                         .foregroundStyle(Color.appText)
                                     
                                     if exercise.isCustom == true {
-                                        Text("Custom")
+                                        Text("Custom", comment: "Custom exercise badge")
                                             .font(.caption2.weight(.semibold))
                                             .foregroundStyle(Color.appAccent)
                                             .padding(.horizontal, 6)
@@ -2252,7 +2259,7 @@ struct EditExerciseSheet: View {
                         
                         // Configuration Section
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("CONFIGURATION")
+                            Text("CONFIGURATION", comment: "Exercise config section header")
                                 .font(.caption2.weight(.semibold))
                                 .foregroundStyle(Color.appTertiaryText)
                                 .tracking(0.5)
@@ -2261,14 +2268,14 @@ struct EditExerciseSheet: View {
                                 if isCardio {
                                     // Cardio mode picker
                                     VStack(alignment: .leading, spacing: 8) {
-                                        Text("Mode")
+                                        Text("Mode", comment: "Cardio mode label")
                                             .font(.subheadline)
                                             .fontWeight(.medium)
                                             .foregroundStyle(Color.appText)
                                         
                                         Picker("Mode", selection: $cardioMode) {
                                             ForEach(CardioMode.allCases, id: \.self) { mode in
-                                                Text(mode.rawValue).tag(mode)
+                                                Text(mode == .continuous ? String(localized: "Continuous") : String(localized: "Intervals")).tag(mode)
                                             }
                                         }
                                         .pickerStyle(.segmented)
@@ -2280,7 +2287,7 @@ struct EditExerciseSheet: View {
                                     if cardioMode == .intervals {
                                         VStack(spacing: 0) {
                                             HStack {
-                                                Text("Intervals")
+                                                Text("Intervals", comment: "Cardio intervals label")
                                                     .font(.subheadline)
                                                     .fontWeight(.medium)
                                                     .foregroundStyle(Color.appText)
@@ -2344,7 +2351,7 @@ struct EditExerciseSheet: View {
                                             .frame(maxWidth: .infinity)
                                             .clipped()
                                             
-                                            Text("min")
+                                            Text("min", comment: "Minutes abbreviation")
                                                 .font(.subheadline)
                                                 .foregroundStyle(Color.appText.opacity(0.6))
                                             
@@ -2357,7 +2364,7 @@ struct EditExerciseSheet: View {
                                             .frame(maxWidth: .infinity)
                                             .clipped()
                                             
-                                            Text("sec")
+                                            Text("sec", comment: "Seconds abbreviation")
                                                 .font(.subheadline)
                                                 .foregroundStyle(Color.appText.opacity(0.6))
                                         }
@@ -2370,7 +2377,7 @@ struct EditExerciseSheet: View {
                                     if cardioMode == .intervals {
                                         VStack(spacing: 0) {
                                             HStack {
-                                                Text("Rest Between Intervals")
+                                                Text("Rest Between Intervals", comment: "Cardio rest label")
                                                     .font(.subheadline)
                                                     .fontWeight(.medium)
                                                     .foregroundStyle(Color.appText)
@@ -2421,7 +2428,7 @@ struct EditExerciseSheet: View {
                                     // Sets
                                     VStack(spacing: 0) {
                                         HStack {
-                                            Text("Sets")
+                                            Text("Sets", comment: "Exercise sets label")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
@@ -2469,7 +2476,7 @@ struct EditExerciseSheet: View {
                                     // Reps
                                     VStack(spacing: 0) {
                                         HStack {
-                                            Text("Reps")
+                                            Text("Reps", comment: "Exercise reps label")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
@@ -2491,7 +2498,7 @@ struct EditExerciseSheet: View {
                                     // Weight
                                     VStack(spacing: 0) {
                                         HStack {
-                                            Text("Weight (\(unitManager.weightUnit))")
+                                            Text("\(String(localized: "Weight")) (\(unitManager.weightUnit))")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
@@ -2519,7 +2526,7 @@ struct EditExerciseSheet: View {
                                     // Rest
                                     VStack(spacing: 0) {
                                         HStack {
-                                            Text("Rest Between Sets")
+                                            Text("Rest Between Sets", comment: "Exercise rest label")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
@@ -2571,19 +2578,19 @@ struct EditExerciseSheet: View {
                 }
             }
             .sentryScreen("EditExercise")
-            .navigationTitle("Edit Exercise")
+            .navigationTitle(String(localized: "Edit Exercise"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(String(localized: "Cancel")) {
                         dismiss()
                     }
                     .foregroundStyle(Color.appSecondaryText)
                 }
-                
+
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(String(localized: "Save")) {
                         let notificationFeedback = UINotificationFeedbackGenerator()
                         notificationFeedback.notificationOccurred(.success)
                         Task {

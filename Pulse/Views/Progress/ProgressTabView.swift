@@ -52,11 +52,11 @@ struct ProgressTabView: View {
                         
                         IconBadge(assetName: "progressup", color: .appAccent, size: 72)
                         
-                        Text("Unlock Progress Tracking")
+                        Text("Unlock Progress Tracking", comment: "Pro upgrade prompt title")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
-                        Text("Upgrade to Pro to access detailed analytics, personal records, and training insights.")
+                        Text("Upgrade to Pro to access detailed analytics, personal records, and training insights.", comment: "Pro upgrade prompt subtitle")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
@@ -78,7 +78,7 @@ struct ProgressTabView: View {
                     VStack(spacing: 14) {
                         // Smart Insight
                         if let insight = viewModel.currentInsight {
-                            Text("Smart Insights")
+                            Text("Smart Insights", comment: "Section header on progress tab")
                                 .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -89,7 +89,7 @@ struct ProgressTabView: View {
                         }
                         
                         // Activity Section
-                        Text("Activity")
+                        Text("Activity", comment: "Section header on progress tab")
                             .font(.title3.weight(.bold))
                             .foregroundStyle(Color.appText)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -101,11 +101,11 @@ struct ProgressTabView: View {
                                 IconBadge(assetName: "flame", color: .orange, size: 36)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Current Streak")
+                                    Text("Current Streak", comment: "Streak card label")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
-                                    
-                                    Text("\(viewModel.currentStreak) \(viewModel.currentStreak == 1 ? "day" : "days")")
+
+                                    Text("\(viewModel.currentStreak) \(viewModel.currentStreak == 1 ? String(localized: "day") : String(localized: "days"))")
                                         .font(.title3.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -118,11 +118,11 @@ struct ProgressTabView: View {
                             
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Longest Streak")
+                                    Text("Longest Streak", comment: "Streak card label")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
-                                    
-                                    Text("\(viewModel.bestStreak) \(viewModel.bestStreak == 1 ? "day" : "days")")
+
+                                    Text("\(viewModel.bestStreak) \(viewModel.bestStreak == 1 ? String(localized: "day") : String(localized: "days"))")
                                         .font(.subheadline.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -130,7 +130,7 @@ struct ProgressTabView: View {
                                 Spacer()
                                 
                                 VStack(alignment: .trailing, spacing: 2) {
-                                    Text("Last Workout")
+                                    Text("Last Workout", comment: "Streak card label")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
                                     
@@ -155,11 +155,11 @@ struct ProgressTabView: View {
                                 IconBadge(assetName: "strengthtraining", color: .appAccent, size: 36)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Workouts Completed")
+                                    Text("Workouts Completed", comment: "Activity card label")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
-                                    
-                                    Text("This month: \(viewModel.monthlyWorkouts)")
+
+                                    Text("This month: \(viewModel.monthlyWorkouts)", comment: "Monthly workout count")
                                         .font(.subheadline.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -171,7 +171,7 @@ struct ProgressTabView: View {
                                 .background(Color.appText.opacity(0.06))
                             
                             HStack {
-                                Text("All time: \(viewModel.lifetimeWorkouts)")
+                                Text("All time: \(viewModel.lifetimeWorkouts)", comment: "Lifetime workout count")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                                 
@@ -193,11 +193,11 @@ struct ProgressTabView: View {
                                 IconBadge(assetName: "volume", color: .blue, size: 36)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Volume Lifted")
+                                    Text("Volume Lifted", comment: "Activity card label")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
                                     
-                                    Text("This week: \(formattedVolume(unitManager.displayWeight(Double(viewModel.weeklyVolume)))) \(unitManager.weightUnit)")
+                                    Text("\(String(localized: "This week:")) \(formattedVolume(unitManager.displayWeight(Double(viewModel.weeklyVolume)))) \(unitManager.weightUnit)")
                                         .font(.subheadline.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -209,7 +209,7 @@ struct ProgressTabView: View {
                                 .background(Color.appText.opacity(0.06))
                             
                             HStack {
-                                Text("All time: \(formattedVolume(unitManager.displayWeight(Double(viewModel.lifetimeVolume)))) \(unitManager.weightUnit)")
+                                Text("\(String(localized: "All time:")) \(formattedVolume(unitManager.displayWeight(Double(viewModel.lifetimeVolume)))) \(unitManager.weightUnit)")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                                 
@@ -231,11 +231,11 @@ struct ProgressTabView: View {
                                 IconBadge(assetName: "clock", color: .green, size: 36)
 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Workout Time")
+                                    Text("Workout Time", comment: "Activity card label")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
 
-                                    Text("This week: \(formattedDuration(viewModel.weeklyDurationMinutes))")
+                                    Text("This week: \(formattedDuration(viewModel.weeklyDurationMinutes))", comment: "Weekly duration")
                                         .font(.subheadline.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -247,7 +247,7 @@ struct ProgressTabView: View {
                                 .background(Color.appText.opacity(0.06))
 
                             HStack {
-                                Text("All time: \(viewModel.lifetimeHours)h")
+                                Text("\(String(localized: "All time:")) \(viewModel.lifetimeHours)h")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
 
@@ -270,7 +270,7 @@ struct ProgressTabView: View {
                         // Weight Progress
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Weight Progress")
+                                Text("Weight Progress", comment: "Section header")
                                     .font(.title3.weight(.bold))
                                     .foregroundStyle(Color.appText)
                                 
@@ -278,7 +278,7 @@ struct ProgressTabView: View {
                                 
                                 if !viewModel.strengthProgress.isEmpty {
                                     NavigationLink(destination: AllStrengthProgressView(viewModel: viewModel).hidesTabBar()) {
-                                        Text("See All")
+                                        Text("See All", comment: "Navigation link")
                                             .font(.subheadline.weight(.medium))
                                             .foregroundStyle(Color.appAccent)
                                     }
@@ -387,7 +387,7 @@ struct StrengthProgressCard: View {
 
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Best")
+                    Text("Best", comment: "Strength progress label")
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(Color.appSecondaryText)
                     Text("\(unitManager.displayWeight(progress.bestWeight), specifier: "%.1f") \(unitManager.weightUnit)")
@@ -396,7 +396,7 @@ struct StrengthProgressCard: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Start")
+                    Text("Start", comment: "Strength progress start label")
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(Color.appSecondaryText)
                     Text("\(unitManager.displayWeight(progress.firstWeight), specifier: "%.1f") \(unitManager.weightUnit)")
@@ -421,7 +421,7 @@ struct StrengthProgressCard: View {
                                     .opacity(0.12),
                                 in: Capsule()
                             )
-                        Text("since start")
+                        Text("since start", comment: "Improvement percentage context")
                             .font(.caption2)
                             .foregroundStyle(Color.appTertiaryText)
                     }
@@ -444,11 +444,11 @@ struct EmptyStrengthProgressCard: View {
         VStack(spacing: 14) {
             IconBadge(assetName: "trophy", size: 48)
 
-            Text("No Strength Data Yet")
+            Text("No Strength Data Yet", comment: "Empty state title")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.appText)
 
-            Text("Complete workouts to start tracking your weight progress!")
+            Text("Complete workouts to start tracking your weight progress!", comment: "Empty state subtitle")
                 .font(.caption)
                 .foregroundStyle(Color.appSecondaryText)
                 .multilineTextAlignment(.center)
@@ -548,7 +548,7 @@ struct Estimated1RMSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Estimated 1RM")
+                Text("Estimated 1RM", comment: "Section header")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(Color.appText)
 
@@ -556,7 +556,7 @@ struct Estimated1RMSection: View {
 
                 if !viewModel.exercise1RMStats.isEmpty {
                     NavigationLink(destination: AllEstimated1RMView(viewModel: viewModel).hidesTabBar()) {
-                        Text("See All")
+                        Text("See All", comment: "Navigation link")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.appAccent)
                     }
@@ -592,7 +592,7 @@ struct Estimated1RMCard: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
 
-                    Text("Based on \(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps")
+                    Text("Based on \(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps", comment: "1RM basis description")
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                 }
@@ -716,7 +716,7 @@ struct Exercise1RMDetailView: View {
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
 
-                        Text("Estimated 1RM: \(unitManager.displayWeight(stat.bestEstimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
+                        Text("Estimated 1RM: \(unitManager.displayWeight(stat.bestEstimated1rm), specifier: "%.1f") \(unitManager.weightUnit)", comment: "Estimated 1RM value display")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
 
@@ -725,7 +725,7 @@ struct Exercise1RMDetailView: View {
                             let displayChange = abs(unitManager.displayWeight(stat.bestEstimated1rm) - unitManager.displayWeight(first.estimated1rm))
                             if abs(change) >= 0.1 {
                                 let sign = change > 0 ? "+" : "-"
-                                Text("\(sign)\(displayChange, specifier: "%.1f") \(unitManager.weightUnit) since first entry")
+                                Text("\(sign)\(displayChange, specifier: "%.1f") \(unitManager.weightUnit) since first entry", comment: "1RM change since first entry")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(change > 0 ? Color.green : Color.red)
                             }
@@ -742,11 +742,11 @@ struct Exercise1RMDetailView: View {
                         VStack(spacing: 14) {
                             IconBadge(assetName: "progressup", size: 48)
 
-                            Text("Not enough data yet")
+                            Text("Not enough data yet", comment: "Empty chart state")
                                 .font(.headline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
 
-                            Text("You need at least 2 personal records logged to see your 1RM progression chart.")
+                            Text("You need at least 2 personal records logged to see your 1RM progression chart.", comment: "Empty chart state")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -761,7 +761,7 @@ struct Exercise1RMDetailView: View {
                         .padding(.horizontal)
                     } else {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("1RM Progression (\(unitManager.weightUnit))")
+                            Text("1RM Progression (\(unitManager.weightUnit))", comment: "Chart title for 1RM progression")
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(Color.appSecondaryText)
 
@@ -824,7 +824,7 @@ struct Exercise1RMDetailView: View {
                     // Training Weights Grid
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Training Weights")
+                            Text("Training Weights", comment: "Section header for training weights grid")
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
 
@@ -833,7 +833,7 @@ struct Exercise1RMDetailView: View {
 
                         HStack(spacing: 16) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Based on")
+                                Text("Based on", comment: "Label before weight and reps")
                                     .font(.caption2.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                                 Text("\(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps")
@@ -862,7 +862,7 @@ struct Exercise1RMDetailView: View {
                 }
             }
         }
-        .navigationTitle("Estimated 1RM")
+        .navigationTitle(String(localized: "Estimated 1RM"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         .task {
@@ -1009,11 +1009,11 @@ struct Empty1RMCard: View {
         VStack(spacing: 14) {
             IconBadge(assetName: "crown", size: 48)
 
-            Text("No 1RM Data Yet")
+            Text("No 1RM Data Yet", comment: "Empty state title for 1RM card")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.appText)
 
-            Text("Log strength sets with 10 or fewer reps to estimate your one rep max!")
+            Text("Log strength sets with 10 or fewer reps to estimate your one rep max!", comment: "Empty state subtitle for 1RM card")
                 .font(.caption)
                 .foregroundStyle(Color.appSecondaryText)
                 .multilineTextAlignment(.center)
@@ -1044,11 +1044,11 @@ struct AllEstimated1RMView: View {
                         VStack(spacing: 16) {
                             IconBadge(assetName: "crown", size: 56)
 
-                            Text("No 1RM Data Yet")
+                            Text("No 1RM Data Yet", comment: "Empty state title for all 1RM view")
                                 .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
 
-                            Text("Log strength sets with 10 or fewer reps to estimate your one rep max!")
+                            Text("Log strength sets with 10 or fewer reps to estimate your one rep max!", comment: "Empty state subtitle for all 1RM view")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -1067,7 +1067,7 @@ struct AllEstimated1RMView: View {
                 await viewModel.loadStats()
             }
         }
-        .navigationTitle("Estimated 1RM")
+        .navigationTitle(String(localized: "Estimated 1RM"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
     }
@@ -1088,11 +1088,11 @@ struct AllStrengthProgressView: View {
                         VStack(spacing: 16) {
                             IconBadge(assetName: "trophy", size: 56)
 
-                            Text("No Strength Data Yet")
+                            Text("No Strength Data Yet", comment: "Empty state title for all strength progress view")
                                 .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
 
-                            Text("Complete workouts to start tracking your weight progress!")
+                            Text("Complete workouts to start tracking your weight progress!", comment: "Empty state subtitle for all strength progress view")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -1111,7 +1111,7 @@ struct AllStrengthProgressView: View {
                 await viewModel.loadStats()
             }
         }
-        .navigationTitle("Weight Progress")
+        .navigationTitle(String(localized: "Weight Progress"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
     }
@@ -1134,7 +1134,7 @@ struct HealthMetricsSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Body Metrics")
+                Text("Body Metrics", comment: "Section header")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(Color.appText)
                 
@@ -1168,7 +1168,7 @@ struct HealthMetricsSection: View {
                         } label: {
                             HealthMetricCard(
                                 icon: "ruler",
-                                title: "Height",
+                                title: String(localized: "Height"),
                                 value: profile.heightCm != nil ? unitManager.displayHeightFormatted(profile.heightCm!) : "--",
                                 unit: unitManager.unitSystem == .metric ? "cm" : "",
                                 color: .green,
@@ -1185,7 +1185,7 @@ struct HealthMetricsSection: View {
                         } label: {
                             HealthMetricCard(
                                 icon: "scale",
-                                title: "Weight",
+                                title: String(localized: "Weight"),
                                 value: profile.weightKg != nil ? String(format: "%.1f", unitManager.displayWeight(profile.weightKg!)) : "--",
                                 unit: unitManager.weightUnit,
                                 color: .blue,
@@ -1212,7 +1212,7 @@ struct HealthMetricsSection: View {
                                     IconBadge(assetName: "scale", color: .appAccent, size: 40)
                                     
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Weight Trend")
+                                        Text("Weight Trend", comment: "Weight trend card title")
                                             .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appText)
                                         
@@ -1221,11 +1221,11 @@ struct HealthMetricsSection: View {
                                         
                                         if abs(change) >= 0.1 {
                                             let arrow = change > 0 ? "↑" : "↓"
-                                            Text("\(arrow) \(String(format: "%.1f", displayChange)) \(unitManager.weightUnit) since start")
+                                            Text("\(arrow) \(String(format: "%.1f", displayChange)) \(unitManager.weightUnit) since start", comment: "Weight change since start")
                                                 .font(.caption)
                                                 .foregroundStyle(Color.appSecondaryText)
                                         } else {
-                                            Text("No change since start")
+                                            Text("No change since start", comment: "No weight change label")
                                                 .font(.caption)
                                                 .foregroundStyle(Color.appSecondaryText)
                                         }
@@ -1254,18 +1254,18 @@ struct HealthMetricsSection: View {
                                             size: 40
                                         )
                                         
-                                        Text("Target: \(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit)")
+                                        Text("Target: \(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit)", comment: "Target weight display")
                                             .font(.caption.weight(.medium))
                                             .foregroundStyle(Color.appSecondaryText)
                                         
                                         Spacer()
                                         
                                         if reached {
-                                            Text("Reached!")
+                                            Text("Reached!", comment: "Target weight reached indicator")
                                                 .font(.caption.weight(.bold))
                                                 .foregroundStyle(.green)
                                         } else {
-                                            Text("\(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) from target")
+                                            Text("\(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) from target", comment: "Remaining weight to target")
                                                 .font(.caption.weight(.medium))
                                                 .foregroundStyle(Color.appSecondaryText)
                                         }
@@ -1292,17 +1292,17 @@ struct HealthMetricsSection: View {
                                 IconBadge(assetName: "circle-dashed", color: .orange, size: 40)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Weight Goal")
+                                    Text("Weight Goal", comment: "Weight goal card title")
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundStyle(Color.appText)
-                                    
+
                                     if let targetWeight = profile.targetWeightKg, targetWeight > 0 {
                                         let remaining = abs(currentWeight - targetWeight)
-                                        Text("\(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit) — \(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) to go")
+                                        Text("\(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit) — \(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) to go", comment: "Target weight with remaining")
                                             .font(.caption)
                                             .foregroundStyle(Color.appSecondaryText)
                                     } else {
-                                        Text("Set a target weight")
+                                        Text("Set a target weight", comment: "Prompt to set target weight")
                                             .font(.caption)
                                             .foregroundStyle(Color.appSecondaryText)
                                     }
@@ -1339,7 +1339,7 @@ struct HealthMetricsSection: View {
                             }
                             
                             // Title
-                            Text("BMI")
+                            Text("BMI", comment: "Body Mass Index label")
                                 .font(.caption)
                                 .foregroundStyle(Color.appText.opacity(0.7))
                             
@@ -1350,7 +1350,7 @@ struct HealthMetricsSection: View {
                                     .fontWeight(.bold)
                                     .foregroundStyle(Color.appText)
                                 
-                                Text(category)
+                                Text(profile.bmiCategoryDisplayName ?? "")
                                     .font(.caption)
                                     .foregroundStyle(categoryColor(for: category))
                                     .fontWeight(.semibold)
@@ -1396,16 +1396,16 @@ struct HealthMetricsSection: View {
                                 
                                 // Category labels
                                 HStack {
-                                    Text("Underweight")
+                                    Text("Underweight", comment: "BMI category label")
                                         .font(.caption2)
                                     Spacer()
-                                    Text("Normal")
+                                    Text("Normal", comment: "BMI category label")
                                         .font(.caption2)
                                     Spacer()
-                                    Text("Overweight")
+                                    Text("Overweight", comment: "BMI category label")
                                         .font(.caption2)
                                     Spacer()
-                                    Text("Obese")
+                                    Text("Obese", comment: "BMI category label")
                                         .font(.caption2)
                                 }
                                 .foregroundStyle(Color.appText.opacity(0.5))
@@ -1425,7 +1425,7 @@ struct HealthMetricsSection: View {
                         VStack(spacing: 14) {
                             IconBadge(assetName: "progressup", size: 48)
 
-                            Text("Add your height and weight to see BMI and track your progress")
+                            Text("Add your height and weight to see BMI and track your progress", comment: "Empty state for body metrics")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -1466,30 +1466,30 @@ struct HealthMetricsSection: View {
                 .sheetContentTransition()
         }
         .confirmationDialog(
-            "Delete Body Metrics",
+            String(localized: "Delete Body Metrics"),
             isPresented: $showDeleteConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Delete All Data", role: .destructive) {
+            Button(String(localized: "Delete All Data"), role: .destructive) {
                 Task {
                     _ = await viewModel.clearBodyMetrics()
                 }
             }
-            Button("Cancel", role: .cancel) {}
+            Button(String(localized: "Cancel"), role: .cancel) {}
         } message: {
-            Text("This will permanently delete your weight, height, target weight, and all weight history. This action cannot be undone.")
+            Text("This will permanently delete your weight, height, target weight, and all weight history. This action cannot be undone.", comment: "Delete body metrics confirmation message")
         }
     }
     
     func categoryColor(for category: String) -> Color {
         switch category {
-        case "Underweight":
+        case "underweight":
             return .blue
-        case "Normal":
+        case "normal":
             return .green
-        case "Overweight":
+        case "overweight":
             return .orange
-        case "Obese":
+        case "obese":
             return .red
         default:
             return .gray
@@ -1596,7 +1596,7 @@ struct WeightProgressionChart: View {
                         VStack(spacing: 8) {
                             IconBadge(assetName: "scale", color: .blue, size: 48)
                             
-                            Text("Weight Progression")
+                            Text("Weight Progression", comment: "Weight progression chart title")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
                             
@@ -1605,7 +1605,7 @@ struct WeightProgressionChart: View {
                                displayHistory.count > 1 {
                                 let change = last.weight - first.weight
                                 let arrow = change >= 0 ? "↑" : "↓"
-                                Text("\(arrow) \(String(format: "%.1f", abs(change))) \(unitManager.weightUnit) overall")
+                                Text("\(arrow) \(String(format: "%.1f", abs(change))) \(unitManager.weightUnit) overall", comment: "Overall weight change summary")
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appSecondaryText)
                             }
@@ -1617,11 +1617,11 @@ struct WeightProgressionChart: View {
                             VStack(spacing: 14) {
                                 IconBadge(assetName: "progressup", size: 48)
                                 
-                                Text("Not enough data yet")
+                                Text("Not enough data yet", comment: "Empty weight chart state title")
                                     .font(.headline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
-                                
-                                Text("Log your weight at least twice to see your progression chart.")
+
+                                Text("Log your weight at least twice to see your progression chart.", comment: "Empty weight chart state subtitle")
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appSecondaryText)
                                     .multilineTextAlignment(.center)
@@ -1637,7 +1637,7 @@ struct WeightProgressionChart: View {
                         } else {
                             // Chart
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Weight (\(unitManager.weightUnit))")
+                                Text("Weight (\(unitManager.weightUnit))", comment: "Weight chart Y-axis label")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                                 
@@ -1674,7 +1674,7 @@ struct WeightProgressionChart: View {
                             
                             // History list
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("History")
+                                Text("History", comment: "Weight history list header")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
                                     .padding(.horizontal, 4)
@@ -1719,7 +1719,7 @@ struct WeightProgressionChart: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
+                    Button(String(localized: "Close")) {
                         dismiss()
                     }
                     .foregroundStyle(Color.appText)
@@ -1899,7 +1899,7 @@ struct EditHeightSheet: View {
                     VStack(spacing: 28) {
                         VStack(spacing: 8) {
                             IconBadge(assetName: "ruler", color: .green, size: 48)
-                            Text("Height")
+                            Text("Height", comment: "Edit height sheet title")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
                             Text(viewModel.profile?.heightCm != nil ? String(localized: "Update your height") : String(localized: "Add your height"))
@@ -1929,7 +1929,7 @@ struct EditHeightSheet: View {
                                 Image("ruler")
                                     .foregroundStyle(Color.green)
                                     .font(.caption)
-                                Text("Height")
+                                Text("Height", comment: "Height input field label")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                             }
@@ -2027,7 +2027,7 @@ struct EditHeightSheet: View {
                     Color.black.opacity(0.4).ignoresSafeArea()
                     VStack(spacing: 16) {
                         ProgressView().tint(.white).scaleEffect(1.5)
-                        Text("Saving...").foregroundStyle(.white).font(.subheadline.weight(.semibold))
+                        Text("Saving...", comment: "Loading indicator while saving").foregroundStyle(.white).font(.subheadline.weight(.semibold))
                     }
                 }
             }
@@ -2036,7 +2036,7 @@ struct EditHeightSheet: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(String(localized: "Cancel")) { dismiss() }
                         .foregroundStyle(Color.appText)
                 }
             }
@@ -2075,7 +2075,7 @@ struct EditHeightSheet: View {
             weightChanged: false, heightChanged: true, targetWeightChanged: false
         )
         if success { dismiss() } else {
-            errorMessage = viewModel.errorMessage ?? "Failed to save height"
+            errorMessage = viewModel.errorMessage ?? String(localized: "Failed to save height")
             showError = true
         }
     }
@@ -2124,10 +2124,10 @@ struct EditWeightSheet: View {
                     VStack(spacing: 28) {
                         VStack(spacing: 8) {
                             IconBadge(assetName: "scale", color: .blue, size: 48)
-                            Text("Weight")
+                            Text("Weight", comment: "Edit weight sheet title")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
-                            Text("Log your current weight")
+                            Text("Log your current weight", comment: "Edit weight sheet subtitle")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                         }
@@ -2155,7 +2155,7 @@ struct EditWeightSheet: View {
                                     .resizable().scaledToFit()
                                     .frame(width: 14, height: 14)
                                     .foregroundStyle(Color.blue)
-                                Text("Weight")
+                                Text("Weight", comment: "Weight input field label")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                             }
@@ -2206,7 +2206,7 @@ struct EditWeightSheet: View {
                     Color.black.opacity(0.4).ignoresSafeArea()
                     VStack(spacing: 16) {
                         ProgressView().tint(.white).scaleEffect(1.5)
-                        Text("Saving...").foregroundStyle(.white).font(.subheadline.weight(.semibold))
+                        Text("Saving...", comment: "Loading indicator while saving").foregroundStyle(.white).font(.subheadline.weight(.semibold))
                     }
                 }
             }
@@ -2215,7 +2215,7 @@ struct EditWeightSheet: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(String(localized: "Cancel")) { dismiss() }
                         .foregroundStyle(Color.appText)
                 }
             }
@@ -2238,7 +2238,7 @@ struct EditWeightSheet: View {
             weightChanged: true, heightChanged: false, targetWeightChanged: false
         )
         if success { dismiss() } else {
-            errorMessage = viewModel.errorMessage ?? "Failed to save weight"
+            errorMessage = viewModel.errorMessage ?? String(localized: "Failed to save weight")
             showError = true
         }
     }
@@ -2287,10 +2287,10 @@ struct EditTargetWeightSheet: View {
                     VStack(spacing: 28) {
                         VStack(spacing: 8) {
                             IconBadge(assetName: "circle-dashed", color: .orange, size: 48)
-                            Text("Weight Goal")
+                            Text("Weight Goal", comment: "Edit target weight sheet title")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
-                            Text("Set your target weight")
+                            Text("Set your target weight", comment: "Edit target weight sheet subtitle")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                         }
@@ -2317,7 +2317,7 @@ struct EditTargetWeightSheet: View {
                                 Image("goal")
                                     .foregroundStyle(Color.orange)
                                     .font(.caption)
-                                Text("Target Weight")
+                                Text("Target Weight", comment: "Target weight input field label")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                             }
@@ -2371,7 +2371,7 @@ struct EditTargetWeightSheet: View {
                                     if success { dismiss() }
                                 }
                             } label: {
-                                Text("Remove Target Weight")
+                                Text("Remove Target Weight", comment: "Button to remove target weight")
                                     .font(.subheadline.weight(.medium))
                                     .foregroundStyle(.red)
                             }
@@ -2385,7 +2385,7 @@ struct EditTargetWeightSheet: View {
                     Color.black.opacity(0.4).ignoresSafeArea()
                     VStack(spacing: 16) {
                         ProgressView().tint(.white).scaleEffect(1.5)
-                        Text("Saving...").foregroundStyle(.white).font(.subheadline.weight(.semibold))
+                        Text("Saving...", comment: "Loading indicator while saving").foregroundStyle(.white).font(.subheadline.weight(.semibold))
                     }
                 }
             }
@@ -2394,7 +2394,7 @@ struct EditTargetWeightSheet: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(String(localized: "Cancel")) { dismiss() }
                         .foregroundStyle(Color.appText)
                 }
             }
@@ -2416,7 +2416,7 @@ struct EditTargetWeightSheet: View {
             weightChanged: false, heightChanged: false, targetWeightChanged: true
         )
         if success { dismiss() } else {
-            errorMessage = viewModel.errorMessage ?? "Failed to save target weight"
+            errorMessage = viewModel.errorMessage ?? String(localized: "Failed to save target weight")
             showError = true
         }
     }
@@ -2480,7 +2480,7 @@ struct RecentWorkoutCard: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 14, height: 14)
-                            Text("Completed")
+                            Text("Completed", comment: "Workout completed status label")
                         }
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.green)
@@ -2522,11 +2522,11 @@ struct AllRecentWorkoutsView: View {
                         VStack(spacing: 16) {
                             IconBadge(assetName: "refresh", size: 56)
 
-                            Text("No Workout History Yet")
+                            Text("No Workout History Yet", comment: "Empty state title for workout history")
                                 .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
 
-                            Text("Complete your first workout to see it here!")
+                            Text("Complete your first workout to see it here!", comment: "Empty state subtitle for workout history")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -2562,7 +2562,7 @@ struct AllRecentWorkoutsView: View {
             }
         }
         .sentryScreen("CompletedWorkouts")
-        .navigationTitle("Completed Workouts")
+        .navigationTitle(String(localized: "Completed Workouts"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         .task {

@@ -39,13 +39,13 @@ struct HealthKitPermissionSheet: View {
                     }
 
                 // Title
-                Text("Connect Apple Health")
+                Text("Connect Apple Health", comment: "HealthKit permission title")
                     .font(.title2.weight(.bold))
                     .foregroundStyle(Color.appText)
                     .multilineTextAlignment(.center)
 
                 // Description
-                Text("Pulse works best with Apple Health. It keeps your workouts running in the background and syncs your data automatically.")
+                Text("Pulse works best with Apple Health. It keeps your workouts running in the background and syncs your data automatically.", comment: "HealthKit permission description")
                     .font(.subheadline)
                     .foregroundStyle(Color.appSecondaryText)
                     .multilineTextAlignment(.center)
@@ -55,13 +55,13 @@ struct HealthKitPermissionSheet: View {
                 VStack(spacing: 14) {
                     BenefitRow(
                         icon: "lock.shield.fill",
-                        title: "Background Workouts",
-                        description: "Your workout keeps tracking even with the screen off."
+                        title: String(localized: "Background Workouts"),
+                        description: String(localized: "Your workout keeps tracking even with the screen off.")
                     )
                     BenefitRow(
                         icon: "chart.bar.fill",
-                        title: "Health Integration",
-                        description: "Save your workouts to Apple Health automatically."
+                        title: String(localized: "Health Integration"),
+                        description: String(localized: "Save your workouts to Apple Health automatically.")
                     )
                 }
                 .padding(.horizontal, 4)
@@ -75,7 +75,7 @@ struct HealthKitPermissionSheet: View {
                         dismiss()
                     }
                 } label: {
-                    Text("Got It")
+                    Text("Got It", comment: "HealthKit permission button")
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
