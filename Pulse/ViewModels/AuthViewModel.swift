@@ -95,11 +95,24 @@ class AuthViewModel: ObservableObject{
                 // Keychain tokens persist across app reinstalls, so a deleted
                 // user would still have a local token. Refreshing will fail if
                 // the user no longer exists, preventing a ghost login.
-                let refreshedSession = try await supabase.auth.refreshSession()
-
-                self.session = refreshedSession
-                self.isAuthenticated = true
-                await fetchUserProfile()
+                do {
+                    let refreshedSession = try await supabase.auth.refreshSession()
+                    self.session = refreshedSession
+                    self.isAuthenticated = true
+                    await fetchUserProfile()
+                } catch where Self.isNetworkError(error) {
+                    // Network error — we're offline. Trust the local session
+                    // so the user can continue using the app in offline mode.
+                    debugLog("⚠️ Offline: could not refresh session (\(error.localizedDescription)), using local session")
+                    self.session = session
+                    self.isAuthenticated = true
+                } catch {
+                    // Auth error (e.g. user deleted, token revoked) — clear session
+                    debugLog("❌ Session refresh failed: \(error.localizedDescription)")
+                    self.session = nil
+                    self.isAuthenticated = false
+                    try? await supabase.auth.signOut()
+                }
             } catch {
                 debugLog("❌ No existing session: \(error.localizedDescription)")
                 self.session = nil
@@ -209,6 +222,17 @@ class AuthViewModel: ObservableObject{
         rateLimitTimer?.cancel()
     }
     
+    private static func isNetworkError(_ error: Error) -> Bool {
+        if error is URLError { return true }
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain { return true }
+        // Check wrapped errors (e.g. Supabase wrapping a URLError)
+        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? Error {
+            return isNetworkError(underlying)
+        }
+        return false
+    }
+
     func signUp(email: String, password: String, firstName: String, lastName: String) async {
         guard !isRateLimited else {
             errorMessage = String(localized: "Too many attempts. Please wait \(rateLimitSecondsRemaining)s.")
