@@ -252,14 +252,11 @@ struct WatchWorkoutView: View {
                         // Not connected or no workout
                         VStack(spacing: 8) {
                             Text("No Active Workout")
-                                .padding(.top, 20)
                                 .font(.footnote)
                                 .fontWeight(.semibold)
-
-                            Text("Start a workout on iPhone")
-                                .font(.caption2)
-                                .foregroundStyle(Color.appText)
-                                .multilineTextAlignment(.center)
+                        }
+                        .containerRelativeFrame(.vertical) { length, _ in
+                            length
                         }
                     }
                 }
