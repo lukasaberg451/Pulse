@@ -486,6 +486,7 @@ struct WatchWorkoutView: View {
     }
 
     func startRestTimer() {
+        guard restSeconds > 0 else { return }
         restEndDate = Date().addingTimeInterval(TimeInterval(restSeconds))
         isResting = true
     }

@@ -1398,7 +1398,7 @@ struct CalendarGridView: View {
         VStack(spacing: 6) {
             // Day headers
             LazyVGrid(columns: columns, spacing: 10) {
-                ForEach(daysOfWeek, id: \.self) { day in
+                ForEach(Array(daysOfWeek.enumerated()), id: \.offset) { _, day in
                     Text(day)
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(Color.appTertiaryText)

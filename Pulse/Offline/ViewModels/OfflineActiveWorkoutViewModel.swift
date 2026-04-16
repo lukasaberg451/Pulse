@@ -565,7 +565,10 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                         totalSets: setsForCurrentExercise.count
                     )
                 }
-                startRestTimer(seconds: currentRoutineExercise?.restSeconds ?? 60)
+                let restSeconds = currentRoutineExercise?.restSeconds ?? 60
+                if restSeconds > 0 {
+                    startRestTimer(seconds: restSeconds)
+                }
             }
             
             // Update Live Activity with current progress
