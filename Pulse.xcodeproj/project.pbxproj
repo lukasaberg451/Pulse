@@ -72,23 +72,11 @@
 			membershipExceptions = (
 				Assets.xcassets,
 				Extensions/ColorExtensions.swift,
-				Extensions/Constants.swift,
 				Extensions/DebugLog.swift,
-				Extensions/InputSanitization.swift,
-				Extensions/SharedFormatters.swift,
 				Managers/WorkoutSyncManager.swift,
-				Models/AggregateStats.swift,
 				Models/Exercise.swift,
-				Models/HomeTab.swift,
-				Models/Milestone.swift,
-				Models/ParsedWorkout.swift,
 				Models/Routine.swift,
 				Models/RoutineExercise.swift,
-				Models/SmartInsight.swift,
-				Models/TourStep.swift,
-				Models/WeightHistory.swift,
-				Models/WorkoutActivityAttributes.swift,
-				Models/WorkoutSet.swift,
 			);
 			target = 3149B71B2F435C0F00A61B9F /* PulseWatch Watch App */;
 		};
@@ -489,7 +477,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
@@ -525,7 +513,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;

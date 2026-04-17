@@ -128,7 +128,7 @@ struct WatchWorkoutView: View {
                                         .padding(.top, 8)
 
                                     HStack(spacing: 8) {
-                                        Text("Set \(currentSet)/\(totalSets)")
+                                        Text(verbatim: setProgressString(current: currentSet, total: totalSets))
                                             .font(.caption)
                                             .foregroundStyle(.gray)
 
@@ -145,7 +145,7 @@ struct WatchWorkoutView: View {
                                     .padding(.top, 2)
                                 } else if isEditingWeight {
                                     // STRENGTH WEIGHT INPUT VIEW
-                                    Text("Set \(currentSet)/\(totalSets)")
+                                    Text(verbatim: setProgressString(current: currentSet, total: totalSets))
                                         .font(.caption2)
                                         .foregroundStyle(.gray)
                                         .padding(.bottom, -2)
@@ -153,7 +153,7 @@ struct WatchWorkoutView: View {
                                     HStack(spacing: 2) {
                                         Picker("", selection: $actualWeightWhole) {
                                             ForEach(0..<500) { value in
-                                                Text("\(value)").tag(value)
+                                                Text(verbatim: "\(value)").tag(value)
                                             }
                                         }
                                         .pickerStyle(.wheel)
@@ -166,7 +166,7 @@ struct WatchWorkoutView: View {
 
                                         Picker("", selection: $actualWeightDecimal) {
                                             ForEach(0..<10) { value in
-                                                Text("\(value)").tag(value)
+                                                Text(verbatim: "\(value)").tag(value)
                                             }
                                         }
                                         .pickerStyle(.wheel)
@@ -196,7 +196,7 @@ struct WatchWorkoutView: View {
                                         .foregroundStyle(Color.gray)
 
                                     // Current set progress
-                                    Text("Set \(currentSet)/\(totalSets)")
+                                    Text(verbatim: setProgressString(current: currentSet, total: totalSets))
                                         .font(.body)
                                         .fontWeight(.bold)
                                         .foregroundStyle(.white)
@@ -208,7 +208,7 @@ struct WatchWorkoutView: View {
                                             Text("Weight", comment: "Weight label")
                                                 .font(.body)
                                                 .foregroundStyle(.gray)
-                                            Text("\(targetWeight, specifier: "%.1f") kg")
+                                            Text(verbatim: String(format: "%.1f kg", targetWeight))
                                                 .font(.body)
                                                 .fontWeight(.semibold)
                                                 .foregroundStyle(.white)
@@ -219,7 +219,7 @@ struct WatchWorkoutView: View {
                                                 .font(.body)
                                                 .foregroundStyle(.gray)
 
-                                            Text(targetReps.isEmpty ? "—" : "\(targetReps)")
+                                            Text(verbatim: targetReps.isEmpty ? "—" : targetReps)
                                                 .font(.body)
                                                 .fontWeight(.semibold)
                                                 .foregroundStyle(.white)
@@ -553,5 +553,10 @@ struct WatchWorkoutView: View {
         let minutes = totalSeconds / 60
         let secs = totalSeconds % 60
         return String(format: "%d:%02d", minutes, secs)
+    }
+
+    func setProgressString(current: Int, total: Int) -> String {
+        let setLabel = String(localized: "Set", comment: "Set progress label, e.g. 'Set 1/3'")
+        return "\(setLabel) \(current)/\(total)"
     }
 }
