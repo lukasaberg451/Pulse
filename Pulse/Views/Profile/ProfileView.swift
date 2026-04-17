@@ -1279,11 +1279,11 @@ struct DeleteAccountConfirmationSheet: View {
                         .padding(.horizontal)
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("TYPE DELETE TO CONFIRM")
+                        Text(verbatim: "TYPE DELETE TO CONFIRM")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Color.appSecondaryText)
-                        
-                        TextField("DELETE", text: $confirmationText)
+
+                        TextField(text: $confirmationText) { Text(verbatim: "DELETE") }
                             .textInputAutocapitalization(.characters)
                             .autocorrectionDisabled()
                             .padding(14)

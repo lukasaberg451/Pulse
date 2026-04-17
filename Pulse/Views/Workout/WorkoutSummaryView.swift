@@ -652,10 +652,10 @@ struct ShareableWorkoutCard: View {
             
             // Branding
             HStack(spacing: 6) {
-                Text("Pulse")
+                Text(verbatim: "Pulse")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(accentColor)
-                Text("Workout Tracker", comment: "Branding text")
+                Text(verbatim: "Workout Tracker")
                     .font(.system(size: 16))
                     .foregroundStyle(.white.opacity(0.35))
             }
@@ -766,10 +766,10 @@ struct Shareable1RMCard: View {
 
             // Branding
             HStack(spacing: 6) {
-                Text("Pulse")
+                Text(verbatim: "Pulse")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(accentColor)
-                Text("Workout Tracker", comment: "Branding text")
+                Text(verbatim: "Workout Tracker")
                     .font(.system(size: 16))
                     .foregroundStyle(.white.opacity(0.35))
             }
