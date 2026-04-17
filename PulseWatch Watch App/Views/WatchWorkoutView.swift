@@ -67,12 +67,12 @@ struct WatchWorkoutView: View {
                                 .foregroundStyle(.green)
                                 .padding(.top, 20)
 
-                            Text("Workout Done!")
+                            Text("Workout Done!", comment: "Shown when all sets are completed")
                                 .font(.headline)
                                 .fontWeight(.bold)
                                 .foregroundStyle(.white)
 
-                            Text("Finish the workout on iPhone")
+                            Text("Finish the workout on iPhone", comment: "Instruction after workout completes")
                                 .font(.caption)
                                 .foregroundStyle(.gray)
                                 .multilineTextAlignment(.center)
@@ -82,22 +82,22 @@ struct WatchWorkoutView: View {
                         if isResting && restTimeRemaining > 0 {
                             // REST TIMER VIEW
                             VStack(spacing: 5) {
-                                Text("Rest Time")
+                                Text("Rest Time", comment: "Rest timer label")
                                     .font(.caption2)
                                     .foregroundStyle(Color.appText)
 
-                                Text("\(restTimeRemaining)")
+                                Text(verbatim: "\(restTimeRemaining)")
                                     .font(.system(size: 50, weight: .bold, design: .rounded))
                                     .foregroundStyle(Color.appAccent)
 
-                                Text("seconds")
+                                Text("seconds", comment: "Seconds label under rest timer")
                                     .font(.caption2)
                                     .foregroundStyle(Color.appText)
 
                                 Button {
                                     skipRest()
                                 } label: {
-                                    Text("Skip Rest")
+                                    Text("Skip Rest", comment: "Button to skip rest timer")
                                         .font(.footnote)
                                         .frame(maxWidth: .infinity)
                                 }
@@ -133,7 +133,7 @@ struct WatchWorkoutView: View {
                                             .foregroundStyle(.gray)
 
                                         if targetDuration > 0 {
-                                            Text("•")
+                                            Text(verbatim: "•")
                                                 .font(.caption)
                                                 .foregroundStyle(.gray)
 
@@ -160,7 +160,7 @@ struct WatchWorkoutView: View {
                                         .frame(width: 55, height: 80)
                                         .focused($isWeightWholeFocused)
 
-                                        Text(".")
+                                        Text(verbatim: ".")
                                             .font(.title3.weight(.semibold))
                                             .foregroundStyle(.white)
 
@@ -172,7 +172,7 @@ struct WatchWorkoutView: View {
                                         .pickerStyle(.wheel)
                                         .frame(width: 35, height: 80)
 
-                                        Text("kg")
+                                        Text("kg", comment: "Weight unit label")
                                             .font(.caption)
                                             .foregroundStyle(.gray)
                                     }
@@ -181,7 +181,7 @@ struct WatchWorkoutView: View {
                                     Button {
                                         logSetWithActualWeight()
                                     } label: {
-                                        Text("Log Set")
+                                        Text("Log Set", comment: "Button to log a set with custom weight")
                                             .font(.footnote)
                                             .fontWeight(.semibold)
                                             .frame(maxWidth: .infinity)
@@ -205,7 +205,7 @@ struct WatchWorkoutView: View {
                                     // Target weight and reps
                                     HStack(spacing: 20) {
                                         VStack(spacing: 0) {
-                                            Text("Weight")
+                                            Text("Weight", comment: "Weight label")
                                                 .font(.body)
                                                 .foregroundStyle(.gray)
                                             Text("\(targetWeight, specifier: "%.1f") kg")
@@ -215,7 +215,7 @@ struct WatchWorkoutView: View {
                                         }
 
                                         VStack(spacing: 0) {
-                                            Text("Reps")
+                                            Text("Reps", comment: "Reps label")
                                                 .font(.body)
                                                 .foregroundStyle(.gray)
 
@@ -236,7 +236,7 @@ struct WatchWorkoutView: View {
                                             logSetAndStartRest()
                                         }
                                     } label: {
-                                        Text("Complete")
+                                        Text("Complete", comment: "Button to complete a set")
                                             .font(.footnote)
                                             .fontWeight(.semibold)
                                             .frame(maxWidth: .infinity)
@@ -251,7 +251,7 @@ struct WatchWorkoutView: View {
                     } else {
                         // Not connected or no workout
                         VStack(spacing: 8) {
-                            Text("No Active Workout")
+                            Text("No Active Workout", comment: "Shown when no workout is in progress")
                                 .font(.footnote)
                                 .fontWeight(.semibold)
                         }
