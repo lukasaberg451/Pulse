@@ -121,6 +121,7 @@ struct WeeklyGoalCard: View {
                 .strokeBorder(Color.appAccent, lineWidth: 2)
                 .opacity(glowOpacity)
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("weeklyGoalCard")
         .onChange(of: celebrate) { _, newValue in
             guard newValue else { return }

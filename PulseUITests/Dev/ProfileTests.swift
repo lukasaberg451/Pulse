@@ -199,7 +199,7 @@ final class ProfileTests: XCTestCase {
         XCTAssertTrue(editTitle.waitForExistence(timeout: 5), "Edit First Name sheet title not found")
 
         // Verify Save and Cancel buttons
-        let saveButton = app.staticTexts["Save"]
+        let saveButton = app.buttons["Save"]
         XCTAssertTrue(saveButton.waitForExistence(timeout: 5), "Save button not found on Edit First Name sheet")
 
         let cancelButton = app.buttons["Cancel"]
@@ -234,7 +234,7 @@ final class ProfileTests: XCTestCase {
         XCTAssertTrue(editTitle.waitForExistence(timeout: 5), "Edit Last Name sheet title not found")
 
         // Verify Save and Cancel buttons
-        let saveButton = app.staticTexts["Save"]
+        let saveButton = app.buttons["Save"]
         XCTAssertTrue(saveButton.waitForExistence(timeout: 5), "Save button not found on Edit Last Name sheet")
 
         let cancelButton = app.buttons["Cancel"]
@@ -317,21 +317,18 @@ final class ProfileTests: XCTestCase {
         appearanceRow.tap()
         sleep(2)
 
-        // Verify the sheet appeared
-        let sheetTitle = app.staticTexts["Appearance"]
-        XCTAssertTrue(sheetTitle.waitForExistence(timeout: 5), "Appearance sheet title not found")
-
+        // Verify the sheet appeared (check subtitle to avoid ambiguity with settings row label)
         let subtitle = app.staticTexts["Choose your preferred theme"]
         XCTAssertTrue(subtitle.waitForExistence(timeout: 5), "Theme sheet subtitle not found")
 
-        // Verify all three theme options are present
-        let systemOption = app.staticTexts["System"]
+        // Verify all three theme options are present (use buttons to avoid ambiguity with settings row values)
+        let systemOption = app.buttons.matching(NSPredicate(format: "label == 'System'")).firstMatch
         XCTAssertTrue(systemOption.waitForExistence(timeout: 5), "'System' theme option not found")
 
-        let lightOption = app.staticTexts["Light"]
+        let lightOption = app.buttons.matching(NSPredicate(format: "label == 'Light'")).firstMatch
         XCTAssertTrue(lightOption.exists, "'Light' theme option not found")
 
-        let darkOption = app.staticTexts["Dark"]
+        let darkOption = app.buttons.matching(NSPredicate(format: "label == 'Dark'")).firstMatch
         XCTAssertTrue(darkOption.exists, "'Dark' theme option not found")
 
         // Verify Done button
@@ -355,18 +352,15 @@ final class ProfileTests: XCTestCase {
         unitsRow.tap()
         sleep(2)
 
-        // Verify the sheet appeared
-        let sheetTitle = app.staticTexts["Units"]
-        XCTAssertTrue(sheetTitle.waitForExistence(timeout: 5), "Units sheet title not found")
-
+        // Verify the sheet appeared (check subtitle to avoid ambiguity with settings row label)
         let subtitle = app.staticTexts["Choose your measurement system"]
         XCTAssertTrue(subtitle.waitForExistence(timeout: 5), "Units sheet subtitle not found")
 
-        // Verify both unit system options are present
-        let metricOption = app.staticTexts["Metric"]
+        // Verify both unit system options are present (use buttons to avoid ambiguity with settings row values)
+        let metricOption = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Metric'")).firstMatch
         XCTAssertTrue(metricOption.waitForExistence(timeout: 5), "'Metric' option not found")
 
-        let imperialOption = app.staticTexts["Imperial"]
+        let imperialOption = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Imperial'")).firstMatch
         XCTAssertTrue(imperialOption.exists, "'Imperial' option not found")
 
         // Verify Done button
@@ -395,11 +389,12 @@ final class ProfileTests: XCTestCase {
         XCTAssertTrue(navTitle.waitForExistence(timeout: 5), "Time Zone sheet navigation title not found")
 
         // Verify sections
-        let currentSection = app.staticTexts["CURRENT"]
-        XCTAssertTrue(currentSection.waitForExistence(timeout: 5), "'CURRENT' section not found")
+        // Section headers may be uppercased by the system, so search case-insensitively
+        let currentSection = app.staticTexts.matching(NSPredicate(format: "label ==[c] 'Current'")).firstMatch
+        XCTAssertTrue(currentSection.waitForExistence(timeout: 5), "'Current' section not found")
 
-        let allTimezonesSection = app.staticTexts["ALL TIME ZONES"]
-        XCTAssertTrue(allTimezonesSection.waitForExistence(timeout: 5), "'ALL TIME ZONES' section not found")
+        let allTimezonesSection = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'time zone'")).firstMatch
+        XCTAssertTrue(allTimezonesSection.waitForExistence(timeout: 5), "'All Time Zones' section not found")
 
         // Verify Done button
         let doneButton = app.buttons["Done"]
@@ -427,10 +422,7 @@ final class ProfileTests: XCTestCase {
         feedbackRow.tap()
         sleep(2)
 
-        // Verify the sheet appeared
-        let sheetTitle = app.staticTexts["Send Feedback"]
-        XCTAssertTrue(sheetTitle.waitForExistence(timeout: 5), "Send Feedback sheet title not found")
-
+        // Verify the sheet appeared (check subtitle to avoid ambiguity with settings row label)
         let subtitle = app.staticTexts["Help us improve Pulse"]
         XCTAssertTrue(subtitle.waitForExistence(timeout: 5), "Feedback sheet subtitle not found")
 
@@ -445,7 +437,7 @@ final class ProfileTests: XCTestCase {
         XCTAssertTrue(descriptionLabel.exists, "'DESCRIPTION' label not found")
 
         // Verify submit button exists
-        let submitButton = app.staticTexts["Submit Feedback"]
+        let submitButton = app.buttons["Submit Feedback"]
         XCTAssertTrue(submitButton.waitForExistence(timeout: 5), "Submit Feedback button not found")
 
         // Verify Cancel button

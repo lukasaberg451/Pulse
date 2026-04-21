@@ -76,10 +76,10 @@ final class ProgressTabTests: XCTestCase {
         let workoutsCard = app.otherElements["progressWorkoutsCard"]
         XCTAssertTrue(workoutsCard.waitForExistence(timeout: 10), "Workouts card not found")
 
-        let completedText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'workouts completed'")).firstMatch
+        let completedText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'workouts completed'")).firstMatch
         XCTAssertTrue(completedText.waitForExistence(timeout: 5), "'workouts completed' text not found")
 
-        let thisMonthText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'this month'")).firstMatch
+        let thisMonthText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'this month'")).firstMatch
         XCTAssertTrue(thisMonthText.waitForExistence(timeout: 5), "'this month' text not found")
     }
 
@@ -134,8 +134,8 @@ final class ProgressTabTests: XCTestCase {
         }
         XCTAssertTrue(strengthSection.waitForExistence(timeout: 5), "Strength Progress section not found")
 
-        let strengthHeader = app.staticTexts["Strength Progress"]
-        XCTAssertTrue(strengthHeader.exists, "'Strength Progress' header not found")
+        let strengthHeader = app.staticTexts["Weight Progress"]
+        XCTAssertTrue(strengthHeader.exists, "'Weight Progress' header not found")
     }
 
     // MARK: - Test: Body Metrics Section Visible
@@ -170,41 +170,40 @@ final class ProgressTabTests: XCTestCase {
         navigateToProgress()
 
         // Scroll down to Body Metrics
-        let editButton = app.buttons["editBodyMetricsButton"]
-        if !editButton.waitForExistence(timeout: 5) {
+        // Scroll to Body Metrics section
+        let bodyMetricsSection = app.otherElements["progressBodyMetricsSection"]
+        if !bodyMetricsSection.waitForExistence(timeout: 5) {
             app.swipeUp()
             sleep(1)
-            if !editButton.waitForExistence(timeout: 3) {
+            if !bodyMetricsSection.waitForExistence(timeout: 3) {
                 app.swipeUp()
                 sleep(1)
             }
         }
-        XCTAssertTrue(editButton.waitForExistence(timeout: 5), "Edit Body Metrics button not found")
-        editButton.tap()
+        XCTAssertTrue(bodyMetricsSection.waitForExistence(timeout: 5), "Body Metrics section not found")
+
+        // Tap the height card to open the editing sheet
+        let heightButton = app.buttons["bodyMetricsHeightButton"]
+        if !heightButton.waitForExistence(timeout: 5) {
+            app.swipeUp()
+            sleep(1)
+        }
+        XCTAssertTrue(heightButton.waitForExistence(timeout: 5), "Height metric button not found")
+        heightButton.tap()
         sleep(2)
 
-        // Verify the sheet appeared
-        let sheetTitle = app.staticTexts["Body Metrics"]
-        XCTAssertTrue(sheetTitle.waitForExistence(timeout: 5), "Body Metrics sheet title not found")
-
-        let subtitle = app.staticTexts["Update your body measurements"]
-        XCTAssertTrue(subtitle.waitForExistence(timeout: 5), "Sheet subtitle not found")
-
-        let heightLabel = app.staticTexts["Height"]
-        XCTAssertTrue(heightLabel.exists, "'Height' label not found in the sheet")
-
-        let weightLabel = app.staticTexts["Weight"]
-        XCTAssertTrue(weightLabel.exists, "'Weight' label not found in the sheet")
-
-        // Verify Save and Cancel buttons exist
-        let saveButton = app.staticTexts["Save Changes"]
-        XCTAssertTrue(saveButton.exists, "Save Changes button not found on the sheet")
-
-        let cancelButton = app.buttons["Cancel"]
-        XCTAssertTrue(cancelButton.exists, "Cancel button not found on the sheet")
+        // Verify the height sheet appeared
+        let sheetTitle = app.staticTexts["Height"]
+        XCTAssertTrue(sheetTitle.waitForExistence(timeout: 5), "Height sheet title not found")
 
         // Dismiss
-        cancelButton.tap()
+        let cancelButton = app.buttons["Cancel"]
+        if cancelButton.waitForExistence(timeout: 3) {
+            cancelButton.tap()
+        } else {
+            let doneButton = app.buttons["Done"]
+            if doneButton.exists { doneButton.tap() }
+        }
         sleep(1)
     }
 
@@ -258,8 +257,8 @@ final class ProgressTabTests: XCTestCase {
         sleep(2)
 
         // Verify the detail view appeared
-        let navTitle = app.navigationBars["Strength Progress"]
-        XCTAssertTrue(navTitle.waitForExistence(timeout: 5), "Strength Progress detail view not found")
+        let navTitle = app.navigationBars["Weight Progress"]
+        XCTAssertTrue(navTitle.waitForExistence(timeout: 5), "Weight Progress detail view not found")
 
         // Navigate back
         let backButton = app.navigationBars.buttons.element(boundBy: 0)

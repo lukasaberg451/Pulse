@@ -174,8 +174,8 @@ final class SettingsTests: XCTestCase {
         appearanceRow.tap()
         sleep(2)
 
-        // Select "Dark" theme
-        let darkOption = app.staticTexts["Dark"]
+        // Select "Dark" theme — use the button in the sheet, not staticTexts (avoids ambiguity with settings row)
+        let darkOption = app.buttons.matching(NSPredicate(format: "label == 'Dark'")).firstMatch
         XCTAssertTrue(darkOption.waitForExistence(timeout: 5), "'Dark' option not found")
         darkOption.tap()
         sleep(1)
@@ -193,7 +193,7 @@ final class SettingsTests: XCTestCase {
         // Reset to System
         appearanceRow.tap()
         sleep(2)
-        let systemOption = app.staticTexts["System"]
+        let systemOption = app.buttons.matching(NSPredicate(format: "label == 'System'")).firstMatch
         XCTAssertTrue(systemOption.waitForExistence(timeout: 5), "'System' option not found")
         systemOption.tap()
         sleep(1)
@@ -281,7 +281,7 @@ final class SettingsTests: XCTestCase {
         XCTAssertTrue(descriptionLabel.exists, "'DESCRIPTION' label not found")
 
         // Verify Submit button
-        let submitButton = app.staticTexts["Submit Feedback"]
+        let submitButton = app.buttons["Submit Feedback"]
         XCTAssertTrue(submitButton.exists, "Submit Feedback button not found")
 
         // Verify Cancel button

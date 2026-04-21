@@ -71,6 +71,7 @@ struct ProgressTabView: View {
                         
                         Spacer()
                     }
+                    .accessibilityElement(children: .contain)
                     .accessibilityIdentifier("progressPaywallPrompt")
                 } else {
                 
@@ -147,6 +148,7 @@ struct ProgressTabView: View {
                                 .modifier(CardShadowModifier())
                         }
                         .padding(.horizontal)
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressStreakCard")
                         
                         // Total Workouts
@@ -185,6 +187,7 @@ struct ProgressTabView: View {
                                 .modifier(CardShadowModifier())
                         }
                         .padding(.horizontal)
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressWorkoutsCard")
                         
                         // Volume Lifted
@@ -223,6 +226,7 @@ struct ProgressTabView: View {
                                 .modifier(CardShadowModifier())
                         }
                         .padding(.horizontal)
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressVolumeCard")
 
                         // Workout Time
@@ -261,10 +265,12 @@ struct ProgressTabView: View {
                                 .modifier(CardShadowModifier())
                         }
                         .padding(.horizontal)
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressWorkoutTimeCard")
 
                         // Estimated 1RM Section
                         Estimated1RMSection(viewModel: viewModel)
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("progressEstimated1RMSection")
                         
                         // Weight Progress
@@ -295,10 +301,12 @@ struct ProgressTabView: View {
                                 }
                             }
                         }
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressStrengthSection")
                         
                         // Body Metrics Section
                         HealthMetricsSection()
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("progressBodyMetricsSection")
                     }
                     .padding(.top, 30)
@@ -1176,7 +1184,8 @@ struct HealthMetricsSection: View {
                             )
                         }
                         .buttonStyle(ScalePressStyle())
-                        
+                        .accessibilityIdentifier("bodyMetricsHeightButton")
+
                         // Weight Card
                         Button {
                             let impactLight = UIImpactFeedbackGenerator(style: .light)

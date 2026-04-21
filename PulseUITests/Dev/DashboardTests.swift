@@ -22,7 +22,17 @@ final class DashboardTests: XCTestCase {
     }
 
     override func tearDownWithError() throws {
-        app = nil
+        if app != nil {
+            app.terminate()
+            app.launch()
+            let resumeAlert = app.alerts["Resume Workout?"]
+            if resumeAlert.waitForExistence(timeout: 5) {
+                resumeAlert.buttons["Discard"].tap()
+                sleep(1)
+            }
+            cleanupRoutines(containing: String(uniqueSuffix))
+            app = nil
+        }
     }
 
     // MARK: - Helpers
@@ -103,8 +113,16 @@ final class DashboardTests: XCTestCase {
         searchField.typeText("Bench Press")
         sleep(2)
 
+        // Dismiss keyboard so search results become hittable
+        app.swipeDown()
+        sleep(1)
+
         let benchPressResult = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Bench Press'")).firstMatch
         XCTAssertTrue(benchPressResult.waitForExistence(timeout: 10), "Bench Press not found in search results")
+        if !benchPressResult.isHittable {
+            app.swipeUp()
+            sleep(1)
+        }
         benchPressResult.tap()
         sleep(1)
 

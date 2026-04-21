@@ -668,6 +668,7 @@ struct StatsBar: View {
                 )
             }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("dashboardStatsBar")
         .overlay {
             GeometryReader { geo in

@@ -170,6 +170,7 @@ struct ProfileView: View {
                                 }
                             }
                             }
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("profileCustomExercisesSection")
                             .id("exercises-\(sectionAnimationId)")
                             
@@ -224,6 +225,7 @@ struct ProfileView: View {
                                 }
                             }
                             }
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("profileCompletedWorkoutsSection")
                             .id("workouts-\(sectionAnimationId)")
                             
@@ -263,6 +265,7 @@ struct ProfileView: View {
                                 .padding(.horizontal)
                             }
                             }
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("profileLifetimeStatsSection")
                             .id("stats-\(sectionAnimationId)")
                         }

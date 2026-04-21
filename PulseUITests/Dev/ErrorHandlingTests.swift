@@ -283,7 +283,7 @@ final class RegistrationValidationErrorTests: XCTestCase {
         passwordField.typeText("ValidPass1")
 
         // Agree to terms — tap the checkbox
-        let termsCheckbox = app.buttons.matching(NSPredicate(format: "label CONTAINS 'square' OR label CONTAINS 'checkmark'")).firstMatch
+        let termsCheckbox = app.buttons["termsCheckbox"]
         if termsCheckbox.waitForExistence(timeout: 3) {
             termsCheckbox.tap()
             sleep(1)
@@ -463,7 +463,7 @@ final class ForgotPasswordValidationErrorTests: XCTestCase {
         navigateToForgotPassword()
 
         // Type an invalid email
-        let emailField = app.textFields["Email"]
+        let emailField = app.textFields["forgotPasswordEmailField"]
         XCTAssertTrue(emailField.waitForExistence(timeout: 5), "Email field not found")
         emailField.tap()
         emailField.typeText("notanemail")
@@ -501,7 +501,17 @@ final class RoutineErrorHandlingTests: XCTestCase {
     }
 
     override func tearDownWithError() throws {
-        app = nil
+        if app != nil {
+            app.terminate()
+            app.launch()
+            let resumeAlert = app.alerts["Resume Workout?"]
+            if resumeAlert.waitForExistence(timeout: 5) {
+                resumeAlert.buttons["Discard"].tap()
+                sleep(1)
+            }
+            cleanupRoutines(containing: String(uniqueSuffix))
+            app = nil
+        }
     }
 
     // MARK: - Helpers

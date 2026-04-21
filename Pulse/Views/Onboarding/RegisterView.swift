@@ -378,6 +378,7 @@ struct RegisterView: View {
                                         .foregroundStyle(agreedToTerms ? Color.appAccent : Color.appTertiaryText)
                                         .font(.title3)
                                 }
+                                .accessibilityIdentifier("termsCheckbox")
                                 
                                 HStack(spacing: 4) {
                                     Text("I agree to the", comment: "Terms agreement prefix on registration form")

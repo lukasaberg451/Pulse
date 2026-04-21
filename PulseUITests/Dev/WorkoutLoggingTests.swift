@@ -19,7 +19,16 @@ final class WorkoutLoggingTests: XCTestCase {
     }
 
     override func tearDownWithError() throws {
-        app = nil
+        if app != nil {
+            app.terminate()
+            app.launch()
+            let resumeAlert = app.alerts["Resume Workout?"]
+            if resumeAlert.waitForExistence(timeout: 5) {
+                resumeAlert.buttons["Discard"].tap()
+                sleep(1)
+            }
+            app = nil
+        }
     }
 
     func testStartAndCompleteWorkout() throws {

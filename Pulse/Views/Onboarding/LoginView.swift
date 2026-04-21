@@ -66,6 +66,7 @@ struct LoginView: View {
                             .padding(12)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("loginErrorBox")
                         }
                         
@@ -388,6 +389,7 @@ struct ForgotPasswordView: View {
                             .autocorrectionDisabled()
                             .focused($focusedResetField, equals: .email)
                             .foregroundStyle(Color.appText)
+                            .accessibilityIdentifier("forgotPasswordEmailField")
                             .onChange(of: viewModel.email) {
                                 viewModel.showError = false
                             }
@@ -708,6 +710,7 @@ struct ForgotPasswordView: View {
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("forgotPasswordErrorBox")
         }
     }
