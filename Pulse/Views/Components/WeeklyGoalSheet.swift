@@ -138,6 +138,7 @@ struct GoalButton: View {
                         if !isSelected && colorScheme == .dark {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                .allowsHitTesting(false)
                         }
                     }
                     .shadow(

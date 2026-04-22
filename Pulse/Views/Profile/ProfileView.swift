@@ -393,6 +393,7 @@ struct ProfileCardShadowModifier: ViewModifier {
                 if colorScheme == .dark {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        .allowsHitTesting(false)
                 }
             }
             .shadow(
@@ -1405,6 +1406,7 @@ struct CustomExerciseCard: View {
                     if colorScheme == .dark {
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                            .allowsHitTesting(false)
                     }
                 }
                 .shadow(
@@ -1485,6 +1487,7 @@ struct AllCustomExercisesView: View {
                                     if colorScheme == .dark {
                                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                                             .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                            .allowsHitTesting(false)
                                     }
                                 }
                                 .shadow(

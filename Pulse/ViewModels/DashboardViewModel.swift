@@ -48,6 +48,15 @@ class DashboardViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+        // Listen for routine data changes (create, delete, duplicate)
+        NotificationCenter.default.publisher(for: .routineDataChanged)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    await self?.refreshAll()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     func refreshAll() async {

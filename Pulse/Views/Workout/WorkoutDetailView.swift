@@ -92,6 +92,7 @@ struct WorkoutDetailView: View {
                         .frame(width: 20, height: 20)
                         .foregroundStyle(Color.red)
                 }
+                .accessibilityIdentifier("deleteWorkoutButton")
             }
         }
         .alert(String(localized: "Delete Workout"), isPresented: $viewModel.showDeleteConfirmation) {

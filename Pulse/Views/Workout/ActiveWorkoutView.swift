@@ -301,9 +301,11 @@ struct ActiveWorkoutViewContent: View {
                     onDismiss: {
                         showWorkoutSummary = false
                         dismiss()
-                        Task {
-                            try? await Task.sleep(for: .seconds(2))
-                            requestReview()
+                        if !ProcessInfo.processInfo.arguments.contains("--uitesting") {
+                            Task {
+                                try? await Task.sleep(for: .seconds(2))
+                                requestReview()
+                            }
                         }
                     }
                 )
@@ -346,6 +348,7 @@ struct TimerHeaderCard: View {
             if colorScheme == .dark {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                    .allowsHitTesting(false)
             }
         }
         .shadow(
@@ -535,9 +538,11 @@ struct ExerciseCard: View {
             if status == .current {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .strokeBorder(Color.appAccent.opacity(0.25), lineWidth: 1.5)
+                    .allowsHitTesting(false)
             } else if colorScheme == .dark {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                    .allowsHitTesting(false)
             }
         }
         .shadow(

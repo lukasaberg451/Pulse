@@ -476,7 +476,8 @@ struct ExercisePickerSheet: View {
     @State private var addedExerciseName: String?
     
     @State private var isInitialLoad = true
-    
+    @FocusState private var isSearchFocused: Bool
+
     // Search debounce
     @State private var searchTask: Task<Void, Never>?
     
@@ -557,7 +558,8 @@ struct ExercisePickerSheet: View {
         NavigationStack {
             ZStack {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
-                
+                    .allowsHitTesting(false)
+
                 VStack(spacing: 0) {
                     // Search bar with filter button
                     HStack(spacing: 10) {
@@ -571,6 +573,9 @@ struct ExercisePickerSheet: View {
                             TextField(String(localized: "Search exercises..."), text: $searchText)
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appText)
+                                .focused($isSearchFocused)
+                                .submitLabel(.search)
+                                .onSubmit { isSearchFocused = false }
                                 .accessibilityIdentifier("exerciseSearchField")
                                 .onChange(of: searchText) { _, newValue in
                                     searchTask?.cancel()
@@ -711,6 +716,7 @@ struct ExercisePickerSheet: View {
                         ScrollView {
                             LazyVStack(spacing: 8) {
                                 // My Exercises section - only when no search/filters active
+
                                 if searchText.isEmpty && activeFilterCount == 0 && !viewModel.customExercises.isEmpty {
                                     VStack(alignment: .leading, spacing: 8) {
                                         Button {
@@ -783,6 +789,7 @@ struct ExercisePickerSheet: View {
                             .padding(.horizontal)
                             .padding(.bottom, 20)
                         }
+                        .scrollDismissesKeyboard(.immediately)
                         .opacity(viewModel.isLoading ? 0 : 1)
                         .animation(.easeOut(duration: 0.25), value: viewModel.isLoading)
                     }
@@ -958,10 +965,12 @@ struct ExercisePickerSheet: View {
                 if pickerColorScheme == .dark {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                        .allowsHitTesting(false)
                 }
             }
         }
         .buttonStyle(ScalePressStyle())
+        .accessibilityIdentifier("exercisePickerRow")
     }
 }
 

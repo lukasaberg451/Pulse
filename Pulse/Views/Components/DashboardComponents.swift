@@ -28,6 +28,7 @@ struct DashboardCard<Content: View>: View {
                         if colorScheme == .dark {
                             RoundedRectangle(cornerRadius: 22, style: .continuous)
                                 .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                .allowsHitTesting(false)
                         }
                     }
                     .shadow(

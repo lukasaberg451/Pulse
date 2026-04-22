@@ -392,6 +392,7 @@ private struct ScheduledSectionCard: View {
                     if colorScheme == .dark {
                         RoundedRectangle(cornerRadius: 22, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                            .allowsHitTesting(false)
                     }
                 }
                 .shadow(
@@ -539,6 +540,7 @@ struct ScheduledWorkoutCard: View {
                     if colorScheme == .dark {
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                            .allowsHitTesting(false)
                     }
                 }
         }
@@ -658,6 +660,7 @@ struct DeletedRoutineWorkoutCard: View {
                     if colorScheme == .dark {
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                            .allowsHitTesting(false)
                     }
                 }
         }
@@ -781,9 +784,11 @@ struct RoutinePickerRow: View {
                         if isSelected {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .strokeBorder(Color.appAccent.opacity(0.3), lineWidth: 1.5)
+                                .allowsHitTesting(false)
                         } else if colorScheme == .dark {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                .allowsHitTesting(false)
                         }
                     }
                     .shadow(
@@ -1298,6 +1303,7 @@ struct RoutineCard: View {
                     if colorScheme == .dark {
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                            .allowsHitTesting(false)
                     }
                 }
                 .shadow(
