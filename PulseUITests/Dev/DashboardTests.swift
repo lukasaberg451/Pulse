@@ -476,8 +476,8 @@ final class DashboardTests: XCTestCase {
 
     // MARK: - Test: Update Weekly Goal From Dashboard
 
-    /// Opens the weekly goal sheet, selects a suggested goal, saves,
-    /// and verifies the updated value reflects on the card.
+    /// Opens the weekly goal sheet, selects a suggested goal that differs
+    /// from the current selection, saves, and verifies the updated value.
     func testUpdateWeeklyGoalFromDashboard() throws {
         dismissResumeAlertIfPresent()
         navigateToDashboard()
@@ -488,15 +488,23 @@ final class DashboardTests: XCTestCase {
         editButton.tap()
         sleep(2)
 
-        // Tap the "Dedicated" (300 min) suggested goal
-        let dedicatedButton = app.buttons["goalButton_300"]
-        XCTAssertTrue(dedicatedButton.waitForExistence(timeout: 5), "'Dedicated' suggested goal not found")
-        dedicatedButton.tap()
+        // Pick a goal that isn't already selected
+        // Check if 300 is already displayed; if so, pick 150 instead
+        let goalOptions = [(minutes: 300, label: "Dedicated"), (minutes: 150, label: "Balanced")]
+        var targetMinutes = goalOptions[0].minutes
+
+        if app.staticTexts["300"].exists {
+            targetMinutes = goalOptions[1].minutes
+        }
+
+        let goalButton = app.buttons["goalButton_\(targetMinutes)"]
+        XCTAssertTrue(goalButton.waitForExistence(timeout: 5), "Suggested goal button for \(targetMinutes) not found")
+        goalButton.tap()
         sleep(1)
 
-        // Verify the large value display shows 300
-        let valueDisplay = app.staticTexts["300"]
-        XCTAssertTrue(valueDisplay.waitForExistence(timeout: 5), "Goal value did not update to 300 in the sheet")
+        // Verify the large value display shows the selected goal
+        let valueDisplay = app.staticTexts["\(targetMinutes)"]
+        XCTAssertTrue(valueDisplay.waitForExistence(timeout: 5), "Goal value did not update to \(targetMinutes) in the sheet")
 
         // Save
         let saveButton = app.buttons["saveWeeklyGoalButton"]
@@ -504,8 +512,8 @@ final class DashboardTests: XCTestCase {
         saveButton.tap()
         sleep(3)
 
-        // Verify the weekly goal card now shows "/ 300 min"
-        let updatedGoalText = app.staticTexts["/ 300 min"]
-        XCTAssertTrue(updatedGoalText.waitForExistence(timeout: 10), "Weekly goal card did not update to show '/ 300 min'")
+        // Verify the weekly goal card now shows the updated goal
+        let updatedGoalText = app.staticTexts["/ \(targetMinutes) min"]
+        XCTAssertTrue(updatedGoalText.waitForExistence(timeout: 10), "Weekly goal card did not update to show '/ \(targetMinutes) min'")
     }
 }

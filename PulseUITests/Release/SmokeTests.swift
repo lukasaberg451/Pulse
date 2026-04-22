@@ -136,7 +136,7 @@ final class SmokeTests: XCTestCase {
         XCTAssertTrue(finishButton.waitForExistence(timeout: 10), "Active workout did not appear")
 
         // Cancel → Discard
-        let cancelButton = app.buttons["cancelWorkoutButton"]
+        let cancelButton = app.buttons["Cancel"]
         XCTAssertTrue(cancelButton.waitForExistence(timeout: 5))
         cancelButton.tap()
 
@@ -177,9 +177,7 @@ final class SmokeTests: XCTestCase {
         profileTab.tap()
         sleep(3)
 
-        let editProfile = app.staticTexts.matching(NSPredicate(
-            format: "label == 'Edit Profile' OR label == 'Add Name'"
-        )).firstMatch
+        let editProfile = app.buttons["profileEditButton"]
         XCTAssertTrue(editProfile.waitForExistence(timeout: 10), "Profile header not found")
     }
 

@@ -226,12 +226,10 @@ final class ScheduleManagementTests: XCTestCase {
 
     /// Start a scheduled workout from the schedule card, complete one set, finish and dismiss summary.
     private func startAndCompleteScheduledWorkout() {
-        // The parent card's accessibilityIdentifier merges with the inner button,
-        // so we find the Start button by the card identifier + label.
         let startButton = app.buttons.matching(NSPredicate(
-            format: "identifier == 'scheduledWorkoutCard' AND label == 'Start'"
+            format: "identifier == 'scheduledWorkoutCard' AND label == 'Start' AND isEnabled == true"
         )).firstMatch
-        XCTAssertTrue(startButton.waitForExistence(timeout: 10), "Start button not found on scheduled workout card")
+        XCTAssertTrue(startButton.waitForExistence(timeout: 10), "Enabled Start button not found on scheduled workout card")
         startButton.tap()
         sleep(2)
 
@@ -588,8 +586,10 @@ final class ScheduleManagementTests: XCTestCase {
         //    (in the code, selection circles only appear for `!scheduled.completed` cards)
         //    We verify by counting scheduledWorkoutCard elements with selection state
         //    The uncompleted card should be tappable for selection
-        let scheduledCards = app.otherElements.matching(identifier: "scheduledWorkoutCard")
-        XCTAssertTrue(scheduledCards.count > 0, "No scheduled workout cards found in select mode")
+        let scheduledCards = app.buttons.matching(identifier: "scheduledWorkoutCard")
+        let scheduledOther = app.otherElements.matching(identifier: "scheduledWorkoutCard")
+        let totalCards = scheduledCards.count + scheduledOther.count
+        XCTAssertTrue(totalCards > 0, "No scheduled workout cards found in select mode")
 
         // Cleanup — cancel select mode first
         let cancelButton = app.buttons["Cancel"]
@@ -598,6 +598,8 @@ final class ScheduleManagementTests: XCTestCase {
             sleep(1)
         }
 
+        cleanupCompletedWorkouts()
+        cleanupScheduledWorkouts()
         cleanupRoutines(containing: String(uniqueSuffix))
     }
 

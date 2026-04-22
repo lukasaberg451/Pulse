@@ -28,6 +28,7 @@ final class MultipleSetWorkoutTests: XCTestCase {
                 resumeAlert.buttons["Discard"].tap()
                 sleep(1)
             }
+            cleanupCompletedWorkouts()
             cleanupRoutines(containing: "UITest")
             app = nil
         }
@@ -145,6 +146,47 @@ final class MultipleSetWorkoutTests: XCTestCase {
         if confirmDelete.waitForExistence(timeout: 3) {
             confirmDelete.tap()
             sleep(2)
+        }
+    }
+
+    private func navigateToScheduleTab() {
+        let workoutTab = app.buttons["Workout"]
+        XCTAssertTrue(workoutTab.waitForExistence(timeout: 15), "Workout tab not found")
+        workoutTab.tap()
+        sleep(2)
+
+        let schedulePill = app.buttons["Schedule"]
+        XCTAssertTrue(schedulePill.waitForExistence(timeout: 5), "Schedule pill not found")
+        schedulePill.tap()
+        sleep(2)
+    }
+
+    private func cleanupCompletedWorkouts() {
+        navigateToScheduleTab()
+        sleep(2)
+
+        while true {
+            let completedCard = app.buttons.matching(NSPredicate(
+                format: "identifier == 'scheduledWorkoutCard' AND label CONTAINS 'Completed'"
+            )).firstMatch
+            guard completedCard.waitForExistence(timeout: 3), completedCard.isHittable else { break }
+            completedCard.tap()
+            sleep(2)
+
+            let deleteButton = app.buttons["deleteWorkoutButton"]
+            guard deleteButton.waitForExistence(timeout: 3) else {
+                let back = app.navigationBars.buttons.element(boundBy: 0)
+                if back.exists { back.tap() }
+                sleep(1)
+                break
+            }
+            deleteButton.tap()
+
+            let confirmDelete = app.alerts.buttons["Delete"]
+            if confirmDelete.waitForExistence(timeout: 3) {
+                confirmDelete.tap()
+                sleep(2)
+            }
         }
     }
 
