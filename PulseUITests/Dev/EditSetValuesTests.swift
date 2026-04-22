@@ -10,6 +10,7 @@ import XCTest
 final class EditSetValuesTests: XCTestCase {
 
     var app: XCUIApplication!
+    private let uniqueSuffix = UUID().uuidString.prefix(6)
 
     override func setUpWithError() throws {
         continueAfterFailure = false
@@ -27,6 +28,7 @@ final class EditSetValuesTests: XCTestCase {
                 resumeAlert.buttons["Discard"].tap()
                 sleep(1)
             }
+            cleanupRoutines(containing: "UITest")
             app = nil
         }
     }
@@ -41,7 +43,7 @@ final class EditSetValuesTests: XCTestCase {
         }
     }
 
-    private func startWorkout() {
+    private func navigateToRoutinesTab() {
         let workoutTab = app.buttons["Workout"]
         XCTAssertTrue(workoutTab.waitForExistence(timeout: 15), "Workout tab not found")
         workoutTab.tap()
@@ -51,10 +53,108 @@ final class EditSetValuesTests: XCTestCase {
         XCTAssertTrue(routinesPill.waitForExistence(timeout: 5), "Routines pill not found")
         routinesPill.tap()
         sleep(2)
+    }
 
-        let firstRoutine = app.buttons.matching(identifier: "routineRow").firstMatch
-        XCTAssertTrue(firstRoutine.waitForExistence(timeout: 10), "No routine found")
-        firstRoutine.tap()
+    @discardableResult
+    private func createRoutine(name: String) -> String {
+        let newRoutineButton = app.buttons["newRoutineButton"]
+        XCTAssertTrue(newRoutineButton.waitForExistence(timeout: 10), "New Routine button not found")
+        newRoutineButton.tap()
+
+        let nameField = app.textFields["routineNameField"]
+        XCTAssertTrue(nameField.waitForExistence(timeout: 5), "Routine name field not found")
+        nameField.tap()
+        nameField.typeText(name)
+
+        let createButton = app.buttons["createRoutineButton"]
+        XCTAssertTrue(createButton.waitForExistence(timeout: 5), "Create Routine button not found")
+        createButton.tap()
+        sleep(3)
+        return name
+    }
+
+    private func addBenchPressToRoutine() {
+        let addExerciseButton = app.buttons["addExerciseButton"]
+        XCTAssertTrue(addExerciseButton.waitForExistence(timeout: 5), "Add Exercise button not found")
+        addExerciseButton.tap()
+        sleep(2)
+
+        let searchField = app.textFields["exerciseSearchField"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 5), "Exercise search field not found")
+        searchField.tap()
+        searchField.typeText("Bench Press")
+        sleep(2)
+
+        let exerciseRow = app.buttons["exercisePickerRow"].firstMatch
+        XCTAssertTrue(exerciseRow.waitForExistence(timeout: 10), "Bench Press not found")
+        exerciseRow.tap()
+        sleep(1)
+
+        let weightField = app.textFields["exerciseWeightField"]
+        XCTAssertTrue(weightField.waitForExistence(timeout: 5), "Exercise weight field not found")
+        weightField.tap()
+        weightField.typeText("60")
+
+        let addButton = app.buttons["addExerciseToRoutineButton"]
+        XCTAssertTrue(addButton.waitForExistence(timeout: 5), "Add button not found")
+        addButton.tap()
+        sleep(2)
+
+        let doneButton = app.buttons["Done"]
+        if doneButton.waitForExistence(timeout: 3) {
+            doneButton.tap()
+            sleep(2)
+        }
+    }
+
+    private func cleanupRoutines(containing substring: String) {
+        navigateToRoutinesTab()
+        sleep(2)
+
+        let predicate = NSPredicate(format: "label CONTAINS %@", substring)
+        let matchingRows = app.buttons.matching(predicate)
+        guard matchingRows.count > 0 else { return }
+
+        let modifyButton = app.buttons["modifyRoutinesButton"]
+        guard modifyButton.waitForExistence(timeout: 5) else { return }
+        modifyButton.tap()
+        sleep(1)
+
+        for i in 0..<matchingRows.count {
+            let row = matchingRows.element(boundBy: i)
+            if row.isHittable {
+                row.tap()
+            } else {
+                // Scroll down to reveal off-screen rows, then retry
+                app.swipeUp()
+                sleep(1)
+                if row.isHittable {
+                    row.tap()
+                }
+            }
+            usleep(500_000)
+        }
+
+        let deleteButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Delete'")).firstMatch
+        if deleteButton.waitForExistence(timeout: 3) {
+            deleteButton.tap()
+            sleep(1)
+        }
+
+        let confirmDelete = app.alerts.buttons["Delete"]
+        if confirmDelete.waitForExistence(timeout: 3) {
+            confirmDelete.tap()
+            sleep(2)
+        }
+    }
+
+    private func createRoutineAndStartWorkout() {
+        let routineName = "UITest ESV \(uniqueSuffix)"
+
+        navigateToRoutinesTab()
+        createRoutine(name: routineName)
+        XCTAssertTrue(app.staticTexts[routineName].waitForExistence(timeout: 10))
+        addBenchPressToRoutine()
 
         let startButton = app.buttons["startWorkoutButton"]
         XCTAssertTrue(startButton.waitForExistence(timeout: 10), "Start Workout button not found")
@@ -65,7 +165,6 @@ final class EditSetValuesTests: XCTestCase {
     }
 
     private func discardWorkout() {
-        // Cancel the workout to clean up
         let cancelButton = app.buttons["cancelWorkoutButton"]
         if cancelButton.exists {
             cancelButton.tap()
@@ -83,7 +182,7 @@ final class EditSetValuesTests: XCTestCase {
     /// the set and verifies it shows as completed.
     func testEditWeightBeforeCompletingSet() throws {
         dismissResumeAlertIfPresent()
-        startWorkout()
+        createRoutineAndStartWorkout()
 
         // Find the weight field for set 1
         let weightField = app.textFields["weightField_1"]
@@ -121,7 +220,7 @@ final class EditSetValuesTests: XCTestCase {
     /// completes both, and verifies both are marked completed.
     func testDifferentWeightsOnConsecutiveSets() throws {
         dismissResumeAlertIfPresent()
-        startWorkout()
+        createRoutineAndStartWorkout()
 
         // Complete set 1 with 80
         let weightField1 = app.textFields["weightField_1"]

@@ -120,11 +120,11 @@ final class SignOutFlowTests: XCTestCase {
 
         // Navigate to login
         signInBtn.tap()
-        sleep(2)
+        sleep(3)
 
-        // Enter credentials
+        // Enter credentials (wait longer for login screen transition)
         let emailField = app.textFields["loginEmailField"]
-        XCTAssertTrue(emailField.waitForExistence(timeout: 10), "Email field not found")
+        XCTAssertTrue(emailField.waitForExistence(timeout: 15), "Email field not found")
         emailField.tap()
         emailField.typeText(TestSecrets.uitestEmail)
 

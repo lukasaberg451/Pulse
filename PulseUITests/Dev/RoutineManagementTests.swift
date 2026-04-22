@@ -30,7 +30,8 @@ final class RoutineManagementTests: XCTestCase {
                 resumeAlert.buttons["Discard"].tap()
                 sleep(1)
             }
-            cleanupRoutines(containing: String(uniqueSuffix))
+            cleanupRoutines(containing: "UITest")
+            cleanupCustomExercises()
             app = nil
         }
     }
@@ -104,7 +105,17 @@ final class RoutineManagementTests: XCTestCase {
 
         // Tap each matching routine to select it
         for i in 0..<matchingRows.count {
-            matchingRows.element(boundBy: i).tap()
+            let row = matchingRows.element(boundBy: i)
+            if row.isHittable {
+                row.tap()
+            } else {
+                // Scroll down to reveal off-screen rows, then retry
+                app.swipeUp()
+                sleep(1)
+                if row.isHittable {
+                    row.tap()
+                }
+            }
             usleep(500_000)
         }
 
@@ -120,6 +131,49 @@ final class RoutineManagementTests: XCTestCase {
         if confirmDelete.waitForExistence(timeout: 3) {
             confirmDelete.tap()
             sleep(2)
+        }
+    }
+
+    /// Delete all custom exercises from the Profile → My Custom Exercises list.
+    private func cleanupCustomExercises() {
+        let profileTab = app.buttons["Profile"]
+        guard profileTab.waitForExistence(timeout: 10) else { return }
+        profileTab.tap()
+        sleep(2)
+
+        let seeAll = app.buttons["customExercisesSeeAll"]
+        if !seeAll.waitForExistence(timeout: 5) {
+            app.swipeUp()
+            sleep(1)
+        }
+        guard seeAll.waitForExistence(timeout: 3) else { return }
+        seeAll.tap()
+        sleep(2)
+
+        // Delete exercises one by one via the three-dot menu
+        for _ in 0..<10 {
+            let menuButton = app.buttons["customExerciseMenu"].firstMatch
+            guard menuButton.waitForExistence(timeout: 3) else { break }
+            menuButton.tap()
+            sleep(1)
+
+            let deleteOption = app.buttons["Delete Exercise"]
+            guard deleteOption.waitForExistence(timeout: 3) else { break }
+            deleteOption.tap()
+            sleep(1)
+
+            let confirmDelete = app.alerts.buttons["Delete"]
+            if confirmDelete.waitForExistence(timeout: 3) {
+                confirmDelete.tap()
+                sleep(2)
+            }
+        }
+
+        // Navigate back
+        let backButton = app.navigationBars.buttons.element(boundBy: 0)
+        if backButton.waitForExistence(timeout: 3) {
+            backButton.tap()
+            sleep(1)
         }
     }
 
@@ -225,18 +279,9 @@ final class RoutineManagementTests: XCTestCase {
         searchField.typeText("Bench Press")
         sleep(2)
 
-        // Dismiss keyboard so search results become hittable
-        app.swipeDown()
-        sleep(1)
-
-        // Tap the first exercise result containing "Bench Press"
-        let benchPressResult = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Bench Press'")).firstMatch
-        XCTAssertTrue(benchPressResult.waitForExistence(timeout: 10), "Bench Press exercise not found in search results")
-        if !benchPressResult.isHittable {
-            app.swipeUp()
-            sleep(1)
-        }
-        benchPressResult.tap()
+        let exerciseRow = app.buttons["exercisePickerRow"].firstMatch
+        XCTAssertTrue(exerciseRow.waitForExistence(timeout: 10), "Bench Press exercise not found in search results")
+        exerciseRow.tap()
         sleep(1)
 
         // The exercise config sheet should appear - enter a weight
@@ -464,7 +509,8 @@ final class RoutineManagementTests: XCTestCase {
         confirmDelete.tap()
         sleep(2)
 
-        // 6. Verify the exercise is gone
+        // 6. Verify the exercise is gone (wait for UI to update after deletion)
+        sleep(3)
         let deletedExercise = app.staticTexts[customExerciseName]
         XCTAssertFalse(deletedExercise.exists, "Custom exercise '\(customExerciseName)' still exists after deletion")
 

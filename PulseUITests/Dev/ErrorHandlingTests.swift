@@ -181,13 +181,20 @@ final class LoginValidationErrorTests: XCTestCase {
         passwordField.typeText("WrongPassword1")
         loginButton.tap()
 
-        // Wait for the error and rate-limit to engage
-        let errorBox = app.otherElements["loginErrorBox"]
-        XCTAssertTrue(errorBox.waitForExistence(timeout: 15), "Error box did not appear")
+        // The rate limit countdown (2s) starts when the server responds.
+        // Poll rapidly to catch the brief "Wait Xs" label before it expires.
+        let deadline = Date().addingTimeInterval(20)
+        var foundWait = false
+        while Date() < deadline {
+            let currentLabel = app.buttons["loginButton"].label
+            if currentLabel.hasPrefix("Wait") {
+                foundWait = true
+                break
+            }
+            usleep(200_000) // 0.2s
+        }
 
-        // Assert — button should show "Wait Xs" text
-        let waitButton = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Wait'")).firstMatch
-        XCTAssertTrue(waitButton.waitForExistence(timeout: 5), "Rate limit 'Wait Xs' button did not appear after failed attempt")
+        XCTAssertTrue(foundWait, "Rate limit 'Wait Xs' button did not appear after failed attempt")
     }
 }
 
@@ -509,7 +516,7 @@ final class RoutineErrorHandlingTests: XCTestCase {
                 resumeAlert.buttons["Discard"].tap()
                 sleep(1)
             }
-            cleanupRoutines(containing: String(uniqueSuffix))
+            cleanupRoutines(containing: "UITest")
             app = nil
         }
     }
@@ -558,7 +565,17 @@ final class RoutineErrorHandlingTests: XCTestCase {
         sleep(1)
 
         for i in 0..<matchingRows.count {
-            matchingRows.element(boundBy: i).tap()
+            let row = matchingRows.element(boundBy: i)
+            if row.isHittable {
+                row.tap()
+            } else {
+                // Scroll down to reveal off-screen rows, then retry
+                app.swipeUp()
+                sleep(1)
+                if row.isHittable {
+                    row.tap()
+                }
+            }
             usleep(500_000)
         }
 

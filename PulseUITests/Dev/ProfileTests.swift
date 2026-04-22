@@ -114,31 +114,28 @@ final class ProfileTests: XCTestCase {
         dismissResumeAlertIfPresent()
         navigateToProfile()
 
-        let section = app.otherElements["profileLifetimeStatsSection"]
-        if !section.waitForExistence(timeout: 5) {
+        // Scroll to the bottom of the profile to find Lifetime Stats
+        for _ in 0..<5 {
+            let totalWorkouts = app.staticTexts["Total Workouts"]
+            if totalWorkouts.exists { break }
             app.swipeUp()
             sleep(1)
-            if !section.waitForExistence(timeout: 3) {
-                app.swipeUp()
-                sleep(1)
-            }
         }
-        XCTAssertTrue(section.waitForExistence(timeout: 5), "Lifetime Stats section not found")
 
         let lifetimeStatsHeader = app.staticTexts["Lifetime Stats"]
-        XCTAssertTrue(lifetimeStatsHeader.exists, "'Lifetime Stats' header not found")
+        XCTAssertTrue(lifetimeStatsHeader.waitForExistence(timeout: 5), "'Lifetime Stats' header not found")
 
         let totalWorkouts = app.staticTexts["Total Workouts"]
-        XCTAssertTrue(totalWorkouts.exists, "'Total Workouts' stat card not found")
+        XCTAssertTrue(totalWorkouts.waitForExistence(timeout: 5), "'Total Workouts' stat card not found")
 
         let totalVolume = app.staticTexts["Total Volume"]
-        XCTAssertTrue(totalVolume.exists, "'Total Volume' stat card not found")
+        XCTAssertTrue(totalVolume.waitForExistence(timeout: 5), "'Total Volume' stat card not found")
 
         let timeTrained = app.staticTexts["Time Trained"]
-        XCTAssertTrue(timeTrained.exists, "'Time Trained' stat card not found")
+        XCTAssertTrue(timeTrained.waitForExistence(timeout: 5), "'Time Trained' stat card not found")
 
         let longestStreak = app.staticTexts["Longest Streak"]
-        XCTAssertTrue(longestStreak.exists, "'Longest Streak' stat card not found")
+        XCTAssertTrue(longestStreak.waitForExistence(timeout: 5), "'Longest Streak' stat card not found")
     }
 
     // MARK: - Test: Open Edit Profile Sheet

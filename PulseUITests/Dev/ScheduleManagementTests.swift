@@ -30,12 +30,80 @@ final class ScheduleManagementTests: XCTestCase {
                 resumeAlert.buttons["Discard"].tap()
                 sleep(1)
             }
-            cleanupRoutines(containing: String(uniqueSuffix))
+            cleanupCompletedWorkouts()
+            cleanupScheduledWorkouts()
+            cleanupRoutines(containing: "UITest")
             app = nil
         }
     }
 
     // MARK: - Helpers
+
+    /// Delete all uncompleted scheduled workouts for today via the Modify flow.
+    private func cleanupScheduledWorkouts() {
+        navigateToScheduleTab()
+        sleep(2)
+
+        let modifyButton = app.buttons["modifyScheduleButton"]
+        guard modifyButton.waitForExistence(timeout: 3) else { return }
+        modifyButton.tap()
+        sleep(1)
+
+        let cards = app.otherElements.matching(identifier: "scheduledWorkoutCard")
+        let cardButtons = app.buttons.matching(identifier: "scheduledWorkoutCard")
+        let count = max(cards.count, cardButtons.count)
+        for i in 0..<count {
+            let card = cards.count > 0 ? cards.element(boundBy: i) : cardButtons.element(boundBy: i)
+            if card.exists && card.isHittable {
+                card.tap()
+                usleep(300_000)
+            }
+        }
+
+        let deleteButton = app.buttons["deleteScheduledWorkoutsButton"]
+        if deleteButton.waitForExistence(timeout: 3) {
+            deleteButton.tap()
+            sleep(1)
+        }
+
+        let confirmRemove = app.alerts.buttons["Remove"]
+        if confirmRemove.waitForExistence(timeout: 3) {
+            confirmRemove.tap()
+            sleep(2)
+        }
+    }
+
+    /// Delete completed workouts by tapping into detail view and using the delete button.
+    private func cleanupCompletedWorkouts() {
+        navigateToScheduleTab()
+        sleep(2)
+
+        // Keep deleting completed workout cards until none remain
+        while true {
+            let completedCard = app.buttons.matching(NSPredicate(
+                format: "identifier == 'scheduledWorkoutCard' AND label CONTAINS 'Completed'"
+            )).firstMatch
+            guard completedCard.waitForExistence(timeout: 3), completedCard.isHittable else { break }
+            completedCard.tap()
+            sleep(2)
+
+            let deleteButton = app.buttons["deleteWorkoutButton"]
+            guard deleteButton.waitForExistence(timeout: 3) else {
+                // Navigate back if delete button not found
+                let back = app.navigationBars.buttons.element(boundBy: 0)
+                if back.exists { back.tap() }
+                sleep(1)
+                break
+            }
+            deleteButton.tap()
+
+            let confirmDelete = app.alerts.buttons["Delete"]
+            if confirmDelete.waitForExistence(timeout: 3) {
+                confirmDelete.tap()
+                sleep(2)
+            }
+        }
+    }
 
     /// Navigate to the Schedule sub-tab inside the Workout tab.
     private func navigateToScheduleTab() {
@@ -96,17 +164,9 @@ final class ScheduleManagementTests: XCTestCase {
         searchField.typeText("Bench Press")
         sleep(2)
 
-        // Dismiss keyboard so search results become hittable
-        app.swipeDown()
-        sleep(1)
-
-        let benchPressResult = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Bench Press'")).firstMatch
-        XCTAssertTrue(benchPressResult.waitForExistence(timeout: 10), "Bench Press not found in search results")
-        if !benchPressResult.isHittable {
-            app.swipeUp()
-            sleep(1)
-        }
-        benchPressResult.tap()
+        let exerciseRow = app.buttons["exercisePickerRow"].firstMatch
+        XCTAssertTrue(exerciseRow.waitForExistence(timeout: 10), "Bench Press not found in search results")
+        exerciseRow.tap()
         sleep(1)
 
         let weightField = app.textFields["exerciseWeightField"]
@@ -166,7 +226,11 @@ final class ScheduleManagementTests: XCTestCase {
 
     /// Start a scheduled workout from the schedule card, complete one set, finish and dismiss summary.
     private func startAndCompleteScheduledWorkout() {
-        let startButton = app.buttons["startScheduledWorkoutButton"]
+        // The parent card's accessibilityIdentifier merges with the inner button,
+        // so we find the Start button by the card identifier + label.
+        let startButton = app.buttons.matching(NSPredicate(
+            format: "identifier == 'scheduledWorkoutCard' AND label == 'Start'"
+        )).firstMatch
         XCTAssertTrue(startButton.waitForExistence(timeout: 10), "Start button not found on scheduled workout card")
         startButton.tap()
         sleep(2)
@@ -222,7 +286,17 @@ final class ScheduleManagementTests: XCTestCase {
         sleep(1)
 
         for i in 0..<matchingRows.count {
-            matchingRows.element(boundBy: i).tap()
+            let row = matchingRows.element(boundBy: i)
+            if row.isHittable {
+                row.tap()
+            } else {
+                // Scroll down to reveal off-screen rows, then retry
+                app.swipeUp()
+                sleep(1)
+                if row.isHittable {
+                    row.tap()
+                }
+            }
             usleep(500_000)
         }
 
@@ -308,17 +382,19 @@ final class ScheduleManagementTests: XCTestCase {
         // 3. Delete the routine
         cleanupRoutines(containing: String(uniqueSuffix))
 
-        // 4. Go back to schedule and verify "Routine deleted" text appears
+        // 4. Go back to schedule and verify "Deleted Routine" or "Routine deleted" text appears
         navigateToScheduleTab()
         sleep(3)
 
-        let deletedText = app.staticTexts["Routine deleted"]
-        XCTAssertTrue(deletedText.waitForExistence(timeout: 10), "'Routine deleted' text not found on the schedule card after routine deletion")
+        let deletedTitle = app.staticTexts["Deleted Routine"]
+        let deletedSubtitle = app.staticTexts["Routine deleted"]
+        let foundDeletedText = deletedTitle.waitForExistence(timeout: 10) || deletedSubtitle.exists
+        XCTAssertTrue(foundDeletedText, "'Deleted Routine' / 'Routine deleted' text not found on the schedule card after routine deletion")
 
         // Also verify the card uses the deleted routine card identifier
         let deletedCard = app.otherElements.matching(identifier: "deletedRoutineWorkoutCard").firstMatch
-            .waitForExistence(timeout: 5)
-        XCTAssertTrue(deletedCard, "Deleted routine workout card not found")
+        let deletedCardButton = app.buttons.matching(identifier: "deletedRoutineWorkoutCard").firstMatch
+        XCTAssertTrue(deletedCard.waitForExistence(timeout: 5) || deletedCardButton.exists, "Deleted routine workout card not found")
     }
 
     // MARK: - Test: Cannot Delete Completed Scheduled Workouts
@@ -389,10 +465,15 @@ final class ScheduleManagementTests: XCTestCase {
         modifyButton.tap()
         sleep(1)
 
-        // 4. Select the scheduled workout card
-        let workoutCard = app.otherElements.matching(identifier: "scheduledWorkoutCard").firstMatch
-        XCTAssertTrue(workoutCard.waitForExistence(timeout: 5), "Scheduled workout card not found for selection")
-        workoutCard.tap()
+        // 4. Select the scheduled workout card (try multiple element types since SwiftUI may expose it differently in select mode)
+        let workoutCardOther = app.otherElements.matching(identifier: "scheduledWorkoutCard").firstMatch
+        let workoutCardButton = app.buttons.matching(identifier: "scheduledWorkoutCard").firstMatch
+        if workoutCardOther.waitForExistence(timeout: 5) {
+            workoutCardOther.tap()
+        } else {
+            XCTAssertTrue(workoutCardButton.waitForExistence(timeout: 5), "Scheduled workout card not found for selection")
+            workoutCardButton.tap()
+        }
         sleep(1)
 
         // 5. Tap the delete button

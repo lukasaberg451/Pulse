@@ -55,13 +55,16 @@ final class UIPerformanceTests: XCTestCase {
             sleep(1)
             app.swipeUp()
             sleep(1)
+            app.swipeUp()
+            sleep(1)
         }
 
         measure {
             // Navigate to the full workout history list
             let seeAllButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'See All'")).firstMatch
             if seeAllButton.waitForExistence(timeout: 5) {
-                seeAllButton.tap()
+                // Use coordinate tap to bypass potential hittability issues
+                seeAllButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
             }
 
             // Wait for the first workout card to appear

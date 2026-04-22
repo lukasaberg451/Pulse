@@ -28,7 +28,7 @@ final class EditExerciseInRoutineTests: XCTestCase {
                 resumeAlert.buttons["Discard"].tap()
                 sleep(1)
             }
-            cleanupRoutines(containing: String(uniqueSuffix))
+            cleanupRoutines(containing: "UITest")
             app = nil
         }
     }
@@ -85,17 +85,9 @@ final class EditExerciseInRoutineTests: XCTestCase {
         searchField.typeText("Bench Press")
         sleep(2)
 
-        // Dismiss keyboard so search results become hittable
-        app.swipeDown()
-        sleep(1)
-
-        let benchPressResult = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Bench Press'")).firstMatch
-        XCTAssertTrue(benchPressResult.waitForExistence(timeout: 10), "Bench Press not found")
-        if !benchPressResult.isHittable {
-            app.swipeUp()
-            sleep(1)
-        }
-        benchPressResult.tap()
+        let exerciseRow = app.buttons["exercisePickerRow"].firstMatch
+        XCTAssertTrue(exerciseRow.waitForExistence(timeout: 10), "Bench Press not found")
+        exerciseRow.tap()
         sleep(1)
 
         let weightField = app.textFields["exerciseWeightField"]
@@ -137,7 +129,17 @@ final class EditExerciseInRoutineTests: XCTestCase {
         sleep(1)
 
         for i in 0..<matchingRows.count {
-            matchingRows.element(boundBy: i).tap()
+            let row = matchingRows.element(boundBy: i)
+            if row.isHittable {
+                row.tap()
+            } else {
+                // Scroll down to reveal off-screen rows, then retry
+                app.swipeUp()
+                sleep(1)
+                if row.isHittable {
+                    row.tap()
+                }
+            }
             usleep(500_000)
         }
 

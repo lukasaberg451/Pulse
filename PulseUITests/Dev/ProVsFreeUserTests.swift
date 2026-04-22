@@ -173,6 +173,7 @@ final class FreeUserWalkthroughTests: XCTestCase {
 final class ProUserWalkthroughTests: XCTestCase {
 
     var app: XCUIApplication!
+    private let uniqueSuffix = UUID().uuidString.prefix(6)
 
     override func setUpWithError() throws {
         continueAfterFailure = false
@@ -182,7 +183,17 @@ final class ProUserWalkthroughTests: XCTestCase {
     }
 
     override func tearDownWithError() throws {
-        app = nil
+        if app != nil {
+            app.terminate()
+            app.launch()
+            let resumeAlert = app.alerts["Resume Workout?"]
+            if resumeAlert.waitForExistence(timeout: 5) {
+                resumeAlert.buttons["Discard"].tap()
+                sleep(1)
+            }
+            cleanupRoutines(containing: "UITest")
+            app = nil
+        }
     }
 
     // MARK: - Helpers
@@ -192,6 +203,77 @@ final class ProUserWalkthroughTests: XCTestCase {
         if resumeAlert.waitForExistence(timeout: 5) {
             resumeAlert.buttons["Discard"].tap()
             sleep(1)
+        }
+    }
+
+    private func navigateToRoutinesTab() {
+        let workoutTab = app.buttons["Workout"]
+        XCTAssertTrue(workoutTab.waitForExistence(timeout: 15), "Workout tab not found")
+        workoutTab.tap()
+        sleep(2)
+
+        let routinesPill = app.buttons["Routines"]
+        XCTAssertTrue(routinesPill.waitForExistence(timeout: 5), "Routines pill not found")
+        routinesPill.tap()
+        sleep(2)
+    }
+
+    @discardableResult
+    private func createRoutine(name: String) -> String {
+        let newRoutineButton = app.buttons["newRoutineButton"]
+        XCTAssertTrue(newRoutineButton.waitForExistence(timeout: 10), "New Routine button not found")
+        newRoutineButton.tap()
+
+        let nameField = app.textFields["routineNameField"]
+        XCTAssertTrue(nameField.waitForExistence(timeout: 5), "Routine name field not found")
+        nameField.tap()
+        nameField.typeText(name)
+
+        let createButton = app.buttons["createRoutineButton"]
+        XCTAssertTrue(createButton.waitForExistence(timeout: 5), "Create Routine button not found")
+        createButton.tap()
+        sleep(3)
+        return name
+    }
+
+    private func cleanupRoutines(containing substring: String) {
+        navigateToRoutinesTab()
+        sleep(2)
+
+        let predicate = NSPredicate(format: "label CONTAINS %@", substring)
+        let matchingRows = app.buttons.matching(predicate)
+        guard matchingRows.count > 0 else { return }
+
+        let modifyButton = app.buttons["modifyRoutinesButton"]
+        guard modifyButton.waitForExistence(timeout: 5) else { return }
+        modifyButton.tap()
+        sleep(1)
+
+        for i in 0..<matchingRows.count {
+            let row = matchingRows.element(boundBy: i)
+            if row.isHittable {
+                row.tap()
+            } else {
+                // Scroll down to reveal off-screen rows, then retry
+                app.swipeUp()
+                sleep(1)
+                if row.isHittable {
+                    row.tap()
+                }
+            }
+            usleep(500_000)
+        }
+
+        let deleteButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Delete'")).firstMatch
+        if deleteButton.waitForExistence(timeout: 3) {
+            deleteButton.tap()
+            sleep(1)
+        }
+
+        let confirmDelete = app.alerts.buttons["Delete"]
+        if confirmDelete.waitForExistence(timeout: 3) {
+            confirmDelete.tap()
+            sleep(2)
         }
     }
 
@@ -312,19 +394,11 @@ final class ProUserWalkthroughTests: XCTestCase {
     func testProUserCanAccessStartWorkout() throws {
         dismissResumeAlertIfPresent()
 
-        let workoutTab = app.buttons["Workout"]
-        XCTAssertTrue(workoutTab.waitForExistence(timeout: 15), "Workout tab not found")
-        workoutTab.tap()
-        sleep(2)
+        let routineName = "UITest Pro \(uniqueSuffix)"
 
-        let routinesPill = app.buttons["Routines"]
-        XCTAssertTrue(routinesPill.waitForExistence(timeout: 5), "Routines pill not found")
-        routinesPill.tap()
-        sleep(2)
-
-        let firstRoutine = app.buttons.matching(identifier: "routineRow").firstMatch
-        XCTAssertTrue(firstRoutine.waitForExistence(timeout: 10), "No routine found for pro user")
-        firstRoutine.tap()
+        navigateToRoutinesTab()
+        createRoutine(name: routineName)
+        XCTAssertTrue(app.staticTexts[routineName].waitForExistence(timeout: 10))
 
         let startButton = app.buttons["startWorkoutButton"]
         XCTAssertTrue(startButton.waitForExistence(timeout: 10), "Start Workout button not found for pro user")

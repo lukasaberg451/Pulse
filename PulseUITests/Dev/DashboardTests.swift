@@ -30,12 +30,78 @@ final class DashboardTests: XCTestCase {
                 resumeAlert.buttons["Discard"].tap()
                 sleep(1)
             }
-            cleanupRoutines(containing: String(uniqueSuffix))
+            cleanupCompletedWorkouts()
+            cleanupScheduledWorkouts()
+            cleanupRoutines(containing: "UITest")
             app = nil
         }
     }
 
     // MARK: - Helpers
+
+    /// Delete all uncompleted scheduled workouts for today via the Modify flow.
+    private func cleanupScheduledWorkouts() {
+        navigateToScheduleTab()
+        sleep(2)
+
+        let modifyButton = app.buttons["modifyScheduleButton"]
+        guard modifyButton.waitForExistence(timeout: 3) else { return }
+        modifyButton.tap()
+        sleep(1)
+
+        let cards = app.otherElements.matching(identifier: "scheduledWorkoutCard")
+        let cardButtons = app.buttons.matching(identifier: "scheduledWorkoutCard")
+        let count = max(cards.count, cardButtons.count)
+        for i in 0..<count {
+            let card = cards.count > 0 ? cards.element(boundBy: i) : cardButtons.element(boundBy: i)
+            if card.exists && card.isHittable {
+                card.tap()
+                usleep(300_000)
+            }
+        }
+
+        let deleteButton = app.buttons["deleteScheduledWorkoutsButton"]
+        if deleteButton.waitForExistence(timeout: 3) {
+            deleteButton.tap()
+            sleep(1)
+        }
+
+        let confirmRemove = app.alerts.buttons["Remove"]
+        if confirmRemove.waitForExistence(timeout: 3) {
+            confirmRemove.tap()
+            sleep(2)
+        }
+    }
+
+    /// Delete completed workouts by tapping into detail view and using the delete button.
+    private func cleanupCompletedWorkouts() {
+        navigateToScheduleTab()
+        sleep(2)
+
+        while true {
+            let completedCard = app.buttons.matching(NSPredicate(
+                format: "identifier == 'scheduledWorkoutCard' AND label CONTAINS 'Completed'"
+            )).firstMatch
+            guard completedCard.waitForExistence(timeout: 3), completedCard.isHittable else { break }
+            completedCard.tap()
+            sleep(2)
+
+            let deleteButton = app.buttons["deleteWorkoutButton"]
+            guard deleteButton.waitForExistence(timeout: 3) else {
+                let back = app.navigationBars.buttons.element(boundBy: 0)
+                if back.exists { back.tap() }
+                sleep(1)
+                break
+            }
+            deleteButton.tap()
+
+            let confirmDelete = app.alerts.buttons["Delete"]
+            if confirmDelete.waitForExistence(timeout: 3) {
+                confirmDelete.tap()
+                sleep(2)
+            }
+        }
+    }
 
     /// Dismiss any leftover "Resume Workout?" alert.
     private func dismissResumeAlertIfPresent() {
@@ -113,17 +179,9 @@ final class DashboardTests: XCTestCase {
         searchField.typeText("Bench Press")
         sleep(2)
 
-        // Dismiss keyboard so search results become hittable
-        app.swipeDown()
-        sleep(1)
-
-        let benchPressResult = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Bench Press'")).firstMatch
-        XCTAssertTrue(benchPressResult.waitForExistence(timeout: 10), "Bench Press not found in search results")
-        if !benchPressResult.isHittable {
-            app.swipeUp()
-            sleep(1)
-        }
-        benchPressResult.tap()
+        let exerciseRow = app.buttons["exercisePickerRow"].firstMatch
+        XCTAssertTrue(exerciseRow.waitForExistence(timeout: 10), "Bench Press not found in search results")
+        exerciseRow.tap()
         sleep(1)
 
         let weightField = app.textFields["exerciseWeightField"]
@@ -187,7 +245,17 @@ final class DashboardTests: XCTestCase {
         sleep(1)
 
         for i in 0..<matchingRows.count {
-            matchingRows.element(boundBy: i).tap()
+            let row = matchingRows.element(boundBy: i)
+            if row.isHittable {
+                row.tap()
+            } else {
+                // Scroll down to reveal off-screen rows, then retry
+                app.swipeUp()
+                sleep(1)
+                if row.isHittable {
+                    row.tap()
+                }
+            }
             usleep(500_000)
         }
 
@@ -280,7 +348,7 @@ final class DashboardTests: XCTestCase {
     /// Creates a routine, schedules it for today, then navigates to the dashboard
     /// and verifies the routine name and "Scheduled" label appear on the today card.
     func testDashboardShowsScheduledWorkoutCard() throws {
-        let routineName = "UITest Dash \\(uniqueSuffix)"
+        let routineName = "UITest Dash \(uniqueSuffix)"
 
         dismissResumeAlertIfPresent()
 
@@ -296,7 +364,7 @@ final class DashboardTests: XCTestCase {
         navigateToScheduleTab()
         scheduleWorkout(routineName: routineName)
 
-        // 3. Navigate to the Dashboard and verify
+        // 3. Navigate to the Dashboard
         navigateToDashboard()
         sleep(3)
 
@@ -306,9 +374,17 @@ final class DashboardTests: XCTestCase {
         let scheduledLabel = app.staticTexts["Scheduled"]
         XCTAssertTrue(scheduledLabel.waitForExistence(timeout: 5), "'Scheduled' label not found on the today workout card")
 
-        // The "Start" button should be visible for an uncompleted workout
-        let startButton = app.buttons["dashboardStartWorkoutButton"]
-        XCTAssertTrue(startButton.waitForExistence(timeout: 5), "Start button not found on the today workout card")
+        // The "Start" button should be visible for an uncompleted workout.
+        // Note: The parent card's accessibilityIdentifier ("dashboardTodayWorkoutCard")
+        // merges with the inner button, so we find it by identifier + label.
+        let startButton = app.buttons.matching(NSPredicate(
+            format: "identifier == 'dashboardTodayWorkoutCard' AND label == 'Start'"
+        )).firstMatch
+        if !startButton.waitForExistence(timeout: 5) {
+            app.swipeUp()
+            sleep(1)
+        }
+        XCTAssertTrue(startButton.waitForExistence(timeout: 10), "Start button not found on the today workout card")
 
         // Cleanup
         cleanupRoutines(containing: String(uniqueSuffix))
