@@ -7,175 +7,10 @@
 
 import XCTest
 
-final class RoutineManagementTests: XCTestCase {
+final class RoutineManagementTests: UITestBaseCase {
 
-    var app: XCUIApplication!
-
-    /// Unique suffix to avoid name collisions between test runs.
-    private let uniqueSuffix = UUID().uuidString.prefix(6)
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--skip-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        if app != nil {
-            app.terminate()
-            app.launch()
-            let resumeAlert = app.alerts["Resume Workout?"]
-            if resumeAlert.waitForExistence(timeout: 5) {
-                resumeAlert.buttons["Discard"].tap()
-                sleep(1)
-            }
-            cleanupRoutines(containing: "UITest")
-            cleanupCustomExercises()
-            app = nil
-        }
-    }
-
-    // MARK: - Helpers
-
-    /// Navigate to the Routines sub-tab inside the Workout tab.
-    private func navigateToRoutinesTab() {
-        let workoutTab = app.buttons["Workout"]
-        XCTAssertTrue(workoutTab.waitForExistence(timeout: 15), "Workout tab not found")
-        workoutTab.tap()
-        sleep(2)
-
-        let routinesPill = app.buttons["Routines"]
-        XCTAssertTrue(routinesPill.waitForExistence(timeout: 5), "Routines pill not found")
-        routinesPill.tap()
-        sleep(2)
-    }
-
-    /// Create a routine with the given name via the UI.
-    /// Returns the name used so callers can reference it for cleanup.
-    @discardableResult
-    private func createRoutine(name: String) -> String {
-        let newRoutineButton = app.buttons["newRoutineButton"]
-        XCTAssertTrue(newRoutineButton.waitForExistence(timeout: 10), "New Routine button not found")
-        newRoutineButton.tap()
-
-        let nameField = app.textFields["routineNameField"]
-        XCTAssertTrue(nameField.waitForExistence(timeout: 5), "Routine name field not found")
-        nameField.tap()
-        nameField.typeText(name)
-
-        let createButton = app.buttons["createRoutineButton"]
-        XCTAssertTrue(createButton.waitForExistence(timeout: 5), "Create Routine button not found")
-        createButton.tap()
-
-        // Wait for the routine detail screen to appear (navigated automatically after creation)
-        sleep(3)
-
-        return name
-    }
-
-    /// Navigate back from the routine detail view to the routine list.
-    private func navigateBackToRoutineList() {
-        let backButton = app.navigationBars.buttons.element(boundBy: 0)
-        if backButton.waitForExistence(timeout: 5) {
-            backButton.tap()
-            sleep(2)
-        }
-    }
-
-    /// Delete all routines whose names contain the given substring.
-    /// Uses the "Modify" select mode to batch-delete.
-    private func cleanupRoutines(containing substring: String) {
-        navigateToRoutinesTab()
-        sleep(2)
-
-        // Check if there are any routines matching our substring
-        let routineRows = app.buttons.matching(identifier: "routineRow")
-        guard routineRows.count > 0 else { return }
-
-        // Check if any routine contains our substring
-        let predicate = NSPredicate(format: "label CONTAINS %@", substring)
-        let matchingRows = app.buttons.matching(predicate)
-        guard matchingRows.count > 0 else { return }
-
-        let modifyButton = app.buttons["modifyRoutinesButton"]
-        guard modifyButton.waitForExistence(timeout: 5) else { return }
-        modifyButton.tap()
-        sleep(1)
-
-        // Tap each matching routine to select it
-        for i in 0..<matchingRows.count {
-            let row = matchingRows.element(boundBy: i)
-            if row.isHittable {
-                row.tap()
-            } else {
-                // Scroll down to reveal off-screen rows, then retry
-                app.swipeUp()
-                sleep(1)
-                if row.isHittable {
-                    row.tap()
-                }
-            }
-            usleep(500_000)
-        }
-
-        // Tap the delete button
-        let deleteButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Delete'")).firstMatch
-        if deleteButton.waitForExistence(timeout: 3) {
-            deleteButton.tap()
-            sleep(1)
-        }
-
-        // Confirm the delete alert
-        let confirmDelete = app.alerts.buttons["Delete"]
-        if confirmDelete.waitForExistence(timeout: 3) {
-            confirmDelete.tap()
-            sleep(2)
-        }
-    }
-
-    /// Delete all custom exercises from the Profile → My Custom Exercises list.
-    private func cleanupCustomExercises() {
-        let profileTab = app.buttons["Profile"]
-        guard profileTab.waitForExistence(timeout: 10) else { return }
-        profileTab.tap()
-        sleep(2)
-
-        let seeAll = app.buttons["customExercisesSeeAll"]
-        if !seeAll.waitForExistence(timeout: 5) {
-            app.swipeUp()
-            sleep(1)
-        }
-        guard seeAll.waitForExistence(timeout: 3) else { return }
-        seeAll.tap()
-        sleep(2)
-
-        // Delete exercises one by one via the three-dot menu
-        for _ in 0..<10 {
-            let menuButton = app.buttons["customExerciseMenu"].firstMatch
-            guard menuButton.waitForExistence(timeout: 3) else { break }
-            menuButton.tap()
-            sleep(1)
-
-            let deleteOption = app.buttons["Delete Exercise"]
-            guard deleteOption.waitForExistence(timeout: 3) else { break }
-            deleteOption.tap()
-            sleep(1)
-
-            let confirmDelete = app.alerts.buttons["Delete"]
-            if confirmDelete.waitForExistence(timeout: 3) {
-                confirmDelete.tap()
-                sleep(2)
-            }
-        }
-
-        // Navigate back
-        let backButton = app.navigationBars.buttons.element(boundBy: 0)
-        if backButton.waitForExistence(timeout: 3) {
-            backButton.tap()
-            sleep(1)
-        }
-    }
+    override var needsRoutineCleanup: Bool { true }
+    override var needsCustomExerciseCleanup: Bool { true }
 
     // MARK: - Test: Create a Routine
 
@@ -195,13 +30,9 @@ final class RoutineManagementTests: XCTestCase {
 
         // Navigate back and verify the routine appears in the list
         navigateBackToRoutineList()
-        sleep(2)
 
         let routineInList = app.staticTexts[routineName]
         XCTAssertTrue(routineInList.waitForExistence(timeout: 10), "Routine '\(routineName)' not found in the list")
-
-        // Cleanup
-        cleanupRoutines(containing: String(uniqueSuffix))
     }
 
     // MARK: - Test: Edit a Routine
@@ -221,7 +52,7 @@ final class RoutineManagementTests: XCTestCase {
         let editButton = app.buttons["editRoutineButton"]
         XCTAssertTrue(editButton.waitForExistence(timeout: 5), "Edit Routine button not found")
         editButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Clear the name field and type the new name
         let nameField = app.textFields["editRoutineNameField"]
@@ -229,7 +60,7 @@ final class RoutineManagementTests: XCTestCase {
         nameField.tap()
         // Select all and clear
         nameField.press(forDuration: 1.0)
-        usleep(500_000)
+        waitForAnimation()
         let selectAll = app.menuItems["Select All"]
         if selectAll.waitForExistence(timeout: 2) {
             selectAll.tap()
@@ -240,15 +71,10 @@ final class RoutineManagementTests: XCTestCase {
         let saveButton = app.buttons["saveRoutineChangesButton"]
         XCTAssertTrue(saveButton.waitForExistence(timeout: 5), "Save Changes button not found")
         saveButton.tap()
-        sleep(2)
 
         // Verify the title updated on the detail screen
         let updatedTitle = app.staticTexts[updatedName]
         XCTAssertTrue(updatedTitle.waitForExistence(timeout: 10), "Updated routine name '\(updatedName)' not found")
-
-        // Cleanup
-        navigateBackToRoutineList()
-        cleanupRoutines(containing: String(uniqueSuffix))
     }
 
     // MARK: - Test: Add an Exercise to a Routine
@@ -266,7 +92,6 @@ final class RoutineManagementTests: XCTestCase {
         let addExerciseButton = app.buttons["addExerciseButton"]
         XCTAssertTrue(addExerciseButton.waitForExistence(timeout: 5), "Add Exercise button not found")
         addExerciseButton.tap()
-        sleep(2)
 
         // The exercise picker sheet should appear with "Add Exercise" as the title
         let addExerciseTitle = app.navigationBars["Add Exercise"]
@@ -277,12 +102,11 @@ final class RoutineManagementTests: XCTestCase {
         XCTAssertTrue(searchField.waitForExistence(timeout: 5), "Exercise search field not found")
         searchField.tap()
         searchField.typeText("Bench Press")
-        sleep(2)
 
         let exerciseRow = app.buttons["exercisePickerRow"].firstMatch
         XCTAssertTrue(exerciseRow.waitForExistence(timeout: 10), "Bench Press exercise not found in search results")
         exerciseRow.tap()
-        sleep(1)
+        waitForAnimation()
 
         // The exercise config sheet should appear - enter a weight
         let weightField = app.textFields["exerciseWeightField"]
@@ -294,13 +118,11 @@ final class RoutineManagementTests: XCTestCase {
         let addButton = app.buttons["addExerciseToRoutineButton"]
         XCTAssertTrue(addButton.waitForExistence(timeout: 5), "Add button not found in exercise config")
         addButton.tap()
-        sleep(2)
 
         // Tap "Done" to dismiss the exercise picker
         let doneButton = app.buttons["Done"]
         if doneButton.waitForExistence(timeout: 3) {
             doneButton.tap()
-            sleep(2)
         }
 
         // Verify the exercise appears in the routine detail
@@ -310,10 +132,6 @@ final class RoutineManagementTests: XCTestCase {
         // Verify exercise count updated (should show "1 exercise")
         let exerciseCount = app.staticTexts["1 exercise"]
         XCTAssertTrue(exerciseCount.waitForExistence(timeout: 5), "Exercise count did not update to '1 exercise'")
-
-        // Cleanup
-        navigateBackToRoutineList()
-        cleanupRoutines(containing: String(uniqueSuffix))
     }
 
     // MARK: - Test: Create and Use a Custom Exercise
@@ -332,13 +150,12 @@ final class RoutineManagementTests: XCTestCase {
         let addExerciseButton = app.buttons["addExerciseButton"]
         XCTAssertTrue(addExerciseButton.waitForExistence(timeout: 5), "Add Exercise button not found")
         addExerciseButton.tap()
-        sleep(2)
 
         // Tap "Custom" toolbar button to create a custom exercise
         let customButton = app.buttons["customExerciseToolbarButton"]
         XCTAssertTrue(customButton.waitForExistence(timeout: 5), "Custom exercise toolbar button not found")
         customButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Fill in the custom exercise name
         let exerciseNameField = app.textFields["customExerciseNameField"]
@@ -350,7 +167,6 @@ final class RoutineManagementTests: XCTestCase {
         let createExerciseButton = app.buttons["createCustomExerciseButton"]
         XCTAssertTrue(createExerciseButton.waitForExistence(timeout: 5), "Create Exercise button not found")
         createExerciseButton.tap()
-        sleep(2)
 
         // The exercise config sheet should appear automatically for the new exercise
         // Enter a weight to enable the Add button
@@ -363,22 +179,16 @@ final class RoutineManagementTests: XCTestCase {
         let addButton = app.buttons["addExerciseToRoutineButton"]
         XCTAssertTrue(addButton.waitForExistence(timeout: 5), "Add button not found")
         addButton.tap()
-        sleep(2)
 
         // Dismiss the exercise picker
         let doneButton = app.buttons["Done"]
         if doneButton.waitForExistence(timeout: 3) {
             doneButton.tap()
-            sleep(2)
         }
 
         // Verify the custom exercise appears in the routine
         let customInRoutine = app.staticTexts[customExerciseName]
         XCTAssertTrue(customInRoutine.waitForExistence(timeout: 10), "Custom exercise '\(customExerciseName)' not found in the routine")
-
-        // Cleanup
-        navigateBackToRoutineList()
-        cleanupRoutines(containing: String(uniqueSuffix))
     }
 
     // MARK: - Test: Delete a Routine
@@ -391,7 +201,6 @@ final class RoutineManagementTests: XCTestCase {
 
         // Go back to the routine list
         navigateBackToRoutineList()
-        sleep(2)
 
         // Verify the routine is in the list
         let routineInList = app.staticTexts[routineName]
@@ -401,25 +210,24 @@ final class RoutineManagementTests: XCTestCase {
         let modifyButton = app.buttons["modifyRoutinesButton"]
         XCTAssertTrue(modifyButton.waitForExistence(timeout: 5), "Modify button not found")
         modifyButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Tap the routine row to select it
         let routineRow = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", routineName)).firstMatch
         XCTAssertTrue(routineRow.waitForExistence(timeout: 5), "Routine row not found for selection")
         routineRow.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Tap the Delete button
         let deleteButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Delete'")).firstMatch
         XCTAssertTrue(deleteButton.waitForExistence(timeout: 5), "Delete button not found")
         deleteButton.tap()
-        sleep(1)
 
         // Confirm the deletion alert
         let confirmDelete = app.alerts.buttons["Delete"]
         XCTAssertTrue(confirmDelete.waitForExistence(timeout: 5), "Delete confirmation alert not found")
         confirmDelete.tap()
-        sleep(3)
+        _ = confirmDelete.waitForNonExistence(timeout: 5)
 
         // Verify the routine is gone from the list
         let deletedRoutine = app.staticTexts[routineName]
@@ -442,12 +250,11 @@ final class RoutineManagementTests: XCTestCase {
         let addExerciseButton = app.buttons["addExerciseButton"]
         XCTAssertTrue(addExerciseButton.waitForExistence(timeout: 5), "Add Exercise button not found")
         addExerciseButton.tap()
-        sleep(2)
 
         let customButton = app.buttons["customExerciseToolbarButton"]
         XCTAssertTrue(customButton.waitForExistence(timeout: 5), "Custom button not found")
         customButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         let exerciseNameField = app.textFields["customExerciseNameField"]
         XCTAssertTrue(exerciseNameField.waitForExistence(timeout: 5), "Custom exercise name field not found")
@@ -457,36 +264,32 @@ final class RoutineManagementTests: XCTestCase {
         let createExerciseButton = app.buttons["createCustomExerciseButton"]
         XCTAssertTrue(createExerciseButton.waitForExistence(timeout: 5), "Create Exercise button not found")
         createExerciseButton.tap()
-        sleep(2)
 
         // Cancel the config sheet — we only needed the exercise created
         let cancelButton = app.buttons["Cancel"]
         if cancelButton.waitForExistence(timeout: 3) {
             cancelButton.tap()
-            sleep(1)
+            waitForAnimation()
         }
 
         // Dismiss the exercise picker
         let doneButton = app.buttons["Done"]
         if doneButton.waitForExistence(timeout: 3) {
             doneButton.tap()
-            sleep(1)
+            waitForAnimation()
         }
 
         // 3. Navigate to Profile tab
         navigateBackToRoutineList()
-        sleep(1)
 
         let profileTab = app.buttons["Profile"]
         XCTAssertTrue(profileTab.waitForExistence(timeout: 10), "Profile tab not found")
         profileTab.tap()
-        sleep(3)
 
         // 4. Tap the Custom Exercises "See All" link
         let seeAll = app.buttons["customExercisesSeeAll"]
         XCTAssertTrue(seeAll.waitForExistence(timeout: 10), "Custom Exercises 'See All' not found")
         seeAll.tap()
-        sleep(2)
 
         // Verify our custom exercise is in the list
         let exerciseText = app.staticTexts[customExerciseName]
@@ -496,31 +299,21 @@ final class RoutineManagementTests: XCTestCase {
         let menuButton = app.buttons["customExerciseMenu"].firstMatch
         XCTAssertTrue(menuButton.waitForExistence(timeout: 5), "Three-dot menu button not found")
         menuButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         let deleteExerciseOption = app.buttons["Delete Exercise"]
         XCTAssertTrue(deleteExerciseOption.waitForExistence(timeout: 5), "Delete Exercise option not found in menu")
         deleteExerciseOption.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Confirm the deletion
         let confirmDelete = app.alerts.buttons["Delete"]
         XCTAssertTrue(confirmDelete.waitForExistence(timeout: 5), "Delete confirmation alert not found")
         confirmDelete.tap()
-        sleep(2)
+        _ = confirmDelete.waitForNonExistence(timeout: 5)
 
-        // 6. Verify the exercise is gone (wait for UI to update after deletion)
-        sleep(3)
+        // 6. Verify the exercise is gone
         let deletedExercise = app.staticTexts[customExerciseName]
         XCTAssertFalse(deletedExercise.exists, "Custom exercise '\(customExerciseName)' still exists after deletion")
-
-        // Cleanup the test routine
-        let backButton = app.navigationBars.buttons.element(boundBy: 0)
-        if backButton.waitForExistence(timeout: 3) {
-            backButton.tap()
-            sleep(1)
-        }
-
-        cleanupRoutines(containing: String(uniqueSuffix))
     }
 }

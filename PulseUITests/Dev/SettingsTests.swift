@@ -7,57 +7,7 @@
 
 import XCTest
 
-final class SettingsTests: XCTestCase {
-
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--skip-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
-
-    // MARK: - Helpers
-
-    /// Dismiss any leftover "Resume Workout?" alert.
-    private func dismissResumeAlertIfPresent() {
-        let resumeAlert = app.alerts["Resume Workout?"]
-        if resumeAlert.waitForExistence(timeout: 5) {
-            resumeAlert.buttons["Discard"].tap()
-            sleep(1)
-        }
-    }
-
-    /// Navigate to the Profile tab.
-    private func navigateToProfile() {
-        let profileTab = app.buttons["Profile"]
-        XCTAssertTrue(profileTab.waitForExistence(timeout: 15), "Profile tab not found")
-        profileTab.tap()
-        sleep(3)
-    }
-
-    /// Navigate to Settings from the Profile tab.
-    private func navigateToSettings() {
-        navigateToProfile()
-
-        let settingsButton = app.buttons["profileSettingsButton"]
-        XCTAssertTrue(settingsButton.waitForExistence(timeout: 10), "Settings button not found on Profile")
-        settingsButton.tap()
-        sleep(2)
-    }
-
-    /// Scroll down in settings to reveal bottom elements.
-    private func scrollToBottom() {
-        app.swipeUp()
-        sleep(1)
-        app.swipeUp()
-        sleep(1)
-    }
+final class SettingsTests: UITestBaseCase {
 
     // MARK: - Test: Sign Out Cancel Keeps User on Settings
 
@@ -69,16 +19,14 @@ final class SettingsTests: XCTestCase {
         let signOutButton = app.buttons["settingsSignOutButton"]
         if !signOutButton.waitForExistence(timeout: 5) {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
         XCTAssertTrue(signOutButton.waitForExistence(timeout: 5), "Sign Out button not found")
         signOutButton.tap()
-        sleep(1)
 
         let alert = app.alerts["Sign Out"]
         XCTAssertTrue(alert.waitForExistence(timeout: 5), "Sign Out alert not found")
         alert.buttons["Cancel"].tap()
-        sleep(1)
 
         // Verify we're still on Settings
         let navTitle = app.navigationBars["Settings"]
@@ -99,16 +47,14 @@ final class SettingsTests: XCTestCase {
         let deleteButton = app.buttons["settingsDeleteAccountButton"]
         if !deleteButton.waitForExistence(timeout: 5) {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
         XCTAssertTrue(deleteButton.waitForExistence(timeout: 5), "Delete Account button not found")
         deleteButton.tap()
-        sleep(1)
 
         let alert = app.alerts["Delete Account"]
         XCTAssertTrue(alert.waitForExistence(timeout: 5), "Delete Account alert not found")
         alert.buttons["Cancel"].tap()
-        sleep(1)
 
         // Verify we're still on Settings
         let navTitle = app.navigationBars["Settings"]
@@ -125,7 +71,6 @@ final class SettingsTests: XCTestCase {
         let planButton = app.buttons["settingsPlanButton"]
         XCTAssertTrue(planButton.waitForExistence(timeout: 10), "Plan button not found")
         planButton.tap()
-        sleep(2)
 
         // The subscription sheet should be presented — look for common subscription UI
         let subscriptionContent = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'Pro' OR label CONTAINS[c] 'Upgrade' OR label CONTAINS[c] 'Subscribe' OR label CONTAINS[c] 'Pulse Pro'")).firstMatch
@@ -172,19 +117,17 @@ final class SettingsTests: XCTestCase {
         let appearanceRow = app.buttons["settingsAppearanceRow"]
         XCTAssertTrue(appearanceRow.waitForExistence(timeout: 10), "Appearance row not found")
         appearanceRow.tap()
-        sleep(2)
 
         // Select "Dark" theme — use the button in the sheet, not staticTexts (avoids ambiguity with settings row)
         let darkOption = app.buttons.matching(NSPredicate(format: "label == 'Dark'")).firstMatch
         XCTAssertTrue(darkOption.waitForExistence(timeout: 5), "'Dark' option not found")
         darkOption.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Dismiss the sheet
         let doneButton = app.buttons["Done"]
         XCTAssertTrue(doneButton.exists, "Done button not found")
         doneButton.tap()
-        sleep(2)
 
         // Verify the Appearance row now shows "Dark"
         let darkValue = app.staticTexts["Dark"]
@@ -192,13 +135,12 @@ final class SettingsTests: XCTestCase {
 
         // Reset to System
         appearanceRow.tap()
-        sleep(2)
         let systemOption = app.buttons.matching(NSPredicate(format: "label == 'System'")).firstMatch
         XCTAssertTrue(systemOption.waitForExistence(timeout: 5), "'System' option not found")
         systemOption.tap()
-        sleep(1)
+        waitForAnimation()
         app.buttons["Done"].tap()
-        sleep(1)
+        waitForAnimation()
     }
 
     // MARK: - Test: Units Selection Shows Subtitles
@@ -211,7 +153,6 @@ final class SettingsTests: XCTestCase {
         let unitsRow = app.buttons["settingsUnitsRow"]
         XCTAssertTrue(unitsRow.waitForExistence(timeout: 10), "Units row not found")
         unitsRow.tap()
-        sleep(2)
 
         // Verify Metric option with subtitle
         let metricOption = app.staticTexts["Metric"]
@@ -228,7 +169,7 @@ final class SettingsTests: XCTestCase {
 
         // Dismiss
         app.buttons["Done"].tap()
-        sleep(1)
+        waitForAnimation()
     }
 
     // MARK: - Test: Timezone Sheet Has Search
@@ -241,7 +182,6 @@ final class SettingsTests: XCTestCase {
         let timezoneRow = app.buttons["settingsTimezoneRow"]
         XCTAssertTrue(timezoneRow.waitForExistence(timeout: 10), "Time Zone row not found")
         timezoneRow.tap()
-        sleep(2)
 
         // Verify search field is present
         let searchField = app.searchFields.firstMatch
@@ -249,7 +189,7 @@ final class SettingsTests: XCTestCase {
 
         // Dismiss
         app.buttons["Done"].tap()
-        sleep(1)
+        waitForAnimation()
     }
 
     // MARK: - Test: Feedback Sheet Has All Required Fields
@@ -262,11 +202,10 @@ final class SettingsTests: XCTestCase {
         let feedbackRow = app.buttons["settingsFeedbackRow"]
         if !feedbackRow.waitForExistence(timeout: 5) {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
         XCTAssertTrue(feedbackRow.waitForExistence(timeout: 5), "Feedback row not found")
         feedbackRow.tap()
-        sleep(2)
 
         // Verify TYPE section and selector
         let typeLabel = app.staticTexts["TYPE"]
@@ -290,7 +229,7 @@ final class SettingsTests: XCTestCase {
 
         // Dismiss
         cancelButton.tap()
-        sleep(1)
+        waitForAnimation()
     }
 
     // MARK: - Test: Delete Account Confirmation Sheet Can Be Cancelled
@@ -304,17 +243,15 @@ final class SettingsTests: XCTestCase {
         let deleteButton = app.buttons["settingsDeleteAccountButton"]
         if !deleteButton.waitForExistence(timeout: 5) {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
         XCTAssertTrue(deleteButton.waitForExistence(timeout: 5), "Delete Account button not found")
         deleteButton.tap()
-        sleep(1)
 
         // Tap Continue on the first alert
         let alert = app.alerts["Delete Account"]
         XCTAssertTrue(alert.waitForExistence(timeout: 5), "Delete Account alert not found")
         alert.buttons["Continue"].tap()
-        sleep(2)
 
         // Verify the confirmation sheet appeared
         let confirmTitle = app.staticTexts["This action is irreversible"]
@@ -324,7 +261,6 @@ final class SettingsTests: XCTestCase {
         let cancelButton = app.buttons["Cancel"]
         XCTAssertTrue(cancelButton.exists, "Cancel button not found on confirmation sheet")
         cancelButton.tap()
-        sleep(2)
 
         // Verify we're back on Settings
         let navTitle = app.navigationBars["Settings"]
@@ -350,7 +286,7 @@ final class SettingsTests: XCTestCase {
         let supportHeader = app.staticTexts["Support"]
         if !supportHeader.exists {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
         XCTAssertTrue(supportHeader.waitForExistence(timeout: 5), "'Support' section not found")
 
@@ -358,7 +294,7 @@ final class SettingsTests: XCTestCase {
         let signOutButton = app.buttons["settingsSignOutButton"]
         if !signOutButton.exists {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
         XCTAssertTrue(signOutButton.waitForExistence(timeout: 5), "Sign Out button not found")
 
@@ -366,7 +302,7 @@ final class SettingsTests: XCTestCase {
         let deleteButton = app.buttons["settingsDeleteAccountButton"]
         if !deleteButton.exists {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
         XCTAssertTrue(deleteButton.waitForExistence(timeout: 5), "Delete Account button not found")
 
@@ -393,7 +329,7 @@ final class SettingsTests: XCTestCase {
         let helpText = app.staticTexts["Help & Support"]
         if !helpText.waitForExistence(timeout: 5) {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
         XCTAssertTrue(helpText.waitForExistence(timeout: 5), "'Help & Support' row not found in Settings")
     }
@@ -408,7 +344,7 @@ final class SettingsTests: XCTestCase {
         let feedbackText = app.staticTexts["Send Feedback"]
         if !feedbackText.waitForExistence(timeout: 5) {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
         XCTAssertTrue(feedbackText.waitForExistence(timeout: 5), "'Send Feedback' row not found in Settings")
     }
@@ -423,7 +359,6 @@ final class SettingsTests: XCTestCase {
         let appearanceRow = app.buttons["settingsAppearanceRow"]
         XCTAssertTrue(appearanceRow.waitForExistence(timeout: 10), "Appearance row not found")
         appearanceRow.tap()
-        sleep(2)
 
         // Verify sheet appeared
         let sheetTitle = app.staticTexts["Choose your preferred theme"]
@@ -433,7 +368,6 @@ final class SettingsTests: XCTestCase {
         let doneButton = app.buttons["Done"]
         XCTAssertTrue(doneButton.exists, "Done button not found")
         doneButton.tap()
-        sleep(2)
 
         // Verify we're back on Settings
         let navTitle = app.navigationBars["Settings"]
@@ -450,7 +384,6 @@ final class SettingsTests: XCTestCase {
         let unitsRow = app.buttons["settingsUnitsRow"]
         XCTAssertTrue(unitsRow.waitForExistence(timeout: 10), "Units row not found")
         unitsRow.tap()
-        sleep(2)
 
         // Verify sheet appeared
         let sheetTitle = app.staticTexts["Choose your measurement system"]
@@ -460,7 +393,6 @@ final class SettingsTests: XCTestCase {
         let doneButton = app.buttons["Done"]
         XCTAssertTrue(doneButton.exists, "Done button not found")
         doneButton.tap()
-        sleep(2)
 
         // Verify we're back on Settings
         let navTitle = app.navigationBars["Settings"]

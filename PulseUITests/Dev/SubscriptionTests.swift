@@ -9,48 +9,15 @@ import XCTest
 
 // MARK: - Free User Subscription Tests
 
-final class FreeUserSubscriptionTests: XCTestCase {
-
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--skip-auth-free"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
+final class FreeUserSubscriptionTests: FreeUserUITestBaseCase {
 
     // MARK: - Helpers
 
-    private func dismissResumeAlertIfPresent() {
-        let resumeAlert = app.alerts["Resume Workout?"]
-        if resumeAlert.waitForExistence(timeout: 5) {
-            resumeAlert.buttons["Discard"].tap()
-            sleep(1)
-        }
-    }
-
     private func navigateToProgress() {
         let progressTab = app.buttons["Progress"]
-        XCTAssertTrue(progressTab.waitForExistence(timeout: 15), "Progress tab not found")
+        assertExists(progressTab, timeout: 15, "Progress tab not found")
         progressTab.tap()
-        sleep(3)
-    }
-
-    private func navigateToSettings() {
-        let profileTab = app.buttons["Profile"]
-        XCTAssertTrue(profileTab.waitForExistence(timeout: 15), "Profile tab not found")
-        profileTab.tap()
-        sleep(3)
-
-        let settingsButton = app.buttons["profileSettingsButton"]
-        XCTAssertTrue(settingsButton.waitForExistence(timeout: 10), "Settings button not found")
-        settingsButton.tap()
-        sleep(2)
+        _ = app.otherElements["progressPaywallPrompt"].waitForExistence(timeout: 10)
     }
 
     // MARK: - Test: Progress Tab Shows Paywall for Free User
@@ -128,7 +95,7 @@ final class FreeUserSubscriptionTests: XCTestCase {
         let planButton = app.buttons["settingsPlanButton"]
         XCTAssertTrue(planButton.waitForExistence(timeout: 10), "Plan button not found")
         planButton.tap()
-        sleep(2)
+        waitForAnimation()
 
         let upgradeTitle = app.staticTexts["Upgrade to Pro"]
         XCTAssertTrue(upgradeTitle.waitForExistence(timeout: 5), "'Upgrade to Pro' title not found in subscription sheet")
@@ -147,7 +114,7 @@ final class FreeUserSubscriptionTests: XCTestCase {
         let planButton = app.buttons["settingsPlanButton"]
         XCTAssertTrue(planButton.waitForExistence(timeout: 10), "Plan button not found")
         planButton.tap()
-        sleep(2)
+        waitForAnimation()
 
         let analyticsFeature = app.staticTexts["Analytics"]
         XCTAssertTrue(analyticsFeature.waitForExistence(timeout: 5), "'Analytics' feature not found")
@@ -173,7 +140,7 @@ final class FreeUserSubscriptionTests: XCTestCase {
         let upgradeButton = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'Upgrade to Pulse Pro'")).firstMatch
         XCTAssertTrue(upgradeButton.exists, "Upgrade button not found on paywall")
         upgradeButton.tap()
-        sleep(2)
+        waitForAnimation()
 
         // Verify subscription sheet appeared with feature content
         let analyticsFeature = app.staticTexts["Analytics"]
@@ -194,7 +161,7 @@ final class FreeUserSubscriptionTests: XCTestCase {
         let upgradeToPro = app.staticTexts["Upgrade to Pro"]
         XCTAssertTrue(upgradeToPro.exists, "'Upgrade to Pro' should be visible")
         upgradeToPro.tap()
-        sleep(2)
+        waitForAnimation()
 
         let upgradeTitle = app.staticTexts["Upgrade to Pro"]
         XCTAssertTrue(upgradeTitle.waitForExistence(timeout: 5), "Subscription sheet should open when free user taps Apple Watch row")
@@ -203,48 +170,15 @@ final class FreeUserSubscriptionTests: XCTestCase {
 
 // MARK: - Pro User Subscription Tests
 
-final class ProUserSubscriptionTests: XCTestCase {
-
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--skip-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
+final class ProUserSubscriptionTests: UITestBaseCase {
 
     // MARK: - Helpers
 
-    private func dismissResumeAlertIfPresent() {
-        let resumeAlert = app.alerts["Resume Workout?"]
-        if resumeAlert.waitForExistence(timeout: 5) {
-            resumeAlert.buttons["Discard"].tap()
-            sleep(1)
-        }
-    }
-
     private func navigateToProgress() {
         let progressTab = app.buttons["Progress"]
-        XCTAssertTrue(progressTab.waitForExistence(timeout: 15), "Progress tab not found")
+        assertExists(progressTab, timeout: 15, "Progress tab not found")
         progressTab.tap()
-        sleep(3)
-    }
-
-    private func navigateToSettings() {
-        let profileTab = app.buttons["Profile"]
-        XCTAssertTrue(profileTab.waitForExistence(timeout: 15), "Profile tab not found")
-        profileTab.tap()
-        sleep(3)
-
-        let settingsButton = app.buttons["profileSettingsButton"]
-        XCTAssertTrue(settingsButton.waitForExistence(timeout: 10), "Settings button not found")
-        settingsButton.tap()
-        sleep(2)
+        _ = app.staticTexts["Activity"].waitForExistence(timeout: 10)
     }
 
     // MARK: - Test: Progress Tab Shows Analytics for Pro User
@@ -321,7 +255,7 @@ final class ProUserSubscriptionTests: XCTestCase {
         let planButton = app.buttons["settingsPlanButton"]
         XCTAssertTrue(planButton.waitForExistence(timeout: 10), "Plan button not found")
         planButton.tap()
-        sleep(2)
+        waitForAnimation()
 
         let proTitle = app.staticTexts["Pulse Pro"]
         XCTAssertTrue(proTitle.waitForExistence(timeout: 5), "'Pulse Pro' title not found in subscription sheet")

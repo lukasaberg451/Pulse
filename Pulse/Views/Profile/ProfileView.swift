@@ -190,6 +190,7 @@ struct ProfileView: View {
                                                 .font(.subheadline.weight(.medium))
                                                 .foregroundStyle(Color.appAccent)
                                         }
+                                        .accessibilityIdentifier("profileSeeAllWorkoutsButton")
                                     }
                                 }
                                 .padding(.horizontal)

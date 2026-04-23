@@ -7,20 +7,7 @@
 
 import XCTest
 
-final class LoginFlowTests: XCTestCase {
-
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--reset-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
+final class LoginFlowTests: AuthFlowUITestBaseCase {
 
     func testLoginWithValidCredentials() throws {
         // Dismiss any system alerts (e.g. "Save Password" prompt) automatically
@@ -33,31 +20,21 @@ final class LoginFlowTests: XCTestCase {
             return false
         }
 
-        // Wait for splash screen to fully dismiss
-        sleep(10)
-
-        // Navigate to login
-        let signInButton = app.buttons["Already Have an Account"]
-        if signInButton.waitForExistence(timeout: 5) {
-            signInButton.tap()
-        } else {
-            let signInText = app.staticTexts["Already Have an Account"]
-            XCTAssertTrue(signInText.waitForExistence(timeout: 5), "Auth selection screen not found")
-            signInText.tap()
-        }
+        // Navigate to login using base class helper (waits for splash dismissal)
+        navigateToLogin()
 
         let emailField = app.textFields["loginEmailField"]
-        XCTAssertTrue(emailField.waitForExistence(timeout: 10), "Email field not found")
+        assertExists(emailField, timeout: 10, "Email field not found")
         emailField.tap()
         emailField.typeText(TestSecrets.uitestEmail)
 
         let passwordField = app.secureTextFields["loginPasswordField"]
-        XCTAssertTrue(passwordField.waitForExistence(timeout: 3), "Password field not found")
+        assertExists(passwordField, timeout: 3, "Password field not found")
         passwordField.tap()
         passwordField.typeText(TestSecrets.uitestPassword)
 
         let loginButton = app.buttons["loginButton"]
-        XCTAssertTrue(loginButton.waitForExistence(timeout: 3), "Login button not found")
+        assertExists(loginButton, timeout: 3, "Login button not found")
         loginButton.tap()
 
         // Dismiss the iOS "Save Password" prompt if it appears
@@ -70,6 +47,6 @@ final class LoginFlowTests: XCTestCase {
 
         // Assert the home screen appeared (post-login loading takes ~4s)
         let dashboardTab = app.staticTexts["Dashboard"]
-        XCTAssertTrue(dashboardTab.waitForExistence(timeout: 20), "Home screen did not appear after login")
+        assertExists(dashboardTab, timeout: 20, "Home screen did not appear after login")
     }
 }

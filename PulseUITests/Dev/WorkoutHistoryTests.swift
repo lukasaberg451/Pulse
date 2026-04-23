@@ -7,37 +7,7 @@
 
 import XCTest
 
-final class WorkoutHistoryTests: XCTestCase {
-
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--skip-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
-
-    // MARK: - Helpers
-
-    private func dismissResumeAlertIfPresent() {
-        let resumeAlert = app.alerts["Resume Workout?"]
-        if resumeAlert.waitForExistence(timeout: 5) {
-            resumeAlert.buttons["Discard"].tap()
-            sleep(1)
-        }
-    }
-
-    private func navigateToProfile() {
-        let profileTab = app.buttons["Profile"]
-        XCTAssertTrue(profileTab.waitForExistence(timeout: 15), "Profile tab not found")
-        profileTab.tap()
-        sleep(3)
-    }
+final class WorkoutHistoryTests: UITestBaseCase {
 
     // MARK: - Test: Completed Workouts Section Shows on Profile
 
@@ -50,11 +20,11 @@ final class WorkoutHistoryTests: XCTestCase {
         let section = app.otherElements["profileCompletedWorkoutsSection"]
         if !section.waitForExistence(timeout: 5) {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
 
         let header = app.staticTexts["Completed Workouts"]
-        XCTAssertTrue(header.waitForExistence(timeout: 5), "'Completed Workouts' section not found on profile")
+        assertExists(header, timeout: 5, "'Completed Workouts' section not found on profile")
     }
 
     // MARK: - Test: Workout History List Loads After Scroll
@@ -69,14 +39,14 @@ final class WorkoutHistoryTests: XCTestCase {
         let section = app.otherElements["profileCompletedWorkoutsSection"]
         if !section.waitForExistence(timeout: 5) {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
-        XCTAssertTrue(section.waitForExistence(timeout: 5), "Completed workouts section not found")
+        assertExists(section, timeout: 5, "Completed workouts section not found")
 
         // Try scrolling within the profile view — this tests that the list
         // renders and doesn't crash on scroll
         app.swipeUp()
-        sleep(2)
+        waitForAnimation()
 
         // The profile should still be functional after scrolling
         let profileTab = app.buttons["Profile"]
@@ -95,20 +65,18 @@ final class WorkoutHistoryTests: XCTestCase {
         let section = app.otherElements["profileCompletedWorkoutsSection"]
         if !section.waitForExistence(timeout: 5) {
             app.swipeUp()
-            sleep(1)
+            waitForAnimation()
         }
 
         // Look for a "See All" button for completed workouts or any workout row
         let seeAll = app.buttons["completedWorkoutsSeeAll"]
         if seeAll.waitForExistence(timeout: 5) {
             seeAll.tap()
-            sleep(3)
 
             // Should be on the all workouts list — look for any workout card
             let firstWorkout = app.buttons.firstMatch
             if firstWorkout.waitForExistence(timeout: 5) {
                 firstWorkout.tap()
-                sleep(3)
 
                 // If we navigated to a detail view, look for typical detail elements
                 let durationLabel = app.staticTexts["Duration"]
@@ -120,7 +88,7 @@ final class WorkoutHistoryTests: XCTestCase {
                     let backButton = app.navigationBars.buttons.element(boundBy: 0)
                     if backButton.waitForExistence(timeout: 5) {
                         backButton.tap()
-                        sleep(1)
+                        waitForAnimation()
                     }
                 }
             }

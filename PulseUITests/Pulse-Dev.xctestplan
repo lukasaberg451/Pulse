@@ -16,7 +16,10 @@
   "testTargets" : [
     {
       "skippedTests" : [
-        "SmokeTests"
+        "AuthFlowUITestBaseCase",
+        "FreeUserUITestBaseCase",
+        "SmokeTests",
+        "UITestBaseCase"
       ],
       "target" : {
         "containerPath" : "container:Pulse.xcodeproj",
