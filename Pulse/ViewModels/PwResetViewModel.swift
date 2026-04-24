@@ -88,9 +88,9 @@ class PwResetViewModel: ObservableObject {
         } catch {
             let message = error.localizedDescription.lowercased()
             if message.contains("expired") {
-                errorMessage = "This code has expired. Please request a new one."
+                errorMessage = String(localized: "This code has expired. Please request a new one.")
             } else {
-                errorMessage = "Invalid code. Please check and try again."
+                errorMessage = String(localized: "Invalid code. Please check and try again.")
             }
             showError = true
         }
@@ -116,9 +116,9 @@ class PwResetViewModel: ObservableObject {
         } catch {
             let message = error.localizedDescription.lowercased()
             if message.contains("same password") || message.contains("different password") || message.contains("should be different") {
-                errorMessage = "You can't reuse your previous password. Please choose a new one."
+                errorMessage = String(localized: "You can't reuse your previous password. Please choose a new one.")
             } else {
-                errorMessage = "Failed to update password. Please try again."
+                errorMessage = String(localized: "Failed to update password. Please try again.")
             }
             showError = true
         }

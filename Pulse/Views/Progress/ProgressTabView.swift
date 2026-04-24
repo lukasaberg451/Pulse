@@ -15,6 +15,15 @@ struct ProgressTabView: View {
     @State private var showingPaywall = false
     @Environment(\.tabBarBottomInset) private var tabBarBottomInset
     
+    private func formattedDuration(_ minutes: Int) -> String {
+        let hours = minutes / 60
+        let mins = minutes % 60
+        if hours > 0 {
+            return "\(hours)h \(mins)m"
+        }
+        return "\(mins)m"
+    }
+
     private func formattedVolume(_ value: Double) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -43,11 +52,11 @@ struct ProgressTabView: View {
                         
                         IconBadge(assetName: "progressup", color: .appAccent, size: 72)
                         
-                        Text("Unlock Progress Tracking")
+                        Text("Unlock Progress Tracking", comment: "Pro upgrade prompt title")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
-                        Text("Upgrade to Pro to access detailed analytics, personal records, and training insights.")
+                        Text("Upgrade to Pro to access detailed analytics, personal records, and training insights.", comment: "Pro upgrade prompt subtitle")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
@@ -62,6 +71,7 @@ struct ProgressTabView: View {
                         
                         Spacer()
                     }
+                    .accessibilityElement(children: .contain)
                     .accessibilityIdentifier("progressPaywallPrompt")
                 } else {
                 
@@ -69,7 +79,7 @@ struct ProgressTabView: View {
                     VStack(spacing: 14) {
                         // Smart Insight
                         if let insight = viewModel.currentInsight {
-                            Text("Smart Insights")
+                            Text("Smart Insights", comment: "Section header on progress tab")
                                 .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -80,7 +90,7 @@ struct ProgressTabView: View {
                         }
                         
                         // Activity Section
-                        Text("Activity")
+                        Text("Activity", comment: "Section header on progress tab")
                             .font(.title3.weight(.bold))
                             .foregroundStyle(Color.appText)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -92,11 +102,11 @@ struct ProgressTabView: View {
                                 IconBadge(assetName: "flame", color: .orange, size: 36)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Current Streak")
+                                    Text("Current Streak", comment: "Streak card label")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
-                                    
-                                    Text("\(viewModel.currentStreak) \(viewModel.currentStreak == 1 ? "day" : "days")")
+
+                                    Text("\(viewModel.currentStreak) \(viewModel.currentStreak == 1 ? String(localized: "day") : String(localized: "days"))")
                                         .font(.title3.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -109,11 +119,11 @@ struct ProgressTabView: View {
                             
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Longest Streak")
+                                    Text("Longest Streak", comment: "Streak card label")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
-                                    
-                                    Text("\(viewModel.bestStreak) \(viewModel.bestStreak == 1 ? "day" : "days")")
+
+                                    Text("\(viewModel.bestStreak) \(viewModel.bestStreak == 1 ? String(localized: "day") : String(localized: "days"))")
                                         .font(.subheadline.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -121,7 +131,7 @@ struct ProgressTabView: View {
                                 Spacer()
                                 
                                 VStack(alignment: .trailing, spacing: 2) {
-                                    Text("Last Workout")
+                                    Text("Last Workout", comment: "Streak card label")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
                                     
@@ -138,6 +148,7 @@ struct ProgressTabView: View {
                                 .modifier(CardShadowModifier())
                         }
                         .padding(.horizontal)
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressStreakCard")
                         
                         // Total Workouts
@@ -146,11 +157,11 @@ struct ProgressTabView: View {
                                 IconBadge(assetName: "strengthtraining", color: .appAccent, size: 36)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Workouts Completed")
+                                    Text("Workouts Completed", comment: "Activity card label")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
-                                    
-                                    Text("This month: \(viewModel.monthlyWorkouts)")
+
+                                    Text("This month: \(viewModel.monthlyWorkouts)", comment: "Monthly workout count")
                                         .font(.subheadline.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -162,7 +173,7 @@ struct ProgressTabView: View {
                                 .background(Color.appText.opacity(0.06))
                             
                             HStack {
-                                Text("All time: \(viewModel.lifetimeWorkouts)")
+                                Text("All time: \(viewModel.lifetimeWorkouts)", comment: "Lifetime workout count")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                                 
@@ -176,6 +187,7 @@ struct ProgressTabView: View {
                                 .modifier(CardShadowModifier())
                         }
                         .padding(.horizontal)
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressWorkoutsCard")
                         
                         // Volume Lifted
@@ -184,11 +196,11 @@ struct ProgressTabView: View {
                                 IconBadge(assetName: "volume", color: .blue, size: 36)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Volume Lifted")
+                                    Text("Volume Lifted", comment: "Activity card label")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appSecondaryText)
                                     
-                                    Text("This week: \(formattedVolume(unitManager.displayWeight(Double(viewModel.weeklyVolume)))) \(unitManager.weightUnit)")
+                                    Text("\(String(localized: "This week:")) \(formattedVolume(unitManager.displayWeight(Double(viewModel.weeklyVolume)))) \(unitManager.weightUnit)")
                                         .font(.subheadline.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                 }
@@ -200,7 +212,7 @@ struct ProgressTabView: View {
                                 .background(Color.appText.opacity(0.06))
                             
                             HStack {
-                                Text("All time: \(formattedVolume(unitManager.displayWeight(Double(viewModel.lifetimeVolume)))) \(unitManager.weightUnit)")
+                                Text("\(String(localized: "All time:")) \(formattedVolume(unitManager.displayWeight(Double(viewModel.lifetimeVolume)))) \(unitManager.weightUnit)")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                                 
@@ -214,16 +226,57 @@ struct ProgressTabView: View {
                                 .modifier(CardShadowModifier())
                         }
                         .padding(.horizontal)
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressVolumeCard")
-                        
+
+                        // Workout Time
+                        VStack(spacing: 10) {
+                            HStack(spacing: 12) {
+                                IconBadge(assetName: "clock", color: .green, size: 36)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Workout Time", comment: "Activity card label")
+                                        .font(.caption.weight(.medium))
+                                        .foregroundStyle(Color.appSecondaryText)
+
+                                    Text("This week: \(formattedDuration(viewModel.weeklyDurationMinutes))", comment: "Weekly duration")
+                                        .font(.subheadline.weight(.bold))
+                                        .foregroundStyle(Color.appText)
+                                }
+
+                                Spacer()
+                            }
+
+                            Divider()
+                                .background(Color.appText.opacity(0.06))
+
+                            HStack {
+                                Text("\(String(localized: "All time:")) \(viewModel.lifetimeHours)h")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+
+                                Spacer()
+                            }
+                        }
+                        .padding(12)
+                        .background {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color.appSurface)
+                                .modifier(CardShadowModifier())
+                        }
+                        .padding(.horizontal)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("progressWorkoutTimeCard")
+
                         // Estimated 1RM Section
                         Estimated1RMSection(viewModel: viewModel)
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("progressEstimated1RMSection")
                         
-                        // Strength Progress
+                        // Weight Progress
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Strength Progress")
+                                Text("Weight Progress", comment: "Section header")
                                     .font(.title3.weight(.bold))
                                     .foregroundStyle(Color.appText)
                                 
@@ -231,7 +284,7 @@ struct ProgressTabView: View {
                                 
                                 if !viewModel.strengthProgress.isEmpty {
                                     NavigationLink(destination: AllStrengthProgressView(viewModel: viewModel).hidesTabBar()) {
-                                        Text("See All")
+                                        Text("See All", comment: "Navigation link")
                                             .font(.subheadline.weight(.medium))
                                             .foregroundStyle(Color.appAccent)
                                     }
@@ -248,10 +301,12 @@ struct ProgressTabView: View {
                                 }
                             }
                         }
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressStrengthSection")
                         
                         // Body Metrics Section
                         HealthMetricsSection()
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("progressBodyMetricsSection")
                     }
                     .padding(.top, 30)
@@ -281,7 +336,7 @@ struct ProgressTabView: View {
 
 // MARK: - Stat Card
 struct StatCard: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
     let unit: String
     let icon: String
@@ -321,7 +376,7 @@ struct StatCard: View {
     }
 }
 
-// MARK: - Strength Progress Card
+// MARK: - Weight Progress Card
 struct StrengthProgressCard: View {
     let progress: StrengthProgress
     @EnvironmentObject var unitManager: UnitManager
@@ -340,7 +395,7 @@ struct StrengthProgressCard: View {
 
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Best")
+                    Text("Best", comment: "Strength progress label")
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(Color.appSecondaryText)
                     Text("\(unitManager.displayWeight(progress.bestWeight), specifier: "%.1f") \(unitManager.weightUnit)")
@@ -349,10 +404,10 @@ struct StrengthProgressCard: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Last")
+                    Text("Start", comment: "Strength progress start label")
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(Color.appSecondaryText)
-                    Text("\(unitManager.displayWeight(progress.lastWeight), specifier: "%.1f") \(unitManager.weightUnit)")
+                    Text("\(unitManager.displayWeight(progress.firstWeight), specifier: "%.1f") \(unitManager.weightUnit)")
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(Color.appText)
                 }
@@ -361,9 +416,10 @@ struct StrengthProgressCard: View {
 
                 if progress.improvementPercent != 0 {
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(progress.improvementPercent > 0
-                             ? "+\(Int(progress.improvementPercent))%"
-                             : "\(Int(progress.improvementPercent))%")
+                        Text({
+                            let formatted = (abs(progress.improvementPercent) / 100).formatted(.percent.precision(.fractionLength(0)))
+                            return progress.improvementPercent > 0 ? "+\(formatted)" : "-\(formatted)"
+                        }())
                             .font(.caption.weight(.bold))
                             .foregroundStyle(progress.improvementPercent > 0 ? .green : .red)
                             .padding(.horizontal, 8)
@@ -373,7 +429,7 @@ struct StrengthProgressCard: View {
                                     .opacity(0.12),
                                 in: Capsule()
                             )
-                        Text("since start")
+                        Text("since start", comment: "Improvement percentage context")
                             .font(.caption2)
                             .foregroundStyle(Color.appTertiaryText)
                     }
@@ -396,11 +452,11 @@ struct EmptyStrengthProgressCard: View {
         VStack(spacing: 14) {
             IconBadge(assetName: "trophy", size: 48)
 
-            Text("No Strength Data Yet")
+            Text("No Strength Data Yet", comment: "Empty state title")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.appText)
 
-            Text("Complete workouts to start tracking your strength progress!")
+            Text("Complete workouts to start tracking your weight progress!", comment: "Empty state subtitle")
                 .font(.caption)
                 .foregroundStyle(Color.appSecondaryText)
                 .multilineTextAlignment(.center)
@@ -448,7 +504,7 @@ struct ComparisonRow: View {
                     HStack(spacing: 4) {
                         Image(change > 0 ? "arrow-up" : "arrow-down")
                             .font(.caption)
-                        Text("\(abs(change)) (\(abs(changePercentage), specifier: "%.0f")%)")
+                        Text("\(abs(change)) (\((abs(changePercentage) / 100).formatted(.percent.precision(.fractionLength(0)))))")
                             .font(.caption)
                     }
                     .foregroundStyle(change > 0 ? Color.green : Color.red)
@@ -500,7 +556,7 @@ struct Estimated1RMSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Estimated 1RM")
+                Text("Estimated 1RM", comment: "Section header")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(Color.appText)
 
@@ -508,7 +564,7 @@ struct Estimated1RMSection: View {
 
                 if !viewModel.exercise1RMStats.isEmpty {
                     NavigationLink(destination: AllEstimated1RMView(viewModel: viewModel).hidesTabBar()) {
-                        Text("See All")
+                        Text("See All", comment: "Navigation link")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.appAccent)
                     }
@@ -521,7 +577,7 @@ struct Estimated1RMSection: View {
                 Empty1RMCard()
             } else {
                 ForEach(viewModel.exercise1RMStats.prefix(3)) { stat in
-                    Estimated1RMCard(stat: stat)
+                    Estimated1RMCard(stat: stat, timeZone: viewModel.userProfile?.resolvedTimeZone ?? .current)
                 }
             }
         }
@@ -531,81 +587,45 @@ struct Estimated1RMSection: View {
 // MARK: - Estimated 1RM Card
 struct Estimated1RMCard: View {
     let stat: Exercise1RMRow
+    var timeZone: TimeZone = .current
     @EnvironmentObject var unitManager: UnitManager
-    @State private var showTrainingWeights = false
-
-    private var formattedDate: String {
-        SharedFormatters.mediumDate.string(from: stat.achievedAt)
-    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Header row
+        NavigationLink(destination: Exercise1RMDetailView(stat: stat, timeZone: timeZone).hidesTabBar()) {
             HStack(spacing: 12) {
                 IconBadge(assetName: "crown", color: .orange, size: 36)
 
-                Text(stat.exerciseName)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.appText)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(stat.exerciseName)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.appText)
+
+                    Text("Based on \(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps", comment: "1RM basis description")
+                        .font(.caption)
+                        .foregroundStyle(Color.appSecondaryText)
+                }
 
                 Spacer()
 
                 Text("\(unitManager.displayWeight(stat.bestEstimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(Color.appAccent)
+
+                Image("chevron-right")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 12, height: 12)
+                    .foregroundStyle(Color.appSecondaryText)
             }
-
-            // Details toggle
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showTrainingWeights.toggle()
-                }
-            } label: {
-                HStack(spacing: 4) {
-                    Text("Details")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(Color.appAccent)
-                    Image(systemName: showTrainingWeights ? "chevron.up" : "chevron.down")
-                        .font(.caption2)
-                        .foregroundStyle(Color.appAccent)
-                }
+            .padding(12)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.appSurface)
+                    .modifier(CardShadowModifier())
             }
-            .buttonStyle(.plain)
-            .padding(.leading, 48)
-            .accessibilityIdentifier("trainingWeightsToggle")
-
-            if showTrainingWeights {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Based on")
-                                .font(.caption2.weight(.medium))
-                                .foregroundStyle(Color.appSecondaryText)
-                            Text("\(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(Color.appText)
-                        }
-
-                        Spacer()
-
-                        Text(formattedDate)
-                            .font(.caption2)
-                            .foregroundStyle(Color.appTertiaryText)
-                    }
-
-                    TrainingWeightsGrid(estimated1rm: stat.bestEstimated1rm)
-                }
-                .padding(.leading, 48)
-                .transition(.opacity)
-            }
+            .padding(.horizontal)
         }
-        .padding(12)
-        .background {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.appSurface)
-                .modifier(CardShadowModifier())
-        }
-        .padding(.horizontal)
+        .buttonStyle(ScalePressStyle())
     }
 }
 
@@ -652,17 +672,356 @@ struct TrainingWeightsGrid: View {
     }
 }
 
+// MARK: - Exercise 1RM Detail View
+struct Exercise1RMDetailView: View {
+    let stat: Exercise1RMRow
+    var timeZone: TimeZone = .current
+    @EnvironmentObject var unitManager: UnitManager
+    @State private var history: [Exercise1RMHistoryRow] = []
+    @State private var isLoading = true
+    @State private var selectedEntry: Exercise1RMHistoryRow?
+
+    private var displayHistory: [(date: Date, value: Double)] {
+        history.map { entry in
+            (date: entry.recordedAt, value: unitManager.displayWeight(entry.estimated1rm))
+        }
+    }
+
+    private var yMin: Double {
+        guard let minVal = displayHistory.map(\.value).min(),
+              let maxVal = displayHistory.map(\.value).max() else { return 0 }
+        let range = maxVal - minVal
+        let padding = Swift.max(range * 0.15, 1)
+        return (minVal - padding).rounded(.down)
+    }
+
+    private var yMax: Double {
+        guard let minVal = displayHistory.map(\.value).min(),
+              let maxVal = displayHistory.map(\.value).max() else { return 100 }
+        let range = maxVal - minVal
+        let padding = Swift.max(range * 0.15, 1)
+        return (maxVal + padding).rounded(.up)
+    }
+
+    private var formattedDate: String {
+        let formatter = SharedFormatters.mediumDate
+        formatter.timeZone = timeZone
+        return formatter.string(from: stat.achievedAt)
+    }
+
+    var body: some View {
+        ZStack {
+            LinearGradient.dashboardBackground
+                .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header
+                    VStack(spacing: 8) {
+                        IconBadge(assetName: "crown", color: .orange, size: 48)
+
+                        Text(stat.exerciseName)
+                            .font(.title2.weight(.bold))
+                            .foregroundStyle(Color.appText)
+
+                        Text("Estimated 1RM: \(unitManager.displayWeight(stat.bestEstimated1rm), specifier: "%.1f") \(unitManager.weightUnit)", comment: "Estimated 1RM value display")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
+
+                        if !isLoading, let first = history.first, history.count >= 2 {
+                            let change = stat.bestEstimated1rm - first.estimated1rm
+                            let displayChange = abs(unitManager.displayWeight(stat.bestEstimated1rm) - unitManager.displayWeight(first.estimated1rm))
+                            if abs(change) >= 0.1 {
+                                let sign = change > 0 ? "+" : "-"
+                                Text("\(sign)\(displayChange, specifier: "%.1f") \(unitManager.weightUnit) since first entry", comment: "1RM change since first entry")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(change > 0 ? Color.green : Color.red)
+                            }
+                        }
+                    }
+                    .padding(.top, 20)
+
+                    // Chart
+                    if isLoading {
+                        ProgressView()
+                            .tint(Color.appAccent)
+                            .frame(height: 220)
+                    } else if displayHistory.count < 2 {
+                        VStack(spacing: 14) {
+                            IconBadge(assetName: "progressup", size: 48)
+
+                            Text("Not enough data yet", comment: "Empty chart state")
+                                .font(.headline.weight(.semibold))
+                                .foregroundStyle(Color.appText)
+
+                            Text("You need at least 2 personal records logged to see your 1RM progression chart.", comment: "Empty chart state")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appSecondaryText)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(24)
+                        .background {
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(Color.appSurface)
+                                .modifier(CardShadowModifier())
+                        }
+                        .padding(.horizontal)
+                    } else {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("1RM Progression (\(unitManager.weightUnit))", comment: "Chart title for 1RM progression")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.appSecondaryText)
+
+                            chartView
+                                .frame(height: 220)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        selectedEntry = nil
+                                    }
+                                }
+
+                            // X-axis date labels
+                            if let first = displayHistory.first, let last = displayHistory.last {
+                                HStack {
+                                    Text(formatShortDate(first.date))
+                                        .font(.caption2)
+                                        .foregroundStyle(Color.appSecondaryText.opacity(0.6))
+
+                                    Spacer()
+
+                                    Text(formatShortDate(last.date))
+                                        .font(.caption2)
+                                        .foregroundStyle(Color.appSecondaryText.opacity(0.6))
+                                }
+                                .padding(.horizontal, 30)
+                            }
+
+                            if let selected = selectedEntry {
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(formatDate(selected.recordedAt))
+                                            .font(.caption.weight(.medium))
+                                            .foregroundStyle(Color.appSecondaryText)
+                                        Text("\(unitManager.displayWeight(selected.estimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
+                                            .font(.title3.weight(.bold))
+                                            .foregroundStyle(Color.appText)
+                                        Text("\(unitManager.displayWeight(selected.weight), specifier: "%.1f") \(unitManager.weightUnit) × \(selected.reps) reps")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appSecondaryText)
+                                    }
+                                    Spacer()
+                                }
+                                .padding(12)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(Color.appAccent.opacity(0.1))
+                                }
+                            }
+                        }
+                        .padding(16)
+                        .background {
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(Color.appSurface)
+                                .modifier(CardShadowModifier())
+                        }
+                        .padding(.horizontal)
+                    }
+
+                    // Training Weights Grid
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Training Weights", comment: "Section header for training weights grid")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.appText)
+
+                            Spacer()
+                        }
+
+                        HStack(spacing: 16) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Based on", comment: "Label before weight and reps")
+                                    .font(.caption2.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+                                Text("\(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Color.appText)
+                            }
+
+                            Spacer()
+
+                            Text(formattedDate)
+                                .font(.caption2)
+                                .foregroundStyle(Color.appTertiaryText)
+                        }
+
+                        TrainingWeightsGrid(estimated1rm: stat.bestEstimated1rm)
+                    }
+                    .padding(16)
+                    .background {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(Color.appSurface)
+                            .modifier(CardShadowModifier())
+                    }
+                    .padding(.horizontal)
+
+                    Spacer(minLength: 20)
+                }
+            }
+        }
+        .navigationTitle(String(localized: "Estimated 1RM"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.appBackground, for: .navigationBar)
+        .task {
+            await loadHistory()
+        }
+    }
+
+    private func loadHistory() async {
+        do {
+            history = try await WorkoutRepository().fetchExercise1RMHistoryForCurrentUser(exerciseId: stat.exerciseId)
+        } catch {
+            debugLog("Failed to load 1RM history: \(error)")
+        }
+        isLoading = false
+    }
+
+    @ViewBuilder
+    private var chartView: some View {
+        let data = displayHistory
+
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
+            let range = yMax - yMin
+
+            ZStack {
+                // Grid lines
+                ForEach(0..<5) { i in
+                    let y = height - (CGFloat(i) / 4.0) * height
+                    let value = yMin + (Double(i) / 4.0) * range
+
+                    Path { path in
+                        path.move(to: CGPoint(x: 0, y: y))
+                        path.addLine(to: CGPoint(x: width, y: y))
+                    }
+                    .stroke(Color.appSecondaryText.opacity(0.15), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+
+                    Text(String(format: "%.0f", value))
+                        .font(.caption2)
+                        .foregroundStyle(Color.appSecondaryText.opacity(0.6))
+                        .position(x: 16, y: y - 8)
+                }
+
+                if data.count >= 2 {
+                    // Line
+                    Path { path in
+                        for (index, point) in data.enumerated() {
+                            let x = xPosition(for: index, count: data.count, width: width)
+                            let y = yPosition(for: point.value, height: height, range: range)
+
+                            if index == 0 {
+                                path.move(to: CGPoint(x: x, y: y))
+                            } else {
+                                path.addLine(to: CGPoint(x: x, y: y))
+                            }
+                        }
+                    }
+                    .stroke(Color.appAccent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+
+                    // Gradient fill
+                    Path { path in
+                        for (index, point) in data.enumerated() {
+                            let x = xPosition(for: index, count: data.count, width: width)
+                            let y = yPosition(for: point.value, height: height, range: range)
+
+                            if index == 0 {
+                                path.move(to: CGPoint(x: x, y: y))
+                            } else {
+                                path.addLine(to: CGPoint(x: x, y: y))
+                            }
+                        }
+                        path.addLine(to: CGPoint(x: xPosition(for: data.count - 1, count: data.count, width: width), y: height))
+                        path.addLine(to: CGPoint(x: xPosition(for: 0, count: data.count, width: width), y: height))
+                        path.closeSubpath()
+                    }
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.appAccent.opacity(0.3), Color.appAccent.opacity(0.0)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+
+                    // Data points
+                    ForEach(Array(data.enumerated()), id: \.offset) { index, point in
+                        let x = xPosition(for: index, count: data.count, width: width)
+                        let y = yPosition(for: point.value, height: height, range: range)
+                        let isSelected = selectedEntry?.id == history[index].id
+
+                        Circle()
+                            .fill(isSelected ? Color.appAccent : Color.appSurface)
+                            .frame(width: isSelected ? 10 : 7, height: isSelected ? 10 : 7)
+                            .overlay {
+                                Circle()
+                                    .stroke(Color.appAccent, lineWidth: 2)
+                            }
+                            .position(x: x, y: y)
+                            .onTapGesture {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    if selectedEntry?.id == history[index].id {
+                                        selectedEntry = nil
+                                    } else {
+                                        selectedEntry = history[index]
+                                    }
+                                }
+                            }
+                    }
+                }
+            }
+        }
+    }
+
+    private func xPosition(for index: Int, count: Int, width: CGFloat) -> CGFloat {
+        guard count > 1 else { return width / 2 }
+        let padding: CGFloat = 30
+        let usableWidth = width - (padding * 2)
+        return padding + usableWidth * CGFloat(index) / CGFloat(count - 1)
+    }
+
+    private func yPosition(for value: Double, height: CGFloat, range: Double) -> CGFloat {
+        guard range > 0 else { return height / 2 }
+        return height - CGFloat((value - yMin) / range) * height
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        formatter.timeZone = timeZone
+        return formatter.string(from: date)
+    }
+
+    private func formatShortDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM yyyy"
+        formatter.timeZone = timeZone
+        return formatter.string(from: date)
+    }
+}
+
 // MARK: - Empty 1RM Card
 struct Empty1RMCard: View {
     var body: some View {
         VStack(spacing: 14) {
             IconBadge(assetName: "crown", size: 48)
 
-            Text("No 1RM Data Yet")
+            Text("No 1RM Data Yet", comment: "Empty state title for 1RM card")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.appText)
 
-            Text("Log strength sets with 10 or fewer reps to estimate your one rep max!")
+            Text("Log strength sets with 10 or fewer reps to estimate your one rep max!", comment: "Empty state subtitle for 1RM card")
                 .font(.caption)
                 .foregroundStyle(Color.appSecondaryText)
                 .multilineTextAlignment(.center)
@@ -693,11 +1052,11 @@ struct AllEstimated1RMView: View {
                         VStack(spacing: 16) {
                             IconBadge(assetName: "crown", size: 56)
 
-                            Text("No 1RM Data Yet")
+                            Text("No 1RM Data Yet", comment: "Empty state title for all 1RM view")
                                 .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
 
-                            Text("Log strength sets with 10 or fewer reps to estimate your one rep max!")
+                            Text("Log strength sets with 10 or fewer reps to estimate your one rep max!", comment: "Empty state subtitle for all 1RM view")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -706,7 +1065,7 @@ struct AllEstimated1RMView: View {
                         .padding(.top, 100)
                     } else {
                         StaggeredList(items: viewModel.exercise1RMStats, id: \.id) { stat in
-                            Estimated1RMCard(stat: stat)
+                            Estimated1RMCard(stat: stat, timeZone: viewModel.userProfile?.resolvedTimeZone ?? .current)
                         }
                     }
                 }
@@ -716,13 +1075,13 @@ struct AllEstimated1RMView: View {
                 await viewModel.loadStats()
             }
         }
-        .navigationTitle("Estimated 1RM")
+        .navigationTitle(String(localized: "Estimated 1RM"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
     }
 }
 
-// MARK: - All Strength Progress View
+// MARK: - All Weight Progress View
 struct AllStrengthProgressView: View {
     @ObservedObject var viewModel: ProgressStatsViewModel
 
@@ -737,11 +1096,11 @@ struct AllStrengthProgressView: View {
                         VStack(spacing: 16) {
                             IconBadge(assetName: "trophy", size: 56)
 
-                            Text("No Strength Data Yet")
+                            Text("No Strength Data Yet", comment: "Empty state title for all strength progress view")
                                 .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
 
-                            Text("Complete workouts to start tracking your strength progress!")
+                            Text("Complete workouts to start tracking your weight progress!", comment: "Empty state subtitle for all strength progress view")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -760,7 +1119,7 @@ struct AllStrengthProgressView: View {
                 await viewModel.loadStats()
             }
         }
-        .navigationTitle("Strength Progress")
+        .navigationTitle(String(localized: "Weight Progress"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
     }
@@ -769,55 +1128,80 @@ struct AllStrengthProgressView: View {
 struct HealthMetricsSection: View {
     @StateObject private var viewModel = ProfileViewModel()
     @EnvironmentObject var unitManager: UnitManager
-    @State private var showingEditSheet = false
+    @State private var showingHeightSheet = false
+    @State private var showingWeightSheet = false
+    @State private var showingTargetWeightSheet = false
     @State private var showingWeightChart = false
+    @State private var showDeleteConfirmation = false
+
+    private var hasAnyData: Bool {
+        guard let profile = viewModel.profile else { return false }
+        return profile.weightKg != nil || profile.heightCm != nil || (profile.targetWeightKg ?? 0) > 0
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Body Metrics")
+                Text("Body Metrics", comment: "Section header")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(Color.appText)
-
+                
                 Spacer()
-
-                Button {
-                    let impactLight = UIImpactFeedbackGenerator(style: .light)
-                    impactLight.impactOccurred()
-                    showingEditSheet = true
-                } label: {
-                    Image("edit-pencil")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24, height: 24)
-                        .foregroundStyle(Color.appAccent)
+                
+                if hasAnyData {
+                    Button {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Image("trash")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .foregroundStyle(Color.appSecondaryText)
+                    }
+                    .buttonStyle(ScalePressStyle())
+                    .accessibilityIdentifier("deleteBodyMetricsButton")
                 }
-                .buttonStyle(ScalePressStyle())
-                .accessibilityIdentifier("editBodyMetricsButton")
             }
             .padding(.horizontal)
             
             if let profile = viewModel.profile {
                 VStack(spacing: 16) {
-                    // Height and Weight Row
+                    // Height and Weight Row (tappable)
                     HStack(spacing: 16) {
                         // Height Card
-                        HealthMetricCard(
-                            icon: "ruler",
-                            title: "Height",
-                            value: profile.heightCm != nil ? unitManager.displayHeightFormatted(profile.heightCm!) : "--",
-                            unit: unitManager.unitSystem == .metric ? "cm" : "",
-                            color: .green
-                        )
-                        
+                        Button {
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                            showingHeightSheet = true
+                        } label: {
+                            HealthMetricCard(
+                                icon: "ruler",
+                                title: String(localized: "Height"),
+                                value: profile.heightCm != nil ? unitManager.displayHeightFormatted(profile.heightCm!) : "--",
+                                unit: unitManager.unitSystem == .metric ? "cm" : "",
+                                color: .green,
+                                showChevron: true
+                            )
+                        }
+                        .buttonStyle(ScalePressStyle())
+                        .accessibilityIdentifier("bodyMetricsHeightButton")
+
                         // Weight Card
-                        HealthMetricCard(
-                            icon: "scale",
-                            title: "Weight",
-                            value: profile.weightKg != nil ? String(format: "%.1f", unitManager.displayWeight(profile.weightKg!)) : "--",
-                            unit: unitManager.weightUnit,
-                            color: .blue
-                        )
+                        Button {
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                            showingWeightSheet = true
+                        } label: {
+                            HealthMetricCard(
+                                icon: "scale",
+                                title: String(localized: "Weight"),
+                                value: profile.weightKg != nil ? String(format: "%.1f", unitManager.displayWeight(profile.weightKg!)) : "--",
+                                unit: unitManager.weightUnit,
+                                color: .blue,
+                                showChevron: true
+                            )
+                        }
+                        .buttonStyle(ScalePressStyle())
                     }
                     .padding(.horizontal)
                     
@@ -837,7 +1221,7 @@ struct HealthMetricsSection: View {
                                     IconBadge(assetName: "scale", color: .appAccent, size: 40)
                                     
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Weight Trend")
+                                        Text("Weight Trend", comment: "Weight trend card title")
                                             .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appText)
                                         
@@ -846,11 +1230,11 @@ struct HealthMetricsSection: View {
                                         
                                         if abs(change) >= 0.1 {
                                             let arrow = change > 0 ? "↑" : "↓"
-                                            Text("\(arrow) \(String(format: "%.1f", displayChange)) \(unitManager.weightUnit) since start")
+                                            Text("\(arrow) \(String(format: "%.1f", displayChange)) \(unitManager.weightUnit) since start", comment: "Weight change since start")
                                                 .font(.caption)
                                                 .foregroundStyle(Color.appSecondaryText)
                                         } else {
-                                            Text("No change since start")
+                                            Text("No change since start", comment: "No weight change label")
                                                 .font(.caption)
                                                 .foregroundStyle(Color.appSecondaryText)
                                         }
@@ -858,31 +1242,88 @@ struct HealthMetricsSection: View {
                                     
                                     Spacer()
                                     
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
+                                    Image("chevron-right")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 12, height: 12)
                                         .foregroundStyle(Color.appSecondaryText)
                                 }
                                 
-                                // Target (optional)
+                                // Target weight row
                                 if let targetWeight = profile.targetWeightKg, targetWeight > 0 {
                                     Divider()
                                     
                                     let remaining = abs(currentWeight - targetWeight)
+                                    let reached = remaining < 0.1
                                     
                                     HStack(spacing: 14) {
-                                        IconBadge(assetName: "circle-dashed", color: .appSecondaryText, size: 40)
+                                        IconBadge(
+                                            assetName: reached ? "check-circle" : "circle-dashed",
+                                            color: reached ? .green : .appSecondaryText,
+                                            size: 40
+                                        )
                                         
-                                        Text("Target: \(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit)")
+                                        Text("Target: \(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit)", comment: "Target weight display")
                                             .font(.caption.weight(.medium))
                                             .foregroundStyle(Color.appSecondaryText)
                                         
                                         Spacer()
                                         
-                                        Text("\(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) from target")
-                                            .font(.caption.weight(.medium))
+                                        if reached {
+                                            Text("Reached!", comment: "Target weight reached indicator")
+                                                .font(.caption.weight(.bold))
+                                                .foregroundStyle(.green)
+                                        } else {
+                                            Text("\(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) from target", comment: "Remaining weight to target")
+                                                .font(.caption.weight(.medium))
+                                                .foregroundStyle(Color.appSecondaryText)
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(16)
+                            .background {
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .modifier(CardShadowModifier())
+                            }
+                            .padding(.horizontal)
+                        }
+                        .buttonStyle(ScalePressStyle())
+                        
+                        // Target Weight Card
+                        Button {
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                            showingTargetWeightSheet = true
+                        } label: {
+                            HStack(spacing: 14) {
+                                IconBadge(assetName: "circle-dashed", color: .orange, size: 40)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Weight Goal", comment: "Weight goal card title")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(Color.appText)
+
+                                    if let targetWeight = profile.targetWeightKg, targetWeight > 0 {
+                                        let remaining = abs(currentWeight - targetWeight)
+                                        Text("\(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit) — \(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) to go", comment: "Target weight with remaining")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appSecondaryText)
+                                    } else {
+                                        Text("Set a target weight", comment: "Prompt to set target weight")
+                                            .font(.caption)
                                             .foregroundStyle(Color.appSecondaryText)
                                     }
                                 }
+                                
+                                Spacer()
+                                
+                                Image("pencil")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
+                                    .foregroundStyle(Color.appTertiaryText)
                             }
                             .padding(16)
                             .background {
@@ -907,7 +1348,7 @@ struct HealthMetricsSection: View {
                             }
                             
                             // Title
-                            Text("BMI")
+                            Text("BMI", comment: "Body Mass Index label")
                                 .font(.caption)
                                 .foregroundStyle(Color.appText.opacity(0.7))
                             
@@ -918,7 +1359,7 @@ struct HealthMetricsSection: View {
                                     .fontWeight(.bold)
                                     .foregroundStyle(Color.appText)
                                 
-                                Text(category)
+                                Text(profile.bmiCategoryDisplayName ?? "")
                                     .font(.caption)
                                     .foregroundStyle(categoryColor(for: category))
                                     .fontWeight(.semibold)
@@ -964,16 +1405,16 @@ struct HealthMetricsSection: View {
                                 
                                 // Category labels
                                 HStack {
-                                    Text("Underweight")
+                                    Text("Underweight", comment: "BMI category label")
                                         .font(.caption2)
                                     Spacer()
-                                    Text("Normal")
+                                    Text("Normal", comment: "BMI category label")
                                         .font(.caption2)
                                     Spacer()
-                                    Text("Overweight")
+                                    Text("Overweight", comment: "BMI category label")
                                         .font(.caption2)
                                     Spacer()
-                                    Text("Obese")
+                                    Text("Obese", comment: "BMI category label")
                                         .font(.caption2)
                                 }
                                 .foregroundStyle(Color.appText.opacity(0.5))
@@ -993,16 +1434,10 @@ struct HealthMetricsSection: View {
                         VStack(spacing: 14) {
                             IconBadge(assetName: "progressup", size: 48)
 
-                            Text("Add your weight and height to calculate BMI")
+                            Text("Add your height and weight to see BMI and track your progress", comment: "Empty state for body metrics")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
-
-                            PrimaryCTAButton("Add Body Metrics", icon: "plus") {
-                                let impactLight = UIImpactFeedbackGenerator(style: .light)
-                                impactLight.impactOccurred()
-                                showingEditSheet = true
-                            }
                         }
                         .frame(maxWidth: .infinity)
                         .padding(20)
@@ -1023,25 +1458,47 @@ struct HealthMetricsSection: View {
         .task {
             await viewModel.loadProfile()
         }
-        .sheet(isPresented: $showingEditSheet) {
-            EditHealthMetricsSheet(viewModel: viewModel)
+        .sheet(isPresented: $showingHeightSheet) {
+            EditHeightSheet(viewModel: viewModel)
+                .sheetContentTransition()
+        }
+        .sheet(isPresented: $showingWeightSheet) {
+            EditWeightSheet(viewModel: viewModel)
+                .sheetContentTransition()
+        }
+        .sheet(isPresented: $showingTargetWeightSheet) {
+            EditTargetWeightSheet(viewModel: viewModel)
                 .sheetContentTransition()
         }
         .sheet(isPresented: $showingWeightChart) {
             WeightProgressionChart(viewModel: viewModel)
                 .sheetContentTransition()
         }
+        .confirmationDialog(
+            String(localized: "Delete Body Metrics"),
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "Delete All Data"), role: .destructive) {
+                Task {
+                    _ = await viewModel.clearBodyMetrics()
+                }
+            }
+            Button(String(localized: "Cancel"), role: .cancel) {}
+        } message: {
+            Text("This will permanently delete your weight, height, target weight, and all weight history. This action cannot be undone.", comment: "Delete body metrics confirmation message")
+        }
     }
     
     func categoryColor(for category: String) -> Color {
         switch category {
-        case "Underweight":
+        case "underweight":
             return .blue
-        case "Normal":
+        case "normal":
             return .green
-        case "Overweight":
+        case "overweight":
             return .orange
-        case "Obese":
+        case "obese":
             return .red
         default:
             return .gray
@@ -1049,8 +1506,6 @@ struct HealthMetricsSection: View {
     }
     
     func bmiToPosition(bmi: Double, width: CGFloat) -> CGFloat {
-        // Map BMI value to position on scale (0 to width)
-        // Scale: 15 to 35 BMI range
         let minBMI = 15.0
         let maxBMI = 35.0
         let clampedBMI = max(minBMI, min(maxBMI, bmi))
@@ -1081,8 +1536,10 @@ struct HealthMetricCard: View {
                 Spacer()
                 
                 if showChevron {
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
+                    Image("pencil")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
                         .foregroundStyle(Color.appTertiaryText)
                 }
             }
@@ -1148,7 +1605,7 @@ struct WeightProgressionChart: View {
                         VStack(spacing: 8) {
                             IconBadge(assetName: "scale", color: .blue, size: 48)
                             
-                            Text("Weight Progression")
+                            Text("Weight Progression", comment: "Weight progression chart title")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
                             
@@ -1157,7 +1614,7 @@ struct WeightProgressionChart: View {
                                displayHistory.count > 1 {
                                 let change = last.weight - first.weight
                                 let arrow = change >= 0 ? "↑" : "↓"
-                                Text("\(arrow) \(String(format: "%.1f", abs(change))) \(unitManager.weightUnit) overall")
+                                Text("\(arrow) \(String(format: "%.1f", abs(change))) \(unitManager.weightUnit) overall", comment: "Overall weight change summary")
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appSecondaryText)
                             }
@@ -1169,11 +1626,11 @@ struct WeightProgressionChart: View {
                             VStack(spacing: 14) {
                                 IconBadge(assetName: "progressup", size: 48)
                                 
-                                Text("Not enough data yet")
+                                Text("Not enough data yet", comment: "Empty weight chart state title")
                                     .font(.headline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
-                                
-                                Text("Log your weight at least twice to see your progression chart.")
+
+                                Text("Log your weight at least twice to see your progression chart.", comment: "Empty weight chart state subtitle")
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appSecondaryText)
                                     .multilineTextAlignment(.center)
@@ -1189,7 +1646,7 @@ struct WeightProgressionChart: View {
                         } else {
                             // Chart
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Weight (\(unitManager.weightUnit))")
+                                Text("Weight (\(unitManager.weightUnit))", comment: "Weight chart Y-axis label")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                                 
@@ -1226,7 +1683,7 @@ struct WeightProgressionChart: View {
                             
                             // History list
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("History")
+                                Text("History", comment: "Weight history list header")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
                                     .padding(.horizontal, 4)
@@ -1271,7 +1728,7 @@ struct WeightProgressionChart: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
+                    Button(String(localized: "Close")) {
                         dismiss()
                     }
                     .foregroundStyle(Color.appText)
@@ -1377,6 +1834,14 @@ struct WeightProgressionChart: View {
                     }
                 }
             }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if selectedEntry != nil {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedEntry = nil
+                    }
+                }
+            }
         }
     }
     
@@ -1396,51 +1861,28 @@ struct WeightProgressionChart: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
+        formatter.timeZone = viewModel.profile?.resolvedTimeZone ?? .current
         return formatter.string(from: date)
     }
 }
 
-// MARK: - Edit Body Metrics Sheet
-struct EditHealthMetricsSheet: View {
+// MARK: - Edit Height Sheet
+struct EditHeightSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var unitManager: UnitManager
     @ObservedObject var viewModel: ProfileViewModel
 
-    @State private var weightText: String
     @State private var heightText: String
     @State private var heightFeet: String
     @State private var heightInches: String
-    @State private var targetWeightText: String
     @State private var showError = false
     @State private var errorMessage = ""
-    @State private var showDeleteConfirmation = false
-    
-    // Track initial values to detect actual changes
-    private let initialWeightText: String
-    private let initialHeightText: String
-    private let initialHeightFeet: String
-    private let initialHeightInches: String
-    private let initialTargetWeightText: String
 
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
-
-        let weightKg = viewModel.profile?.weightKg ?? 0
         let heightCm = viewModel.profile?.heightCm ?? 0
-        let targetWeightKg = viewModel.profile?.targetWeightKg ?? 0
-
         let um = UnitManager.shared
-        let displayWeight = um.displayWeight(weightKg)
-        let displayTargetWeight = um.displayWeight(targetWeightKg)
-
-        let nf = NumberFormatter()
-        nf.numberStyle = .decimal
-        nf.minimumFractionDigits = 1
-        nf.maximumFractionDigits = 1
-
-        let weightStr = weightKg > 0 ? (nf.string(from: NSNumber(value: displayWeight)) ?? "") : ""
-        let targetWeightStr = targetWeightKg > 0 ? (nf.string(from: NSNumber(value: displayTargetWeight)) ?? "") : ""
         let heightStr = heightCm > 0 ? String(format: "%.0f", heightCm) : ""
         let feetStr: String
         let inchesStr: String
@@ -1451,18 +1893,9 @@ struct EditHealthMetricsSheet: View {
             feetStr = ""
             inchesStr = ""
         }
-
-        _weightText = State(initialValue: weightStr)
-        _targetWeightText = State(initialValue: targetWeightStr)
         _heightText = State(initialValue: heightStr)
         _heightFeet = State(initialValue: feetStr)
         _heightInches = State(initialValue: inchesStr)
-        
-        self.initialWeightText = weightStr
-        self.initialTargetWeightText = targetWeightStr
-        self.initialHeightText = heightStr
-        self.initialHeightFeet = feetStr
-        self.initialHeightInches = inchesStr
     }
 
     var body: some View {
@@ -1473,26 +1906,21 @@ struct EditHealthMetricsSheet: View {
 
                 ScrollView {
                     VStack(spacing: 28) {
-                        // Header
                         VStack(spacing: 8) {
-                            IconBadge(assetName: "clipboard-text", color: .red, size: 48)
-
-                            Text("Body Metrics")
+                            IconBadge(assetName: "ruler", color: .green, size: 48)
+                            Text("Height", comment: "Edit height sheet title")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
-
-                            Text("Update your body measurements")
+                            Text(viewModel.profile?.heightCm != nil ? String(localized: "Update your height") : String(localized: "Add your height"))
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                         }
                         .padding(.top, 20)
 
-                        // Error message
                         if showError {
                             HStack(spacing: 8) {
                                 Image("error")
-                                    .resizable()
-                                    .scaledToFit()
+                                    .resizable().scaledToFit()
                                     .frame(width: 16, height: 16)
                                     .foregroundStyle(.red)
                                 Text(errorMessage)
@@ -1505,29 +1933,52 @@ struct EditHealthMetricsSheet: View {
                             .padding(.horizontal)
                         }
 
-                        // Form fields
-                        VStack(spacing: 16) {
-                            // Height Input
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack(spacing: 6) {
-                                    Image("ruler")
-                                        .foregroundStyle(Color.green)
-                                        .font(.caption)
-                                    Text("Height")
-                                        .font(.caption.weight(.medium))
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 6) {
+                                Image("ruler")
+                                    .foregroundStyle(Color.green)
+                                    .font(.caption)
+                                Text("Height", comment: "Height input field label")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+                            }
+                            .padding(.horizontal, 4)
+
+                            if unitManager.unitSystem == .metric {
+                                HStack {
+                                    TextField("0", text: $heightText)
+                                        .keyboardType(.numberPad)
+                                        .textFieldStyle(.plain)
+                                        .font(.title3.weight(.semibold))
+                                        .foregroundStyle(Color.appText)
+                                    Text("cm")
+                                        .font(.subheadline)
                                         .foregroundStyle(Color.appSecondaryText)
                                 }
-                                .padding(.horizontal, 4)
-
-                                if unitManager.unitSystem == .metric {
+                                .padding(14)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                            }
+                                        }
+                                        .shadow(
+                                            color: colorScheme == .light ? Color.black.opacity(0.04) : Color.clear,
+                                            radius: 6, x: 0, y: 2
+                                        )
+                                }
+                            } else {
+                                HStack(spacing: 12) {
                                     HStack {
-                                        TextField("0", text: $heightText)
+                                        TextField("0", text: $heightFeet)
                                             .keyboardType(.numberPad)
                                             .textFieldStyle(.plain)
                                             .font(.title3.weight(.semibold))
                                             .foregroundStyle(Color.appText)
-
-                                        Text("cm")
+                                        Text("ft")
                                             .font(.subheadline)
                                             .foregroundStyle(Color.appSecondaryText)
                                     }
@@ -1541,268 +1992,74 @@ struct EditHealthMetricsSheet: View {
                                                         .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
                                                 }
                                             }
-                                            .shadow(
-                                                color: colorScheme == .light ? Color.black.opacity(0.04) : Color.clear,
-                                                radius: 6, x: 0, y: 2
-                                            )
                                     }
-                                } else {
-                                    HStack(spacing: 12) {
-                                        HStack {
-                                            TextField("0", text: $heightFeet)
-                                                .keyboardType(.numberPad)
-                                                .textFieldStyle(.plain)
-                                                .font(.title3.weight(.semibold))
-                                                .foregroundStyle(Color.appText)
-
-                                            Text("ft")
-                                                .font(.subheadline)
-                                                .foregroundStyle(Color.appSecondaryText)
-                                        }
-                                        .padding(14)
-                                        .background {
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .fill(Color.appSurface)
-                                                .overlay {
-                                                    if colorScheme == .dark {
-                                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                            .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                                                    }
-                                                }
-                                        }
-
-                                        HStack {
-                                            TextField("0", text: $heightInches)
-                                                .keyboardType(.numberPad)
-                                                .textFieldStyle(.plain)
-                                                .font(.title3.weight(.semibold))
-                                                .foregroundStyle(Color.appText)
-
-                                            Text("in")
-                                                .font(.subheadline)
-                                                .foregroundStyle(Color.appSecondaryText)
-                                        }
-                                        .padding(14)
-                                        .background {
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .fill(Color.appSurface)
-                                                .overlay {
-                                                    if colorScheme == .dark {
-                                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                            .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                                                    }
-                                                }
-                                        }
+                                    HStack {
+                                        TextField("0", text: $heightInches)
+                                            .keyboardType(.numberPad)
+                                            .textFieldStyle(.plain)
+                                            .font(.title3.weight(.semibold))
+                                            .foregroundStyle(Color.appText)
+                                        Text("in")
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.appSecondaryText)
                                     }
-                                }
-                            }
-
-                            // Weight Input
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack(spacing: 6) {
-                                    Image("scale")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 14, height: 14)
-                                        .foregroundStyle(Color.blue)
-                                    Text("Weight")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundStyle(Color.appSecondaryText)
-                                }
-                                .padding(.horizontal, 4)
-
-                                HStack {
-                                    TextField("0.0", text: $weightText)
-                                        .keyboardType(.decimalPad)
-                                        .textFieldStyle(.plain)
-                                        .font(.title3.weight(.semibold))
-                                        .foregroundStyle(Color.appText)
-
-                                    Text(unitManager.weightUnit)
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.appSecondaryText)
-                                }
-                                .padding(14)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                    .padding(14)
+                                    .background {
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .fill(Color.appSurface)
+                                            .overlay {
+                                                if colorScheme == .dark {
+                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                                }
                                             }
-                                        }
-                                        .shadow(
-                                            color: colorScheme == .light ? Color.black.opacity(0.04) : Color.clear,
-                                            radius: 6, x: 0, y: 2
-                                        )
-                                }
-                            }
-                            
-                            // Target Weight Input (optional)
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack(spacing: 6) {
-                                    Image("goal")
-                                        .foregroundStyle(Color.orange)
-                                        .font(.caption)
-                                    Text("Target Weight (Optional)")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundStyle(Color.appSecondaryText)
-                                }
-                                .padding(.horizontal, 4)
-
-                                HStack {
-                                    TextField("0.0", text: $targetWeightText)
-                                        .keyboardType(.decimalPad)
-                                        .textFieldStyle(.plain)
-                                        .font(.title3.weight(.semibold))
-                                        .foregroundStyle(Color.appText)
-
-                                    Text(unitManager.weightUnit)
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.appSecondaryText)
-                                }
-                                .padding(14)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                                            }
-                                        }
-                                        .shadow(
-                                            color: colorScheme == .light ? Color.black.opacity(0.04) : Color.clear,
-                                            radius: 6, x: 0, y: 2
-                                        )
+                                    }
                                 }
                             }
                         }
                         .padding(.horizontal)
 
-                        // CTA
-                        PrimaryCTAButton("Save Changes", icon: "check") {
+                        PrimaryCTAButton("Save", icon: "check") {
                             let notificationFeedback = UINotificationFeedbackGenerator()
                             notificationFeedback.notificationOccurred(.success)
-                            Task {
-                                await saveHealthMetrics()
-                            }
+                            Task { await saveHeight() }
                         }
                         .disabled(viewModel.isSubmitting)
                         .opacity(viewModel.isSubmitting ? 0.5 : 1.0)
                         .padding(.horizontal)
-                        
-                        // Delete Data
-                        Button {
-                            showDeleteConfirmation = true
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "trash")
-                                    .font(.subheadline.weight(.semibold))
-                                Text("Delete Body Metrics Data")
-                                    .font(.subheadline.weight(.semibold))
-                            }
-                            .foregroundStyle(.red)
-                            .frame(maxWidth: .infinity)
-                            .padding(14)
-                            .background {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color.red.opacity(0.1))
-                            }
-                        }
-                        .padding(.horizontal)
-                        .confirmationDialog(
-                            "Delete Body Metrics",
-                            isPresented: $showDeleteConfirmation,
-                            titleVisibility: .visible
-                        ) {
-                            Button("Delete All Data", role: .destructive) {
-                                Task {
-                                    let success = await viewModel.clearBodyMetrics()
-                                    if success {
-                                        dismiss()
-                                    } else {
-                                        errorMessage = viewModel.errorMessage ?? "Failed to delete body metrics"
-                                        showError = true
-                                    }
-                                }
-                            }
-                            Button("Cancel", role: .cancel) {}
-                        } message: {
-                            Text("This will permanently delete your weight, height, target weight, and all weight history. This action cannot be undone.")
-                        }
 
                         Spacer()
                     }
                 }
 
-                // Loading overlay
                 if viewModel.isSubmitting {
-                    Color.black.opacity(0.4)
-                        .ignoresSafeArea()
-
+                    Color.black.opacity(0.4).ignoresSafeArea()
                     VStack(spacing: 16) {
-                        ProgressView()
-                            .tint(.white)
-                            .scaleEffect(1.5)
-
-                        Text("Saving...")
-                            .foregroundStyle(.white)
-                            .font(.subheadline.weight(.semibold))
+                        ProgressView().tint(.white).scaleEffect(1.5)
+                        Text("Saving...", comment: "Loading indicator while saving").foregroundStyle(.white).font(.subheadline.weight(.semibold))
                     }
                 }
             }
-            .sentryScreen("EditHealthMetrics")
+            .sentryScreen("EditHeight")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundStyle(Color.appText)
+                    Button(String(localized: "Cancel")) { dismiss() }
+                        .foregroundStyle(Color.appText)
                 }
             }
         }
         .presentationBackground(Color.appBackground)
     }
-    
-    func saveHealthMetrics() async {
+
+    func saveHeight() async {
         showError = false
-        errorMessage = ""
-        
-        // Detect which fields the user actually changed
-        let weightChanged = weightText != initialWeightText
-        let heightChanged = unitManager.unitSystem == .metric
-            ? heightText != initialHeightText
-            : (heightFeet != initialHeightFeet || heightInches != initialHeightInches)
-        let targetWeightChanged = targetWeightText != initialTargetWeightText
-        
-        // If nothing changed, just dismiss
-        guard weightChanged || heightChanged || targetWeightChanged else {
-            dismiss()
-            return
-        }
-        
-        // Validate weight
-        let weight = parseDecimal(weightText)
-        
-        if weightChanged, let weight = weight, weight <= 0 {
-            errorMessage = "Weight must be greater than 0"
-            showError = true
-            return
-        }
-        
-        // Convert weight from display units back to metric
-        let weightKg = weight.map { unitManager.toKg($0) }
-        
-        // Convert height based on unit system
         let heightCm: Double?
         if unitManager.unitSystem == .metric {
             let height = parseDecimal(heightText)
-            if heightChanged, let height = height, height <= 0 {
-                errorMessage = "Height must be greater than 0"
+            if let height = height, height <= 0 {
+                errorMessage = String(localized: "Height must be greater than 0")
                 showError = true
                 return
             }
@@ -1811,51 +2068,374 @@ struct EditHealthMetricsSheet: View {
             let feet = Int(heightFeet) ?? 0
             let inches = Int(heightInches) ?? 0
             if feet == 0 && inches == 0 && heightFeet.isEmpty && heightInches.isEmpty {
-                heightCm = nil
-            } else if heightChanged && feet <= 0 && inches <= 0 {
-                errorMessage = "Height must be greater than 0"
+                dismiss()
+                return
+            } else if feet <= 0 && inches <= 0 {
+                errorMessage = String(localized: "Height must be greater than 0")
                 showError = true
                 return
             } else {
                 heightCm = unitManager.toCmFromFeetInches(feet: feet, inches: inches)
             }
         }
-        
-        // Parse target weight (optional)
-        let targetWeight = parseDecimal(targetWeightText)
-        let targetWeightKg = targetWeight.map { unitManager.toKg($0) }
-        
-        // Save only changed fields to database
+        guard heightCm != nil else { dismiss(); return }
         let success = await viewModel.updateHealthMetrics(
-            weightKg: weightKg,
-            heightCm: heightCm,
-            targetWeightKg: targetWeightKg,
-            weightChanged: weightChanged,
-            heightChanged: heightChanged,
-            targetWeightChanged: targetWeightChanged
+            weightKg: nil, heightCm: heightCm, targetWeightKg: nil,
+            weightChanged: false, heightChanged: true, targetWeightChanged: false
         )
-        
-        if success {
-            dismiss()
-        } else {
-            errorMessage = viewModel.errorMessage ?? "Failed to save body metrics"
+        if success { dismiss() } else {
+            errorMessage = viewModel.errorMessage ?? String(localized: "Failed to save height")
             showError = true
         }
     }
-    
-    /// Parse a decimal string accepting both comma and dot as decimal separator.
+
     private func parseDecimal(_ text: String) -> Double? {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
         if trimmed.isEmpty { return nil }
-        
-        // First try the locale-aware NumberFormatter (handles the device's locale)
         let nf = NumberFormatter()
         nf.numberStyle = .decimal
-        if let value = nf.number(from: trimmed)?.doubleValue {
-            return value
+        if let value = nf.number(from: trimmed)?.doubleValue { return value }
+        return Double(trimmed.replacingOccurrences(of: ",", with: "."))
+    }
+}
+
+// MARK: - Edit Weight Sheet
+struct EditWeightSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject var unitManager: UnitManager
+    @ObservedObject var viewModel: ProfileViewModel
+
+    @State private var weightText = ""
+    @State private var showError = false
+    @State private var errorMessage = ""
+
+    init(viewModel: ProfileViewModel) {
+        self.viewModel = viewModel
+        let weightKg = viewModel.profile?.weightKg ?? 0
+        let um = UnitManager.shared
+        let displayWeight = um.displayWeight(weightKg)
+        let nf = NumberFormatter()
+        nf.numberStyle = .decimal
+        nf.minimumFractionDigits = 1
+        nf.maximumFractionDigits = 1
+        let weightStr = weightKg > 0 ? (nf.string(from: NSNumber(value: displayWeight)) ?? "") : ""
+        _weightText = State(initialValue: weightStr)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                LinearGradient.dashboardBackground
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 28) {
+                        VStack(spacing: 8) {
+                            IconBadge(assetName: "scale", color: .blue, size: 48)
+                            Text("Weight", comment: "Edit weight sheet title")
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(Color.appText)
+                            Text("Log your current weight", comment: "Edit weight sheet subtitle")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appSecondaryText)
+                        }
+                        .padding(.top, 20)
+
+                        if showError {
+                            HStack(spacing: 8) {
+                                Image("error")
+                                    .resizable().scaledToFit()
+                                    .frame(width: 16, height: 16)
+                                    .foregroundStyle(.red)
+                                Text(errorMessage)
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .padding(.horizontal)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 6) {
+                                Image("scale")
+                                    .resizable().scaledToFit()
+                                    .frame(width: 14, height: 14)
+                                    .foregroundStyle(Color.blue)
+                                Text("Weight", comment: "Weight input field label")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+                            }
+                            .padding(.horizontal, 4)
+
+                            HStack {
+                                TextField("0.0", text: $weightText)
+                                    .keyboardType(.decimalPad)
+                                    .textFieldStyle(.plain)
+                                    .font(.title3.weight(.semibold))
+                                    .foregroundStyle(Color.appText)
+                                Text(unitManager.weightUnit)
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appSecondaryText)
+                            }
+                            .padding(14)
+                            .background {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .overlay {
+                                        if colorScheme == .dark {
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                        }
+                                    }
+                                    .shadow(
+                                        color: colorScheme == .light ? Color.black.opacity(0.04) : Color.clear,
+                                        radius: 6, x: 0, y: 2
+                                    )
+                            }
+                        }
+                        .padding(.horizontal)
+
+                        PrimaryCTAButton("Save", icon: "check") {
+                            let notificationFeedback = UINotificationFeedbackGenerator()
+                            notificationFeedback.notificationOccurred(.success)
+                            Task { await saveWeight() }
+                        }
+                        .disabled(viewModel.isSubmitting)
+                        .opacity(viewModel.isSubmitting ? 0.5 : 1.0)
+                        .padding(.horizontal)
+
+                        Spacer()
+                    }
+                }
+
+                if viewModel.isSubmitting {
+                    Color.black.opacity(0.4).ignoresSafeArea()
+                    VStack(spacing: 16) {
+                        ProgressView().tint(.white).scaleEffect(1.5)
+                        Text("Saving...", comment: "Loading indicator while saving").foregroundStyle(.white).font(.subheadline.weight(.semibold))
+                    }
+                }
+            }
+            .sentryScreen("EditWeight")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(String(localized: "Cancel")) { dismiss() }
+                        .foregroundStyle(Color.appText)
+                }
+            }
         }
-        
-        // Fallback: replace comma with dot and parse directly
+        .presentationBackground(Color.appBackground)
+    }
+
+    func saveWeight() async {
+        showError = false
+        let weight = parseDecimal(weightText)
+        guard let weight = weight, weight > 0 else {
+            errorMessage = String(localized: "Weight must be greater than 0")
+            showError = true
+            return
+        }
+        let weightKg = unitManager.toKg(weight)
+        // Always save weight and log to history (even if same value as before)
+        let success = await viewModel.updateHealthMetrics(
+            weightKg: weightKg, heightCm: nil, targetWeightKg: nil,
+            weightChanged: true, heightChanged: false, targetWeightChanged: false
+        )
+        if success { dismiss() } else {
+            errorMessage = viewModel.errorMessage ?? String(localized: "Failed to save weight")
+            showError = true
+        }
+    }
+
+    private func parseDecimal(_ text: String) -> Double? {
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty { return nil }
+        let nf = NumberFormatter()
+        nf.numberStyle = .decimal
+        if let value = nf.number(from: trimmed)?.doubleValue { return value }
+        return Double(trimmed.replacingOccurrences(of: ",", with: "."))
+    }
+}
+
+// MARK: - Edit Target Weight Sheet
+struct EditTargetWeightSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject var unitManager: UnitManager
+    @ObservedObject var viewModel: ProfileViewModel
+
+    @State private var targetWeightText: String
+    @State private var showError = false
+    @State private var errorMessage = ""
+
+    init(viewModel: ProfileViewModel) {
+        self.viewModel = viewModel
+        let targetWeightKg = viewModel.profile?.targetWeightKg ?? 0
+        let um = UnitManager.shared
+        let displayTargetWeight = um.displayWeight(targetWeightKg)
+        let nf = NumberFormatter()
+        nf.numberStyle = .decimal
+        nf.minimumFractionDigits = 1
+        nf.maximumFractionDigits = 1
+        let targetWeightStr = targetWeightKg > 0 ? (nf.string(from: NSNumber(value: displayTargetWeight)) ?? "") : ""
+        _targetWeightText = State(initialValue: targetWeightStr)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                LinearGradient.dashboardBackground
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 28) {
+                        VStack(spacing: 8) {
+                            IconBadge(assetName: "circle-dashed", color: .orange, size: 48)
+                            Text("Weight Goal", comment: "Edit target weight sheet title")
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(Color.appText)
+                            Text("Set your target weight", comment: "Edit target weight sheet subtitle")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.appSecondaryText)
+                        }
+                        .padding(.top, 20)
+
+                        if showError {
+                            HStack(spacing: 8) {
+                                Image("error")
+                                    .resizable().scaledToFit()
+                                    .frame(width: 16, height: 16)
+                                    .foregroundStyle(.red)
+                                Text(errorMessage)
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .padding(.horizontal)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 6) {
+                                Image("goal")
+                                    .foregroundStyle(Color.orange)
+                                    .font(.caption)
+                                Text("Target Weight", comment: "Target weight input field label")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
+                            }
+                            .padding(.horizontal, 4)
+
+                            HStack {
+                                TextField("0.0", text: $targetWeightText)
+                                    .keyboardType(.decimalPad)
+                                    .textFieldStyle(.plain)
+                                    .font(.title3.weight(.semibold))
+                                    .foregroundStyle(Color.appText)
+                                Text(unitManager.weightUnit)
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appSecondaryText)
+                            }
+                            .padding(14)
+                            .background {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .overlay {
+                                        if colorScheme == .dark {
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                        }
+                                    }
+                                    .shadow(
+                                        color: colorScheme == .light ? Color.black.opacity(0.04) : Color.clear,
+                                        radius: 6, x: 0, y: 2
+                                    )
+                            }
+                        }
+                        .padding(.horizontal)
+
+                        PrimaryCTAButton("Save", icon: "check") {
+                            let notificationFeedback = UINotificationFeedbackGenerator()
+                            notificationFeedback.notificationOccurred(.success)
+                            Task { await saveTargetWeight() }
+                        }
+                        .disabled(viewModel.isSubmitting)
+                        .opacity(viewModel.isSubmitting ? 0.5 : 1.0)
+                        .padding(.horizontal)
+                        
+                        // Clear target weight option
+                        if viewModel.profile?.targetWeightKg != nil && viewModel.profile!.targetWeightKg! > 0 {
+                            Button {
+                                Task {
+                                    let success = await viewModel.updateHealthMetrics(
+                                        weightKg: nil, heightCm: nil, targetWeightKg: 0,
+                                        weightChanged: false, heightChanged: false, targetWeightChanged: true
+                                    )
+                                    if success { dismiss() }
+                                }
+                            } label: {
+                                Text("Remove Target Weight", comment: "Button to remove target weight")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(.red)
+                            }
+                        }
+
+                        Spacer()
+                    }
+                }
+
+                if viewModel.isSubmitting {
+                    Color.black.opacity(0.4).ignoresSafeArea()
+                    VStack(spacing: 16) {
+                        ProgressView().tint(.white).scaleEffect(1.5)
+                        Text("Saving...", comment: "Loading indicator while saving").foregroundStyle(.white).font(.subheadline.weight(.semibold))
+                    }
+                }
+            }
+            .sentryScreen("EditTargetWeight")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(String(localized: "Cancel")) { dismiss() }
+                        .foregroundStyle(Color.appText)
+                }
+            }
+        }
+        .presentationBackground(Color.appBackground)
+    }
+
+    func saveTargetWeight() async {
+        showError = false
+        let targetWeight = parseDecimal(targetWeightText)
+        if let targetWeight = targetWeight, targetWeight <= 0 {
+            errorMessage = String(localized: "Target weight must be greater than 0")
+            showError = true
+            return
+        }
+        let targetWeightKg = targetWeight.map { unitManager.toKg($0) }
+        let success = await viewModel.updateHealthMetrics(
+            weightKg: nil, heightCm: nil, targetWeightKg: targetWeightKg,
+            weightChanged: false, heightChanged: false, targetWeightChanged: true
+        )
+        if success { dismiss() } else {
+            errorMessage = viewModel.errorMessage ?? String(localized: "Failed to save target weight")
+            showError = true
+        }
+    }
+
+    private func parseDecimal(_ text: String) -> Double? {
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty { return nil }
+        let nf = NumberFormatter()
+        nf.numberStyle = .decimal
+        if let value = nf.number(from: trimmed)?.doubleValue { return value }
         return Double(trimmed.replacingOccurrences(of: ",", with: "."))
     }
 }
@@ -1909,7 +2489,7 @@ struct RecentWorkoutCard: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 14, height: 14)
-                            Text("Completed")
+                            Text("Completed", comment: "Workout completed status label")
                         }
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.green)
@@ -1951,11 +2531,11 @@ struct AllRecentWorkoutsView: View {
                         VStack(spacing: 16) {
                             IconBadge(assetName: "refresh", size: 56)
 
-                            Text("No Workout History Yet")
+                            Text("No Workout History Yet", comment: "Empty state title for workout history")
                                 .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
 
-                            Text("Complete your first workout to see it here!")
+                            Text("Complete your first workout to see it here!", comment: "Empty state subtitle for workout history")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -1991,7 +2571,7 @@ struct AllRecentWorkoutsView: View {
             }
         }
         .sentryScreen("CompletedWorkouts")
-        .navigationTitle("Completed Workouts")
+        .navigationTitle(String(localized: "Completed Workouts"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         .task {

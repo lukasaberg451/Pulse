@@ -36,11 +36,11 @@ struct RegisterSelectionView: View {
                     
                     // Content section
                     VStack(spacing: 20) {
-                        Text("Create Your Account")
+                        Text("Create Your Account", comment: "Register selection screen title")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
-                        Text("Choose how you'd like to sign up")
+                        Text("Choose how you'd like to sign up", comment: "Register selection screen subtitle")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                         
@@ -72,7 +72,7 @@ struct RegisterSelectionView: View {
                             RoundedRectangle(cornerRadius: 0.5)
                                 .fill(Color.appTertiaryText)
                                 .frame(height: 1)
-                            Text("or")
+                            Text("or", comment: "Divider between sign-up options")
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(Color.appTertiaryText)
                             RoundedRectangle(cornerRadius: 0.5)
@@ -93,7 +93,7 @@ struct RegisterSelectionView: View {
                                 }
                             case .failure(let error):
                                 if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
-                                    errorMessage = "Sign up with Apple failed."
+                                    errorMessage = String(localized: "Sign up with Apple failed.")
                                     showError = true
                                 }
                             }
@@ -104,27 +104,27 @@ struct RegisterSelectionView: View {
                         
                         // Terms & Privacy note
                         HStack(spacing: 4) {
-                            Text("By continuing, you agree to the")
+                            Text("By continuing, you agree to the", comment: "Terms and privacy agreement prefix")
                                 .font(.caption2)
                                 .foregroundStyle(Color.appTertiaryText)
                             
                             Button(action: {
                                 safariURL = Constants.URLs.termsOfService
                             }) {
-                                Text("Terms of Service")
+                                Text("Terms of Service", comment: "Terms of service link label")
                                     .font(.caption2)
                                     .foregroundStyle(Color.appAccent)
                                     .underline()
                             }
                             
-                            Text("&")
+                            Text("&", comment: "Separator between Terms of Service and Privacy Policy links")
                                 .font(.caption2)
                                 .foregroundStyle(Color.appTertiaryText)
                             
                             Button(action: {
                                 safariURL = Constants.URLs.privacyPolicy
                             }) {
-                                Text("Privacy Policy")
+                                Text("Privacy Policy", comment: "Privacy policy link label")
                                     .font(.caption2)
                                     .foregroundStyle(Color.appAccent)
                                     .underline()

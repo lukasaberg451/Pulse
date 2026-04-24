@@ -646,6 +646,51 @@ class WorkoutRepository {
         return response
     }
     
+    /// Fetches historical 1RM entries for a specific exercise via server-side RPC.
+    func fetchExercise1RMHistory(userId: UUID, exerciseId: UUID, limit: Int = 100) async throws -> [Exercise1RMHistoryRow] {
+        let rows: [Exercise1RMHistoryRow] = try await supabase
+            .rpc("get_exercise_1rm_history", params: [
+                "p_user_id": userId.uuidString,
+                "p_exercise_id": exerciseId.uuidString,
+                "p_limit": String(limit)
+            ])
+            .execute()
+            .value
+        return rows
+    }
+
+    /// Fetches historical 1RM entries for the current user and a specific exercise.
+    func fetchExercise1RMHistoryForCurrentUser(exerciseId: UUID, limit: Int = 100) async throws -> [Exercise1RMHistoryRow] {
+        guard let userId = supabase.auth.currentUser?.id else { return [] }
+        return try await fetchExercise1RMHistory(userId: userId, exerciseId: exerciseId, limit: limit)
+    }
+
+    /// Fetches the most recent completed weight for each of the given exercise IDs.
+    func fetchLastWeights(exerciseIds: [UUID]) async throws -> [UUID: Double] {
+        guard !exerciseIds.isEmpty else { return [:] }
+        
+        // Fetch recent completed sets for these exercises, ordered by created_at desc
+        let sets: [WorkoutSet] = try await supabase
+            .from("workout_sets")
+            .select()
+            .in("exercise_id", values: exerciseIds.map(\.uuidString))
+            .eq("completed", value: true)
+            .not("weight", operator: .is, value: "null")
+            .order("created_at", ascending: false)
+            .limit(exerciseIds.count * 10) // Fetch enough to cover all exercises
+            .execute()
+            .value
+        
+        // Pick the first (most recent) weight per exercise
+        var result: [UUID: Double] = [:]
+        for set in sets {
+            if result[set.exerciseId] == nil, let weight = set.weight {
+                result[set.exerciseId] = weight
+            }
+        }
+        return result
+    }
+    
     /// Fetches strength progress per exercise via server-side RPC.
     func fetchStrengthProgress(userId: UUID) async throws -> [StrengthProgressRow] {
         let rows: [StrengthProgressRow] = try await supabase

@@ -63,18 +63,30 @@ struct Profile: Codable, Identifiable {
         return weight / (heightInMeters * heightInMeters)
     }
     
+    /// Internal key for BMI category — use `bmiCategoryDisplayName` for UI.
     var bmiCategory: String? {
         guard let bmi = bmi else { return nil }
-        
+
         switch bmi {
         case ..<18.5:
-            return "Underweight"
+            return "underweight"
         case 18.5..<25:
-            return "Normal"
+            return "normal"
         case 25..<30:
-            return "Overweight"
+            return "overweight"
         default:
-            return "Obese"
+            return "obese"
+        }
+    }
+
+    var bmiCategoryDisplayName: String? {
+        guard let category = bmiCategory else { return nil }
+        switch category {
+        case "underweight": return String(localized: "Underweight")
+        case "normal": return String(localized: "Normal")
+        case "overweight": return String(localized: "Overweight")
+        case "obese": return String(localized: "Obese")
+        default: return nil
         }
     }
 }

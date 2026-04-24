@@ -50,7 +50,7 @@ struct TimezoneSelectionSheet: View {
                         }
                         .listRowBackground(Color.appSurface)
                     } header: {
-                        Text("CURRENT")
+                        Text("Current", comment: "Section header for current timezone")
                             .font(.caption.weight(.semibold))
                     }
                     
@@ -68,14 +68,14 @@ struct TimezoneSelectionSheet: View {
                                         .font(.body)
                                         .foregroundStyle(Color.appText)
                                     Spacer()
-                                    Text("Device Default")
+                                    Text("Device Default", comment: "Label for device default timezone option")
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(Color.appAccent)
                                 }
                             }
                             .listRowBackground(Color.appSurface)
                         } header: {
-                            Text("DEVICE DEFAULT")
+                            Text("Device Default", comment: "Section header for device default timezone")
                                 .font(.caption.weight(.semibold))
                         }
                     }
@@ -106,7 +106,7 @@ struct TimezoneSelectionSheet: View {
                             .listRowBackground(Color.appSurface)
                         }
                     } header: {
-                        Text("ALL TIME ZONES")
+                        Text("All Time Zones", comment: "Section header for all timezones list")
                             .font(.caption.weight(.semibold))
                     }
                 }

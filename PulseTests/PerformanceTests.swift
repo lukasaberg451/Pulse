@@ -14,13 +14,9 @@ final class UnitPerformanceTests: XCTestCase {
         continueAfterFailure = false
     }
 
-    override func tearDownWithError() throws {}
-
     // MARK: - Test: Streak Calculation Performance (1000 Workouts)
 
     func testStreakCalculationPerformanceWith1000Workouts() throws {
-        // Build a mock dataset of 1000 completed workout sessions
-        // spread across consecutive days to stress the streak logic.
         let userId = UUID()
         let routineId = UUID()
         let calendar = Calendar.current
@@ -29,7 +25,7 @@ final class UnitPerformanceTests: XCTestCase {
         var sessions: [WorkoutSession] = []
         for i in 0..<1000 {
             let startDate = calendar.date(byAdding: .day, value: -i, to: now)!
-            let completedDate = startDate.addingTimeInterval(3600) // 1 hour workout
+            let completedDate = startDate.addingTimeInterval(3600)
             let session = WorkoutSession(
                 id: UUID(),
                 userId: userId,
@@ -46,7 +42,8 @@ final class UnitPerformanceTests: XCTestCase {
         }
 
         measure {
-            // Simulate streak calculation: count consecutive days with a workout
+            // Calculate streak using the same algorithm pattern used in production:
+            // group by unique calendar days, then count consecutive days from today.
             let sortedDates = sessions
                 .compactMap { $0.completedAt }
                 .map { calendar.startOfDay(for: $0) }
@@ -70,13 +67,9 @@ final class UnitPerformanceTests: XCTestCase {
         }
     }
 
-    // MARK: - Test: HealthKit Data Fetch Performance
+    // MARK: - Test: Workout Data Transformation Performance
 
-    func testHealthKitDataFetchPerformance() throws {
-        // Measure the performance of creating and configuring
-        // HealthKit workout builders with a batch of workout data.
-        // Note: Actual HK store interactions require device/entitlements,
-        // so this measures the data preparation and serialization path.
+    func testWorkoutDataTransformationPerformance() throws {
         let userId = UUID()
         let routineId = UUID()
         let calendar = Calendar.current
@@ -94,9 +87,6 @@ final class UnitPerformanceTests: XCTestCase {
         }
 
         measure {
-            // Simulate the data transformation that happens before
-            // saving to HealthKit: date formatting, metadata assembly,
-            // and configuration creation for each workout.
             var results: [(start: Date, end: Date, metadata: [String: String])] = []
             results.reserveCapacity(workouts.count)
 
@@ -113,6 +103,35 @@ final class UnitPerformanceTests: XCTestCase {
             }
 
             XCTAssertEqual(results.count, 1000, "All workouts should be processed")
+        }
+    }
+
+    // MARK: - Test: Calendar Days Computation Performance
+
+    func testCalendarDaysComputationPerformance() throws {
+        // Test the calendar grid computation that ScheduleViewModel uses.
+        // This exercises the same date math as calendarDays.
+        let calendar = Calendar.current
+
+        measure {
+            for monthOffset in -12...12 {
+                let month = calendar.date(byAdding: .month, value: monthOffset, to: Date())!
+                let components = calendar.dateComponents([.year, .month], from: month)
+                guard let firstOfMonth = calendar.date(from: components) else { continue }
+
+                let firstWeekday = calendar.component(.weekday, from: firstOfMonth)
+                let adjustedFirstWeekday = firstWeekday == 1 ? 6 : firstWeekday - 2
+
+                var days: [Date?] = Array(repeating: nil, count: adjustedFirstWeekday)
+                let range = calendar.range(of: .day, in: .month, for: firstOfMonth)!
+                for day in range {
+                    if let date = calendar.date(byAdding: .day, value: day - 1, to: firstOfMonth) {
+                        days.append(date)
+                    }
+                }
+
+                XCTAssertGreaterThanOrEqual(days.count, 28)
+            }
         }
     }
 }

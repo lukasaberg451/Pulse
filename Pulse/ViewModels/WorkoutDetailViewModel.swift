@@ -110,7 +110,7 @@ class WorkoutDetailViewModel: ObservableObject {
             }
             
         } catch {
-            errorMessage = "Failed to load workout details: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load workout details: \(error.localizedDescription)")
         }
         
         isLoading = false
@@ -129,7 +129,7 @@ class WorkoutDetailViewModel: ObservableObject {
             }
         }
         return groups.sorted { $0.orderIndex < $1.orderIndex }.map { group in
-            let name = exerciseNames[group.exerciseId] ?? "Unknown Exercise"
+            let name = exerciseNames[group.exerciseId] ?? String(localized: "Unknown Exercise")
             let type = exerciseTypes[group.exerciseId]
             let sortedSets = group.sets.sorted { $0.setNumber < $1.setNumber }
             return (group.exerciseId, name, type, group.orderIndex, sortedSets)
@@ -162,20 +162,21 @@ class WorkoutDetailViewModel: ObservableObject {
             isDeleting = false
             return true
         } catch {
-            errorMessage = "Failed to delete workout: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to delete workout: \(error.localizedDescription)")
             isDeleting = false
             return false
         }
     }
     
-    // Format duration
+    // Format duration (rounds to nearest minute)
     var formattedDuration: String {
         guard let duration = workoutSession.durationSeconds else { return "N/A" }
-        let hours = duration / 3600
-        let minutes = (duration % 3600) / 60
-        
+        let totalMinutes = Int(round(Double(duration) / 60.0))
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+
         if hours > 0 {
-            return "\(hours)h \(minutes)m"
+            return minutes > 0 ? "\(hours)h \(minutes)m" : "\(hours)h"
         } else {
             return "\(minutes)m"
         }

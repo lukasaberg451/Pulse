@@ -66,17 +66,18 @@ struct LoginView: View {
                             .padding(12)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("loginErrorBox")
                         }
                         
                         // Email field
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Email")
+                            Text("Email", comment: "Email field label on login screen")
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
-                            
+
                             HStack {
-                                TextField("Email", text: $email)
+                                TextField(String(localized: "Email"), text: $email)
                                     .textFieldStyle(.plain)
                                     .textContentType(.emailAddress)
                                     .textInputAutocapitalization(.never)
@@ -104,12 +105,12 @@ struct LoginView: View {
 
                         // Password field
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Password")
+                            Text("Password", comment: "Password field label on login screen")
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
-                            
+
                             HStack {
-                                SecureField("Password", text: $password)
+                                SecureField(String(localized: "Password"), text: $password)
                                     .textFieldStyle(.plain)
                                     .textContentType(.password)
                                     .focused($focusedField, equals: .password)
@@ -135,7 +136,7 @@ struct LoginView: View {
                         // Forgot password
                         HStack {
                             Spacer()
-                            Button("Forgot Password?") {
+                            Button(String(localized: "Forgot Password?")) {
                                 showingForgotPassword = true
                             }
                             .font(.caption.weight(.medium))
@@ -150,13 +151,13 @@ struct LoginView: View {
                         ) {
                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             if email.trimmingCharacters(in: .whitespaces).isEmpty {
-                                errorMessage = "Email is required"
+                                errorMessage = String(localized: "Email is required")
                                 showError = true
                             } else if !isValidEmail(email) {
-                                errorMessage = "Please enter a valid email address"
+                                errorMessage = String(localized: "Please enter a valid email address")
                                 showError = true
                             } else if password.isEmpty {
-                                errorMessage = "Password is required"
+                                errorMessage = String(localized: "Password is required")
                                 showError = true
                             } else {
                                 showError = false
@@ -181,7 +182,7 @@ struct LoginView: View {
                             RoundedRectangle(cornerRadius: 0.5)
                                 .fill(Color.appTertiaryText)
                                 .frame(height: 1)
-                            Text("or")
+                            Text("or", comment: "Divider between sign-in methods on login screen")
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(Color.appTertiaryText)
                             RoundedRectangle(cornerRadius: 0.5)
@@ -203,7 +204,7 @@ struct LoginView: View {
                                 }
                             case .failure(let error):
                                 if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
-                                    errorMessage = "Sign in with Apple failed."
+                                    errorMessage = String(localized: "Sign in with Apple failed.")
                                     showError = true
                                 }
                             }
@@ -214,27 +215,27 @@ struct LoginView: View {
                         
                         // Terms & Privacy note
                         HStack(spacing: 4) {
-                            Text("By continuing, you agree to the")
+                            Text("By continuing, you agree to the", comment: "Terms agreement prefix on login screen")
                                 .font(.caption2)
                                 .foregroundStyle(Color.appTertiaryText)
                             
                             Button(action: {
                                 safariURL = Constants.URLs.termsOfService
                             }) {
-                                Text("Terms of Service")
+                                Text("Terms of Service", comment: "Terms of Service link on login screen")
                                     .font(.caption2)
                                     .foregroundStyle(Color.appAccent)
                                     .underline()
                             }
                             
-                            Text("&")
+                            Text("&", comment: "Conjunction between Terms of Service and Privacy Policy links")
                                 .font(.caption2)
                                 .foregroundStyle(Color.appTertiaryText)
                             
                             Button(action: {
                                 safariURL = Constants.URLs.privacyPolicy
                             }) {
-                                Text("Privacy Policy")
+                                Text("Privacy Policy", comment: "Privacy Policy link on login screen")
                                     .font(.caption2)
                                     .foregroundStyle(Color.appAccent)
                                     .underline()
@@ -265,18 +266,18 @@ struct LoginView: View {
                     .sheetContentTransition()
             }
         }
-        .overlay {
+        .overlay(content: {
             if authViewModel.isLoading {
                 ZStack {
                     Color.appBackground
                     LinearGradient.dashboardBackground
-                    
+
                     Image("LoadingLogo")
                 }
                 .ignoresSafeArea()
                 .transition(.opacity)
             }
-        }
+        })
         .animation(.easeInOut, value: authViewModel.isLoading)
     }
 }
@@ -309,10 +310,10 @@ struct ForgotPasswordView: View {
         if password.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil { strength += 1 }
         
         switch strength {
-        case 0...2: return ("Weak", .red, 1)
-        case 3...4: return ("Fair", .orange, 2)
-        case 5:     return ("Good", .yellow, 3)
-        default:    return ("Strong", .green, 4)
+        case 0...2: return (String(localized: "Weak"), .red, 1)
+        case 3...4: return (String(localized: "Fair"), .orange, 2)
+        case 5:     return (String(localized: "Good"), .yellow, 3)
+        default:    return (String(localized: "Strong"), .green, 4)
         }
     }
     
@@ -363,11 +364,11 @@ struct ForgotPasswordView: View {
             
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Reset Password")
+                    Text("Reset Password", comment: "Title for forgot password email step")
                         .font(.title2.weight(.bold))
                         .foregroundStyle(Color.appText)
-                    
-                    Text("Enter your email to receive a verification code")
+
+                    Text("Enter your email to receive a verification code", comment: "Subtitle for forgot password email step")
                         .font(.subheadline)
                         .foregroundStyle(Color.appSecondaryText)
                 }
@@ -376,18 +377,19 @@ struct ForgotPasswordView: View {
                 errorBox
                 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Email")
+                    Text("Email", comment: "Email field label on forgot password screen")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
-                    
+
                     HStack {
-                        TextField("Email", text: $viewModel.email)
+                        TextField(String(localized: "Email"), text: $viewModel.email)
                             .textFieldStyle(.plain)
                             .textInputAutocapitalization(.never)
                             .keyboardType(.emailAddress)
                             .autocorrectionDisabled()
                             .focused($focusedResetField, equals: .email)
                             .foregroundStyle(Color.appText)
+                            .accessibilityIdentifier("forgotPasswordEmailField")
                             .onChange(of: viewModel.email) {
                                 viewModel.showError = false
                             }
@@ -409,10 +411,10 @@ struct ForgotPasswordView: View {
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     let trimmed = viewModel.email.trimmingCharacters(in: .whitespaces)
                     if trimmed.isEmpty {
-                        viewModel.errorMessage = "Email is required"
+                        viewModel.errorMessage = String(localized: "Email is required")
                         viewModel.showError = true
                     } else if !isValidEmail(trimmed) {
-                        viewModel.errorMessage = "Please enter a valid email address"
+                        viewModel.errorMessage = String(localized: "Please enter a valid email address")
                         viewModel.showError = true
                     } else {
                         Task {
@@ -443,11 +445,11 @@ struct ForgotPasswordView: View {
             
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Enter Code")
+                    Text("Enter Code", comment: "Title for OTP verification step")
                         .font(.title2.weight(.bold))
                         .foregroundStyle(Color.appText)
-                    
-                    Text("We sent an 8-digit code to")
+
+                    Text("We sent an 8-digit code to", comment: "Subtitle before email on OTP step")
                         .font(.subheadline)
                         .foregroundStyle(Color.appSecondaryText)
                     
@@ -477,11 +479,11 @@ struct ForgotPasswordView: View {
                 HStack {
                     Spacer()
                     if viewModel.resendCooldown > 0 {
-                        Text("Resend code in \(viewModel.resendCooldown)s")
+                        Text("Resend code in \(viewModel.resendCooldown)s", comment: "Cooldown timer for resending OTP code")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(Color.appTertiaryText)
                     } else {
-                        Button("Resend Code") {
+                        Button(String(localized: "Resend Code")) {
                             Task {
                                 await viewModel.resendOTP()
                             }
@@ -496,7 +498,7 @@ struct ForgotPasswordView: View {
                 // Back button
                 HStack {
                     Spacer()
-                    Button("Use a different email") {
+                    Button(String(localized: "Use a different email")) {
                         viewModel.otpCode = ""
                         viewModel.showError = false
                         viewModel.step = .enterEmail
@@ -517,11 +519,11 @@ struct ForgotPasswordView: View {
     private var newPasswordStepView: some View {
         VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Set New Password")
+                Text("Set New Password", comment: "Title for new password step")
                     .font(.title2.weight(.bold))
                     .foregroundStyle(Color.appText)
-                
-                Text("Enter your new password below")
+
+                Text("Enter your new password below", comment: "Subtitle for new password step")
                     .font(.subheadline)
                     .foregroundStyle(Color.appSecondaryText)
             }
@@ -529,12 +531,12 @@ struct ForgotPasswordView: View {
             errorBox
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("New Password")
+                Text("New Password", comment: "New password field label on reset password screen")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
-                
+
                 HStack {
-                    SecureField("New Password", text: $viewModel.newPassword)
+                    SecureField(String(localized: "New Password"), text: $viewModel.newPassword)
                         .textFieldStyle(.plain)
                         .focused($focusedResetField, equals: .newPassword)
                         .foregroundStyle(Color.appText)
@@ -587,12 +589,12 @@ struct ForgotPasswordView: View {
             .animation(.easeInOut(duration: 0.2), value: viewModel.newPassword.count >= 62)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("Confirm Password")
+                Text("Confirm Password", comment: "Confirm password field label on reset password screen")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
-                
+
                 HStack {
-                    SecureField("Confirm Password", text: $viewModel.confirmPassword)
+                    SecureField(String(localized: "Confirm Password"), text: $viewModel.confirmPassword)
                         .textFieldStyle(.plain)
                         .focused($focusedResetField, equals: .confirmPassword)
                         .foregroundStyle(Color.appText)
@@ -622,7 +624,7 @@ struct ForgotPasswordView: View {
                             .frame(width: 16, height: 16)
                             .foregroundStyle(viewModel.passwordsMatch ? .green : .red)
                         
-                        Text(viewModel.passwordsMatch ? "Passwords match" : "Passwords don't match")
+                        Text(viewModel.passwordsMatch ? String(localized: "Passwords match") : String(localized: "Passwords don't match"))
                             .font(.caption.weight(.medium))
                             .foregroundStyle(viewModel.passwordsMatch ? .green : .red)
                     }
@@ -645,7 +647,7 @@ struct ForgotPasswordView: View {
                     await viewModel.updatePassword()
                 }
             } label: {
-                Text("Reset Password")
+                Text("Reset Password", comment: "Reset password submit button label")
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -670,15 +672,15 @@ struct ForgotPasswordView: View {
         VStack(spacing: 20) {
             IconBadge(assetName: "check-circle", color: .green, size: 64)
             
-            Text("Password Reset!")
+            Text("Password Reset!", comment: "Success title after password reset")
                 .font(.title2.weight(.bold))
                 .foregroundStyle(Color.appText)
-            
-            Text("You can now sign in with your new password.")
+
+            Text("You can now sign in with your new password.", comment: "Success message after password reset")
                 .font(.subheadline)
                 .foregroundStyle(Color.appSecondaryText)
                 .multilineTextAlignment(.center)
-            
+
             PrimaryCTAButton("Go to Login") {
                 dismiss()
             }
@@ -708,6 +710,7 @@ struct ForgotPasswordView: View {
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("forgotPasswordErrorBox")
         }
     }

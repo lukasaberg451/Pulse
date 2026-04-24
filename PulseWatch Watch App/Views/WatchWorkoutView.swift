@@ -33,6 +33,7 @@ struct WatchWorkoutView: View {
     @State private var isEditingWeight: Bool = false
     @State private var actualWeightWhole: Int = 0
     @State private var actualWeightDecimal: Int = 0
+    @FocusState private var isWeightWholeFocused: Bool
 
     var body: some View {
         // TimelineView keeps updating even when the watch enters the always-on
@@ -66,12 +67,12 @@ struct WatchWorkoutView: View {
                                 .foregroundStyle(.green)
                                 .padding(.top, 20)
 
-                            Text("Workout Done!")
+                            Text("Workout Done!", comment: "Shown when all sets are completed")
                                 .font(.headline)
                                 .fontWeight(.bold)
                                 .foregroundStyle(.white)
 
-                            Text("Finish the workout on iPhone")
+                            Text("Finish the workout on iPhone", comment: "Instruction after workout completes")
                                 .font(.caption)
                                 .foregroundStyle(.gray)
                                 .multilineTextAlignment(.center)
@@ -81,22 +82,22 @@ struct WatchWorkoutView: View {
                         if isResting && restTimeRemaining > 0 {
                             // REST TIMER VIEW
                             VStack(spacing: 5) {
-                                Text("Rest Time")
+                                Text("Rest Time", comment: "Rest timer label")
                                     .font(.caption2)
                                     .foregroundStyle(Color.appText)
 
-                                Text("\(restTimeRemaining)")
+                                Text(verbatim: "\(restTimeRemaining)")
                                     .font(.system(size: 50, weight: .bold, design: .rounded))
                                     .foregroundStyle(Color.appAccent)
 
-                                Text("seconds")
+                                Text("seconds", comment: "Seconds label under rest timer")
                                     .font(.caption2)
                                     .foregroundStyle(Color.appText)
 
                                 Button {
                                     skipRest()
                                 } label: {
-                                    Text("Skip Rest")
+                                    Text("Skip Rest", comment: "Button to skip rest timer")
                                         .font(.footnote)
                                         .frame(maxWidth: .infinity)
                                 }
@@ -127,12 +128,12 @@ struct WatchWorkoutView: View {
                                         .padding(.top, 8)
 
                                     HStack(spacing: 8) {
-                                        Text("Set \(currentSet)/\(totalSets)")
+                                        Text(verbatim: setProgressString(current: currentSet, total: totalSets))
                                             .font(.caption)
                                             .foregroundStyle(.gray)
 
                                         if targetDuration > 0 {
-                                            Text("•")
+                                            Text(verbatim: "•")
                                                 .font(.caption)
                                                 .foregroundStyle(.gray)
 
@@ -144,7 +145,7 @@ struct WatchWorkoutView: View {
                                     .padding(.top, 2)
                                 } else if isEditingWeight {
                                     // STRENGTH WEIGHT INPUT VIEW
-                                    Text("Set \(currentSet)/\(totalSets)")
+                                    Text(verbatim: setProgressString(current: currentSet, total: totalSets))
                                         .font(.caption2)
                                         .foregroundStyle(.gray)
                                         .padding(.bottom, -2)
@@ -152,25 +153,26 @@ struct WatchWorkoutView: View {
                                     HStack(spacing: 2) {
                                         Picker("", selection: $actualWeightWhole) {
                                             ForEach(0..<500) { value in
-                                                Text("\(value)").tag(value)
+                                                Text(verbatim: "\(value)").tag(value)
                                             }
                                         }
                                         .pickerStyle(.wheel)
                                         .frame(width: 55, height: 80)
+                                        .focused($isWeightWholeFocused)
 
-                                        Text(".")
+                                        Text(verbatim: ".")
                                             .font(.title3.weight(.semibold))
                                             .foregroundStyle(.white)
 
                                         Picker("", selection: $actualWeightDecimal) {
                                             ForEach(0..<10) { value in
-                                                Text("\(value)").tag(value)
+                                                Text(verbatim: "\(value)").tag(value)
                                             }
                                         }
                                         .pickerStyle(.wheel)
                                         .frame(width: 35, height: 80)
 
-                                        Text("kg")
+                                        Text("kg", comment: "Weight unit label")
                                             .font(.caption)
                                             .foregroundStyle(.gray)
                                     }
@@ -179,7 +181,7 @@ struct WatchWorkoutView: View {
                                     Button {
                                         logSetWithActualWeight()
                                     } label: {
-                                        Text("Log Set")
+                                        Text("Log Set", comment: "Button to log a set with custom weight")
                                             .font(.footnote)
                                             .fontWeight(.semibold)
                                             .frame(maxWidth: .infinity)
@@ -194,7 +196,7 @@ struct WatchWorkoutView: View {
                                         .foregroundStyle(Color.gray)
 
                                     // Current set progress
-                                    Text("Set \(currentSet)/\(totalSets)")
+                                    Text(verbatim: setProgressString(current: currentSet, total: totalSets))
                                         .font(.body)
                                         .fontWeight(.bold)
                                         .foregroundStyle(.white)
@@ -203,21 +205,21 @@ struct WatchWorkoutView: View {
                                     // Target weight and reps
                                     HStack(spacing: 20) {
                                         VStack(spacing: 0) {
-                                            Text("Weight")
+                                            Text("Weight", comment: "Weight label")
                                                 .font(.body)
                                                 .foregroundStyle(.gray)
-                                            Text("\(targetWeight, specifier: "%.1f") kg")
+                                            Text(verbatim: String(format: "%.1f kg", targetWeight))
                                                 .font(.body)
                                                 .fontWeight(.semibold)
                                                 .foregroundStyle(.white)
                                         }
 
                                         VStack(spacing: 0) {
-                                            Text("Reps")
+                                            Text("Reps", comment: "Reps label")
                                                 .font(.body)
                                                 .foregroundStyle(.gray)
 
-                                            Text(targetReps.isEmpty ? "—" : "\(targetReps)")
+                                            Text(verbatim: targetReps.isEmpty ? "—" : targetReps)
                                                 .font(.body)
                                                 .fontWeight(.semibold)
                                                 .foregroundStyle(.white)
@@ -234,7 +236,7 @@ struct WatchWorkoutView: View {
                                             logSetAndStartRest()
                                         }
                                     } label: {
-                                        Text("Complete")
+                                        Text("Complete", comment: "Button to complete a set")
                                             .font(.footnote)
                                             .fontWeight(.semibold)
                                             .frame(maxWidth: .infinity)
@@ -249,19 +251,12 @@ struct WatchWorkoutView: View {
                     } else {
                         // Not connected or no workout
                         VStack(spacing: 8) {
-                            Image(systemName: "applewatch.slash")
-                                .font(.title)
-                                .foregroundStyle(Color.appText)
-                                .padding(.top, 20)
-
-                            Text("No Active Workout")
+                            Text("No Active Workout", comment: "Shown when no workout is in progress")
                                 .font(.footnote)
                                 .fontWeight(.semibold)
-
-                            Text("Start a workout on iPhone")
-                                .font(.caption2)
-                                .foregroundStyle(Color.appText)
-                                .multilineTextAlignment(.center)
+                        }
+                        .containerRelativeFrame(.vertical) { length, _ in
+                            length
                         }
                     }
                 }
@@ -455,6 +450,7 @@ struct WatchWorkoutView: View {
         withAnimation(.easeInOut(duration: 0.2)) {
             isEditingWeight = true
         }
+        isWeightWholeFocused = true
     }
 
     func logSetWithActualWeight() {
@@ -487,6 +483,7 @@ struct WatchWorkoutView: View {
     }
 
     func startRestTimer() {
+        guard restSeconds > 0 else { return }
         restEndDate = Date().addingTimeInterval(TimeInterval(restSeconds))
         isResting = true
     }
@@ -556,5 +553,10 @@ struct WatchWorkoutView: View {
         let minutes = totalSeconds / 60
         let secs = totalSeconds % 60
         return String(format: "%d:%02d", minutes, secs)
+    }
+
+    func setProgressString(current: Int, total: Int) -> String {
+        let setLabel = String(localized: "Set", comment: "Set progress label, e.g. 'Set 1/3'")
+        return "\(setLabel) \(current)/\(total)"
     }
 }

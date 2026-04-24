@@ -45,6 +45,7 @@ struct ProgressStats: Codable {
     let currentStreak: Int
     let bestStreak: Int
     let improvingExerciseCount: Int
+    let weeklyDurationMinutes: Int
 
     enum CodingKeys: String, CodingKey {
         case weeklyVolume = "weekly_volume"
@@ -60,6 +61,7 @@ struct ProgressStats: Codable {
         case currentStreak = "current_streak"
         case bestStreak = "best_streak"
         case improvingExerciseCount = "improving_exercise_count"
+        case weeklyDurationMinutes = "weekly_duration_minutes"
     }
 }
 
@@ -87,6 +89,23 @@ struct Exercise1RMRow: Codable, Identifiable {
         case bestWeight = "best_weight"
         case bestReps = "best_reps"
         case achievedAt = "achieved_at"
+    }
+}
+
+/// Row from `get_exercise_1rm_history` RPC
+struct Exercise1RMHistoryRow: Codable, Identifiable {
+    let id: UUID
+    let estimated1rm: Double
+    let weight: Double
+    let reps: Int
+    let recordedAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case estimated1rm = "estimated_1rm"
+        case weight
+        case reps
+        case recordedAt = "recorded_at"
     }
 }
 

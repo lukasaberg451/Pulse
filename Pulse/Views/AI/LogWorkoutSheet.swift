@@ -57,8 +57,10 @@ struct LogWorkoutSheet: View {
                             }
                         } label: {
                             HStack(spacing: 4) {
-                                Image(systemName: "chevron.left")
-                                    .font(.body.weight(.semibold))
+                                Image("chevron-left")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
                                 Text("Edit")
                             }
                             .foregroundStyle(Color.appAccent)
@@ -83,8 +85,10 @@ struct LogWorkoutSheet: View {
         VStack(spacing: 20) {
             Spacer()
             
-            Image(systemName: "wifi.slash")
-                .font(.system(size: 44))
+            Image("wifi-disabled")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 44, height: 44)
                 .foregroundStyle(Color.appTertiaryText)
             
             Text("AI logging needs a connection")
@@ -222,8 +226,10 @@ struct LogWorkoutSheet: View {
                     
                     // Tip
                     HStack(spacing: 6) {
-                        Image(systemName: "lightbulb")
-                            .font(.caption2)
+                        Image("lightbulb")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 12, height: 12)
                         Text("The more detail you give, the smarter the log")
                             .font(.caption)
                     }
@@ -249,8 +255,10 @@ struct LogWorkoutSheet: View {
                             ProgressView()
                                 .tint(.white)
                         } else {
-                            Image(systemName: "sparkles")
-                                .font(.body.weight(.semibold))
+                            Image("sparkles")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
                         }
                         Text("Generate session")
                             .font(.subheadline.weight(.bold))
@@ -281,8 +289,10 @@ struct LogWorkoutSheet: View {
                 VStack(alignment: .leading, spacing: 16) {
                     // Badge
                     HStack(spacing: 6) {
-                        Image(systemName: "sparkles")
-                            .font(.caption.weight(.semibold))
+                        Image("sparkles")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 14, height: 14)
                         Text("AI generated · review before saving")
                             .font(.caption.weight(.semibold))
                     }
@@ -305,8 +315,10 @@ struct LogWorkoutSheet: View {
                             }
                             if let minutes = workout.durationMinutes {
                                 HStack(spacing: 4) {
-                                    Image(systemName: "clock")
-                                        .font(.caption)
+                                    Image("clock")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 14, height: 14)
                                     Text("\(minutes) min")
                                         .font(.subheadline)
                                 }
@@ -406,9 +418,11 @@ struct LogWorkoutSheet: View {
             // Low confidence warning
             if isLowConfidence {
                 HStack(spacing: 6) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.caption2)
-                    Text(exercise.note ?? "Low confidence — please verify")
+                    Image("error")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 12, height: 12)
+                    Text(exercise.note ?? String(localized: "Low confidence — please verify"))
                         .font(.caption)
                 }
                 .foregroundStyle(.orange)
@@ -562,8 +576,10 @@ struct LogWorkoutSheet: View {
                 Text(name.count > 20 ? String(name.prefix(20)) + "…" : name)
                     .font(.caption.weight(.medium))
                     .foregroundStyle(Color.appText)
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 8, weight: .bold))
+                Image("arrow-angular-top-right")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 8, height: 8)
                     .foregroundStyle(Color.appTertiaryText)
             }
             .padding(.horizontal, 12)
@@ -581,8 +597,10 @@ struct LogWorkoutSheet: View {
     
     private func errorBanner(message: String) -> some View {
         HStack(spacing: 8) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.caption)
+            Image("error")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 14, height: 14)
                 .foregroundStyle(.orange)
             
             Text(message)
@@ -629,7 +647,7 @@ struct LogWorkoutSheet: View {
         } catch let error as ParserError {
             errorMessage = error.errorDescription
         } catch {
-            errorMessage = "Something went wrong. Please try again."
+            errorMessage = String(localized: "Something went wrong. Please try again.")
         }
         
         isLoading = false

@@ -48,6 +48,15 @@ class DashboardViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+        // Listen for routine data changes (create, delete, duplicate)
+        NotificationCenter.default.publisher(for: .routineDataChanged)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    await self?.refreshAll()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     func refreshAll() async {
@@ -140,7 +149,7 @@ class DashboardViewModel: ObservableObject {
         } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
             // Ignore URL session cancellation
         } catch {
-            errorMessage = "Failed to load data: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load data: \(error.localizedDescription)")
         }
         
         isLoading = false

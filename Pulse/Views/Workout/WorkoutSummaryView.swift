@@ -26,6 +26,8 @@ struct WorkoutSummaryView: View {
     @EnvironmentObject var unitManager: UnitManager
     @State private var showShareSheet = false
     @State private var shareImage: UIImage?
+    @State private var show1RMShareSheet = false
+    @State private var share1RMImage: UIImage?
     
     // MARK: - Animation State
     @State private var animationTrigger = false
@@ -121,9 +123,10 @@ struct WorkoutSummaryView: View {
                                     }
                                 }
                             
-                            Text("Workout Completed")
+                            Text("Workout Completed", comment: "Summary header")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(Color.appText)
+                                .multilineTextAlignment(.center)
                                 .opacity(animationTrigger ? 1 : 0)
                                 .offset(y: animationTrigger ? 0 : 8)
                                 .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
@@ -245,6 +248,14 @@ struct WorkoutSummaryView: View {
                     .sheetContentTransition()
             }
         }
+        .sheet(isPresented: $show1RMShareSheet) {
+            share1RMImage = nil
+        } content: {
+            if let share1RMImage {
+                SharePreviewSheet(image: share1RMImage)
+                    .sheetContentTransition()
+            }
+        }
     }
     
     // MARK: - Share
@@ -266,47 +277,90 @@ struct WorkoutSummaryView: View {
         }
     }
     
+    private func share1RM(_ highlight: Strength1RMHighlight) {
+        let card = Shareable1RMCard(
+            exerciseName: highlight.exerciseName,
+            estimated1rm: String(format: "%.1f %@", unitManager.displayWeight(highlight.estimated1rm), unitManager.weightUnit),
+            previousBest: highlight.previousBest > 0
+                ? String(format: "%.1f %@", unitManager.displayWeight(highlight.previousBest), unitManager.weightUnit)
+                : nil,
+            improvement: highlight.previousBest > 0
+                ? String(format: "+%.1f %@", unitManager.displayWeight(highlight.estimated1rm - highlight.previousBest), unitManager.weightUnit)
+                : nil
+        )
+
+        let renderer = ImageRenderer(content: card)
+        renderer.scale = 3.0
+
+        if let image = renderer.uiImage {
+            share1RMImage = image
+            show1RMShareSheet = true
+        }
+    }
+
     // MARK: - Strength Highlights Section
     
     private var strengthHighlightsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Strength Highlights")
+            Text("Strength Highlights", comment: "Section header")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
             
             VStack(spacing: 10) {
                 ForEach(strength1RMHighlights.filter { $0.isNewPr }) { highlight in
-                    HStack(spacing: 12) {
-                        IconBadge(assetName: "crown", color: .orange, size: 36)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("New PR")
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(Color.orange)
-                            
-                            Text(highlight.exerciseName)
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(Color.appText)
-                            
-                            Text("Estimated 1RM")
-                                .font(.caption2)
-                                .foregroundStyle(Color.appTertiaryText.opacity(0.7))
-                        }
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text("\(unitManager.displayWeight(highlight.estimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
-                                .font(.subheadline.weight(.bold))
-                                .foregroundStyle(Color.appText)
-                            
-                            if highlight.previousBest > 0 {
-                                let improvement = highlight.estimated1rm - highlight.previousBest
-                                Text("+\(unitManager.displayWeight(improvement), specifier: "%.1f") \(unitManager.weightUnit)")
-                                    .font(.caption.weight(.medium))
-                                    .foregroundStyle(Color.green)
+                    VStack(spacing: 0) {
+                        HStack(spacing: 12) {
+                            IconBadge(assetName: "crown", color: .orange, size: 36)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("New PR", comment: "Personal record badge")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(Color.orange)
+
+                                Text(highlight.exerciseName)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(Color.appText)
+
+                                Text("Estimated 1RM", comment: "1RM label")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.appTertiaryText.opacity(0.7))
+                            }
+
+                            Spacer()
+
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text("\(unitManager.displayWeight(highlight.estimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundStyle(Color.appText)
+
+                                if highlight.previousBest > 0 {
+                                    let improvement = highlight.estimated1rm - highlight.previousBest
+                                    Text("+\(unitManager.displayWeight(improvement), specifier: "%.1f") \(unitManager.weightUnit)")
+                                        .font(.caption.weight(.medium))
+                                        .foregroundStyle(Color.green)
+                                }
                             }
                         }
+
+                        Button {
+                            share1RM(highlight)
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image("share")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 13, height: 13)
+                                Text("Share PR", comment: "Share button")
+                                    .font(.caption.weight(.semibold))
+                            }
+                            .foregroundStyle(Color.orange)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 36)
+                            .background(Color.orange.opacity(0.12))
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+                        .buttonStyle(ScalePressStyle())
+                        .padding(.top, 10)
                     }
                     .padding(14)
                     .background(Color.orange.opacity(0.08))
@@ -325,7 +379,7 @@ struct WorkoutSummaryView: View {
     
     private var exercisesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Exercises")
+            Text("Exercises", comment: "Section header")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
                 .opacity(animationTrigger ? 1 : 0)
@@ -360,17 +414,17 @@ struct WorkoutSummaryView: View {
             VStack(spacing: 4) {
                 // Header
                 HStack {
-                    Text("SET")
+                    Text("SET", comment: "Column header")
                         .frame(width: 50, alignment: .leading)
-                    
+
                     if isCardio {
-                        Text("DURATION")
+                        Text("DURATION", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
                     } else {
-                        Text("WEIGHT")
+                        Text("WEIGHT", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
-                        
-                        Text("REPS")
+
+                        Text("REPS", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                     
@@ -508,7 +562,7 @@ struct WorkoutSummaryView: View {
     
     // MARK: - Stat Card
     
-    private func summaryStatCard(icon: String, title: String, value: String, isSystemImage: Bool = false) -> some View {
+    private func summaryStatCard(icon: String, title: LocalizedStringKey, value: String, isSystemImage: Bool = false) -> some View {
         VStack(spacing: 8) {
             if isSystemImage {
                 IconBadge(systemName: icon, size: 36)
@@ -561,28 +615,29 @@ struct ShareableWorkoutCard: View {
                         .frame(width: 56, height: 56)
                         .foregroundStyle(Color.green)
                     
-                    Text("Workout Completed")
+                    Text("Workout Completed", comment: "Share card header")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
                 }
-                
+
                 // Stats
                 VStack(spacing: 0) {
-                    shareStatItem(icon: "clock", value: formattedDuration, label: "Duration")
+                    shareStatItem(icon: "clock", value: formattedDuration, label: String(localized: "Duration"))
                         .padding(.vertical, 16)
                     
                     Rectangle()
                         .fill(.white.opacity(0.08))
                         .frame(height: 1)
                     
-                    shareStatItem(icon: "volume", value: totalVolume, label: "Volume")
+                    shareStatItem(icon: "volume", value: totalVolume, label: String(localized: "Volume"))
                         .padding(.vertical, 16)
                     
                     Rectangle()
                         .fill(.white.opacity(0.08))
                         .frame(height: 1)
                     
-                    shareStatItem(icon: "list", value: "\(exerciseCount)", label: "Exercises")
+                    shareStatItem(icon: "list", value: "\(exerciseCount)", label: String(localized: "Exercises"))
                         .padding(.vertical, 16)
                 }
                 .padding(.horizontal, 20)
@@ -597,10 +652,10 @@ struct ShareableWorkoutCard: View {
             
             // Branding
             HStack(spacing: 6) {
-                Text("Pulse")
+                Text(verbatim: "Pulse")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(accentColor)
-                Text("Workout Tracker")
+                Text(verbatim: "Workout Tracker")
                     .font(.system(size: 16))
                     .foregroundStyle(.white.opacity(0.35))
             }
@@ -641,6 +696,96 @@ struct ShareableWorkoutCard: View {
     }
 }
 
+// MARK: - Shareable 1RM Card
+
+struct Shareable1RMCard: View {
+    let exerciseName: String
+    let estimated1rm: String
+    let previousBest: String?
+    let improvement: String?
+
+    private let accentColor = Color(red: 1.0, green: 0.42, blue: 0.21)
+
+    var body: some View {
+        VStack {
+            Spacer()
+
+            VStack(spacing: 32) {
+                // Header
+                VStack(spacing: 14) {
+                    Image("crown")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 56, height: 56)
+                        .foregroundStyle(Color.orange)
+
+                    Text("New Personal Record", comment: "Share card header")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                }
+
+                // Exercise name
+                Text(exerciseName)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.7))
+
+                // 1RM value
+                VStack(spacing: 12) {
+                    Text("Estimated 1RM", comment: "1RM label on share card")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.white.opacity(0.45))
+
+                    Text(estimated1rm)
+                        .font(.system(size: 48, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+
+                    if let improvement {
+                        Text(improvement)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(Color.green)
+                    }
+
+                    if let previousBest {
+                        Text("Previous: \(previousBest)", comment: "Previous best 1RM")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.white.opacity(0.35))
+                    }
+                }
+                .padding(.vertical, 24)
+                .padding(.horizontal, 20)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(.white.opacity(0.06))
+                )
+            }
+            .padding(.horizontal, 36)
+
+            Spacer()
+
+            // Branding
+            HStack(spacing: 6) {
+                Text(verbatim: "Pulse")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(accentColor)
+                Text(verbatim: "Workout Tracker")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.white.opacity(0.35))
+            }
+            .padding(.bottom, 48)
+        }
+        .frame(width: 360, height: 640)
+        .background(
+            LinearGradient(
+                colors: [Color(red: 0.06, green: 0.06, blue: 0.08), Color(red: 0.1, green: 0.1, blue: 0.12)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+}
+
 // MARK: - Share Preview Sheet
 
 struct SharePreviewSheet: View {
@@ -658,7 +803,7 @@ struct SharePreviewSheet: View {
                     IconBadge(assetName: "share", size: 48)
                         .padding(.top, 24)
                     
-                    Text("Share Preview")
+                    Text("Share Preview", comment: "Sheet title")
                         .font(.title3.weight(.bold))
                         .foregroundStyle(Color.appText)
                 }

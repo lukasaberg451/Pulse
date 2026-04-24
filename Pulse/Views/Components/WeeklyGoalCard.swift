@@ -35,7 +35,7 @@ struct WeeklyGoalCard: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(spacing: 8) {
                             IconBadge(assetName: "goal", color: .appAccent, size: 28)
-                            Text("Weekly Goal")
+                            Text("Weekly Goal", comment: "Weekly workout goal card title")
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(Color.appSecondaryText)
                         }
@@ -69,7 +69,7 @@ struct WeeklyGoalCard: View {
                         .buttonStyle(ScalePressStyle())
                         .accessibilityIdentifier("editWeeklyGoalButton")
 
-                        Text("\(Int(progress * 100))%")
+                        Text(progress.formatted(.percent.precision(.fractionLength(0))))
                             .font(.system(size: 18, weight: .bold, design: .rounded))
                             .foregroundStyle(goalReached ? .green : Color.appAccent)
                             .contentTransition(.numericText())
@@ -92,7 +92,7 @@ struct WeeklyGoalCard: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 14, height: 14)
-                            Text("Goal reached!")
+                            Text("Goal reached!", comment: "Shown when weekly goal is completed")
                         }
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.green)
@@ -106,7 +106,7 @@ struct WeeklyGoalCard: View {
                         HStack(spacing: 4) {
                             Image("check-circle")
                                 .font(.caption)
-                            Text("Goal updated!")
+                            Text("Goal updated!", comment: "Shown after updating weekly goal")
                         }
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Color.appAccent)
@@ -121,6 +121,7 @@ struct WeeklyGoalCard: View {
                 .strokeBorder(Color.appAccent, lineWidth: 2)
                 .opacity(glowOpacity)
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("weeklyGoalCard")
         .onChange(of: celebrate) { _, newValue in
             guard newValue else { return }

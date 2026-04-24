@@ -7,23 +7,14 @@
 
 import XCTest
 
-final class UIPerformanceTests: XCTestCase {
-
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--skip-auth"]
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
+final class UIPerformanceTests: UITestBaseCase {
 
     // MARK: - Test: App Launch Performance
 
     func testAppLaunchPerformance() throws {
+        // Terminate the app launched by setUp so measure starts fresh
+        app.terminate()
+
         measure(metrics: [XCTApplicationLaunchMetric()]) {
             app.launch()
         }
@@ -32,47 +23,32 @@ final class UIPerformanceTests: XCTestCase {
     // MARK: - Test: Workout History List Load Time
 
     func testWorkoutHistoryListLoadTime() throws {
-        app.launch()
+        dismissResumeAlertIfPresent()
 
-        // Dismiss any leftover "Resume Workout?" alert
-        let resumeAlert = app.alerts["Resume Workout?"]
-        if resumeAlert.waitForExistence(timeout: 5) {
-            resumeAlert.buttons["Discard"].tap()
-            sleep(1)
-        }
+        navigateToProfile()
 
-        // Navigate to the Progress tab
-        let progressTab = app.buttons["Progress"]
-        XCTAssertTrue(progressTab.waitForExistence(timeout: 15), "Progress tab not found")
-        progressTab.tap()
-        sleep(3)
+        // Scroll to bottom to reach Completed Workouts section
+        scrollToBottom()
 
-        // Scroll down to find the "Completed Workouts" section / See All link
-        // and navigate to the AllRecentWorkoutsView
         let completedWorkoutsTitle = app.staticTexts["Completed Workouts"]
-        if !completedWorkoutsTitle.waitForExistence(timeout: 5) {
-            app.swipeUp()
-            sleep(1)
-            app.swipeUp()
-            sleep(1)
-        }
+        XCTAssertTrue(completedWorkoutsTitle.waitForExistence(timeout: 5), "Completed Workouts section not found")
 
         measure {
-            // Navigate to the full workout history list
-            let seeAllButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'See All'")).firstMatch
+            // Scroll to bottom each iteration to find the workout See All button
+            scrollToBottom()
+            let seeAllButton = app.buttons["profileSeeAllWorkoutsButton"]
+
             if seeAllButton.waitForExistence(timeout: 5) {
-                seeAllButton.tap()
+                seeAllButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
             }
 
-            // Wait for the first workout card to appear
             let firstCard = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Completed'")).firstMatch
             _ = firstCard.waitForExistence(timeout: 15)
 
-            // Navigate back for the next iteration
             let backButton = app.navigationBars.buttons.element(boundBy: 0)
             if backButton.waitForExistence(timeout: 5) {
                 backButton.tap()
-                sleep(1)
+                waitForAnimation()
             }
         }
     }

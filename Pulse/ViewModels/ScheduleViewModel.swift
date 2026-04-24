@@ -171,12 +171,12 @@ class ScheduleViewModel: ObservableObject {
             }
             hasLoaded = true
         } catch {
-            errorMessage = "Failed to load data: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load data: \(error.localizedDescription)")
         }
-        
+
         isLoading = false
     }
-    
+
     func routineExercises(for routineId: UUID) -> [RoutineExercise] {
         routineExerciseMap[routineId] ?? []
     }
@@ -206,7 +206,7 @@ class ScheduleViewModel: ObservableObject {
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
             isSelfPosting = false
         } catch {
-            errorMessage = "Failed to schedule workout: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to schedule workout: \(error.localizedDescription)")
         }
     }
     
@@ -264,7 +264,7 @@ class ScheduleViewModel: ObservableObject {
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
             isSelfPosting = false
         } catch {
-            errorMessage = "Failed to delete: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to delete: \(error.localizedDescription)")
         }
     }
     
@@ -273,7 +273,7 @@ class ScheduleViewModel: ObservableObject {
             do {
                 try await workoutRepository.deleteScheduledWorkout(id: workout.id)
             } catch {
-                errorMessage = "Failed to delete: \(error.localizedDescription)"
+                errorMessage = String(localized: "Failed to delete: \(error.localizedDescription)")
             }
         }
     }

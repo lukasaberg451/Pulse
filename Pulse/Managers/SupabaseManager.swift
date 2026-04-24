@@ -14,9 +14,17 @@ class SupabaseManager {
     let client: SupabaseClient
     
     private init() {
-        guard let supabaseURLString = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String,
+        #if DEBUG
+        let urlKey = "DEV_SUPABASE_URL"
+        let anonKey = "DEV_SUPABASE_KEY"
+        #else
+        let urlKey = "PROD_SUPABASE_URL"
+        let anonKey = "PROD_SUPABASE_KEY"
+        #endif
+
+        guard let supabaseURLString = Bundle.main.object(forInfoDictionaryKey: urlKey) as? String,
               let supabaseURL = URL(string: supabaseURLString),
-              let supabaseKey = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_KEY") as? String else {
+              let supabaseKey = Bundle.main.object(forInfoDictionaryKey: anonKey) as? String else {
             fatalError("Missing Supabase configuration in Info.plist. Ensure Secrets.xcconfig is set up correctly.")
         }
         

@@ -104,7 +104,7 @@ struct PulseApp: App {
     @State private var showPostLogoutLoading = false
     @State private var showSplash = !PulseApp.isUITesting
     @State private var selectedTab: HomeTab = .dashboard
-    @State private var availableAppUpdate: String?
+    @State private var appUpdateStatus: AppUpdateStatus = .upToDate
     
     // SwiftData model container for offline support
     let modelContainer: ModelContainer
@@ -270,28 +270,46 @@ struct PulseApp: App {
             }
             .onChange(of: showSplash) { _, splashVisible in
                 guard !splashVisible else { return }
-                Task {
-                    availableAppUpdate = await AppUpdateChecker.shared.availableUpdate()
-                }
+                checkForAppUpdate()
             }
             .onChange(of: showPostLoginLoading) { _, loading in
                 guard !loading && !showSplash else { return }
-                Task {
-                    availableAppUpdate = await AppUpdateChecker.shared.availableUpdate()
-                }
+                checkForAppUpdate()
             }
             .sheet(isPresented: Binding(
-                get: { availableAppUpdate != nil },
-                set: { if !$0 { availableAppUpdate = nil } }
+                get: { appUpdateStatus != .upToDate },
+                set: { if !$0 { appUpdateStatus = .upToDate } }
             )) {
-                if let version = availableAppUpdate {
-                    AppUpdateSheet(latestVersion: version)
+                switch appUpdateStatus {
+                case .forceUpdate(let version):
+                    AppUpdateSheet(latestVersion: version, isForced: true)
+                case .softUpdate(let version):
+                    AppUpdateSheet(latestVersion: version, isForced: false)
+                        .onAppear {
+                            AppUpdateChecker.shared.recordSoftSheetShown()
+                        }
+                case .upToDate:
+                    EmptyView()
                 }
             }
 
         }
         .modelContainer(modelContainer)
     }
-    
 
+    private func checkForAppUpdate() {
+        Task {
+            let status = await AppUpdateChecker.shared.checkUpdate()
+            switch status {
+            case .forceUpdate:
+                appUpdateStatus = status
+            case .softUpdate:
+                if !AppUpdateChecker.shared.wasSoftSheetShownToday {
+                    appUpdateStatus = status
+                }
+            case .upToDate:
+                break
+            }
+        }
+    }
 }

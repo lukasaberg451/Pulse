@@ -11,39 +11,7 @@ import XCTest
 
 /// Tests that verify client-side validation errors on the Login screen.
 /// Uses `--reset-auth` so the app starts from the unauthenticated state.
-final class LoginValidationErrorTests: XCTestCase {
-
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--reset-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
-
-    // MARK: - Helpers
-
-    /// Navigate from the auth selection screen to the login form.
-    private func navigateToLogin() {
-        sleep(10) // Wait for splash screen to fully dismiss
-
-        let signInButton = app.buttons["Already Have an Account"]
-        if signInButton.waitForExistence(timeout: 5) {
-            signInButton.tap()
-        } else {
-            let signInText = app.staticTexts["Already Have an Account"]
-            XCTAssertTrue(signInText.waitForExistence(timeout: 5), "Auth selection screen not found")
-            signInText.tap()
-        }
-
-        let emailField = app.textFields["loginEmailField"]
-        XCTAssertTrue(emailField.waitForExistence(timeout: 10), "Login screen did not appear")
-    }
+final class LoginValidationErrorTests: AuthFlowUITestBaseCase {
 
     // MARK: - Test: Empty Email Shows Error
 
@@ -55,7 +23,7 @@ final class LoginValidationErrorTests: XCTestCase {
         let loginButton = app.buttons["loginButton"]
         XCTAssertTrue(loginButton.waitForExistence(timeout: 5), "Login button not found")
         loginButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Assert — error box appears with "Email is required"
         let errorBox = app.otherElements["loginErrorBox"]
@@ -79,7 +47,7 @@ final class LoginValidationErrorTests: XCTestCase {
         // Act
         let loginButton = app.buttons["loginButton"]
         loginButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Assert
         let errorBox = app.otherElements["loginErrorBox"]
@@ -103,7 +71,7 @@ final class LoginValidationErrorTests: XCTestCase {
         // Act — leave password empty and submit
         let loginButton = app.buttons["loginButton"]
         loginButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Assert
         let errorBox = app.otherElements["loginErrorBox"]
@@ -149,7 +117,7 @@ final class LoginValidationErrorTests: XCTestCase {
 
         let loginButton = app.buttons["loginButton"]
         loginButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         let errorBox = app.otherElements["loginErrorBox"]
         XCTAssertTrue(errorBox.waitForExistence(timeout: 5), "Error box did not appear")
@@ -158,7 +126,7 @@ final class LoginValidationErrorTests: XCTestCase {
         let emailField = app.textFields["loginEmailField"]
         emailField.tap()
         emailField.typeText("a")
-        sleep(1)
+        waitForAnimation()
 
         // Assert — error should be dismissed
         XCTAssertFalse(errorBox.exists, "Error box should disappear when user starts typing")
@@ -181,13 +149,20 @@ final class LoginValidationErrorTests: XCTestCase {
         passwordField.typeText("WrongPassword1")
         loginButton.tap()
 
-        // Wait for the error and rate-limit to engage
-        let errorBox = app.otherElements["loginErrorBox"]
-        XCTAssertTrue(errorBox.waitForExistence(timeout: 15), "Error box did not appear")
+        // The rate limit countdown (2s) starts when the server responds.
+        // Poll rapidly to catch the brief "Wait Xs" label before it expires.
+        let deadline = Date().addingTimeInterval(20)
+        var foundWait = false
+        while Date() < deadline {
+            let currentLabel = app.buttons["loginButton"].label
+            if currentLabel.hasPrefix("Wait") {
+                foundWait = true
+                break
+            }
+            usleep(200_000) // 0.2s
+        }
 
-        // Assert — button should show "Wait Xs" text
-        let waitButton = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Wait'")).firstMatch
-        XCTAssertTrue(waitButton.waitForExistence(timeout: 5), "Rate limit 'Wait Xs' button did not appear after failed attempt")
+        XCTAssertTrue(foundWait, "Rate limit 'Wait Xs' button did not appear after failed attempt")
     }
 }
 
@@ -195,50 +170,7 @@ final class LoginValidationErrorTests: XCTestCase {
 
 /// Tests that verify client-side validation errors on the Registration screen.
 /// Uses `--reset-auth` so the app starts from the unauthenticated state.
-final class RegistrationValidationErrorTests: XCTestCase {
-
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--reset-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
-
-    // MARK: - Helpers
-
-    /// Navigate from the auth selection screen to the email registration form.
-    private func navigateToRegister() {
-        sleep(10) // Wait for splash screen to fully dismiss
-
-        let getStartedButton = app.buttons["Let's Get Started"]
-        if getStartedButton.waitForExistence(timeout: 5) {
-            getStartedButton.tap()
-        } else {
-            let getStartedText = app.staticTexts["Let's Get Started"]
-            XCTAssertTrue(getStartedText.waitForExistence(timeout: 5), "Auth selection screen not found")
-            getStartedText.tap()
-        }
-        sleep(2)
-
-        // Tap "Sign Up with Email"
-        let signUpWithEmail = app.buttons["Sign Up with Email"]
-        if signUpWithEmail.waitForExistence(timeout: 5) {
-            signUpWithEmail.tap()
-        } else {
-            let signUpText = app.staticTexts["Sign Up with Email"]
-            XCTAssertTrue(signUpText.waitForExistence(timeout: 5), "Register selection screen not found")
-            signUpText.tap()
-        }
-
-        let firstNameField = app.textFields["registerFirstNameField"]
-        XCTAssertTrue(firstNameField.waitForExistence(timeout: 10), "Registration form did not appear")
-    }
+final class RegistrationValidationErrorTests: AuthFlowUITestBaseCase {
 
     // MARK: - Test: Empty Fields Shows Error
 
@@ -283,10 +215,10 @@ final class RegistrationValidationErrorTests: XCTestCase {
         passwordField.typeText("ValidPass1")
 
         // Agree to terms — tap the checkbox
-        let termsCheckbox = app.buttons.matching(NSPredicate(format: "label CONTAINS 'square' OR label CONTAINS 'checkmark'")).firstMatch
+        let termsCheckbox = app.buttons["termsCheckbox"]
         if termsCheckbox.waitForExistence(timeout: 3) {
             termsCheckbox.tap()
-            sleep(1)
+            waitForAnimation()
         }
 
         // Assert — button should still be disabled due to invalid email
@@ -395,45 +327,7 @@ final class RegistrationValidationErrorTests: XCTestCase {
 
 /// Tests that verify client-side validation on the Forgot Password flow.
 /// Uses `--reset-auth` so the app starts from the unauthenticated state.
-final class ForgotPasswordValidationErrorTests: XCTestCase {
-
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--reset-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
-
-    // MARK: - Helpers
-
-    /// Navigate from auth selection → Login → Forgot Password sheet.
-    private func navigateToForgotPassword() {
-        sleep(10) // Wait for splash screen to fully dismiss
-
-        let signInButton = app.buttons["Already Have an Account"]
-        if signInButton.waitForExistence(timeout: 5) {
-            signInButton.tap()
-        } else {
-            let signInText = app.staticTexts["Already Have an Account"]
-            XCTAssertTrue(signInText.waitForExistence(timeout: 5), "Auth selection screen not found")
-            signInText.tap()
-        }
-
-        let forgotPasswordButton = app.buttons["forgotPasswordButton"]
-        XCTAssertTrue(forgotPasswordButton.waitForExistence(timeout: 10), "Forgot Password button not found")
-        forgotPasswordButton.tap()
-        sleep(2)
-
-        // Verify the forgot password sheet appeared
-        let resetTitle = app.staticTexts["Reset Password"]
-        XCTAssertTrue(resetTitle.waitForExistence(timeout: 5), "Forgot Password sheet did not appear")
-    }
+final class ForgotPasswordValidationErrorTests: AuthFlowUITestBaseCase {
 
     // MARK: - Test: Empty Email Shows Error
 
@@ -445,7 +339,7 @@ final class ForgotPasswordValidationErrorTests: XCTestCase {
         let sendCodeButton = app.buttons["Send Code"]
         XCTAssertTrue(sendCodeButton.waitForExistence(timeout: 5), "Send Code button not found")
         sendCodeButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Assert
         let errorBox = app.otherElements["forgotPasswordErrorBox"]
@@ -463,7 +357,7 @@ final class ForgotPasswordValidationErrorTests: XCTestCase {
         navigateToForgotPassword()
 
         // Type an invalid email
-        let emailField = app.textFields["Email"]
+        let emailField = app.textFields["forgotPasswordEmailField"]
         XCTAssertTrue(emailField.waitForExistence(timeout: 5), "Email field not found")
         emailField.tap()
         emailField.typeText("notanemail")
@@ -471,7 +365,7 @@ final class ForgotPasswordValidationErrorTests: XCTestCase {
         // Act
         let sendCodeButton = app.buttons["Send Code"]
         sendCodeButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Assert
         let errorBox = app.otherElements["forgotPasswordErrorBox"]
@@ -487,94 +381,21 @@ final class ForgotPasswordValidationErrorTests: XCTestCase {
 
 /// Tests that verify error-related behavior during routine management.
 /// Uses `--skip-auth` to land on the authenticated home screen.
-final class RoutineErrorHandlingTests: XCTestCase {
+final class RoutineErrorHandlingTests: UITestBaseCase {
 
-    var app: XCUIApplication!
-
-    private let uniqueSuffix = UUID().uuidString.prefix(6)
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--skip-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
-
-    // MARK: - Helpers
-
-    /// Dismiss any leftover "Resume Workout?" alert.
-    private func dismissResumeAlertIfPresent() {
-        let resumeAlert = app.alerts["Resume Workout?"]
-        if resumeAlert.waitForExistence(timeout: 5) {
-            resumeAlert.buttons["Discard"].tap()
-            sleep(1)
-        }
-    }
-
-    /// Navigate to the Routines sub-tab inside the Workout tab.
-    private func navigateToRoutinesTab() {
-        dismissResumeAlertIfPresent()
-
-        let workoutTab = app.buttons["Workout"]
-        XCTAssertTrue(workoutTab.waitForExistence(timeout: 15), "Workout tab not found")
-        workoutTab.tap()
-        sleep(2)
-
-        let routinesPill = app.buttons["Routines"]
-        XCTAssertTrue(routinesPill.waitForExistence(timeout: 5), "Routines pill not found")
-        routinesPill.tap()
-        sleep(2)
-    }
-
-    /// Delete all routines whose names contain the given substring.
-    private func cleanupRoutines(containing substring: String) {
-        navigateToRoutinesTab()
-        sleep(2)
-
-        let routineRows = app.buttons.matching(identifier: "routineRow")
-        guard routineRows.count > 0 else { return }
-
-        let predicate = NSPredicate(format: "label CONTAINS %@", substring)
-        let matchingRows = app.buttons.matching(predicate)
-        guard matchingRows.count > 0 else { return }
-
-        let modifyButton = app.buttons["modifyRoutinesButton"]
-        guard modifyButton.waitForExistence(timeout: 5) else { return }
-        modifyButton.tap()
-        sleep(1)
-
-        for i in 0..<matchingRows.count {
-            matchingRows.element(boundBy: i).tap()
-            usleep(500_000)
-        }
-
-        let deleteButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Delete'")).firstMatch
-        if deleteButton.waitForExistence(timeout: 3) {
-            deleteButton.tap()
-            sleep(1)
-        }
-
-        let confirmDelete = app.alerts.buttons["Delete"]
-        if confirmDelete.waitForExistence(timeout: 3) {
-            confirmDelete.tap()
-            sleep(2)
-        }
-    }
+    override var needsRoutineCleanup: Bool { true }
 
     // MARK: - Test: Create Routine Button Disabled When Name Is Empty
 
     func testCreateRoutineDisabledWithEmptyName() throws {
         // Arrange
+        dismissResumeAlertIfPresent()
         navigateToRoutinesTab()
 
         let newRoutineButton = app.buttons["newRoutineButton"]
         XCTAssertTrue(newRoutineButton.waitForExistence(timeout: 10), "New Routine button not found")
         newRoutineButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Act — don't type anything in the name field
 
@@ -588,12 +409,13 @@ final class RoutineErrorHandlingTests: XCTestCase {
 
     func testCreateRoutineEnablesWithName() throws {
         // Arrange
+        dismissResumeAlertIfPresent()
         navigateToRoutinesTab()
 
         let newRoutineButton = app.buttons["newRoutineButton"]
         XCTAssertTrue(newRoutineButton.waitForExistence(timeout: 10), "New Routine button not found")
         newRoutineButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Act — type a name
         let nameField = app.textFields["routineNameField"]
@@ -619,6 +441,7 @@ final class RoutineErrorHandlingTests: XCTestCase {
         let routineName = "UITest DelErr \(uniqueSuffix)"
 
         // Arrange — create a routine to delete
+        dismissResumeAlertIfPresent()
         navigateToRoutinesTab()
 
         let newRoutineButton = app.buttons["newRoutineButton"]
@@ -633,30 +456,32 @@ final class RoutineErrorHandlingTests: XCTestCase {
         let createButton = app.buttons["createRoutineButton"]
         XCTAssertTrue(createButton.waitForExistence(timeout: 5), "Create button not found")
         createButton.tap()
-        sleep(3)
+
+        // Wait for detail screen to appear
+        _ = app.staticTexts[routineName].waitForExistence(timeout: 10)
 
         // Navigate back to the list
         let backButton = app.navigationBars.buttons.element(boundBy: 0)
         if backButton.waitForExistence(timeout: 5) {
             backButton.tap()
-            sleep(2)
+            _ = app.buttons.matching(identifier: "routineRow").firstMatch.waitForExistence(timeout: 5)
         }
 
         // Act — enter modify mode and select the routine
         let modifyButton = app.buttons["modifyRoutinesButton"]
         XCTAssertTrue(modifyButton.waitForExistence(timeout: 5), "Modify button not found")
         modifyButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         let routineRow = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", routineName)).firstMatch
         XCTAssertTrue(routineRow.waitForExistence(timeout: 5), "Routine row not found")
         routineRow.tap()
-        sleep(1)
+        waitForAnimation()
 
         let deleteButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Delete'")).firstMatch
         XCTAssertTrue(deleteButton.waitForExistence(timeout: 5), "Delete button not found")
         deleteButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Assert — confirmation alert should appear
         let deleteAlert = app.alerts.firstMatch
@@ -670,20 +495,17 @@ final class RoutineErrorHandlingTests: XCTestCase {
 
         // Act — cancel the deletion
         cancelAlertButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Assert — routine should still exist
         let doneButton = app.buttons["Done"]
         if doneButton.waitForExistence(timeout: 3) {
             doneButton.tap()
-            sleep(1)
+            waitForAnimation()
         }
 
         let routineStillExists = app.staticTexts[routineName]
         XCTAssertTrue(routineStillExists.waitForExistence(timeout: 5), "Routine should still exist after cancelling deletion")
-
-        // Cleanup
-        cleanupRoutines(containing: String(uniqueSuffix))
     }
 
     // MARK: - Test: Empty Routine Shows No Exercises State
@@ -692,6 +514,7 @@ final class RoutineErrorHandlingTests: XCTestCase {
         let routineName = "UITest Empty \(uniqueSuffix)"
 
         // Arrange — create a routine with no exercises
+        dismissResumeAlertIfPresent()
         navigateToRoutinesTab()
 
         let newRoutineButton = app.buttons["newRoutineButton"]
@@ -706,19 +529,13 @@ final class RoutineErrorHandlingTests: XCTestCase {
         let createButton = app.buttons["createRoutineButton"]
         XCTAssertTrue(createButton.waitForExistence(timeout: 5), "Create button not found")
         createButton.tap()
-        sleep(3)
+
+        // Wait for detail screen to appear
+        _ = app.staticTexts[routineName].waitForExistence(timeout: 10)
 
         // Assert — "No Exercises Yet" empty state should appear
         let noExercises = app.staticTexts["No Exercises Yet"]
         XCTAssertTrue(noExercises.waitForExistence(timeout: 5), "Empty exercises state not shown for new routine")
-
-        // Cleanup
-        let backButton = app.navigationBars.buttons.element(boundBy: 0)
-        if backButton.waitForExistence(timeout: 5) {
-            backButton.tap()
-            sleep(1)
-        }
-        cleanupRoutines(containing: String(uniqueSuffix))
     }
 }
 
@@ -726,56 +543,22 @@ final class RoutineErrorHandlingTests: XCTestCase {
 
 /// Tests that verify error-related behavior during schedule management.
 /// Uses `--skip-auth` to land on the authenticated home screen.
-final class ScheduleErrorHandlingTests: XCTestCase {
-
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--skip-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
-
-    // MARK: - Helpers
-
-    private func dismissResumeAlertIfPresent() {
-        let resumeAlert = app.alerts["Resume Workout?"]
-        if resumeAlert.waitForExistence(timeout: 5) {
-            resumeAlert.buttons["Discard"].tap()
-            sleep(1)
-        }
-    }
-
-    private func navigateToScheduleTab() {
-        dismissResumeAlertIfPresent()
-
-        let workoutTab = app.buttons["Workout"]
-        XCTAssertTrue(workoutTab.waitForExistence(timeout: 15), "Workout tab not found")
-        workoutTab.tap()
-        sleep(2)
-
-        let schedulePill = app.buttons["Schedule"]
-        XCTAssertTrue(schedulePill.waitForExistence(timeout: 5), "Schedule pill not found")
-        schedulePill.tap()
-        sleep(2)
-    }
+final class ScheduleErrorHandlingTests: UITestBaseCase {
 
     // MARK: - Test: Schedule Workout Requires Routine Selection
 
     func testScheduleWorkoutRequiresRoutineSelection() throws {
         // Arrange
+        dismissResumeAlertIfPresent()
         navigateToScheduleTab()
 
         // Act — tap a calendar day to open the schedule sheet
         let addButton = app.buttons["addScheduledWorkoutButton"]
         XCTAssertTrue(addButton.waitForExistence(timeout: 5), "Add Scheduled Workout button not found")
         addButton.tap()
-        sleep(2)
+
+        // Wait for sheet to appear
+        _ = app.navigationBars["Select Routine"].waitForExistence(timeout: 5)
 
         // Assert — the routine selection sheet should appear, requiring a routine pick
         let sheetTitle = app.navigationBars["Select Routine"]
@@ -787,60 +570,24 @@ final class ScheduleErrorHandlingTests: XCTestCase {
 
 /// Tests that verify confirmation flows for destructive actions in Settings.
 /// Uses `--skip-auth` to land on the authenticated home screen.
-final class SettingsErrorHandlingTests: XCTestCase {
-
-    var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--skip-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
-
-    // MARK: - Helpers
-
-    private func dismissResumeAlertIfPresent() {
-        let resumeAlert = app.alerts["Resume Workout?"]
-        if resumeAlert.waitForExistence(timeout: 5) {
-            resumeAlert.buttons["Discard"].tap()
-            sleep(1)
-        }
-    }
-
-    private func navigateToSettings() {
-        dismissResumeAlertIfPresent()
-
-        let profileTab = app.buttons["Profile"]
-        XCTAssertTrue(profileTab.waitForExistence(timeout: 15), "Profile tab not found")
-        profileTab.tap()
-        sleep(3)
-
-        let settingsButton = app.buttons["profileSettingsButton"]
-        XCTAssertTrue(settingsButton.waitForExistence(timeout: 10), "Settings button not found")
-        settingsButton.tap()
-        sleep(2)
-    }
+final class SettingsErrorHandlingTests: UITestBaseCase {
 
     // MARK: - Test: Sign Out Shows Confirmation Alert
 
     func testSignOutShowsConfirmationAndCanCancel() throws {
         // Arrange
+        dismissResumeAlertIfPresent()
         navigateToSettings()
 
         // Scroll down to find Sign Out button
         app.swipeUp()
-        sleep(1)
+        waitForAnimation()
 
         // Act
         let signOutButton = app.buttons["settingsSignOutButton"]
         XCTAssertTrue(signOutButton.waitForExistence(timeout: 5), "Sign Out button not found")
         signOutButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Assert — confirmation alert appears
         let signOutAlert = app.alerts["Sign Out"]
@@ -851,7 +598,7 @@ final class SettingsErrorHandlingTests: XCTestCase {
 
         // Act — cancel the sign out
         cancelButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Assert — still on settings screen
         let settingsTitle = app.navigationBars.staticTexts["Settings"]
@@ -863,19 +610,20 @@ final class SettingsErrorHandlingTests: XCTestCase {
 
     func testDeleteAccountShowsConfirmationAndCanCancel() throws {
         // Arrange
+        dismissResumeAlertIfPresent()
         navigateToSettings()
 
         // Scroll down to find Delete Account button
         app.swipeUp()
-        sleep(1)
+        waitForAnimation()
         app.swipeUp()
-        sleep(1)
+        waitForAnimation()
 
         // Act
         let deleteAccountButton = app.buttons["settingsDeleteAccountButton"]
         XCTAssertTrue(deleteAccountButton.waitForExistence(timeout: 5), "Delete Account button not found")
         deleteAccountButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Assert — first confirmation alert appears
         let deleteAlert = app.alerts["Delete Account"]
@@ -886,7 +634,7 @@ final class SettingsErrorHandlingTests: XCTestCase {
 
         // Act — cancel the deletion
         cancelButton.tap()
-        sleep(1)
+        waitForAnimation()
 
         // Assert — still on settings screen
         XCTAssertTrue(deleteAccountButton.waitForExistence(timeout: 5),

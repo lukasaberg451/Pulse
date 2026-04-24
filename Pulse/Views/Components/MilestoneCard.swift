@@ -53,7 +53,7 @@ struct MilestoneCard: View {
                 IconBadge(assetName: milestone.icon, color: .green, size: 38)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Achievement Complete!")
+                    Text("Achievement Complete!", comment: "Milestone card status")
                         .font(.caption.weight(.medium))
                         .foregroundStyle(.green)
 
@@ -88,7 +88,7 @@ struct MilestoneCard: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 14, height: 14)
-                        Text("Unlock Achievement")
+                        Text("Unlock Achievement", comment: "Milestone unlock button")
                             .font(.subheadline.weight(.bold))
                     }
                     .foregroundStyle(.white)
@@ -106,7 +106,7 @@ struct MilestoneCard: View {
                     advanceToNext()
                 } label: {
                     HStack(spacing: 6) {
-                        Text(viewModel.dashboardMilestone != nil ? "Next Achievement" : "Done")
+                        Text(viewModel.dashboardMilestone != nil ? String(localized: "Next Achievement") : String(localized: "Done"))
                             .font(.subheadline.weight(.bold))
                         if viewModel.dashboardMilestone != nil {
                             Image("chevron-right")
@@ -134,7 +134,7 @@ struct MilestoneCard: View {
                 IconBadge(assetName: milestone.icon, color: .appAccent, size: 38)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Next Milestone")
+                    Text("Next Milestone", comment: "In-progress milestone label")
                         .font(.caption.weight(.medium))
                         .foregroundStyle(Color.appSecondaryText)
 
@@ -145,7 +145,7 @@ struct MilestoneCard: View {
 
                 Spacer()
 
-                Text("\(Int(milestone.progress * 100))%")
+                Text(milestone.progress.formatted(.percent.precision(.fractionLength(0))))
                     .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.appAccent)
             }

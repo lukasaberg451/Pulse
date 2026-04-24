@@ -34,19 +34,19 @@ struct SubscriptionView: View {
                             .padding(.bottom, 20)
                             
                             if subscriptionManager.isProUser {
-                                Text("Pulse Pro")
+                                Text("Pulse Pro", comment: "Subscription title")
                                     .font(.title.weight(.bold))
                                     .foregroundStyle(Color.appText)
-                                
-                                Text("You're a Pro subscriber")
+
+                                Text("You're a Pro subscriber", comment: "Pro status message")
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appSecondaryText)
                             } else {
-                                Text("Upgrade to Pro")
+                                Text("Upgrade to Pro", comment: "Subscription upsell title")
                                     .font(.title.weight(.bold))
                                     .foregroundStyle(Color.appText)
-                                
-                                Text("Take your training to the next level")
+
+                                Text("Take your training to the next level", comment: "Subscription upsell subtitle")
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appSecondaryText)
                             }
@@ -96,7 +96,7 @@ struct SubscriptionView: View {
                         if subscriptionManager.isProUser {
                             // Active subscriber section
                             VStack(spacing: 16) {
-                                Text("To cancel your subscription, go to your Apple ID subscription settings.")
+                                Text("To cancel your subscription, go to your Apple ID subscription settings.", comment: "Cancel subscription hint")
                                     .font(.caption)
                                     .foregroundStyle(Color.appTertiaryText)
                                     .multilineTextAlignment(.center)
@@ -125,7 +125,7 @@ struct SubscriptionView: View {
                                             .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appText)
                                     } else {
-                                        Text("Unlock Pro for \(package.localizedPriceString)/month")
+                                        Text("Unlock Pro for \(package.localizedPriceString)/month", comment: "Subscription price")
                                             .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appText)
                                     }
@@ -147,7 +147,7 @@ struct SubscriptionView: View {
                                                 .frame(height: 52)
                                                 .background(LinearGradient.accentGradient.opacity(0.7), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                                         } else {
-                                            Text(subscriptionManager.trialEligible ? "Start Free Trial" : "Continue")
+                                            Text(subscriptionManager.trialEligible ? String(localized: "Start Free Trial") : String(localized: "Continue"))
                                                 .font(.subheadline.weight(.bold))
                                                 .foregroundStyle(.white)
                                                 .frame(maxWidth: .infinity)
@@ -159,13 +159,13 @@ struct SubscriptionView: View {
                                     .disabled(isPurchasing)
                                     
                                     if subscriptionManager.trialEligible {
-                                        Text("Subscription automatically renews unless cancelled at least 24 hours before the end of the current period.")
+                                        Text("Subscription automatically renews unless cancelled at least 24 hours before the end of the current period.", comment: "Subscription disclaimer")
                                             .font(.caption2)
                                             .foregroundStyle(Color.appTertiaryText)
                                             .multilineTextAlignment(.center)
                                             .padding(.horizontal, 4)
                                     } else {
-                                        Text("Subscription automatically renews unless canceled.")
+                                        Text("Subscription automatically renews unless canceled.", comment: "Subscription disclaimer")
                                             .font(.caption2)
                                             .foregroundStyle(Color.appTertiaryText)
                                             .multilineTextAlignment(.center)
@@ -204,7 +204,7 @@ struct SubscriptionView: View {
                                     }
                                 }
                             } label: {
-                                Text("Restore Purchases")
+                                Text("Restore Purchases", comment: "Subscription action")
                                     .font(.subheadline.weight(.medium))
                                     .foregroundStyle(Color.appAccent)
                             }
@@ -212,7 +212,7 @@ struct SubscriptionView: View {
                             
                             // Legal
                             HStack(spacing: 16) {
-                                Button("Terms of Service") {
+                                Button(String(localized: "Terms of Service")) {
                                     safariURL = Constants.URLs.termsOfService
                                 }
                                 .font(.caption2)
@@ -221,7 +221,7 @@ struct SubscriptionView: View {
                                 Text("·")
                                     .foregroundStyle(Color.appTertiaryText)
                                 
-                                Button("Privacy Policy") {
+                                Button(String(localized: "Privacy Policy")) {
                                     safariURL = Constants.URLs.privacyPolicy
                                 }
                                 .font(.caption2)
@@ -265,8 +265,8 @@ struct SubscriptionView: View {
 
 private struct SubscriptionFeatureRow: View {
     let icon: String
-    let title: String
-    let subtitle: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
     var isSystemImage: Bool = false
     
     var body: some View {
@@ -306,13 +306,13 @@ private extension SubscriptionPeriod {
     var trialDescription: String {
         switch unit {
         case .day:
-            return value == 1 ? "1 day" : "\(value) days"
+            return value == 1 ? String(localized: "1 day") : "\(value) \(String(localized: "days"))"
         case .week:
-            return value == 1 ? "7 days" : "\(value) weeks"
+            return value == 1 ? String(localized: "7 days") : "\(value) \(String(localized: "weeks"))"
         case .month:
-            return value == 1 ? "1 month" : "\(value) months"
+            return value == 1 ? String(localized: "1 month") : "\(value) \(String(localized: "months"))"
         case .year:
-            return value == 1 ? "1 year" : "\(value) years"
+            return value == 1 ? String(localized: "1 year") : "\(value) \(String(localized: "years"))"
         }
     }
 }

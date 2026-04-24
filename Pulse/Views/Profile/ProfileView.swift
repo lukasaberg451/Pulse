@@ -30,7 +30,7 @@ struct ProfileView: View {
                         VStack(spacing: 12) {
                             ProgressView()
                                 .tint(.appAccent)
-                            Text("Loading profile…")
+                            Text("Loading profile…", comment: "Loading state")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                         }
@@ -85,7 +85,7 @@ struct ProfileView: View {
                                             .font(.title2.weight(.bold))
                                             .foregroundStyle(Color.appText)
                                     } else {
-                                        Text("Pulse Member")
+                                        Text("Pulse Member", comment: "Default profile name")
                                             .font(.title2.weight(.bold))
                                             .foregroundStyle(Color.appText)
                                     }
@@ -95,7 +95,7 @@ struct ProfileView: View {
                                         impactLight.impactOccurred()
                                         showingEditNameSheet = true
                                     } label: {
-                                        Text(profileDisplayName == nil ? "Add Name" : "Edit Profile")
+                                        Text(profileDisplayName == nil ? String(localized: "Add Name") : String(localized: "Edit Profile"))
                                             .font(.subheadline.weight(.semibold))
                                             .foregroundStyle(Color.appAccent)
                                             .padding(.horizontal, 24)
@@ -122,7 +122,7 @@ struct ProfileView: View {
                             StaggeredItem(delay: 0.19, animate: true) {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
-                                    Text("My Custom Exercises")
+                                    Text("My Custom Exercises", comment: "Section header")
                                         .font(.title3.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                     
@@ -130,7 +130,7 @@ struct ProfileView: View {
                                     
                                     if !viewModel.customExercises.isEmpty {
                                         NavigationLink(destination: AllCustomExercisesView(viewModel: viewModel).hidesTabBar()) {
-                                            Text("See All")
+                                            Text("See All", comment: "Navigation link")
                                                 .font(.subheadline.weight(.medium))
                                                 .foregroundStyle(Color.appAccent)
                                         }
@@ -143,11 +143,11 @@ struct ProfileView: View {
                                     VStack(spacing: 14) {
                                         IconBadge(assetName: "clipboard-text", size: 48)
                                         
-                                        Text("No custom exercises yet")
+                                        Text("No custom exercises yet", comment: "Empty state")
                                             .font(.subheadline.weight(.medium))
                                             .foregroundStyle(Color.appText)
                                         
-                                        Text("Create custom exercises when adding to a routine")
+                                        Text("Create custom exercises when adding to a routine", comment: "Empty state hint")
                                             .font(.caption)
                                             .foregroundStyle(Color.appSecondaryText)
                                             .multilineTextAlignment(.center)
@@ -170,6 +170,7 @@ struct ProfileView: View {
                                 }
                             }
                             }
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("profileCustomExercisesSection")
                             .id("exercises-\(sectionAnimationId)")
                             
@@ -177,7 +178,7 @@ struct ProfileView: View {
                             StaggeredItem(delay: 0.26, animate: true) {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
-                                    Text("Completed Workouts")
+                                    Text("Completed Workouts", comment: "Section header")
                                         .font(.title3.weight(.bold))
                                         .foregroundStyle(Color.appText)
                                     
@@ -185,10 +186,11 @@ struct ProfileView: View {
                                     
                                     if !progressViewModel.recentSessions.isEmpty {
                                         NavigationLink(destination: AllRecentWorkoutsView().hidesTabBar()) {
-                                            Text("See All")
+                                            Text("See All", comment: "Navigation link")
                                                 .font(.subheadline.weight(.medium))
                                                 .foregroundStyle(Color.appAccent)
                                         }
+                                        .accessibilityIdentifier("profileSeeAllWorkoutsButton")
                                     }
                                 }
                                 .padding(.horizontal)
@@ -197,11 +199,11 @@ struct ProfileView: View {
                                     VStack(spacing: 14) {
                                         IconBadge(assetName: "clock", size: 48)
                                         
-                                        Text("No workout history yet")
+                                        Text("No workout history yet", comment: "Empty state")
                                             .font(.subheadline.weight(.medium))
                                             .foregroundStyle(Color.appText)
                                         
-                                        Text("Complete your first workout to see it here")
+                                        Text("Complete your first workout to see it here", comment: "Empty state hint")
                                             .font(.caption)
                                             .foregroundStyle(Color.appSecondaryText)
                                             .multilineTextAlignment(.center)
@@ -224,6 +226,7 @@ struct ProfileView: View {
                                 }
                             }
                             }
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("profileCompletedWorkoutsSection")
                             .id("workouts-\(sectionAnimationId)")
                             
@@ -231,38 +234,39 @@ struct ProfileView: View {
                             StaggeredItem(delay: 0.33, animate: true) {
                             VStack(alignment: .leading, spacing: 12) {
                                 DashboardSectionHeader(title: "Lifetime Stats")
-                                
+
                                 LazyVGrid(columns: [
                                     GridItem(.flexible()),
                                     GridItem(.flexible())
                                 ], spacing: 12) {
                                     LifetimeStatCard(
-                                        title: "Total Workouts",
+                                        title: String(localized: "Total Workouts"),
                                         value: "\(progressViewModel.lifetimeWorkouts)",
                                         icon: "workout"
                                     )
-                                    
+
                                     LifetimeStatCard(
-                                        title: "Total Volume",
+                                        title: String(localized: "Total Volume"),
                                         value: "\(Int(unitManager.displayWeight(Double(progressViewModel.lifetimeVolume))))\(unitManager.weightUnit)",
                                         icon: "volume"
                                     )
-                                    
+
                                     LifetimeStatCard(
-                                        title: "Time Trained",
+                                        title: String(localized: "Time Trained"),
                                         value: "\(progressViewModel.lifetimeHours)h",
                                         icon: "clock"
                                     )
-                                    
+
                                     LifetimeStatCard(
-                                        title: "Longest Streak",
-                                        value: "\(progressViewModel.bestStreak) \(progressViewModel.bestStreak == 1 ? "day" : "days")",
+                                        title: String(localized: "Longest Streak"),
+                                        value: "\(progressViewModel.bestStreak) \(progressViewModel.bestStreak == 1 ? String(localized: "day") : String(localized: "days"))",
                                         icon: "flame"
                                     )
                                 }
                                 .padding(.horizontal)
                             }
                             }
+                            .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("profileLifetimeStatsSection")
                             .id("stats-\(sectionAnimationId)")
                         }
@@ -330,7 +334,7 @@ struct ProfileView: View {
 
 struct ProfileSettingsRow: View {
     let icon: String
-    let title: String
+    let title: LocalizedStringKey
     var value: String? = nil
     var lineLimit: Int? = nil
     var isSystemImage: Bool = false
@@ -390,6 +394,7 @@ struct ProfileCardShadowModifier: ViewModifier {
                 if colorScheme == .dark {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        .allowsHitTesting(false)
                 }
             }
             .shadow(
@@ -440,18 +445,18 @@ struct EditNameSheet: View {
                         IconBadge(assetName: "profile", size: 52)
                             .padding(.top, 24)
                         
-                        Text("Edit Profile")
+                        Text("Edit Profile", comment: "Sheet title")
                             .font(.title3.weight(.bold))
                             .foregroundStyle(Color.appText)
-                        
-                        Text("Manage your account details")
+
+                        Text("Manage your account details", comment: "Sheet subtitle")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                         
                         // Account Details Card
                         VStack(spacing: 0) {
                             // First Name Row
-                            EditNameRow(icon: "profile", label: "First Name", value: (viewModel.profile?.firstName?.isEmpty == false ? viewModel.profile?.firstName : nil) ?? "Not set") {
+                            EditNameRow(icon: "profile", label: String(localized: "First Name"), value: (viewModel.profile?.firstName?.isEmpty == false ? viewModel.profile?.firstName : nil) ?? String(localized: "Not set")) {
                                 showingEditFirstNameSheet = true
                             }
                             .accessibilityIdentifier("editFirstNameRow")
@@ -459,7 +464,7 @@ struct EditNameSheet: View {
                             ProfileDivider()
                             
                             // Last Name Row
-                            EditNameRow(icon: "profile", label: "Last Name", value: (viewModel.profile?.lastName?.isEmpty == false ? viewModel.profile?.lastName : nil) ?? "Not set") {
+                            EditNameRow(icon: "profile", label: String(localized: "Last Name"), value: (viewModel.profile?.lastName?.isEmpty == false ? viewModel.profile?.lastName : nil) ?? String(localized: "Not set")) {
                                 showingEditLastNameSheet = true
                             }
                             .accessibilityIdentifier("editLastNameRow")
@@ -473,7 +478,7 @@ struct EditNameSheet: View {
                                         IconBadge(assetName: "envelope", size: 32)
                                         
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("Email")
+                                            Text("Email", comment: "Field label")
                                                 .font(.caption)
                                                 .foregroundStyle(Color.appSecondaryText)
                                             
@@ -487,7 +492,7 @@ struct EditNameSheet: View {
                                     .padding(14)
                                 } else {
                                     // Editable for email/password users
-                                    EditNameRow(icon: "envelope", label: "Email", value: email) {
+                                    EditNameRow(icon: "envelope", label: String(localized: "Email"), value: email) {
                                         showingChangeEmailSheet = true
                                     }
                                 }
@@ -530,9 +535,9 @@ struct EditNameSheet: View {
         .presentationBackground(Color.appBackground)
         .sheet(isPresented: $showingEditFirstNameSheet) {
             EditFieldSheet(
-                title: "First Name",
+                title: String(localized: "First Name"),
                 value: viewModel.profile?.firstName ?? "",
-                placeholder: "First Name",
+                placeholder: String(localized: "First Name"),
                 onSave: { newValue in
                     let currentLastName = viewModel.profile?.lastName ?? ""
                     isSaving = true
@@ -549,9 +554,9 @@ struct EditNameSheet: View {
         }
         .sheet(isPresented: $showingEditLastNameSheet) {
             EditFieldSheet(
-                title: "Last Name",
+                title: String(localized: "Last Name"),
                 value: viewModel.profile?.lastName ?? "",
-                placeholder: "Last Name",
+                placeholder: String(localized: "Last Name"),
                 onSave: { newValue in
                     let currentFirstName = viewModel.profile?.firstName ?? ""
                     isSaving = true
@@ -654,7 +659,7 @@ struct EditFieldSheet: View {
                     IconBadge(assetName: "pencil", size: 48)
                         .padding(.top, 24)
                     
-                    Text("Edit \(title)")
+                    Text("Edit \(title)", comment: "Edit field sheet title")
                         .font(.title3.weight(.bold))
                         .foregroundStyle(Color.appText)
                     
@@ -764,6 +769,14 @@ struct FeedbackSheet: View {
         case feature = "Feature Request"
         case bug = "Bug Report"
         case other = "Other"
+
+        var displayName: String {
+            switch self {
+            case .feature: String(localized: "Feature Request")
+            case .bug: String(localized: "Bug Report")
+            case .other: String(localized: "Other")
+            }
+        }
     }
     
     private enum FeedbackField {
@@ -785,11 +798,11 @@ struct FeedbackSheet: View {
                         IconBadge(assetName: "clipboard-text", size: 48)
                             .padding(.top, 24)
                         
-                        Text("Send Feedback")
+                        Text("Send Feedback", comment: "Sheet title")
                             .font(.title3.weight(.bold))
                             .foregroundStyle(Color.appText)
-                        
-                        Text("Help us improve Pulse")
+
+                        Text("Help us improve Pulse", comment: "Sheet subtitle")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                         
@@ -801,13 +814,13 @@ struct FeedbackSheet: View {
                             
                             Menu {
                                 ForEach(FeedbackType.allCases, id: \.self) { type in
-                                    Button(type.rawValue) {
+                                    Button(type.displayName) {
                                         feedbackType = type
                                     }
                                 }
                             } label: {
                                 HStack {
-                                    Text(feedbackType.rawValue)
+                                    Text(feedbackType.displayName)
                                         .foregroundStyle(Color.appText)
                                     Spacer()
                                     Image("updown")
@@ -874,7 +887,7 @@ struct FeedbackSheet: View {
                         .padding(.horizontal)
                         
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Receive updates on my feedback?")
+                            Text("Receive updates on my feedback?", comment: "Feedback preference")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appText)
                             
@@ -974,11 +987,11 @@ struct FeedbackSheet: View {
                             .frame(width: 40, height: 40)
                             .foregroundStyle(Color.appAccent)
                         
-                        Text("Feedback Sent!")
+                        Text("Feedback Sent!", comment: "Success message")
                             .font(.title3.weight(.bold))
                             .foregroundStyle(Color.appText)
-                        
-                        Text("Thanks for helping us improve Pulse")
+
+                        Text("Thanks for helping us improve Pulse", comment: "Success subtitle")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
@@ -1037,11 +1050,11 @@ struct ChangeEmailSheet: View {
                         IconBadge(assetName: "check-circle", color: .green, size: 56)
                             .padding(.top, 40)
                         
-                        Text("Verification Email Sent")
+                        Text("Verification Email Sent", comment: "Email change success")
                             .font(.title3.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
-                        Text("We've sent a confirmation email to")
+                        Text("We've sent a confirmation email to", comment: "Email change info")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                         
@@ -1049,7 +1062,7 @@ struct ChangeEmailSheet: View {
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appAccent)
                         
-                        Text("Please confirm the change by clicking the link in your inbox. You will be signed out now.")
+                        Text("Please confirm the change by clicking the link in your inbox. You will be signed out now.", comment: "Email change instructions")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
@@ -1077,11 +1090,11 @@ struct ChangeEmailSheet: View {
                             IconBadge(assetName: "envelope", size: 48)
                                 .padding(.top, 24)
                             
-                            Text("Change Email")
+                            Text("Change Email", comment: "Sheet title")
                                 .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
-                            
-                            Text("Enter your new email and current password. You will be signed out after confirming.")
+
+                            Text("Enter your new email and current password. You will be signed out after confirming.", comment: "Sheet instructions")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -1259,11 +1272,11 @@ struct DeleteAccountConfirmationSheet: View {
                     IconBadge(assetName: "error", color: .red, size: 48)
                         .padding(.top, 24)
                     
-                    Text("This action is irreversible")
+                    Text("This action is irreversible", comment: "Delete account warning")
                         .font(.title3.weight(.bold))
                         .foregroundStyle(Color.appText)
                     
-                    Text("Your account and all associated data will be permanently deleted.")
+                    Text("Your account and all associated data will be permanently deleted.", comment: "Delete account warning detail")
                         .font(.subheadline)
                         .foregroundStyle(Color.appSecondaryText)
                         .multilineTextAlignment(.center)
@@ -1271,11 +1284,11 @@ struct DeleteAccountConfirmationSheet: View {
                         .padding(.horizontal)
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("TYPE DELETE TO CONFIRM")
+                        Text(verbatim: "TYPE DELETE TO CONFIRM")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Color.appSecondaryText)
-                        
-                        TextField("DELETE", text: $confirmationText)
+
+                        TextField(text: $confirmationText) { Text(verbatim: "DELETE") }
                             .textInputAutocapitalization(.characters)
                             .autocorrectionDisabled()
                             .padding(14)
@@ -1394,6 +1407,7 @@ struct CustomExerciseCard: View {
                     if colorScheme == .dark {
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                            .allowsHitTesting(false)
                     }
                 }
                 .shadow(
@@ -1454,7 +1468,7 @@ struct AllCustomExercisesView: View {
                                     notificationFeedback.notificationOccurred(.warning)
                                     exerciseToDelete = exercise
                                 } label: {
-                                    Label { Text("Delete Exercise") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
+                                    Label { Text("Delete Exercise", comment: "Menu action") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
                                 }
                             } label: {
                                 Image("ellipsis-horizontal")
@@ -1474,6 +1488,7 @@ struct AllCustomExercisesView: View {
                                     if colorScheme == .dark {
                                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                                             .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                            .allowsHitTesting(false)
                                     }
                                 }
                                 .shadow(

@@ -5,6 +5,7 @@
 
 import Foundation
 import Combine
+import Supabase
 
 @MainActor
 class MilestoneViewModel: ObservableObject {
@@ -17,6 +18,7 @@ class MilestoneViewModel: ObservableObject {
     private let repository = MilestoneRepository()
     private var cancellables = Set<AnyCancellable>()
     private var loadTask: Task<Void, Never>?
+    private var userProfile: Profile?
     
     // MARK: - Dashboard: show pending unlock first, then next in-progress
     
@@ -72,11 +74,30 @@ class MilestoneViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    // MARK: - Profile
+
+    private func fetchUserProfile() async {
+        guard let userId = SupabaseManager.shared.client.auth.currentUser?.id else { return }
+        do {
+            let profile: Profile = try await SupabaseManager.shared.client
+                .from("profiles")
+                .select()
+                .eq("id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+            userProfile = profile
+        } catch {
+            debugLog("Failed to fetch user profile for milestone timezone: \(error)")
+        }
+    }
+
     // MARK: - Load (read existing data)
-    
+
     func loadMilestones() async {
         loadTask?.cancel()
-        
+        await fetchUserProfile()
+
         let task = Task {
             isLoading = true
             do {
@@ -169,6 +190,8 @@ class MilestoneViewModel: ObservableObject {
     }
     
     func formatDate(_ date: Date) -> String {
-        return SharedFormatters.mediumDate.string(from: date)
+        let formatter = SharedFormatters.mediumDate
+        formatter.timeZone = userProfile?.resolvedTimeZone ?? TimeZone.current
+        return formatter.string(from: date)
     }
 }

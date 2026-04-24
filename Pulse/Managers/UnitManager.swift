@@ -43,6 +43,11 @@ class UnitManager: ObservableObject {
         let saved = UserDefaults.standard.string(forKey: "unitSystem") ?? UnitSystem.metric.rawValue
         self.unitSystem = UnitSystem(rawValue: saved) ?? .metric
     }
+
+    /// Testable initializer — creates a standalone instance without touching UserDefaults.
+    init(unitSystem: UnitSystem) {
+        self.unitSystem = unitSystem
+    }
     
     // MARK: - Display Labels
     

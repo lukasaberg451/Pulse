@@ -40,9 +40,11 @@ struct WorkoutDetailView: View {
                             
                             if viewModel.isAILogged {
                                 HStack(spacing: 5) {
-                                    Image(systemName: "sparkles")
-                                        .font(.caption2.weight(.semibold))
-                                    Text("AI Logged")
+                                    Image("sparkles")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 12, height: 12)
+                                    Text("AI Logged", comment: "AI logged badge")
                                         .font(.caption.weight(.semibold))
                                 }
                                 .foregroundStyle(Color.appAccent)
@@ -90,10 +92,11 @@ struct WorkoutDetailView: View {
                         .frame(width: 20, height: 20)
                         .foregroundStyle(Color.red)
                 }
+                .accessibilityIdentifier("deleteWorkoutButton")
             }
         }
-        .alert("Delete Workout", isPresented: $viewModel.showDeleteConfirmation) {
-            Button("Delete", role: .destructive) {
+        .alert(String(localized: "Delete Workout"), isPresented: $viewModel.showDeleteConfirmation) {
+            Button(String(localized: "Delete"), role: .destructive) {
                 Task {
                     let success = await viewModel.deleteWorkout()
                     if success {
@@ -101,9 +104,9 @@ struct WorkoutDetailView: View {
                     }
                 }
             }
-            Button("Cancel", role: .cancel) {}
+            Button(String(localized: "Cancel"), role: .cancel) {}
         } message: {
-            Text("Are you sure you want to delete this workout? This action cannot be undone.")
+            Text("Are you sure you want to delete this workout? This action cannot be undone.", comment: "Delete workout confirmation")
         }
         .task {
             await viewModel.loadWorkoutDetails()
@@ -190,7 +193,7 @@ struct WorkoutDetailView: View {
         .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 16, x: 0, y: 6)
     }
     
-    private func detailStatCard(icon: String, title: String, value: String) -> some View {
+    private func detailStatCard(icon: String, title: LocalizedStringKey, value: String) -> some View {
         VStack(spacing: 8) {
             IconBadge(assetName: icon, size: 36)
             
@@ -210,7 +213,7 @@ struct WorkoutDetailView: View {
     // MARK: - Exercises Section
     var exercisesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Exercises")
+            Text("Exercises", comment: "Section header")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
                 .opacity(animationTrigger ? 1 : 0)
@@ -247,17 +250,17 @@ struct WorkoutDetailView: View {
             VStack(spacing: 4) {
                 // Header
                 HStack {
-                    Text("SET")
+                    Text("SET", comment: "Column header")
                         .frame(width: 50, alignment: .leading)
-                    
+
                     if isCardio {
-                        Text("DURATION")
+                        Text("DURATION", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
                     } else {
-                        Text("WEIGHT")
+                        Text("WEIGHT", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
-                        
-                        Text("REPS")
+
+                        Text("REPS", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                     

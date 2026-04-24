@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct OfflineStatusBanner: View {
-    var subtitle: String = "Your workouts will sync when you're back online"
+    var subtitle: LocalizedStringKey = "Your workouts will sync when you're back online"
     @EnvironmentObject var syncService: WorkoutSyncService
     @Environment(\.colorScheme) private var colorScheme
     
@@ -18,7 +18,7 @@ struct OfflineStatusBanner: View {
                 IconBadge(assetName: "wifi-disabled", color: .white, size: 36)
                 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Offline Mode")
+                    Text("Offline Mode", comment: "Offline banner title")
                         .font(.subheadline.weight(.semibold))
                     
                     Text(subtitle)
@@ -40,11 +40,11 @@ struct OfflineStatusBanner: View {
                     .tint(Color.appAccent)
                 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Syncing...")
+                    Text("Syncing...", comment: "Sync status")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
-                    
-                    Text("Saving your workout.")
+
+                    Text("Saving your workout.", comment: "Sync subtitle")
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                 }
@@ -82,14 +82,14 @@ struct SyncStatusIndicator: View {
                     .frame(width: 14, height: 14)
                     .foregroundStyle(.orange)
                 
-                Text("Offline")
+                Text("Offline", comment: "Sync status indicator")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.orange)
             } else if syncService.isSyncing {
                 ProgressView()
                     .scaleEffect(0.7)
                 
-                Text("Syncing")
+                Text("Syncing", comment: "Sync status indicator")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(Color.appSecondaryText)
             } else if let lastSync = syncService.lastSyncDate {

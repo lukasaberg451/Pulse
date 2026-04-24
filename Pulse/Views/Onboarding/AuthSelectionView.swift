@@ -33,7 +33,7 @@ struct AuthSelectionView: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 180, height: 100)
                         
-                            Text("Your Fitness Journey Starts Here")
+                            Text("Your Fitness Journey Starts Here", comment: "Auth landing page tagline")
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(Color.appSecondaryText)
                         }
@@ -49,7 +49,7 @@ struct AuthSelectionView: View {
                             NavigationLink {
                                 LoginView(authViewModel: authViewModel, showingSignIn: $showingSignIn)
                             } label: {
-                                Text("Already Have an Account")
+                                Text("Already Have an Account", comment: "Sign in link")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
                                     .frame(maxWidth: .infinity)

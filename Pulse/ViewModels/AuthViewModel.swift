@@ -79,9 +79,9 @@ class AuthViewModel: ObservableObject{
     
     private func restoreSession() async {
             do {
-                // Try to get existing session
+                // Try to get existing session from Keychain
                 let session = try await supabase.auth.session
-                
+
                 // Check if session is expired
                 if session.isExpired {
                     debugLog("⚠️ Session is expired, signing out")
@@ -90,13 +90,35 @@ class AuthViewModel: ObservableObject{
                     try? await supabase.auth.signOut()
                     return
                 }
-                
-                self.session = session
-                self.isAuthenticated = true
-                await fetchUserProfile()
+
+                // Validate session server-side by refreshing it.
+                // Keychain tokens persist across app reinstalls, so a deleted
+                // user would still have a local token. Refreshing will fail if
+                // the user no longer exists, preventing a ghost login.
+                do {
+                    let refreshedSession = try await supabase.auth.refreshSession()
+                    self.session = refreshedSession
+                    self.isAuthenticated = true
+                    await fetchUserProfile()
+                } catch where Self.isNetworkError(error) {
+                    // Network error — we're offline. Trust the local session
+                    // so the user can continue using the app in offline mode.
+                    debugLog("⚠️ Offline: could not refresh session (\(error.localizedDescription)), using local session")
+                    self.session = session
+                    self.isAuthenticated = true
+                } catch {
+                    // Auth error (e.g. user deleted, token revoked) — clear session
+                    debugLog("❌ Session refresh failed: \(error.localizedDescription)")
+                    self.session = nil
+                    self.isAuthenticated = false
+                    try? await supabase.auth.signOut()
+                }
             } catch {
                 debugLog("❌ No existing session: \(error.localizedDescription)")
+                self.session = nil
                 self.isAuthenticated = false
+                // Clear any stale Keychain tokens
+                try? await supabase.auth.signOut()
             }
         }
     
@@ -200,12 +222,23 @@ class AuthViewModel: ObservableObject{
         rateLimitTimer?.cancel()
     }
     
+    private static func isNetworkError(_ error: Error) -> Bool {
+        if error is URLError { return true }
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain { return true }
+        // Check wrapped errors (e.g. Supabase wrapping a URLError)
+        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? Error {
+            return isNetworkError(underlying)
+        }
+        return false
+    }
+
     func signUp(email: String, password: String, firstName: String, lastName: String) async {
         guard !isRateLimited else {
-            errorMessage = "Too many attempts. Please wait \(rateLimitSecondsRemaining)s."
+            errorMessage = String(localized: "Too many attempts. Please wait \(rateLimitSecondsRemaining)s.")
             return
         }
-        
+
         isRegistering = true
         registrationSuccess = false
         
@@ -238,7 +271,7 @@ class AuthViewModel: ObservableObject{
             registrationSuccess = false
         } catch {
             recordFailedAttempt()
-            errorMessage = "Registration failed: \(error.localizedDescription)"
+            errorMessage = String(localized: "Registration failed: \(error.localizedDescription)")
             registrationSuccess = false
         }
         
@@ -247,10 +280,10 @@ class AuthViewModel: ObservableObject{
     
     func signIn(email: String, password: String) async {
         guard !isRateLimited else {
-            errorMessage = "Too many attempts. Please wait \(rateLimitSecondsRemaining)s."
+            errorMessage = String(localized: "Too many attempts. Please wait \(rateLimitSecondsRemaining)s.")
             return
         }
-        
+
         isLoading = true
         errorMessage = nil
         
@@ -261,7 +294,7 @@ class AuthViewModel: ObservableObject{
             guard result.user.emailConfirmedAt != nil else {
                 self.session = nil
                 self.isAuthenticated = false
-                self.errorMessage = "Please verify your email before signing in. Check your inbox for the verification link."
+                self.errorMessage = String(localized: "Please verify your email before signing in. Check your inbox for the verification link.")
                 try? await supabase.auth.signOut()
                 isLoading = false
                 return
@@ -289,14 +322,14 @@ class AuthViewModel: ObservableObject{
         } catch let error as AuthError {
             recordFailedAttempt()
             // Generic error message to prevent email enumeration
-            self.errorMessage = "Invalid email or password. Please try again."
+            self.errorMessage = String(localized: "Invalid email or password. Please try again.")
             self.session = nil
             self.isAuthenticated = false
             debugLog("Sign in failed: \(error.localizedDescription)")
             isLoading = false
         } catch {
             recordFailedAttempt()
-            self.errorMessage = "An error occurred. Please try again."
+            self.errorMessage = String(localized: "An error occurred. Please try again.")
             self.session = nil
             self.isAuthenticated = false
             debugLog("Sign in failed: \(error.localizedDescription)")
@@ -319,13 +352,17 @@ class AuthViewModel: ObservableObject{
     func deleteAccount() async -> Bool {
         do {
             try await supabase.rpc("delete_user_account").execute()
-            try await supabase.auth.signOut()
+            // Sign out to clear Keychain tokens. Use try? because the server
+            // may reject the call if the auth user was already removed by the
+            // RPC — but we still need local cleanup to happen.
+            try? await supabase.auth.signOut()
             self.session = nil
             self.isAuthenticated = false
             self.userProfile = nil
+            ExerciseRepository.shared.clearCache()
             return true
         } catch {
-            errorMessage = "Failed to delete account: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to delete account: \(error.localizedDescription)")
             debugLog("Account deletion failed: \(error.localizedDescription)")
             return false
         }
@@ -376,7 +413,7 @@ class AuthViewModel: ObservableObject{
         do {
             // Re-authenticate with current password before allowing email change
             guard let currentEmail = session?.user.email else {
-                errorMessage = "Unable to verify current session."
+                errorMessage = String(localized: "Unable to verify current session.")
                 return false
             }
             _ = try await supabase.auth.signIn(email: currentEmail, password: password)
@@ -387,7 +424,7 @@ class AuthViewModel: ObservableObject{
             
             return true
         } catch {
-            errorMessage = "Incorrect password or failed to change email."
+            errorMessage = String(localized: "Incorrect password or failed to change email.")
             return false
         }
     }
@@ -408,13 +445,13 @@ class AuthViewModel: ObservableObject{
     
     func signInWithApple(authorization: ASAuthorization) async {
         guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
-            errorMessage = "Unable to get Apple ID credential."
+            errorMessage = String(localized: "Unable to get Apple ID credential.")
             return
         }
         
         guard let identityTokenData = appleIDCredential.identityToken,
               let idToken = String(data: identityTokenData, encoding: .utf8) else {
-            errorMessage = "Unable to retrieve identity token."
+            errorMessage = String(localized: "Unable to retrieve identity token.")
             return
         }
         
@@ -487,7 +524,7 @@ class AuthViewModel: ObservableObject{
             // loading overlay covers the view-tree swap.
             self.isAuthenticated = true
         } catch {
-            self.errorMessage = "Sign in with Apple failed. Please try again."
+            self.errorMessage = String(localized: "Sign in with Apple failed. Please try again.")
             self.session = nil
             self.isAuthenticated = false
             debugLog("Sign in with Apple failed: \(error.localizedDescription)")

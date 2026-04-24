@@ -37,7 +37,7 @@ struct ThemeSelectionSheet: View {
                                 HStack(spacing: 14) {
                                     IconBadge(assetName: iconForTheme(theme), size: 32)
                                     
-                                    Text(theme.rawValue)
+                                    Text(theme.displayName)
                                         .font(.body)
                                         .foregroundStyle(Color.appText)
                                     

@@ -52,13 +52,13 @@ struct RegisterView: View {
         
         switch strength {
         case 0...2:
-            return ("Weak", .red)
+            return (String(localized: "Weak"), .red)
         case 3...4:
-            return ("Fair", .orange)
+            return (String(localized: "Fair"), .orange)
         case 5:
-            return ("Good", .yellow)
+            return (String(localized: "Good"), .yellow)
         default:
-            return ("Strong", .green)
+            return (String(localized: "Strong"), .green)
         }
     }
     
@@ -89,11 +89,11 @@ struct RegisterView: View {
                     VStack(spacing: 20) {
                         IconBadge(assetName: "envelope", color: .green, size: 64)
                         
-                        Text("Check Your Email")
+                        Text("Check Your Email", comment: "Registration success title prompting user to check email")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
                         
-                        Text("We've sent a verification link to")
+                        Text("We've sent a verification link to", comment: "Registration success subtitle before email address")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                         
@@ -101,7 +101,7 @@ struct RegisterView: View {
                             .font(.subheadline.weight(.semibold))
 
                         
-                        Text("Please verify your email before signing in")
+                        Text("Please verify your email before signing in", comment: "Registration success instruction to verify email")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
@@ -116,7 +116,7 @@ struct RegisterView: View {
                         Button {
                             authViewModel.registrationSuccess = false
                         } label: {
-                            Text("Use a different email")
+                            Text("Use a different email", comment: "Button to go back and use a different email for registration")
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(Color.appSecondaryText)
                         }
@@ -159,12 +159,12 @@ struct RegisterView: View {
                             
                             // First Name
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("First Name")
+                                Text("First Name", comment: "First name field label on registration form")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
-                                
+
                                 HStack {
-                                    TextField("First Name", text: $firstName)
+                                    TextField(String(localized: "First Name"), text: $firstName)
                                         .textFieldStyle(.plain)
                                         .textContentType(.givenName)
                                         .textInputAutocapitalization(.words)
@@ -200,12 +200,12 @@ struct RegisterView: View {
                             
                             // Last Name
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Last Name")
+                                Text("Last Name", comment: "Last name field label on registration form")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
-                                
+
                                 HStack {
-                                    TextField("Last Name", text: $lastName)
+                                    TextField(String(localized: "Last Name"), text: $lastName)
                                         .textFieldStyle(.plain)
                                         .textContentType(.familyName)
                                         .textInputAutocapitalization(.words)
@@ -241,12 +241,12 @@ struct RegisterView: View {
                             
                             // Email
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Email")
+                                Text("Email", comment: "Email field label on registration form")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
-                                
+
                                 HStack {
-                                    TextField("Email", text: $email)
+                                    TextField(String(localized: "Email"), text: $email)
                                         .textFieldStyle(.plain)
                                         .textContentType(.emailAddress)
                                         .textInputAutocapitalization(.never)
@@ -284,13 +284,13 @@ struct RegisterView: View {
                             
                             // Password
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Password")
+                                Text("Password", comment: "Password field label on registration form")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.appText)
                                 
                                 HStack {
                                     if showPassword {
-                                        TextField("Password", text: $password)
+                                        TextField(String(localized: "Password"), text: $password)
                                             .textFieldStyle(.plain)
                                             .textContentType(.newPassword)
                                             .textInputAutocapitalization(.never)
@@ -299,7 +299,7 @@ struct RegisterView: View {
                                             .foregroundStyle(Color.appText)
                                             .accessibilityIdentifier("registerPasswordField")
                                     } else {
-                                        SecureField("Password", text: $password)
+                                        SecureField(String(localized: "Password"), text: $password)
                                             .textFieldStyle(.plain)
                                             .textContentType(.newPassword)
                                             .focused($focusedField, equals: .password)
@@ -352,7 +352,7 @@ struct RegisterView: View {
                                         .frame(maxWidth: 100)
                                     }
                                     
-                                    Text("Must be at least 8 characters with uppercase, lowercase, and number")
+                                    Text("Must be at least 8 characters with uppercase, lowercase, and number", comment: "Password requirements hint on registration form")
                                         .font(.caption2)
                                         .foregroundStyle(Color.appTertiaryText)
                                 }
@@ -378,29 +378,30 @@ struct RegisterView: View {
                                         .foregroundStyle(agreedToTerms ? Color.appAccent : Color.appTertiaryText)
                                         .font(.title3)
                                 }
+                                .accessibilityIdentifier("termsCheckbox")
                                 
                                 HStack(spacing: 4) {
-                                    Text("I agree to the")
+                                    Text("I agree to the", comment: "Terms agreement prefix on registration form")
                                         .font(.caption)
                                         .foregroundStyle(Color.appSecondaryText)
                                     
                                     Button(action: {
                                         safariURL = Constants.URLs.termsOfService
                                     }) {
-                                        Text("Terms of Service")
+                                        Text("Terms of Service", comment: "Terms of service link on registration form")
                                             .font(.caption)
                                             .foregroundStyle(Color.appAccent)
                                             .underline()
                                     }
                                     
-                                    Text("&")
+                                    Text("&", comment: "Conjunction between Terms of Service and Privacy Policy links")
                                         .font(.caption)
                                         .foregroundStyle(Color.appSecondaryText)
                                     
                                     Button(action: {
                                         safariURL = Constants.URLs.privacyPolicy
                                     }) {
-                                        Text("Privacy Policy")
+                                        Text("Privacy Policy", comment: "Privacy policy link on registration form")
                                             .font(.caption)
                                             .foregroundStyle(Color.appAccent)
                                             .underline()
@@ -415,13 +416,13 @@ struct RegisterView: View {
                             Button(action: {
                                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                                 if firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty {
-                                    errorMessage = "Please fill in all fields"
+                                    errorMessage = String(localized: "Please fill in all fields")
                                     showError = true
                                 } else if !isValidEmail(email) {
-                                    errorMessage = "Please enter a valid email address"
+                                    errorMessage = String(localized: "Please enter a valid email address")
                                     showError = true
                                 } else if !isValidPassword {
-                                    errorMessage = "Password must be at least 8 characters with uppercase, lowercase, and number"
+                                    errorMessage = String(localized: "Password must be at least 8 characters with uppercase, lowercase, and number")
                                     showError = true
                                 } else {
                                     showError = false
@@ -432,8 +433,8 @@ struct RegisterView: View {
                                 }
                             }) {
                                 Text(authViewModel.rateLimitSecondsRemaining > 0
-                                    ? "Wait \(authViewModel.rateLimitSecondsRemaining)s"
-                                    : "Sign Up")
+                                    ? String(localized: "Wait \(authViewModel.rateLimitSecondsRemaining)s")
+                                    : String(localized: "Sign Up"))
                                     .font(.subheadline.weight(.bold))
                                     .foregroundStyle(.white)
                                     .frame(maxWidth: .infinity)

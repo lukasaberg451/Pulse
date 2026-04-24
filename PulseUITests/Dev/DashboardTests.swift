@@ -7,184 +7,11 @@
 
 import XCTest
 
-final class DashboardTests: XCTestCase {
+final class DashboardTests: UITestBaseCase {
 
-    var app: XCUIApplication!
-
-    /// Unique suffix to avoid name collisions between test runs.
-    private let uniqueSuffix = UUID().uuidString.prefix(6)
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--uitesting", "--skip-auth"]
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
-    }
-
-    // MARK: - Helpers
-
-    /// Dismiss any leftover "Resume Workout?" alert.
-    private func dismissResumeAlertIfPresent() {
-        let resumeAlert = app.alerts["Resume Workout?"]
-        if resumeAlert.waitForExistence(timeout: 5) {
-            resumeAlert.buttons["Discard"].tap()
-            sleep(1)
-        }
-    }
-
-    /// Navigate to the Dashboard tab (first tab, default on launch).
-    private func navigateToDashboard() {
-        let dashboardTab = app.buttons["Dashboard"]
-        XCTAssertTrue(dashboardTab.waitForExistence(timeout: 15), "Dashboard tab not found")
-        dashboardTab.tap()
-        sleep(2)
-    }
-
-    /// Navigate to the Routines sub-tab inside the Workout tab.
-    private func navigateToRoutinesTab() {
-        let workoutTab = app.buttons["Workout"]
-        XCTAssertTrue(workoutTab.waitForExistence(timeout: 15), "Workout tab not found")
-        workoutTab.tap()
-        sleep(2)
-
-        let routinesPill = app.buttons["Routines"]
-        XCTAssertTrue(routinesPill.waitForExistence(timeout: 5), "Routines pill not found")
-        routinesPill.tap()
-        sleep(2)
-    }
-
-    /// Navigate to the Schedule sub-tab inside the Workout tab.
-    private func navigateToScheduleTab() {
-        let workoutTab = app.buttons["Workout"]
-        XCTAssertTrue(workoutTab.waitForExistence(timeout: 15), "Workout tab not found")
-        workoutTab.tap()
-        sleep(2)
-
-        let schedulePill = app.buttons["Schedule"]
-        XCTAssertTrue(schedulePill.waitForExistence(timeout: 5), "Schedule pill not found")
-        schedulePill.tap()
-        sleep(2)
-    }
-
-    /// Create a routine with the given name via the UI. Returns the name used.
-    @discardableResult
-    private func createRoutine(name: String) -> String {
-        let newRoutineButton = app.buttons["newRoutineButton"]
-        XCTAssertTrue(newRoutineButton.waitForExistence(timeout: 10), "New Routine button not found")
-        newRoutineButton.tap()
-
-        let nameField = app.textFields["routineNameField"]
-        XCTAssertTrue(nameField.waitForExistence(timeout: 5), "Routine name field not found")
-        nameField.tap()
-        nameField.typeText(name)
-
-        let createButton = app.buttons["createRoutineButton"]
-        XCTAssertTrue(createButton.waitForExistence(timeout: 5), "Create Routine button not found")
-        createButton.tap()
-
-        sleep(3)
-        return name
-    }
-
-    /// Add "Bench Press" exercise to the current routine detail view.
-    private func addBenchPressToRoutine() {
-        let addExerciseButton = app.buttons["addExerciseButton"]
-        XCTAssertTrue(addExerciseButton.waitForExistence(timeout: 5), "Add Exercise button not found")
-        addExerciseButton.tap()
-        sleep(2)
-
-        let searchField = app.textFields["exerciseSearchField"]
-        XCTAssertTrue(searchField.waitForExistence(timeout: 5), "Exercise search field not found")
-        searchField.tap()
-        searchField.typeText("Bench Press")
-        sleep(2)
-
-        let benchPressResult = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Bench Press'")).firstMatch
-        XCTAssertTrue(benchPressResult.waitForExistence(timeout: 10), "Bench Press not found in search results")
-        benchPressResult.tap()
-        sleep(1)
-
-        let weightField = app.textFields["exerciseWeightField"]
-        XCTAssertTrue(weightField.waitForExistence(timeout: 5), "Exercise weight field not found")
-        weightField.tap()
-        weightField.typeText("60")
-
-        let addButton = app.buttons["addExerciseToRoutineButton"]
-        XCTAssertTrue(addButton.waitForExistence(timeout: 5), "Add button not found")
-        addButton.tap()
-        sleep(2)
-
-        let doneButton = app.buttons["Done"]
-        if doneButton.waitForExistence(timeout: 3) {
-            doneButton.tap()
-            sleep(2)
-        }
-    }
-
-    /// Navigate back from the routine detail view to the routine list.
-    private func navigateBackToRoutineList() {
-        let backButton = app.navigationBars.buttons.element(boundBy: 0)
-        if backButton.waitForExistence(timeout: 5) {
-            backButton.tap()
-            sleep(2)
-        }
-    }
-
-    /// Schedule a workout on today's date by tapping the Add Workout button and picking a routine.
-    /// Assumes we are already on the Schedule tab and today's date is selected.
-    private func scheduleWorkout(routineName: String) {
-        let addWorkoutButton = app.buttons["addScheduledWorkoutButton"]
-        XCTAssertTrue(addWorkoutButton.waitForExistence(timeout: 5), "Add Workout button not found on schedule")
-        addWorkoutButton.tap()
-        sleep(2)
-
-        let selectRoutineTitle = app.navigationBars["Select Routine"]
-        XCTAssertTrue(selectRoutineTitle.waitForExistence(timeout: 5), "Routine picker sheet not shown")
-
-        let routineRow = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", routineName)).firstMatch
-        XCTAssertTrue(routineRow.waitForExistence(timeout: 10), "Routine '\(routineName)' not found in picker")
-        routineRow.tap()
-        sleep(3)
-    }
-
-    /// Delete all routines whose names contain the given substring.
-    private func cleanupRoutines(containing substring: String) {
-        navigateToRoutinesTab()
-        sleep(2)
-
-        let routineRows = app.buttons.matching(identifier: "routineRow")
-        guard routineRows.count > 0 else { return }
-
-        let predicate = NSPredicate(format: "label CONTAINS %@", substring)
-        let matchingRows = app.buttons.matching(predicate)
-        guard matchingRows.count > 0 else { return }
-
-        let modifyButton = app.buttons["modifyRoutinesButton"]
-        guard modifyButton.waitForExistence(timeout: 5) else { return }
-        modifyButton.tap()
-        sleep(1)
-
-        for i in 0..<matchingRows.count {
-            matchingRows.element(boundBy: i).tap()
-            usleep(500_000)
-        }
-
-        let deleteButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Delete'")).firstMatch
-        if deleteButton.waitForExistence(timeout: 3) {
-            deleteButton.tap()
-            sleep(1)
-        }
-
-        let confirmDelete = app.alerts.buttons["Delete"]
-        if confirmDelete.waitForExistence(timeout: 3) {
-            confirmDelete.tap()
-            sleep(2)
-        }
-    }
+    override var needsRoutineCleanup: Bool { true }
+    override var needsWorkoutCleanup: Bool { true }
+    override var needsScheduleCleanup: Bool { true }
 
     // MARK: - Test: Dashboard Shows Welcome Header
 
@@ -262,7 +89,7 @@ final class DashboardTests: XCTestCase {
     /// Creates a routine, schedules it for today, then navigates to the dashboard
     /// and verifies the routine name and "Scheduled" label appear on the today card.
     func testDashboardShowsScheduledWorkoutCard() throws {
-        let routineName = "UITest Dash \\(uniqueSuffix)"
+        let routineName = "UITest Dash \(uniqueSuffix)"
 
         dismissResumeAlertIfPresent()
 
@@ -272,15 +99,14 @@ final class DashboardTests: XCTestCase {
         XCTAssertTrue(app.staticTexts[routineName].waitForExistence(timeout: 10), "Routine detail not showing")
         addBenchPressToRoutine()
         navigateBackToRoutineList()
-        sleep(1)
+        waitForAnimation()
 
         // 2. Schedule it for today
         navigateToScheduleTab()
         scheduleWorkout(routineName: routineName)
 
-        // 3. Navigate to the Dashboard and verify
+        // 3. Navigate to the Dashboard
         navigateToDashboard()
-        sleep(3)
 
         let routineOnDashboard = app.staticTexts[routineName]
         XCTAssertTrue(routineOnDashboard.waitForExistence(timeout: 10), "Scheduled routine '\(routineName)' not found on the dashboard")
@@ -288,12 +114,17 @@ final class DashboardTests: XCTestCase {
         let scheduledLabel = app.staticTexts["Scheduled"]
         XCTAssertTrue(scheduledLabel.waitForExistence(timeout: 5), "'Scheduled' label not found on the today workout card")
 
-        // The "Start" button should be visible for an uncompleted workout
-        let startButton = app.buttons["dashboardStartWorkoutButton"]
-        XCTAssertTrue(startButton.waitForExistence(timeout: 5), "Start button not found on the today workout card")
-
-        // Cleanup
-        cleanupRoutines(containing: String(uniqueSuffix))
+        // The "Start" button should be visible for an uncompleted workout.
+        // Note: The parent card's accessibilityIdentifier ("dashboardTodayWorkoutCard")
+        // merges with the inner button, so we find it by identifier + label.
+        let startButton = app.buttons.matching(NSPredicate(
+            format: "identifier == 'dashboardTodayWorkoutCard' AND label == 'Start'"
+        )).firstMatch
+        if !startButton.waitForExistence(timeout: 5) {
+            app.swipeUp()
+            waitForAnimation()
+        }
+        XCTAssertTrue(startButton.waitForExistence(timeout: 10), "Start button not found on the today workout card")
     }
 
     // MARK: - Test: Schedule Workout From Dashboard Empty State
@@ -317,7 +148,6 @@ final class DashboardTests: XCTestCase {
         }
 
         addButton.tap()
-        sleep(2)
 
         // The routine picker sheet should appear with "Select Routine" title
         let selectRoutineTitle = app.navigationBars["Select Routine"]
@@ -327,7 +157,7 @@ final class DashboardTests: XCTestCase {
         let cancelButton = app.buttons["Cancel"]
         if cancelButton.waitForExistence(timeout: 3) {
             cancelButton.tap()
-            sleep(1)
+            waitForAnimation()
         }
     }
 
@@ -343,7 +173,6 @@ final class DashboardTests: XCTestCase {
         let editButton = app.buttons["editWeeklyGoalButton"]
         XCTAssertTrue(editButton.waitForExistence(timeout: 10), "Edit Weekly Goal button not found")
         editButton.tap()
-        sleep(2)
 
         // Verify the sheet appeared
         let sheetTitle = app.staticTexts["Weekly Workout Goal"]
@@ -377,13 +206,13 @@ final class DashboardTests: XCTestCase {
 
         // Dismiss
         cancelButton.tap()
-        sleep(1)
+        waitForAnimation()
     }
 
     // MARK: - Test: Update Weekly Goal From Dashboard
 
-    /// Opens the weekly goal sheet, selects a suggested goal, saves,
-    /// and verifies the updated value reflects on the card.
+    /// Opens the weekly goal sheet, selects a suggested goal that differs
+    /// from the current selection, saves, and verifies the updated value.
     func testUpdateWeeklyGoalFromDashboard() throws {
         dismissResumeAlertIfPresent()
         navigateToDashboard()
@@ -392,26 +221,36 @@ final class DashboardTests: XCTestCase {
         let editButton = app.buttons["editWeeklyGoalButton"]
         XCTAssertTrue(editButton.waitForExistence(timeout: 10), "Edit Weekly Goal button not found")
         editButton.tap()
-        sleep(2)
 
-        // Tap the "Dedicated" (300 min) suggested goal
-        let dedicatedButton = app.buttons["goalButton_300"]
-        XCTAssertTrue(dedicatedButton.waitForExistence(timeout: 5), "'Dedicated' suggested goal not found")
-        dedicatedButton.tap()
-        sleep(1)
+        // Wait for sheet to appear
+        let sheetTitle = app.staticTexts["Weekly Workout Goal"]
+        XCTAssertTrue(sheetTitle.waitForExistence(timeout: 5), "Weekly Workout Goal sheet did not appear")
 
-        // Verify the large value display shows 300
-        let valueDisplay = app.staticTexts["300"]
-        XCTAssertTrue(valueDisplay.waitForExistence(timeout: 5), "Goal value did not update to 300 in the sheet")
+        // Pick a goal that isn't already selected
+        // Check if 300 is already displayed; if so, pick 150 instead
+        let goalOptions = [(minutes: 300, label: "Dedicated"), (minutes: 150, label: "Balanced")]
+        var targetMinutes = goalOptions[0].minutes
+
+        if app.staticTexts["300"].exists {
+            targetMinutes = goalOptions[1].minutes
+        }
+
+        let goalButton = app.buttons["goalButton_\(targetMinutes)"]
+        XCTAssertTrue(goalButton.waitForExistence(timeout: 5), "Suggested goal button for \(targetMinutes) not found")
+        goalButton.tap()
+        waitForAnimation()
+
+        // Verify the large value display shows the selected goal
+        let valueDisplay = app.staticTexts["\(targetMinutes)"]
+        XCTAssertTrue(valueDisplay.waitForExistence(timeout: 5), "Goal value did not update to \(targetMinutes) in the sheet")
 
         // Save
         let saveButton = app.buttons["saveWeeklyGoalButton"]
         XCTAssertTrue(saveButton.waitForExistence(timeout: 5), "Save button not found")
         saveButton.tap()
-        sleep(3)
 
-        // Verify the weekly goal card now shows "/ 300 min"
-        let updatedGoalText = app.staticTexts["/ 300 min"]
-        XCTAssertTrue(updatedGoalText.waitForExistence(timeout: 10), "Weekly goal card did not update to show '/ 300 min'")
+        // Verify the weekly goal card now shows the updated goal
+        let updatedGoalText = app.staticTexts["/ \(targetMinutes) min"]
+        XCTAssertTrue(updatedGoalText.waitForExistence(timeout: 10), "Weekly goal card did not update to show '/ \(targetMinutes) min'")
     }
 }

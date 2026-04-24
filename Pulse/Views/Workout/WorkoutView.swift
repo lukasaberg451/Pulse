@@ -19,7 +19,7 @@ struct WorkoutView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Custom tab slider
-                CustomTabView(selectedTab: $selectedTab, tabs: ["Schedule", "Routines"])
+                CustomTabView(selectedTab: $selectedTab, tabs: [String(localized: "Schedule"), String(localized: "Routines")])
                     .padding(.top, 30)
                 
                 // Content based on selection
@@ -222,6 +222,11 @@ private struct ScheduledSectionCard: View {
         workouts.filter { !$0.completed }
     }
 
+    private var isSelectedDateInPast: Bool {
+        let calendar = viewModel.userCalendar
+        return calendar.startOfDay(for: selectedDate) < calendar.startOfDay(for: Date())
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header row
@@ -277,7 +282,7 @@ private struct ScheduledSectionCard: View {
                             isSelectMode = true
                         }
                     } label: {
-                        Text("Modify")
+                        Text("Modify", comment: "Edit mode button")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.appAccent)
                     }
@@ -290,16 +295,18 @@ private struct ScheduledSectionCard: View {
                 VStack(spacing: 14) {
                     IconBadge(assetName: "calendar", size: 44)
 
-                    Text("No workouts scheduled")
+                    Text("No workouts scheduled", comment: "Empty state")
                         .font(.subheadline)
                         .foregroundStyle(Color.appSecondaryText)
 
-                    PrimaryCTAButton("Add Workout", icon: "plus") {
-                        let impactLight = UIImpactFeedbackGenerator(style: .light)
-                        impactLight.impactOccurred()
-                        showingRoutinePicker = true
+                    if !isSelectedDateInPast {
+                        PrimaryCTAButton("Add Workout", icon: "plus") {
+                            let impactLight = UIImpactFeedbackGenerator(style: .light)
+                            impactLight.impactOccurred()
+                            showingRoutinePicker = true
+                        }
+                        .accessibilityIdentifier("addScheduledWorkoutButton")
                     }
-                    .accessibilityIdentifier("addScheduledWorkoutButton")
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
@@ -349,7 +356,7 @@ private struct ScheduledSectionCard: View {
                     }
 
                     // Inline add button
-                    if !isSelectMode {
+                    if !isSelectMode && !isSelectedDateInPast {
                         Button {
                             let impactLight = UIImpactFeedbackGenerator(style: .light)
                             impactLight.impactOccurred()
@@ -360,7 +367,7 @@ private struct ScheduledSectionCard: View {
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 18, height: 18)
-                                Text("Add Workout")
+                                Text("Add Workout", comment: "Add workout button")
                                     .font(.subheadline.weight(.semibold))
                             }
                             .foregroundStyle(Color.appAccent)
@@ -385,6 +392,7 @@ private struct ScheduledSectionCard: View {
                     if colorScheme == .dark {
                         RoundedRectangle(cornerRadius: 22, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                            .allowsHitTesting(false)
                     }
                 }
                 .shadow(
@@ -477,7 +485,7 @@ struct ScheduledWorkoutCard: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
 
-                Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
+                Text("\(exerciseCount) \(exerciseCount == 1 ? String(localized: "exercise") : String(localized: "exercises"))")
                     .font(.caption)
                     .foregroundStyle(Color.appSecondaryText)
 
@@ -487,7 +495,7 @@ struct ScheduledWorkoutCard: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 14, height: 14)
-                        Text("Completed")
+                        Text("Completed", comment: "Workout status")
                     }
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.green)
@@ -501,7 +509,7 @@ struct ScheduledWorkoutCard: View {
                     showingActiveWorkout = true
                     PostHogSDK.shared.capture("scheduled_workout_started​")
                 } label: {
-                    Text("Start")
+                    Text("Start", comment: "Start workout button")
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 18)
@@ -532,6 +540,7 @@ struct ScheduledWorkoutCard: View {
                     if colorScheme == .dark {
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                            .allowsHitTesting(false)
                     }
                 }
         }
@@ -552,7 +561,7 @@ struct DeletedRoutineWorkoutCard: View {
            let session = viewModel.workoutSession(for: sessionId) {
             return session.name
         }
-        return "Deleted Routine"
+        return String(localized: "Deleted Routine")
     }
 
     var body: some View {
@@ -606,7 +615,7 @@ struct DeletedRoutineWorkoutCard: View {
     private var cardContent: some View {
         HStack(spacing: 12) {
             if isAILogged {
-                IconBadge(systemName: "sparkles", color: Color.appAccent, size: 38)
+                IconBadge(assetName: "sparkles", color: Color.appAccent, size: 38)
             } else {
                 IconBadge(assetName: "trash", color: Color.appTertiaryText, size: 38)
             }
@@ -616,7 +625,7 @@ struct DeletedRoutineWorkoutCard: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
 
-                Text(isAILogged ? "AI Logged" : "Routine deleted")
+                Text(isAILogged ? String(localized: "AI Logged") : String(localized: "Routine deleted"))
                     .font(.caption)
                     .foregroundStyle(isAILogged ? Color.appAccent : Color.appTertiaryText)
 
@@ -626,7 +635,7 @@ struct DeletedRoutineWorkoutCard: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 14, height: 14)
-                        Text("Completed")
+                        Text("Completed", comment: "Workout status")
                     }
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.green)
@@ -651,6 +660,7 @@ struct DeletedRoutineWorkoutCard: View {
                     if colorScheme == .dark {
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                            .allowsHitTesting(false)
                     }
                 }
         }
@@ -675,10 +685,10 @@ struct RoutinePickerSheet: View {
                             assetName: "routine",
                             size: 56
                         )
-                        Text("No Routines Yet")
+                        Text("No Routines Yet", comment: "Empty state")
                             .font(.headline)
                             .foregroundStyle(Color.appText)
-                        Text("Go to the Workout tab to create your first routine")
+                        Text("Go to the Workout tab to create your first routine", comment: "Empty state hint")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
@@ -748,7 +758,7 @@ struct RoutinePickerRow: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
 
-                    Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
+                    Text("\(exerciseCount) \(exerciseCount == 1 ? String(localized: "exercise") : String(localized: "exercises"))")
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                 }
@@ -774,9 +784,11 @@ struct RoutinePickerRow: View {
                         if isSelected {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .strokeBorder(Color.appAccent.opacity(0.3), lineWidth: 1.5)
+                                .allowsHitTesting(false)
                         } else if colorScheme == .dark {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                .allowsHitTesting(false)
                         }
                     }
                     .shadow(
@@ -837,14 +849,14 @@ struct RoutineContentView: View {
                 VStack(spacing: 12) {
                     ProgressView()
                         .tint(Color.appAccent)
-                    Text("Loading routines...")
+                    Text("Loading routines...", comment: "Loading state")
                         .font(.subheadline)
                         .foregroundStyle(Color.appSecondaryText)
                 }
             } else if let error = viewModel.errorMessage {
                 VStack(spacing: 14) {
                     IconBadge(assetName: "error", color: .red, size: 48)
-                    Text("Something went wrong")
+                    Text("Something went wrong", comment: "Error state")
                         .font(.headline)
                         .foregroundStyle(Color.appText)
                     Text(error)
@@ -887,7 +899,7 @@ struct RoutineContentView: View {
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 12, height: 12)
-                                        Text("New Routine")
+                                        Text("New Routine", comment: "Create routine button")
                                             .font(.subheadline.weight(.semibold))
                                     }
                                     .foregroundStyle(.white)
@@ -986,10 +998,10 @@ struct RoutineContentView: View {
                         assetName: "routine",
                         size: 56
                     )
-                    Text("No Routines Yet")
+                    Text("No Routines Yet", comment: "Empty state")
                         .font(.title3.weight(.semibold))
                         .foregroundStyle(Color.appText)
-                    Text("Create your first workout routine")
+                    Text("Create your first workout routine", comment: "Empty state hint")
                         .font(.subheadline)
                         .foregroundStyle(Color.appSecondaryText)
                     PrimaryCTAButton("Create Routine", icon: "plus") {
@@ -1085,11 +1097,11 @@ struct CreateRoutineSheet: View {
                     VStack(spacing: 8) {
                         IconBadge(assetName: "routine", color: .appAccent, size: 48)
 
-                        Text("New Routine")
+                        Text("New Routine", comment: "Sheet title")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
 
-                        Text("Give your routine a name to get started")
+                        Text("Give your routine a name to get started", comment: "Sheet subtitle")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
                             .multilineTextAlignment(.center)
@@ -1104,7 +1116,7 @@ struct CreateRoutineSheet: View {
                                 .scaledToFit()
                                 .frame(width: 16, height: 16)
                                 .foregroundStyle(.red)
-                            Text("Failed to create routine. Please try again.")
+                            Text("Failed to create routine. Please try again.", comment: "Error message")
                                 .foregroundStyle(.red)
                                 .font(.caption.weight(.medium))
                         }
@@ -1117,7 +1129,7 @@ struct CreateRoutineSheet: View {
                     // Form fields
                     VStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Routine Name")
+                            Text("Routine Name", comment: "Field label")
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(Color.appSecondaryText)
                                 .padding(.horizontal, 4)
@@ -1158,7 +1170,7 @@ struct CreateRoutineSheet: View {
 
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                Text("Notes (Optional)")
+                                Text("Notes (Optional)", comment: "Field label")
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                                     .padding(.horizontal, 4)
@@ -1270,7 +1282,7 @@ struct RoutineCard: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
 
-                Text("\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")")
+                Text("\(exerciseCount) \(exerciseCount == 1 ? String(localized: "exercise") : String(localized: "exercises"))")
                     .font(.caption)
                     .foregroundStyle(Color.appSecondaryText)
             }
@@ -1291,6 +1303,7 @@ struct RoutineCard: View {
                     if colorScheme == .dark {
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                            .allowsHitTesting(false)
                     }
                 }
                 .shadow(
@@ -1359,7 +1372,12 @@ struct CalendarGridView: View {
     let onDateSelected: (Date) -> Void
 
     let columns = Array(repeating: GridItem(.flexible()), count: 7)
-    let daysOfWeek = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+    var daysOfWeek: [String] {
+        let cal = viewModel.userCalendar
+        let symbols = cal.veryShortWeekdaySymbols
+        // Reorder from Sunday-first to Monday-first
+        return Array(symbols[1...]) + [symbols[0]]
+    }
 
     private var userCalendar: Calendar {
         viewModel.userCalendar
@@ -1386,7 +1404,7 @@ struct CalendarGridView: View {
         VStack(spacing: 6) {
             // Day headers
             LazyVGrid(columns: columns, spacing: 10) {
-                ForEach(daysOfWeek, id: \.self) { day in
+                ForEach(Array(daysOfWeek.enumerated()), id: \.offset) { _, day in
                     Text(day)
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(Color.appTertiaryText)

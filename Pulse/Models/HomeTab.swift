@@ -12,10 +12,10 @@ enum HomeTab: Int, CaseIterable {
 
     var title: String {
         switch self {
-        case .dashboard: "Dashboard"
-        case .workout:   "Workout"
-        case .progress:  "Progress"
-        case .profile:   "Profile"
+        case .dashboard: String(localized: "Dashboard")
+        case .workout:   String(localized: "Workout")
+        case .progress:  String(localized: "Progress")
+        case .profile:   String(localized: "Profile")
         }
     }
 
