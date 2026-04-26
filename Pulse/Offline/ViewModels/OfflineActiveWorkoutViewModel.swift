@@ -822,6 +822,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             let weight: Double
             let reps: Int
         }
+
         
         // Pick only the best set per exercise (highest estimated 1RM via Epley)
         // so we get one clean history entry per exercise per workout.

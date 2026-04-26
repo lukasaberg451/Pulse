@@ -36,16 +36,20 @@ struct MuscleGroupStat {
 class ProgressStatsViewModel: ObservableObject {
     @Published var weeklyVolume: Int = 0
     @Published var weeklyDurationMinutes: Int = 0
+    @Published var weeklyWorkouts: Int?
     @Published var monthlyVolume: Int = 0
     @Published var monthlyWorkouts: Int = 0
-    
+
     @Published var avgDuration: Int = 0
     @Published var currentStreak: Int = 0
     private var previousStreak: Int = 0
-    
+
     @Published var lastMonthVolume: Int = 0
     @Published var lastMonthWorkouts: Int = 0
     @Published var lastMonthAvgDuration: Int = 0
+    @Published var lastWeekVolume: Int?
+    @Published var lastWeekWorkouts: Int?
+    @Published var lastWeekDurationMinutes: Int?
     
     @Published var strengthProgress: [StrengthProgress] = []
     @Published var topMuscleGroups: [MuscleGroupStat] = []
@@ -56,6 +60,7 @@ class ProgressStatsViewModel: ObservableObject {
     @Published var lifetimeHours: Int = 0
     @Published var bestStreak: Int = 0
     
+    @Published var userStreak: UserStreak?
     @Published var recentSessions: [WorkoutSession] = []
     @Published var currentInsight: SmartInsight?
     
@@ -67,6 +72,18 @@ class ProgressStatsViewModel: ObservableObject {
     private let pageSize: Int = 20
     private var isLoadingInitialPage: Bool = false
     
+    var recentPRCount: Int {
+        guard let sevenDaysAgo = (userProfile?.userCalendar ?? Calendar.current).date(byAdding: .day, value: -7, to: Date()) else { return 0 }
+        return exercise1RMStats.filter { $0.achievedAt >= sevenDaysAgo }.count
+    }
+
+    var daysSinceLastWorkout: Int? {
+        guard let lastSession = recentSessions.first else { return nil }
+        let date = lastSession.completedAt ?? lastSession.startedAt
+        let calendar = userProfile?.userCalendar ?? Calendar.current
+        return calendar.dateComponents([.day], from: date, to: Date()).day
+    }
+
     private(set) var userProfile: Profile?
     private let supabase = SupabaseManager.shared.client
     private let workoutRepository = WorkoutRepository()
@@ -109,7 +126,8 @@ class ProgressStatsViewModel: ObservableObject {
             async let strength: Void = self.loadStrengthProgressRPC()
             async let recent: Void = self.loadRecentSessions()
             async let oneRM: Void = self.loadExercise1RMStats()
-            _ = await (stats, muscles, strength, recent, oneRM)
+            async let streak: Void = self.loadUserStreak()
+            _ = await (stats, muscles, strength, recent, oneRM, streak)
         }
         loadTask = task
         await task.value
@@ -159,34 +177,40 @@ class ProgressStatsViewModel: ObservableObject {
         
         let calendar = userProfile?.userCalendar ?? Calendar.current
         let now = Date()
-        guard let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)),
-              let weekEnd = calendar.date(byAdding: .weekOfYear, value: 1, to: weekStart),
+        guard let rolling7Start = calendar.date(byAdding: .day, value: -7, to: now),
+              let rolling14Start = calendar.date(byAdding: .day, value: -14, to: now),
               let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
               let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart),
               let lastMonthStart = calendar.date(byAdding: .month, value: -1, to: monthStart) else {
             return
         }
         let lastMonthEnd = monthStart
-        
+
         do {
             let stats = try await workoutRepository.fetchProgressStats(
                 userId: userId,
-                weekStart: weekStart,
-                weekEnd: weekEnd,
+                weekStart: rolling7Start,
+                weekEnd: now,
                 monthStart: monthStart,
                 monthEnd: monthEnd,
                 lastMonthStart: lastMonthStart,
-                lastMonthEnd: lastMonthEnd
+                lastMonthEnd: lastMonthEnd,
+                lastWeekStart: rolling14Start,
+                lastWeekEnd: rolling7Start
             )
             
             weeklyVolume = stats.weeklyVolume
             weeklyDurationMinutes = stats.weeklyDurationMinutes
+            weeklyWorkouts = stats.weeklyWorkouts
             monthlyVolume = stats.monthlyVolume
             monthlyWorkouts = stats.monthlyWorkouts
             avgDuration = stats.avgDurationMinutes
             lastMonthVolume = stats.lastMonthVolume
             lastMonthWorkouts = stats.lastMonthWorkouts
             lastMonthAvgDuration = stats.lastMonthAvgDuration
+            lastWeekVolume = stats.lastWeekVolume
+            lastWeekWorkouts = stats.lastWeekWorkouts
+            lastWeekDurationMinutes = stats.lastWeekDurationMinutes
             lifetimeWorkouts = stats.lifetimeWorkouts
             lifetimeVolume = stats.lifetimeVolume
             lifetimeHours = stats.lifetimeHours
@@ -273,6 +297,17 @@ class ProgressStatsViewModel: ObservableObject {
         }
     }
     
+    private func loadUserStreak() async {
+        guard let userId = supabase.auth.currentUser?.id else { return }
+        do {
+            userStreak = try await workoutRepository.refreshUserStreak(userId: userId)
+        } catch is CancellationError {
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+        } catch {
+            debugLog("Failed to load user streak: \(error)")
+        }
+    }
+
     private func loadRecentSessions() async {
         do {
             recentSessions = try await workoutRepository.fetchCompletedSessions(limit: 3, offset: 0)

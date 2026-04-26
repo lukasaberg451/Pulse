@@ -259,7 +259,7 @@ struct ProfileView: View {
 
                                     LifetimeStatCard(
                                         title: String(localized: "Longest Streak"),
-                                        value: "\(progressViewModel.bestStreak) \(progressViewModel.bestStreak == 1 ? String(localized: "day") : String(localized: "days"))",
+                                        value: "\(progressViewModel.bestStreak) \(progressViewModel.bestStreak == 1 ? String(localized: "week") : String(localized: "weeks"))",
                                         icon: "flame"
                                     )
                                 }

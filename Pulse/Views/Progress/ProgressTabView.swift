@@ -31,12 +31,93 @@ struct ProgressTabView: View {
         return formatter.string(from: NSNumber(value: value)) ?? "\(Int(value))"
     }
     
-    private var lastWorkoutDateText: String {
-        guard let lastSession = viewModel.recentSessions.first else {
+    private var lastWorkoutDaysAgoText: String {
+        guard let days = viewModel.daysSinceLastWorkout else {
             return "—"
         }
-        let date = lastSession.completedAt ?? lastSession.startedAt
-        return viewModel.formatDate(date)
+        switch days {
+        case 0: return String(localized: "Today")
+        case 1: return String(localized: "Yesterday")
+        default: return String(localized: "\(days) days ago")
+        }
+    }
+
+    private var daysLeftInWeek: Int {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: Date())
+        let isoWeekday = weekday == 1 ? 7 : weekday - 1
+        return 7 - isoWeekday
+    }
+
+    private var streakStatus: (left: String, right: String?, color: Color)? {
+        guard let streak = viewModel.userStreak else { return nil }
+        guard streak.currentStreak > 0 || streak.workoutsThisWeek > 0 else { return nil }
+
+        if streak.weekCompleted {
+            return (String(localized: "Completed!"), nil, .green)
+        }
+
+        if streak.currentStreak == 0 && streak.workoutsThisWeek == 0 {
+            return nil
+        }
+
+        let workoutsNeeded = streak.workoutsRequired - streak.workoutsThisWeek
+        let leftText = String(localized: "Complete \(workoutsNeeded) more \(workoutsNeeded == 1 ? String(localized: "workout") : String(localized: "workouts")) this week")
+
+        let remaining = daysLeftInWeek
+        let rightText: String
+        switch remaining {
+        case 0: rightText = String(localized: "Last day")
+        case 1: rightText = String(localized: "Resets tomorrow")
+        default: rightText = String(localized: "Resets in \(remaining) days")
+        }
+
+        let color: Color
+        switch remaining {
+        case 0: color = .red
+        case 1...2: color = .yellow
+        default: color = .appSecondaryText
+        }
+
+        return (leftText, rightText, color)
+    }
+
+    @ViewBuilder
+    private func trendText(current: Int, previous: Int?) -> some View {
+        if let previous, previous > 0 {
+            let pct = Double(current - previous) / Double(previous) * 100
+            if pct > 15 {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.up.right")
+                    Text("Above your usual")
+                }
+                .font(.caption.weight(.medium))
+                .foregroundStyle(Color.green)
+            } else if pct < -15 {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.down.right")
+                    Text("Below your usual")
+                }
+                .font(.caption.weight(.medium))
+                .foregroundStyle(Color.red)
+            } else {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.right")
+                    Text("About the same")
+                }
+                .font(.caption.weight(.medium))
+                .foregroundStyle(Color.appSecondaryText)
+            }
+        } else if let previous, previous == 0, current > 0 {
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.up.right")
+                Text("Above your usual")
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(Color.green)
+        } else {
+            EmptyView()
+        }
     }
     
     var body: some View {
@@ -95,53 +176,41 @@ struct ProgressTabView: View {
                             .foregroundStyle(Color.appText)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal)
-                        
+
                         // Streak Card
-                        VStack(spacing: 10) {
+                        VStack(spacing: 0) {
                             HStack(spacing: 12) {
                                 IconBadge(assetName: "flame", color: .orange, size: 36)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Current Streak", comment: "Streak card label")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundStyle(Color.appSecondaryText)
-
-                                    Text("\(viewModel.currentStreak) \(viewModel.currentStreak == 1 ? String(localized: "day") : String(localized: "days"))")
-                                        .font(.title3.weight(.bold))
-                                        .foregroundStyle(Color.appText)
-                                }
-                                
+                                Text("\(viewModel.userStreak?.currentStreak ?? viewModel.currentStreak) \((viewModel.userStreak?.currentStreak ?? viewModel.currentStreak) == 1 ? String(localized: "week") : String(localized: "weeks")) streak")
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundStyle(Color.appText)
                                 Spacer()
+                                Text("\(String(localized: "Last workout:")) \(lastWorkoutDaysAgoText.lowercased())")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(Color.appSecondaryText)
                             }
-                            
-                            Divider()
-                                .background(Color.appText.opacity(0.06))
-                            
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Longest Streak", comment: "Streak card label")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundStyle(Color.appSecondaryText)
+                            .padding(12)
 
-                                    Text("\(viewModel.bestStreak) \(viewModel.bestStreak == 1 ? String(localized: "day") : String(localized: "days"))")
-                                        .font(.subheadline.weight(.bold))
-                                        .foregroundStyle(Color.appText)
+                            if let status = streakStatus {
+                                Divider().background(Color.appText.opacity(0.06))
+                                HStack {
+                                    Circle()
+                                        .fill(status.color)
+                                        .frame(width: 6, height: 6)
+                                    Text(status.left)
+                                        .font(.caption2.weight(.medium))
+                                        .foregroundStyle(status.color)
+                                    Spacer()
+                                    if let right = status.right {
+                                        Text(right)
+                                            .font(.caption2.weight(.medium))
+                                            .foregroundStyle(status.color)
+                                    }
                                 }
-                                
-                                Spacer()
-                                
-                                VStack(alignment: .trailing, spacing: 2) {
-                                    Text("Last Workout", comment: "Streak card label")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundStyle(Color.appSecondaryText)
-                                    
-                                    Text(lastWorkoutDateText)
-                                        .font(.subheadline.weight(.bold))
-                                        .foregroundStyle(Color.appText)
-                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
                             }
                         }
-                        .padding(12)
                         .background {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .fill(Color.appSurface)
@@ -150,33 +219,26 @@ struct ProgressTabView: View {
                         .padding(.horizontal)
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressStreakCard")
-                        
-                        // Total Workouts
-                        VStack(spacing: 10) {
-                            HStack(spacing: 12) {
-                                IconBadge(assetName: "strengthtraining", color: .appAccent, size: 36)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Workouts Completed", comment: "Activity card label")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundStyle(Color.appSecondaryText)
 
-                                    Text("This month: \(viewModel.monthlyWorkouts)", comment: "Monthly workout count")
-                                        .font(.subheadline.weight(.bold))
-                                        .foregroundStyle(Color.appText)
-                                }
-                                
+
+                        Text("Last 7 days", comment: "Subheadline above workout and volume cards")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.appSecondaryText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal)
+
+                        // Workouts Card
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Workouts", comment: "Card headline")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.appSecondaryText)
+                            HStack(spacing: 8) {
+                                IconBadge(assetName: "strengthtraining", color: .appAccent, size: 28)
+                                Text("\(viewModel.weeklyWorkouts ?? 0) \((viewModel.weeklyWorkouts ?? 0) == 1 ? String(localized: "workout") : String(localized: "workouts"))")
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundStyle(Color.appText)
                                 Spacer()
-                            }
-                            
-                            Divider()
-                                .background(Color.appText.opacity(0.06))
-                            
-                            HStack {
-                                Text("All time: \(viewModel.lifetimeWorkouts)", comment: "Lifetime workout count")
-                                    .font(.caption.weight(.medium))
-                                    .foregroundStyle(Color.appSecondaryText)
-                                
+                                trendText(current: viewModel.weeklyWorkouts ?? 0, previous: viewModel.lastWeekWorkouts)
                                 Spacer()
                             }
                         }
@@ -189,33 +251,19 @@ struct ProgressTabView: View {
                         .padding(.horizontal)
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressWorkoutsCard")
-                        
-                        // Volume Lifted
-                        VStack(spacing: 10) {
-                            HStack(spacing: 12) {
-                                IconBadge(assetName: "volume", color: .blue, size: 36)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Volume Lifted", comment: "Activity card label")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundStyle(Color.appSecondaryText)
-                                    
-                                    Text("\(String(localized: "This week:")) \(formattedVolume(unitManager.displayWeight(Double(viewModel.weeklyVolume)))) \(unitManager.weightUnit)")
-                                        .font(.subheadline.weight(.bold))
-                                        .foregroundStyle(Color.appText)
-                                }
-                                
+
+                        // Volume Card
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Volume", comment: "Card headline")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.appSecondaryText)
+                            HStack(spacing: 8) {
+                                IconBadge(assetName: "volume", color: .blue, size: 28)
+                                Text("\(formattedVolume(unitManager.displayWeight(Double(viewModel.weeklyVolume)))) \(unitManager.weightUnit)")
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundStyle(Color.appText)
                                 Spacer()
-                            }
-                            
-                            Divider()
-                                .background(Color.appText.opacity(0.06))
-                            
-                            HStack {
-                                Text("\(String(localized: "All time:")) \(formattedVolume(unitManager.displayWeight(Double(viewModel.lifetimeVolume)))) \(unitManager.weightUnit)")
-                                    .font(.caption.weight(.medium))
-                                    .foregroundStyle(Color.appSecondaryText)
-                                
+                                trendText(current: viewModel.weeklyVolume, previous: viewModel.lastWeekVolume)
                                 Spacer()
                             }
                         }
@@ -229,44 +277,6 @@ struct ProgressTabView: View {
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("progressVolumeCard")
 
-                        // Workout Time
-                        VStack(spacing: 10) {
-                            HStack(spacing: 12) {
-                                IconBadge(assetName: "clock", color: .green, size: 36)
-
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Workout Time", comment: "Activity card label")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundStyle(Color.appSecondaryText)
-
-                                    Text("This week: \(formattedDuration(viewModel.weeklyDurationMinutes))", comment: "Weekly duration")
-                                        .font(.subheadline.weight(.bold))
-                                        .foregroundStyle(Color.appText)
-                                }
-
-                                Spacer()
-                            }
-
-                            Divider()
-                                .background(Color.appText.opacity(0.06))
-
-                            HStack {
-                                Text("\(String(localized: "All time:")) \(viewModel.lifetimeHours)h")
-                                    .font(.caption.weight(.medium))
-                                    .foregroundStyle(Color.appSecondaryText)
-
-                                Spacer()
-                            }
-                        }
-                        .padding(12)
-                        .background {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.appSurface)
-                                .modifier(CardShadowModifier())
-                        }
-                        .padding(.horizontal)
-                        .accessibilityElement(children: .contain)
-                        .accessibilityIdentifier("progressWorkoutTimeCard")
 
                         // Estimated 1RM Section
                         Estimated1RMSection(viewModel: viewModel)
@@ -590,6 +600,18 @@ struct Estimated1RMCard: View {
     var timeZone: TimeZone = .current
     @EnvironmentObject var unitManager: UnitManager
 
+    private var displayLatest1rm: Double {
+        unitManager.displayWeight(stat.latestEstimated1rm ?? stat.bestEstimated1rm)
+    }
+
+    private var displayLatestWeight: Double {
+        unitManager.displayWeight(stat.latestWeight ?? stat.bestWeight)
+    }
+
+    private var displayLatestReps: Int {
+        stat.latestReps ?? stat.bestReps
+    }
+
     var body: some View {
         NavigationLink(destination: Exercise1RMDetailView(stat: stat, timeZone: timeZone).hidesTabBar()) {
             HStack(spacing: 12) {
@@ -600,14 +622,14 @@ struct Estimated1RMCard: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
 
-                    Text("Based on \(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps", comment: "1RM basis description")
+                    Text("Based on \(displayLatestWeight, specifier: "%.1f") \(unitManager.weightUnit) × \(displayLatestReps) reps", comment: "1RM basis description")
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                 }
 
                 Spacer()
 
-                Text("\(unitManager.displayWeight(stat.bestEstimated1rm), specifier: "%.1f") \(unitManager.weightUnit)")
+                Text("\(displayLatest1rm, specifier: "%.1f") \(unitManager.weightUnit)")
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(Color.appAccent)
 
@@ -680,10 +702,23 @@ struct Exercise1RMDetailView: View {
     @State private var history: [Exercise1RMHistoryRow] = []
     @State private var isLoading = true
     @State private var selectedEntry: Exercise1RMHistoryRow?
+    @State private var animationTrigger = false
 
     private var displayHistory: [(date: Date, value: Double)] {
         history.map { entry in
             (date: entry.recordedAt, value: unitManager.displayWeight(entry.estimated1rm))
+        }
+    }
+
+    private var movingAverageData: [(date: Date, value: Double)] {
+        let data = displayHistory
+        guard data.count >= 2 else { return [] }
+        let window = max(3, data.count / 5)
+        return data.enumerated().map { index, point in
+            let start = max(0, index - window + 1)
+            let slice = data[start...index]
+            let avg = slice.map(\.value).reduce(0, +) / Double(slice.count)
+            return (date: point.date, value: avg)
         }
     }
 
@@ -703,10 +738,68 @@ struct Exercise1RMDetailView: View {
         return (maxVal + padding).rounded(.up)
     }
 
-    private var formattedDate: String {
+    private var latest1rm: Double {
+        stat.latestEstimated1rm ?? stat.bestEstimated1rm
+    }
+
+    private var latestWeight: Double {
+        stat.latestWeight ?? stat.bestWeight
+    }
+
+    private var latestReps: Int {
+        stat.latestReps ?? stat.bestReps
+    }
+
+    private var latestDate: Date {
+        stat.latestRecordedAt ?? stat.achievedAt
+    }
+
+    private var diffFromBest: Double {
+        unitManager.displayWeight(latest1rm) - unitManager.displayWeight(stat.bestEstimated1rm)
+    }
+
+    private var formattedLatestDate: String {
         let formatter = SharedFormatters.mediumDate
         formatter.timeZone = timeZone
-        return formatter.string(from: stat.achievedAt)
+        return formatter.string(from: latestDate)
+    }
+
+    private var trendMessage: (text: String, color: Color) {
+        let ma = movingAverageData
+        let gapFromBest = unitManager.displayWeight(stat.bestEstimated1rm) - unitManager.displayWeight(latest1rm)
+        let gapStr = String(format: "%.1f", gapFromBest)
+        let unit = unitManager.weightUnit
+        let atBest = gapFromBest < 0.1
+
+        guard ma.count >= 3 else {
+            if atBest {
+                return ("→ Stable (at personal best)", Color.appSecondaryText)
+            }
+            return ("→ Stable (\(gapStr) \(unit) below best)", Color.appSecondaryText)
+        }
+
+        let recent = ma.suffix(3)
+        let first = recent.first!.value
+        let last = recent.last!.value
+        let change = last - first
+        let threshold = stat.bestEstimated1rm * 0.01
+
+        if change > threshold {
+            if atBest {
+                return ("↑ Improving (at personal best)", Color.green)
+            }
+            return ("↑ Improving (still \(gapStr) \(unit) below best)", Color.green)
+        } else if change < -threshold {
+            if atBest {
+                return ("↓ Declining (at personal best)", Color.red)
+            }
+            return ("↓ Declining (\(gapStr) \(unit) below best)", Color.red)
+        } else {
+            if atBest {
+                return ("→ Stable (at personal best)", Color.appSecondaryText)
+            }
+            return ("→ Stable (\(gapStr) \(unit) below best)", Color.appSecondaryText)
+        }
     }
 
     var body: some View {
@@ -724,22 +817,21 @@ struct Exercise1RMDetailView: View {
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
 
-                        Text("Estimated 1RM: \(unitManager.displayWeight(stat.bestEstimated1rm), specifier: "%.1f") \(unitManager.weightUnit)", comment: "Estimated 1RM value display")
+                        Text("Estimated 1RM: \(unitManager.displayWeight(latest1rm), specifier: "%.1f") \(unitManager.weightUnit)", comment: "Estimated 1RM value display")
                             .font(.subheadline)
                             .foregroundStyle(Color.appSecondaryText)
 
-                        if !isLoading, let first = history.first, history.count >= 2 {
-                            let change = stat.bestEstimated1rm - first.estimated1rm
-                            let displayChange = abs(unitManager.displayWeight(stat.bestEstimated1rm) - unitManager.displayWeight(first.estimated1rm))
-                            if abs(change) >= 0.1 {
-                                let sign = change > 0 ? "+" : "-"
-                                Text("\(sign)\(displayChange, specifier: "%.1f") \(unitManager.weightUnit) since first entry", comment: "1RM change since first entry")
-                                    .font(.caption.weight(.medium))
-                                    .foregroundStyle(change > 0 ? Color.green : Color.red)
-                            }
+                        if !isLoading, history.count >= 2 {
+                            let trendInfo = trendMessage
+                            Text(trendInfo.text)
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(trendInfo.color)
                         }
                     }
                     .padding(.top, 20)
+                    .opacity(animationTrigger ? 1 : 0)
+                    .offset(y: animationTrigger ? 0 : 16)
+                    .animation(.easeOut(duration: 0.4).delay(0.1), value: animationTrigger)
 
                     // Chart
                     if isLoading {
@@ -754,7 +846,7 @@ struct Exercise1RMDetailView: View {
                                 .font(.headline.weight(.semibold))
                                 .foregroundStyle(Color.appText)
 
-                            Text("You need at least 2 personal records logged to see your 1RM progression chart.", comment: "Empty chart state")
+                            Text("You need at least 2 sessions logged to see your 1RM progression chart.", comment: "Empty chart state")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
                                 .multilineTextAlignment(.center)
@@ -798,6 +890,27 @@ struct Exercise1RMDetailView: View {
                                 .padding(.horizontal, 30)
                             }
 
+                            // Legend
+                            HStack(spacing: 16) {
+                                HStack(spacing: 6) {
+                                    RoundedRectangle(cornerRadius: 1.5)
+                                        .fill(Color.appAccent.opacity(0.25))
+                                        .frame(width: 16, height: 2)
+                                    Text("Session 1RM", comment: "Chart legend for session line")
+                                        .font(.caption2)
+                                        .foregroundStyle(Color.appSecondaryText)
+                                }
+
+                                HStack(spacing: 6) {
+                                    RoundedRectangle(cornerRadius: 1.5)
+                                        .fill(Color.appAccent)
+                                        .frame(width: 16, height: 3)
+                                    Text("Trend", comment: "Chart legend for moving average line")
+                                        .font(.caption2)
+                                        .foregroundStyle(Color.appSecondaryText)
+                                }
+                            }
+
                             if let selected = selectedEntry {
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 2) {
@@ -827,6 +940,9 @@ struct Exercise1RMDetailView: View {
                                 .modifier(CardShadowModifier())
                         }
                         .padding(.horizontal)
+                        .opacity(animationTrigger ? 1 : 0)
+                        .offset(y: animationTrigger ? 0 : 16)
+                        .animation(.easeOut(duration: 0.4).delay(0.25), value: animationTrigger)
                     }
 
                     // Training Weights Grid
@@ -839,24 +955,11 @@ struct Exercise1RMDetailView: View {
                             Spacer()
                         }
 
-                        HStack(spacing: 16) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Based on", comment: "Label before weight and reps")
-                                    .font(.caption2.weight(.medium))
-                                    .foregroundStyle(Color.appSecondaryText)
-                                Text("\(unitManager.displayWeight(stat.bestWeight), specifier: "%.1f") \(unitManager.weightUnit) × \(stat.bestReps) reps")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(Color.appText)
-                            }
+                        Text("Based on your recent performance", comment: "Subtitle for training weights")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(Color.appSecondaryText)
 
-                            Spacer()
-
-                            Text(formattedDate)
-                                .font(.caption2)
-                                .foregroundStyle(Color.appTertiaryText)
-                        }
-
-                        TrainingWeightsGrid(estimated1rm: stat.bestEstimated1rm)
+                        TrainingWeightsGrid(estimated1rm: latest1rm)
                     }
                     .padding(16)
                     .background {
@@ -865,6 +968,9 @@ struct Exercise1RMDetailView: View {
                             .modifier(CardShadowModifier())
                     }
                     .padding(.horizontal)
+                    .opacity(animationTrigger ? 1 : 0)
+                    .offset(y: animationTrigger ? 0 : 16)
+                    .animation(.easeOut(duration: 0.4).delay(0.4), value: animationTrigger)
 
                     Spacer(minLength: 20)
                 }
@@ -875,6 +981,9 @@ struct Exercise1RMDetailView: View {
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         .task {
             await loadHistory()
+            withAnimation {
+                animationTrigger = true
+            }
         }
     }
 
@@ -915,58 +1024,43 @@ struct Exercise1RMDetailView: View {
                 }
 
                 if data.count >= 2 {
-                    // Line
-                    Path { path in
-                        for (index, point) in data.enumerated() {
-                            let x = xPosition(for: index, count: data.count, width: width)
-                            let y = yPosition(for: point.value, height: height, range: range)
-
-                            if index == 0 {
-                                path.move(to: CGPoint(x: x, y: y))
-                            } else {
-                                path.addLine(to: CGPoint(x: x, y: y))
-                            }
-                        }
-                    }
-                    .stroke(Color.appAccent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                    // Session line
+                    smoothLinePath(for: data, width: width, height: height, range: range)
+                        .stroke(Color.appAccent.opacity(0.25), style: StrokeStyle(lineWidth: 1, lineCap: .round, lineJoin: .round))
 
                     // Gradient fill
-                    Path { path in
-                        for (index, point) in data.enumerated() {
-                            let x = xPosition(for: index, count: data.count, width: width)
-                            let y = yPosition(for: point.value, height: height, range: range)
-
-                            if index == 0 {
-                                path.move(to: CGPoint(x: x, y: y))
-                            } else {
-                                path.addLine(to: CGPoint(x: x, y: y))
-                            }
-                        }
-                        path.addLine(to: CGPoint(x: xPosition(for: data.count - 1, count: data.count, width: width), y: height))
-                        path.addLine(to: CGPoint(x: xPosition(for: 0, count: data.count, width: width), y: height))
-                        path.closeSubpath()
-                    }
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.appAccent.opacity(0.3), Color.appAccent.opacity(0.0)],
-                            startPoint: .top,
-                            endPoint: .bottom
+                    smoothFillPath(for: data, width: width, height: height, range: range)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.appAccent.opacity(0.1), Color.appAccent.opacity(0.0)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
                         )
-                    )
+
+                    // Trend line
+                    let maData = movingAverageData
+                    if maData.count >= 2 {
+                        smoothLinePath(for: maData, width: width, height: height, range: range)
+                            .stroke(Color.appAccent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                    }
 
                     // Data points
                     ForEach(Array(data.enumerated()), id: \.offset) { index, point in
                         let x = xPosition(for: index, count: data.count, width: width)
                         let y = yPosition(for: point.value, height: height, range: range)
                         let isSelected = selectedEntry?.id == history[index].id
+                        let isLatest = index == data.count - 1
 
                         Circle()
-                            .fill(isSelected ? Color.appAccent : Color.appSurface)
-                            .frame(width: isSelected ? 10 : 7, height: isSelected ? 10 : 7)
+                            .fill(isSelected || isLatest ? Color.appAccent : Color.appSurface)
+                            .frame(width: isSelected ? 10 : isLatest ? 9 : 7,
+                                   height: isSelected ? 10 : isLatest ? 9 : 7)
                             .overlay {
                                 Circle()
-                                    .stroke(Color.appAccent, lineWidth: 2)
+                                    .stroke(Color.appAccent, lineWidth: isLatest ? 2.5 : 2)
                             }
+                            .shadow(color: isLatest ? Color.appAccent.opacity(0.4) : .clear, radius: 4)
                             .position(x: x, y: y)
                             .onTapGesture {
                                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -1008,6 +1102,51 @@ struct Exercise1RMDetailView: View {
         formatter.dateFormat = "MMM yyyy"
         formatter.timeZone = timeZone
         return formatter.string(from: date)
+    }
+
+    private func smoothLinePath(for data: [(date: Date, value: Double)], width: CGFloat, height: CGFloat, range: Double) -> Path {
+        Path { path in
+            let points = data.enumerated().map { index, point -> CGPoint in
+                CGPoint(
+                    x: xPosition(for: index, count: data.count, width: width),
+                    y: yPosition(for: point.value, height: height, range: range)
+                )
+            }
+            guard points.count >= 2 else { return }
+            path.move(to: points[0])
+
+            for i in 0..<(points.count - 1) {
+                let p0 = i > 0 ? points[i - 1] : points[i]
+                let p1 = points[i]
+                let p2 = points[i + 1]
+                let p3 = i + 2 < points.count ? points[i + 2] : points[i + 1]
+
+                let cp1 = CGPoint(
+                    x: p1.x + (p2.x - p0.x) / 6,
+                    y: p1.y + (p2.y - p0.y) / 6
+                )
+                let cp2 = CGPoint(
+                    x: p2.x - (p3.x - p1.x) / 6,
+                    y: p2.y - (p3.y - p1.y) / 6
+                )
+
+                path.addCurve(to: p2, control1: cp1, control2: cp2)
+            }
+        }
+    }
+
+    private func smoothFillPath(for data: [(date: Date, value: Double)], width: CGFloat, height: CGFloat, range: Double) -> Path {
+        var fillPath = smoothLinePath(for: data, width: width, height: height, range: range)
+        fillPath.addLine(to: CGPoint(
+            x: xPosition(for: data.count - 1, count: data.count, width: width),
+            y: height
+        ))
+        fillPath.addLine(to: CGPoint(
+            x: xPosition(for: 0, count: data.count, width: width),
+            y: height
+        ))
+        fillPath.closeSubpath()
+        return fillPath
     }
 }
 

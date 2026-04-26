@@ -648,7 +648,7 @@ struct StatsBar: View {
                 StatBarItem(
                     icon: "flame",
                     value: "\(streak)",
-                    label: String(localized: "Daily Streak")
+                    label: String(localized: "Weekly Streak")
                 )
 
                 StatBarDivider()
