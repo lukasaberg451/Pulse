@@ -14,6 +14,7 @@ import Sentry
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        #if !DEBUG
         guard let posthogAPIKey = Bundle.main.object(forInfoDictionaryKey: "POSTHOG_API_KEY") as? String,
               let posthogHost = Bundle.main.object(forInfoDictionaryKey: "POSTHOG_HOST") as? String else {
             fatalError("Missing PostHog configuration in Info.plist. Ensure Secrets.xcconfig is set up correctly.")
@@ -21,12 +22,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
         let config = PostHogConfig(apiKey: posthogAPIKey, host: posthogHost)
         PostHogSDK.shared.setup(config)
+        #endif
 
         // Configure RevenueCat
         SubscriptionManager.shared.configure()
 
         // Configure Sentry
-        if let sentryDSN = Bundle.main.object(forInfoDictionaryKey: "SENTRY_DSN") as? String {
+        #if DEBUG
+        let sentryKey = "DEV_SENTRY_DSN"
+        #else
+        let sentryKey = "PROD_SENTRY_DSN"
+        #endif
+        if let sentryDSN = Bundle.main.object(forInfoDictionaryKey: sentryKey) as? String {
             SentrySDK.start { options in
                 options.dsn = sentryDSN
                 options.debug = false
