@@ -32,7 +32,10 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     @Published var routineExercises: [RoutineExercise]
     @Published private(set) var allWorkoutExercises: [RoutineExercise] // All exercises in this workout session
     @Published var strength1RMHighlights: [Strength1RMHighlight] = []
-    @Published var lastWeights: [UUID: Double] = [:]
+    @Published var lastBestSets: [UUID: WorkoutRepository.LastSetInfo] = [:]
+    @Published var repsConfirmationSetId: UUID? = nil
+    private var pendingSetWeight: Double? = nil
+    private var pendingSetDuration: Int? = nil
     private let originalRoutineExercises: [RoutineExercise] // Store original list for watch
     
     private var currentSession: LocalWorkoutSession?
@@ -258,7 +261,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 }
             }
             
-            Task { await loadLastWeights() }
+            Task { await loadLastBestSets() }
             return
         }
         
@@ -339,10 +342,10 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             }
         }
         
-        Task { await loadLastWeights() }
+        Task { await loadLastBestSets() }
     }
     
-    private func loadLastWeights() async {
+    private func loadLastBestSets() async {
         guard !isOfflineMode else { return }
         
         let strengthIds = allWorkoutExercises.compactMap { re -> UUID? in
@@ -351,9 +354,9 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             return re.exerciseId
         }
         do {
-            lastWeights = try await WorkoutRepository().fetchLastWeights(exerciseIds: strengthIds)
+            lastBestSets = try await WorkoutRepository().fetchLastBestSets(exerciseIds: strengthIds)
         } catch {
-            debugLog("⚠️ Failed to load last weights: \(error)")
+            debugLog("⚠️ Failed to load last best sets: \(error)")
         }
     }
     
@@ -579,6 +582,10 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             // Stop the rest timer since the user is going back
             stopRestTimer()
             
+            if repsConfirmationSetId == set.id {
+                repsConfirmationSetId = nil
+            }
+            
             // Find the routine exercise that owns this set
             let undoneExerciseId = set.exerciseId
             let undoneOrderIndex = set.orderIndex
@@ -623,6 +630,72 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             routineExercises.removeFirst()
         }
         sendCurrentExerciseToWatch()
+    }
+    
+    // MARK: - Exercise Reordering
+    
+    func skipCurrentExercise() {
+        guard routineExercises.count > 1 else { return }
+        stopRestTimer()
+        let skipped = routineExercises.removeFirst()
+        routineExercises.append(skipped)
+        rebuildDisplayOrder()
+        sendCurrentExerciseToWatch()
+        updateWorkoutLiveActivity()
+    }
+    
+    func swapWithNextExercise() {
+        guard routineExercises.count > 1 else { return }
+        stopRestTimer()
+        routineExercises.swapAt(0, 1)
+        rebuildDisplayOrder()
+        sendCurrentExerciseToWatch()
+        updateWorkoutLiveActivity()
+    }
+    
+    func jumpToExercise(_ target: RoutineExercise) {
+        guard let targetIndex = routineExercises.firstIndex(where: { $0.id == target.id }),
+              targetIndex > 0 else { return }
+        stopRestTimer()
+        let exercise = routineExercises.remove(at: targetIndex)
+        routineExercises.insert(exercise, at: 0)
+        rebuildDisplayOrder()
+        sendCurrentExerciseToWatch()
+        updateWorkoutLiveActivity()
+    }
+    
+    private func rebuildDisplayOrder() {
+        let remainingIds = Set(routineExercises.map { $0.id })
+        let completed = allWorkoutExercises.filter { !remainingIds.contains($0.id) }
+        allWorkoutExercises = completed + routineExercises
+    }
+    
+    // MARK: - Reps Confirmation
+    
+    func prepareRepsConfirmation(setId: UUID, weight: Double?, durationSeconds: Int?) {
+        repsConfirmationSetId = setId
+        pendingSetWeight = weight
+        pendingSetDuration = durationSeconds
+    }
+    
+    func confirmReps(setId: UUID, reps: Int) {
+        guard let set = sets.first(where: { $0.id == setId }) else { return }
+        repsConfirmationSetId = nil
+        updateSet(
+            set: set,
+            reps: reps,
+            weight: pendingSetWeight,
+            durationSeconds: pendingSetDuration,
+            completed: true
+        )
+        pendingSetWeight = nil
+        pendingSetDuration = nil
+    }
+    
+    func dismissRepsConfirmation() {
+        repsConfirmationSetId = nil
+        pendingSetWeight = nil
+        pendingSetDuration = nil
     }
     
     func addSet(exerciseId: UUID, targetSets: Int, orderIndex: Int? = nil) async {

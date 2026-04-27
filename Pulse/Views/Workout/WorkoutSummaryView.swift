@@ -89,112 +89,110 @@ struct WorkoutSummaryView: View {
         ZStack {
             LinearGradient.dashboardBackground.ignoresSafeArea()
             
-            VStack(spacing: 0) {
-                ScrollView {
-                    VStack(spacing: 24) {
-                        // Header
-                        VStack(spacing: 12) {
-                            IconBadge(assetName: "check-circle", color: .green, size: 56)
-                                .scaleEffect(animationTrigger ? 1.0 : 0.5)
-                                .opacity(animationTrigger ? 1 : 0)
-                                .animation(.spring(response: 0.5, dampingFraction: 0.6), value: animationTrigger)
-                                .keyframeAnimator(
-                                    initialValue: CelebrationValues(),
-                                    trigger: celebrationTrigger
-                                ) { content, value in
-                                    content
-                                        .scaleEffect(value.scale)
-                                        .overlay {
-                                            Circle()
-                                                .fill(Color.green.opacity(value.glowOpacity))
-                                                .blur(radius: 24)
-                                                .scaleEffect(value.scale * 1.6)
-                                                .allowsHitTesting(false)
-                                        }
-                                } keyframes: { _ in
-                                    KeyframeTrack(\.scale) {
-                                        CubicKeyframe(1.18, duration: 0.45)
-                                        CubicKeyframe(1.0, duration: 0.6)
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(spacing: 12) {
+                        IconBadge(assetName: "check-circle", color: .green, size: 56)
+                            .scaleEffect(animationTrigger ? 1.0 : 0.5)
+                            .opacity(animationTrigger ? 1 : 0)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: animationTrigger)
+                            .keyframeAnimator(
+                                initialValue: CelebrationValues(),
+                                trigger: celebrationTrigger
+                            ) { content, value in
+                                content
+                                    .scaleEffect(value.scale)
+                                    .overlay {
+                                        Circle()
+                                            .fill(Color.green.opacity(value.glowOpacity))
+                                            .blur(radius: 24)
+                                            .scaleEffect(value.scale * 1.6)
+                                            .allowsHitTesting(false)
                                     }
-                                    
-                                    KeyframeTrack(\.glowOpacity) {
-                                        CubicKeyframe(0.3, duration: 0.4)
-                                        CubicKeyframe(0.0, duration: 0.7)
-                                    }
+                            } keyframes: { _ in
+                                KeyframeTrack(\.scale) {
+                                    CubicKeyframe(1.18, duration: 0.45)
+                                    CubicKeyframe(1.0, duration: 0.6)
                                 }
-                            
-                            Text("Workout Completed", comment: "Summary header")
-                                .font(.title2.weight(.bold))
-                                .foregroundStyle(Color.appText)
-                                .multilineTextAlignment(.center)
-                                .opacity(animationTrigger ? 1 : 0)
-                                .offset(y: animationTrigger ? 0 : 8)
-                                .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
-                            
-                            Text(routineName)
-                                .font(.subheadline)
-                                .foregroundStyle(Color.appSecondaryText)
-                                .opacity(animationTrigger ? 1 : 0)
-                                .offset(y: animationTrigger ? 0 : 8)
-                                .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
-                        }
-                        .padding(.top, 32)
-                        
-                        // Stats Grid
-                        VStack(spacing: 12) {
-                            HStack(spacing: 12) {
-                                summaryStatCard(
-                                    icon: "clock",
-                                    title: "Duration",
-                                    value: formattedDuration
-                                )
-                                
-                                summaryStatCard(
-                                    icon: "flame",
-                                    title: "Total Sets",
-                                    value: "\(totalSets)"
-                                )
+
+                                KeyframeTrack(\.glowOpacity) {
+                                    CubicKeyframe(0.3, duration: 0.4)
+                                    CubicKeyframe(0.0, duration: 0.7)
+                                }
                             }
+
+                        Text("Workout Completed", comment: "Summary header")
+                            .font(.title2.weight(.bold))
+                            .foregroundStyle(Color.appText)
+                            .multilineTextAlignment(.center)
                             .opacity(animationTrigger ? 1 : 0)
-                            .offset(y: animationTrigger ? 0 : 16)
-                            .animation(.easeOut(duration: 0.4).delay(0.4), value: animationTrigger)
-                            
-                            HStack(spacing: 12) {
-                                summaryStatCard(
-                                    icon: "volume",
-                                    title: "Volume",
-                                    value: String(format: "%.0f %@", unitManager.displayWeight(totalVolume), unitManager.weightUnit)
-                                )
-                                
-                                summaryStatCard(
-                                    icon: "exercises",
-                                    title: "Exercises",
-                                    value: "\(exerciseCount)"
-                                )
-                            }
+                            .offset(y: animationTrigger ? 0 : 8)
+                            .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
+
+                        Text(routineName)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
                             .opacity(animationTrigger ? 1 : 0)
-                            .offset(y: animationTrigger ? 0 : 16)
-                            .animation(.easeOut(duration: 0.4).delay(0.55), value: animationTrigger)
-                        }
-                        .padding(.horizontal)
-                        
-                        // Strength Highlights (only shown when there are new PRs)
-                        if strength1RMHighlights.contains(where: { $0.isNewPr }) {
-                            strengthHighlightsSection
-                                .padding(.horizontal)
-                                .opacity(animationTrigger ? 1 : 0)
-                                .offset(y: animationTrigger ? 0 : 20)
-                                .animation(.easeOut(duration: 0.4).delay(0.65), value: animationTrigger)
-                        }
-                        
-                        // Exercise Breakdown
-                        exercisesSection
-                            .padding(.horizontal)
+                            .offset(y: animationTrigger ? 0 : 8)
+                            .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
                     }
-                    .padding(.bottom, 24)
+                    .padding(.top, 32)
+
+                    // Stats Grid
+                    VStack(spacing: 12) {
+                        HStack(spacing: 12) {
+                            summaryStatCard(
+                                icon: "clock",
+                                title: "Duration",
+                                value: formattedDuration
+                            )
+
+                            summaryStatCard(
+                                icon: "flame",
+                                title: "Total Sets",
+                                value: "\(totalSets)"
+                            )
+                        }
+                        .opacity(animationTrigger ? 1 : 0)
+                        .offset(y: animationTrigger ? 0 : 16)
+                        .animation(.easeOut(duration: 0.4).delay(0.4), value: animationTrigger)
+
+                        HStack(spacing: 12) {
+                            summaryStatCard(
+                                icon: "volume",
+                                title: "Volume",
+                                value: String(format: "%.0f %@", unitManager.displayWeight(totalVolume), unitManager.weightUnit)
+                            )
+
+                            summaryStatCard(
+                                icon: "exercises",
+                                title: "Exercises",
+                                value: "\(exerciseCount)"
+                            )
+                        }
+                        .opacity(animationTrigger ? 1 : 0)
+                        .offset(y: animationTrigger ? 0 : 16)
+                        .animation(.easeOut(duration: 0.4).delay(0.55), value: animationTrigger)
+                    }
+                    .padding(.horizontal)
+
+                    // Strength Highlights (only shown when there are new PRs)
+                    if strength1RMHighlights.contains(where: { $0.isNewPr }) {
+                        strengthHighlightsSection
+                            .padding(.horizontal)
+                            .opacity(animationTrigger ? 1 : 0)
+                            .offset(y: animationTrigger ? 0 : 20)
+                            .animation(.easeOut(duration: 0.4).delay(0.65), value: animationTrigger)
+                    }
+
+                    // Exercise Breakdown
+                    exercisesSection
+                        .padding(.horizontal)
                 }
-                
-                // Action Buttons
+                .padding(.bottom, 24)
+            }
+            .safeAreaInset(edge: .bottom) {
                 HStack(spacing: 12) {
                     Button {
                         shareWorkout()
@@ -215,7 +213,7 @@ struct WorkoutSummaryView: View {
                             .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 12, x: 0, y: 4)
                     }
                     .buttonStyle(ScalePressStyle())
-                    
+
                     PrimaryCTAButton("Done") {
                         onDismiss()
                     }
@@ -226,6 +224,10 @@ struct WorkoutSummaryView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 16)
                 .padding(.top, 8)
+                .background(
+                    Color.appBackground.opacity(0.75)
+                        .ignoresSafeArea()
+                )
             }
         }
         .sentryScreen("WorkoutSummary")

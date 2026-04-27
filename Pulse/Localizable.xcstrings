@@ -471,6 +471,16 @@
         }
       }
     },
+    "%@ %@ %@ × %lld reps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ %3$@ × %4$lld reps"
+          }
+        }
+      }
+    },
     "%@ %@ %@ overall" : {
       "comment" : "Overall weight change summary",
       "localizations" : {
@@ -5308,6 +5318,9 @@
         }
       }
     },
+    "Did you hit %lld reps?" : {
+
+    },
     "Discard" : {
       "localizations" : {
         "de" : {
@@ -6169,6 +6182,9 @@
           }
         }
       }
+    },
+    "EXERCISES" : {
+      "comment" : "Progress header label"
     },
     "Failed to add exercise. Please try again." : {
       "localizations" : {
@@ -7978,6 +7994,9 @@
         }
       }
     },
+    "Jump to…" : {
+
+    },
     "Just %lld more workout this week to hit your goal and start building a streak." : {
 
     },
@@ -8055,6 +8074,7 @@
       }
     },
     "Last session best:" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8081,6 +8101,9 @@
           }
         }
       }
+    },
+    "Last session:" : {
+
     },
     "Last Workout" : {
       "comment" : "Streak card label",
@@ -12971,6 +12994,9 @@
         }
       }
     },
+    "Skip for Now" : {
+
+    },
     "Smart Insights" : {
       "comment" : "Section header on progress tab",
       "extractionState" : "stale",
@@ -13567,6 +13593,9 @@
           }
         }
       }
+    },
+    "Swap with Next" : {
+
     },
     "Synced %@ ago" : {
       "localizations" : {
@@ -16398,6 +16427,7 @@
       }
     },
     "Yes" : {
+      "comment" : "Confirm target reps",
       "localizations" : {
         "de" : {
           "stringUnit" : {

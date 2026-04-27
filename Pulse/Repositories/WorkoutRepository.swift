@@ -681,7 +681,12 @@ class WorkoutRepository {
     }
 
     /// Fetches the most recent completed weight for each of the given exercise IDs.
-    func fetchLastWeights(exerciseIds: [UUID]) async throws -> [UUID: Double] {
+    struct LastSetInfo {
+        let weight: Double
+        let reps: Int?
+    }
+    
+    func fetchLastBestSets(exerciseIds: [UUID]) async throws -> [UUID: LastSetInfo] {
         guard !exerciseIds.isEmpty else { return [:] }
         
         // Fetch recent completed sets for these exercises, ordered by created_at desc
@@ -696,11 +701,11 @@ class WorkoutRepository {
             .execute()
             .value
         
-        // Pick the first (most recent) weight per exercise
-        var result: [UUID: Double] = [:]
+        // Pick the first (most recent) set per exercise
+        var result: [UUID: LastSetInfo] = [:]
         for set in sets {
             if result[set.exerciseId] == nil, let weight = set.weight {
-                result[set.exerciseId] = weight
+                result[set.exerciseId] = LastSetInfo(weight: weight, reps: set.reps)
             }
         }
         return result
