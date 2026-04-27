@@ -29,12 +29,13 @@ enum SmartInsightEngine {
     /// Generates insights from already-loaded progress stats.
     /// Returns insights sorted by priority (highest first).
     static func generateInsights(
-        currentStreak: Int,
-        bestStreak: Int,
-        previousStreak: Int,
+        userStreak: UserStreak?,
+        previousWeekStreak: Int,
         monthlyWorkouts: Int,
         lastMonthWorkouts: Int,
         weeklyVolume: Int,
+        weeklyWorkouts: Int?,
+        lastWeekWorkouts: Int?,
         monthlyVolume: Int,
         lastMonthVolume: Int,
         avgDuration: Int,
@@ -43,6 +44,7 @@ enum SmartInsightEngine {
         topMuscleGroupPercentage: Double,
         muscleGroupCount: Int,
         improvingExerciseCount: Int,
+        recentPRCount: Int,
         daysSinceLastWorkout: Int?,
         lifetimeWorkouts: Int,
         weekdayIndex: Int,
@@ -50,17 +52,33 @@ enum SmartInsightEngine {
     ) -> [SmartInsight] {
         var insights: [SmartInsight] = []
         
-        // 1. High streak — suggest rest
-        if currentStreak >= 4 {
+        let currentStreak = userStreak?.currentStreak ?? 0
+        let bestStreak = userStreak?.bestStreak ?? 0
+        let workoutsThisWeek = userStreak?.workoutsThisWeek ?? 0
+        let workoutsRequired = userStreak?.workoutsRequired ?? 3
+        let weekCompleted = userStreak?.weekCompleted ?? false
+
+        // 1. Week goal completed — celebrate
+        if weekCompleted {
+            insights.append(SmartInsight(
+                title: String(localized: "Week Goal Smashed"),
+                message: String(localized: "You hit your target of \(workoutsRequired) workouts this week. Consistency like this is what drives real results. Enjoy the rest of the week or keep pushing!"),
+                iconAsset: "trophy",
+                priority: 88
+            ))
+        }
+
+        // 2. High training frequency this week — suggest rest
+        if workoutsThisWeek >= 5 {
             insights.append(SmartInsight(
                 title: String(localized: "Recovery Matters"),
-                message: String(localized: "You've trained \(currentStreak) days straight. Muscle tissue repairs and grows during rest, scheduling a recovery day can actually accelerate your progress."),
+                message: String(localized: "You've trained \(workoutsThisWeek) times this week. Muscle tissue repairs and grows during rest, scheduling a recovery day can actually accelerate your progress."),
                 iconAsset: "moon",
                 priority: 90
             ))
         }
 
-        // 2. Inactivity — encourage return
+        // 3. Inactivity — encourage return
         if let daysSince = daysSinceLastWorkout, daysSince >= 4 {
             insights.append(SmartInsight(
                 title: String(localized: "Time to Get Back"),
@@ -77,7 +95,20 @@ enum SmartInsightEngine {
             ))
         }
 
-        // 3. Monthly workout frequency increase (skip first week — not enough data)
+        // 4. Almost there — one workout away from completing weekly goal
+        if !weekCompleted && workoutsThisWeek == workoutsRequired - 1 && workoutsRequired > 1 {
+            let remaining = workoutsRequired - workoutsThisWeek
+            insights.append(SmartInsight(
+                title: String(localized: "Almost There"),
+                message: currentStreak > 0
+                    ? String(localized: "Just \(remaining) more workout to keep your \(currentStreak)-week streak alive. You've got this!")
+                    : String(localized: "Just \(remaining) more workout this week to hit your goal and start building a streak."),
+                iconAsset: "flame",
+                priority: 83
+            ))
+        }
+
+        // 5. Monthly workout frequency increase (skip first week — not enough data)
         if dayOfMonth >= 8 && lastMonthWorkouts > 0 && monthlyWorkouts > lastMonthWorkouts {
             let increase = Int(Double(monthlyWorkouts - lastMonthWorkouts) / Double(lastMonthWorkouts) * 100)
             if increase >= 20 {
@@ -90,7 +121,7 @@ enum SmartInsightEngine {
             }
         }
 
-        // 4. Monthly workout frequency decrease (skip first week — not enough data)
+        // 6. Monthly workout frequency decrease (skip first week — not enough data)
         if dayOfMonth >= 8 && lastMonthWorkouts > 0 && monthlyWorkouts < lastMonthWorkouts {
             let decrease = Int(Double(lastMonthWorkouts - monthlyWorkouts) / Double(lastMonthWorkouts) * 100)
             if decrease >= 30 {
@@ -103,7 +134,7 @@ enum SmartInsightEngine {
             }
         }
 
-        // 5. Volume progressive overload (skip first week — not enough data)
+        // 7. Volume progressive overload (skip first week — not enough data)
         if dayOfMonth >= 8 && lastMonthVolume > 0 && monthlyVolume > lastMonthVolume {
             let increase = Int(Double(monthlyVolume - lastMonthVolume) / Double(lastMonthVolume) * 100)
             if increase >= 10 {
@@ -116,7 +147,7 @@ enum SmartInsightEngine {
             }
         }
 
-        // 6. Volume declining (skip first week — not enough data)
+        // 8. Volume declining (skip first week — not enough data)
         if dayOfMonth >= 8 && lastMonthVolume > 0 && monthlyVolume < lastMonthVolume {
             let decrease = Int(Double(lastMonthVolume - monthlyVolume) / Double(lastMonthVolume) * 100)
             if decrease >= 20 {
@@ -129,7 +160,7 @@ enum SmartInsightEngine {
             }
         }
 
-        // 7. Muscle imbalance — one group dominates (need enough workouts for meaningful distribution)
+        // 9. Muscle imbalance — one group dominates (need enough workouts for meaningful distribution)
         if let topName = topMuscleGroupName, topMuscleGroupPercentage > 0.40 && muscleGroupCount >= 2 && monthlyWorkouts >= 4 {
             let pct = Int(topMuscleGroupPercentage * 100)
             insights.append(SmartInsight(
@@ -140,7 +171,7 @@ enum SmartInsightEngine {
             ))
         }
 
-        // 8. Too few muscle groups
+        // 10. Too few muscle groups
         if muscleGroupCount == 1 && monthlyWorkouts >= 3, let topName = topMuscleGroupName {
             insights.append(SmartInsight(
                 title: String(localized: "Add Some Variety"),
@@ -150,7 +181,7 @@ enum SmartInsightEngine {
             ))
         }
 
-        // 9. All upper body, no lower body
+        // 11. All upper body, no lower body
         if muscleGroupCount >= 2 && monthlyWorkouts >= 3 {
             let lowerNames = muscleGroupNames.map { $0.lowercased() }
             let hasLower = lowerNames.contains { lowerBodyGroups.contains($0) }
@@ -165,7 +196,7 @@ enum SmartInsightEngine {
             }
         }
 
-        // 10. Long session duration
+        // 12. Long session duration
         if avgDuration > 90 && monthlyWorkouts >= 2 {
             insights.append(SmartInsight(
                 title: String(localized: "Quality Over Quantity"),
@@ -175,7 +206,7 @@ enum SmartInsightEngine {
             ))
         }
 
-        // 11. Short session duration
+        // 13. Short session duration
         if avgDuration > 0 && avgDuration < 20 && monthlyWorkouts >= 3 {
             insights.append(SmartInsight(
                 title: String(localized: "Make Each Session Count"),
@@ -185,7 +216,21 @@ enum SmartInsightEngine {
             ))
         }
 
-        // 12. Strength PR momentum
+        // 14. Recent PRs this week
+        if recentPRCount >= 1 {
+            insights.append(SmartInsight(
+                title: recentPRCount == 1
+                    ? String(localized: "New Personal Record")
+                    : String(localized: "PRs Rolling In"),
+                message: recentPRCount == 1
+                    ? String(localized: "You set a new estimated 1RM record this week. Progressive overload in action — keep challenging yourself.")
+                    : String(localized: "You've hit \(recentPRCount) new 1RM records this week. Your training is clearly paying off."),
+                iconAsset: "trophy",
+                priority: 76
+            ))
+        }
+
+        // 15. Strength PR momentum
         if improvingExerciseCount >= 3 {
             insights.append(SmartInsight(
                 title: String(localized: "Strength Trending Up"),
@@ -195,30 +240,29 @@ enum SmartInsightEngine {
             ))
         }
 
-        // 13. Best streak achievement
+        // 16. Best streak achievement (weekly)
         if currentStreak > 0 && currentStreak >= bestStreak && bestStreak >= 3 {
             insights.append(SmartInsight(
                 title: String(localized: "New Personal Best"),
-                message: String(localized: "You're on your longest workout streak ever at \(currentStreak) days. Building a training habit is the foundation of lasting results."),
+                message: String(localized: "You're on your longest streak ever at \(currentStreak) weeks. Building a training habit is the foundation of lasting results."),
                 iconAsset: "flame",
                 priority: 85
             ))
         }
 
-        // 14. Streak just broken
-        if currentStreak == 0 && previousStreak >= 3 {
+        // 17. Streak just broken (weekly)
+        if currentStreak == 0 && previousWeekStreak >= 3 {
             insights.append(SmartInsight(
                 title: String(localized: "Streak Paused, Not Lost"),
-                message: String(localized: "Your \(previousStreak)-day streak ended, but the strength you built didn't disappear. One session is all it takes to start a new one."),
+                message: String(localized: "Your \(previousWeekStreak)-week streak ended, but the strength you built didn't disappear. Hit your \(workoutsRequired) workouts this week to start a new one."),
                 iconAsset: "flame",
                 priority: 82
             ))
         }
 
-        // 15. Lifetime workout milestones
+        // 18. Lifetime workout milestones
         let milestones = [10, 25, 50, 100, 150, 200, 250, 500]
         if let milestone = milestones.last(where: { lifetimeWorkouts >= $0 }) {
-            // Only show if they recently hit it (within 3 workouts of the milestone)
             if lifetimeWorkouts - milestone < 3 {
                 insights.append(SmartInsight(
                     title: String(localized: "\(milestone) Workouts Strong"),
@@ -229,12 +273,14 @@ enum SmartInsightEngine {
             }
         }
 
-        // 16. Mid-week nudge (Thursday or later, no workouts this week)
+        // 19. Mid-week nudge (Thursday or later, no workouts this week)
         // weekdayIndex: 1=Sunday, 2=Monday ... 5=Thursday, 6=Friday, 7=Saturday
-        if weekdayIndex >= 5 && weeklyVolume == 0 && lifetimeWorkouts > 0 {
+        if weekdayIndex >= 5 && workoutsThisWeek == 0 && lifetimeWorkouts > 0 {
             insights.append(SmartInsight(
                 title: String(localized: "Week's Not Over Yet"),
-                message: String(localized: "You haven't trained this week yet. Even one session before the weekend helps maintain the progress you've built."),
+                message: currentStreak > 0
+                    ? String(localized: "You haven't trained this week yet and your \(currentStreak)-week streak is on the line. Even one session before the weekend keeps your momentum going.")
+                    : String(localized: "You haven't trained this week yet. Even one session before the weekend helps maintain the progress you've built."),
                 iconAsset: "flame",
                 priority: 78
             ))

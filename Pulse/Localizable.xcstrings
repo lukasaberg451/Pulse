@@ -2449,6 +2449,9 @@
         }
       }
     },
+    "Almost There" : {
+
+    },
     "Already Have an Account" : {
       "comment" : "Sign in link",
       "localizations" : {
@@ -7975,6 +7978,19 @@
         }
       }
     },
+    "Just %lld more workout this week to hit your goal and start building a streak." : {
+
+    },
+    "Just %lld more workout to keep your %lld-week streak alive. You've got this!" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Just %1$lld more workout to keep your %2$lld-week streak alive. You've got this!"
+          }
+        }
+      }
+    },
     "Keep It Up" : {
       "localizations" : {
         "de" : {
@@ -10671,6 +10687,7 @@
       }
     },
     "Progress" : {
+      "comment" : "Section header on progress tab",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -10697,6 +10714,9 @@
           }
         }
       }
+    },
+    "PRs Rolling In" : {
+
     },
     "Pulse Member" : {
       "comment" : "Default profile name",
@@ -12953,6 +12973,7 @@
     },
     "Smart Insights" : {
       "comment" : "Section header on progress tab",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -15649,6 +15670,9 @@
     "Week ends in 1 day" : {
 
     },
+    "Week Goal Smashed" : {
+
+    },
     "Week's Not Over Yet" : {
       "localizations" : {
         "de" : {
@@ -16529,6 +16553,9 @@
         }
       }
     },
+    "You haven't trained this week yet and your %lld-week streak is on the line. Even one session before the weekend keeps your momentum going." : {
+
+    },
     "You haven't trained this week yet. Even one session before the weekend helps maintain the progress you've built." : {
       "localizations" : {
         "de" : {
@@ -16556,6 +16583,9 @@
           }
         }
       }
+    },
+    "You hit your target of %lld workouts this week. Consistency like this is what drives real results. Enjoy the rest of the week or keep pushing!" : {
+
     },
     "You need at least 2 personal records logged to see your 1RM progression chart." : {
       "comment" : "Empty chart state",
@@ -16590,6 +16620,9 @@
     "You need at least 2 sessions logged to see your 1RM progression chart." : {
       "comment" : "Empty chart state"
     },
+    "You set a new estimated 1RM record this week. Progressive overload in action — keep challenging yourself." : {
+
+    },
     "You're a Pro subscriber" : {
       "comment" : "Pro status message",
       "localizations" : {
@@ -16619,7 +16652,11 @@
         }
       }
     },
+    "You're on your longest streak ever at %lld weeks. Building a training habit is the foundation of lasting results." : {
+
+    },
     "You're on your longest workout streak ever at %lld days. Building a training habit is the foundation of lasting results." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -16708,6 +16745,9 @@
           }
         }
       }
+    },
+    "You've hit %lld new 1RM records this week. Your training is clearly paying off." : {
+
     },
     "You've improved on %lld exercises since you started. Keep following progressive overload principles to sustain these gains." : {
       "localizations" : {
@@ -16800,6 +16840,7 @@
       }
     },
     "You've trained %lld days straight. Muscle tissue repairs and grows during rest, scheduling a recovery day can actually accelerate your progress." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -16827,7 +16868,11 @@
         }
       }
     },
+    "You've trained %lld times this week. Muscle tissue repairs and grows during rest, scheduling a recovery day can actually accelerate your progress." : {
+
+    },
     "Your %lld-day streak ended, but the strength you built didn't disappear. One session is all it takes to start a new one." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -16851,6 +16896,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sua sequência de %lld dias terminou, mas a força que você construiu não desapareceu. Uma sessão é tudo que precisa para começar uma nova."
+          }
+        }
+      }
+    },
+    "Your %lld-week streak ended, but the strength you built didn't disappear. Hit your %lld workouts this week to start a new one." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your %1$lld-week streak ended, but the strength you built didn't disappear. Hit your %2$lld workouts this week to start a new one."
           }
         }
       }

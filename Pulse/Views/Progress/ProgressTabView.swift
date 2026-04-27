@@ -166,7 +166,7 @@ struct ProgressTabView: View {
                     VStack(spacing: 14) {
                         // Smart Insight
                         if let insight = viewModel.currentInsight {
-                            Text("Smart Insights", comment: "Section header on progress tab")
+                            Text("Progress", comment: "Section header on progress tab")
                                 .font(.title3.weight(.bold))
                                 .foregroundStyle(Color.appText)
                                 .frame(maxWidth: .infinity, alignment: .leading)

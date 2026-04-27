@@ -43,6 +43,7 @@ class ProgressStatsViewModel: ObservableObject {
     @Published var avgDuration: Int = 0
     @Published var currentStreak: Int = 0
     private var previousStreak: Int = 0
+    private var previousWeekStreak: Int = 0
 
     @Published var lastMonthVolume: Int = 0
     @Published var lastMonthWorkouts: Int = 0
@@ -121,6 +122,7 @@ class ProgressStatsViewModel: ObservableObject {
     func loadStats() async {
         loadTask?.cancel()
         previousStreak = currentStreak
+        previousWeekStreak = userStreak?.currentStreak ?? 0
         await fetchUserProfile()
         let task = Task { @MainActor [weak self] in
             guard let self else { return }
@@ -141,23 +143,24 @@ class ProgressStatsViewModel: ObservableObject {
     
     private func generateInsight() {
         let calendar = userProfile?.userCalendar ?? Calendar.current
-        
+
         var daysSinceLastWorkout: Int? = nil
         if let lastSession = recentSessions.first {
             let lastDate = lastSession.completedAt ?? lastSession.startedAt
             daysSinceLastWorkout = calendar.dateComponents([.day], from: lastDate, to: Date()).day
         }
-        
+
         let weekdayIndex = calendar.component(.weekday, from: Date())
         let dayOfMonth = calendar.component(.day, from: Date())
-        
+
         let insights = SmartInsightEngine.generateInsights(
-            currentStreak: currentStreak,
-            bestStreak: bestStreak,
-            previousStreak: previousStreak,
+            userStreak: userStreak,
+            previousWeekStreak: previousWeekStreak,
             monthlyWorkouts: monthlyWorkouts,
             lastMonthWorkouts: lastMonthWorkouts,
             weeklyVolume: weeklyVolume,
+            weeklyWorkouts: weeklyWorkouts,
+            lastWeekWorkouts: lastWeekWorkouts,
             monthlyVolume: monthlyVolume,
             lastMonthVolume: lastMonthVolume,
             avgDuration: avgDuration,
@@ -166,6 +169,7 @@ class ProgressStatsViewModel: ObservableObject {
             topMuscleGroupPercentage: topMuscleGroups.first?.percentage ?? 0,
             muscleGroupCount: topMuscleGroups.count,
             improvingExerciseCount: strengthProgress.filter { $0.improvementPercent > 0 }.count,
+            recentPRCount: recentPRCount,
             daysSinceLastWorkout: daysSinceLastWorkout,
             lifetimeWorkouts: lifetimeWorkouts,
             weekdayIndex: weekdayIndex,

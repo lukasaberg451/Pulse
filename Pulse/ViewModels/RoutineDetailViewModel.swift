@@ -31,8 +31,10 @@ class RoutineDetailViewModel: ObservableObject {
         self.routine = routine
     }
     
-    func loadRoutineExercises(forceRefresh: Bool = false) async {
-        isLoading = true
+    func loadRoutineExercises(forceRefresh: Bool = false, silent: Bool = false) async {
+        if !silent {
+            isLoading = true
+        }
         errorMessage = nil
         
         do {
@@ -81,8 +83,10 @@ class RoutineDetailViewModel: ObservableObject {
         } catch {
             errorMessage = String(localized: "Failed to load exercises: \(error.localizedDescription)")
         }
-        
-        isLoading = false
+
+        if !silent {
+            isLoading = false
+        }
     }
     
     func addExercise(exerciseId: UUID, sets: Int, repsTarget: String?, targetWeight: Double?, durationSeconds: Int?, restSeconds: Int) async {
@@ -203,7 +207,6 @@ class RoutineDetailViewModel: ObservableObject {
     }
     
     func saveExerciseOrder(_ orderedExercises: [RoutineExercise]) async {
-        // Update order_index for all exercises
         do {
             for (index, exercise) in orderedExercises.enumerated() {
                 try await routineRepository.updateExerciseOrder(
@@ -211,12 +214,11 @@ class RoutineDetailViewModel: ObservableObject {
                     orderIndex: index
                 )
             }
-            
-            // Update local state immediately
+
             routineExercises = orderedExercises
-            
-            // Then reload to ensure consistency
-            await loadRoutineExercises()
+
+            // Silent reload to ensure consistency — skip isLoading to avoid a flash
+            await loadRoutineExercises(silent: true)
         } catch {
             actionError = String(localized: "Failed to save exercise order. Please try again.")
         }
