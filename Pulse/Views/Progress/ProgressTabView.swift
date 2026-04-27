@@ -24,6 +24,12 @@ struct ProgressTabView: View {
         return "\(mins)m"
     }
 
+    private func formattedDurationFull(_ minutes: Int) -> String {
+        let hours = minutes / 60
+        let mins = minutes % 60
+        return "\(hours)h \(mins)m"
+    }
+
     private func formattedVolume(_ value: Double) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -62,14 +68,14 @@ struct ProgressTabView: View {
         }
 
         let workoutsNeeded = streak.workoutsRequired - streak.workoutsThisWeek
-        let leftText = String(localized: "Complete \(workoutsNeeded) more \(workoutsNeeded == 1 ? String(localized: "workout") : String(localized: "workouts")) this week")
+        let leftText = String(localized: "\(workoutsNeeded) more \(workoutsNeeded == 1 ? String(localized: "workout") : String(localized: "workouts")) to stay on track")
 
         let remaining = daysLeftInWeek
         let rightText: String
         switch remaining {
         case 0: rightText = String(localized: "Last day")
-        case 1: rightText = String(localized: "Resets tomorrow")
-        default: rightText = String(localized: "Resets in \(remaining) days")
+        case 1: rightText = String(localized: "Week ends in 1 day")
+        default: rightText = String(localized: "Week ends in \(remaining) days")
         }
 
         let color: Color
@@ -185,8 +191,8 @@ struct ProgressTabView: View {
                                     .font(.subheadline.weight(.bold))
                                     .foregroundStyle(Color.appText)
                                 Spacer()
-                                Text("\(String(localized: "Last workout:")) \(lastWorkoutDaysAgoText.lowercased())")
-                                    .font(.subheadline.weight(.medium))
+                                Text("\(String(localized: "Last workout:")) \(lastWorkoutDaysAgoText)")
+                                    .font(.caption.weight(.medium))
                                     .foregroundStyle(Color.appSecondaryText)
                             }
                             .padding(12)
@@ -221,61 +227,59 @@ struct ProgressTabView: View {
                         .accessibilityIdentifier("progressStreakCard")
 
 
-                        Text("Last 7 days", comment: "Subheadline above workout and volume cards")
+                        Text("Last 7 days", comment: "Subheadline above stat cards")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.appSecondaryText)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal)
 
-                        // Workouts Card
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Workouts", comment: "Card headline")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(Color.appSecondaryText)
-                            HStack(spacing: 8) {
-                                IconBadge(assetName: "strengthtraining", color: .appAccent, size: 28)
-                                Text("\(viewModel.weeklyWorkouts ?? 0) \((viewModel.weeklyWorkouts ?? 0) == 1 ? String(localized: "workout") : String(localized: "workouts"))")
-                                    .font(.subheadline.weight(.bold))
-                                    .foregroundStyle(Color.appText)
-                                Spacer()
-                                trendText(current: viewModel.weeklyWorkouts ?? 0, previous: viewModel.lastWeekWorkouts)
-                                Spacer()
-                            }
-                        }
-                        .padding(12)
-                        .background {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.appSurface)
-                                .modifier(CardShadowModifier())
-                        }
-                        .padding(.horizontal)
-                        .accessibilityElement(children: .contain)
-                        .accessibilityIdentifier("progressWorkoutsCard")
+                        // 2x2 Stats Grid
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                            // Volume
+                            WeeklyStatCard(
+                                icon: .asset("volume"),
+                                iconColor: .blue,
+                                title: String(localized: "Volume"),
+                                value: "\(formattedVolume(unitManager.displayWeight(Double(viewModel.weeklyVolume)))) \(unitManager.weightUnit)",
+                                current: viewModel.weeklyVolume,
+                                previous: viewModel.lastWeekVolume
+                            )
+                            .accessibilityIdentifier("progressVolumeCard")
 
-                        // Volume Card
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Volume", comment: "Card headline")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(Color.appSecondaryText)
-                            HStack(spacing: 8) {
-                                IconBadge(assetName: "volume", color: .blue, size: 28)
-                                Text("\(formattedVolume(unitManager.displayWeight(Double(viewModel.weeklyVolume)))) \(unitManager.weightUnit)")
-                                    .font(.subheadline.weight(.bold))
-                                    .foregroundStyle(Color.appText)
-                                Spacer()
-                                trendText(current: viewModel.weeklyVolume, previous: viewModel.lastWeekVolume)
-                                Spacer()
-                            }
-                        }
-                        .padding(12)
-                        .background {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.appSurface)
-                                .modifier(CardShadowModifier())
+                            // Workouts
+                            WeeklyStatCard(
+                                icon: .asset("strengthtraining"),
+                                iconColor: .appAccent,
+                                title: String(localized: "Workouts"),
+                                value: "\(viewModel.weeklyWorkouts ?? 0) \((viewModel.weeklyWorkouts ?? 0) == 1 ? String(localized: "workout") : String(localized: "workouts"))",
+                                current: viewModel.weeklyWorkouts ?? 0,
+                                previous: viewModel.lastWeekWorkouts
+                            )
+                            .accessibilityIdentifier("progressWorkoutsCard")
+
+                            // Workout Time
+                            WeeklyStatCard(
+                                icon: .system("clock"),
+                                iconColor: .purple,
+                                title: String(localized: "Workout Time"),
+                                value: formattedDurationFull(viewModel.weeklyDurationMinutes),
+                                current: viewModel.weeklyDurationMinutes,
+                                previous: viewModel.lastWeekDurationMinutes
+                            )
+                            .accessibilityIdentifier("progressTimeCard")
+
+                            // Sets
+                            WeeklyStatCard(
+                                icon: .system("number"),
+                                iconColor: .green,
+                                title: String(localized: "Sets"),
+                                value: "\(viewModel.weeklySets ?? 0) \((viewModel.weeklySets ?? 0) == 1 ? String(localized: "set") : String(localized: "sets"))",
+                                current: viewModel.weeklySets ?? 0,
+                                previous: viewModel.lastWeekSets
+                            )
+                            .accessibilityIdentifier("progressSetsCard")
                         }
                         .padding(.horizontal)
-                        .accessibilityElement(children: .contain)
-                        .accessibilityIdentifier("progressVolumeCard")
 
 
                         // Estimated 1RM Section
@@ -340,6 +344,89 @@ struct ProgressTabView: View {
                 SubscriptionView()
                     .sheetContentTransition()
             }
+        }
+    }
+}
+
+// MARK: - Weekly Stat Card (2x2 Grid)
+
+enum StatIconSource {
+    case system(String)
+    case asset(String)
+}
+
+struct WeeklyStatCard: View {
+    let icon: StatIconSource
+    let iconColor: Color
+    let title: String
+    let value: String
+    let current: Int
+    let previous: Int?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                switch icon {
+                case .system(let name):
+                    IconBadge(systemName: name, color: iconColor, size: 24)
+                case .asset(let name):
+                    IconBadge(assetName: name, color: iconColor, size: 24)
+                }
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.appSecondaryText)
+            }
+
+            Text(value)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(Color.appText)
+
+            trendIndicator
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.appSurface)
+                .modifier(CardShadowModifier())
+        }
+    }
+
+    @ViewBuilder
+    private var trendIndicator: some View {
+        if let previous, previous > 0 {
+            let pct = Double(current - previous) / Double(previous) * 100
+            if pct > 15 {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.up.right")
+                    Text("Above your usual")
+                }
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(Color.green)
+            } else if pct < -15 {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.down.right")
+                    Text("Below your usual")
+                }
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(Color.red.opacity(0.55))
+            } else {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.right")
+                    Text("About the same")
+                }
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(Color.appSecondaryText.opacity(0.7))
+            }
+        } else if let previous, previous == 0, current > 0 {
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.up.right")
+                Text("Above your usual")
+            }
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(Color.green)
+        } else {
+            EmptyView()
         }
     }
 }

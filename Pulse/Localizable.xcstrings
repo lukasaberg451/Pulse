@@ -1010,6 +1010,16 @@
         }
       }
     },
+    "%lld more %@ to stay on track" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld more %2$@ to stay on track"
+          }
+        }
+      }
+    },
     "%lld reps" : {
       "localizations" : {
         "de" : {
@@ -3722,16 +3732,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "cm"
-          }
-        }
-      }
-    },
-    "Complete %lld more %@ this week" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Complete %1$lld more %2$@ this week"
           }
         }
       }
@@ -8004,7 +8004,7 @@
       }
     },
     "Last 7 days" : {
-      "comment" : "Subheadline above workout and volume cards"
+      "comment" : "Subheadline above stat cards"
     },
     "Last day" : {
 
@@ -11298,12 +11298,6 @@
         }
       }
     },
-    "Resets in %lld days" : {
-
-    },
-    "Resets tomorrow" : {
-
-    },
     "rest" : {
       "localizations" : {
         "de" : {
@@ -12298,6 +12292,9 @@
     },
     "Session 1RM" : {
       "comment" : "Chart legend for session line"
+    },
+    "set" : {
+
     },
     "SET" : {
       "comment" : "Column header",
@@ -15646,6 +15643,12 @@
     "week" : {
 
     },
+    "Week ends in %lld days" : {
+
+    },
+    "Week ends in 1 day" : {
+
+    },
     "Week's Not Over Yet" : {
       "localizations" : {
         "de" : {
@@ -16196,7 +16199,6 @@
     },
     "Workout Time" : {
       "comment" : "Activity card label",
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

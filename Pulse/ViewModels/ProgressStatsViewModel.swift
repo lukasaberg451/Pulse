@@ -50,6 +50,8 @@ class ProgressStatsViewModel: ObservableObject {
     @Published var lastWeekVolume: Int?
     @Published var lastWeekWorkouts: Int?
     @Published var lastWeekDurationMinutes: Int?
+    @Published var weeklySets: Int?
+    @Published var lastWeekSets: Int?
     
     @Published var strengthProgress: [StrengthProgress] = []
     @Published var topMuscleGroups: [MuscleGroupStat] = []
@@ -81,7 +83,9 @@ class ProgressStatsViewModel: ObservableObject {
         guard let lastSession = recentSessions.first else { return nil }
         let date = lastSession.completedAt ?? lastSession.startedAt
         let calendar = userProfile?.userCalendar ?? Calendar.current
-        return calendar.dateComponents([.day], from: date, to: Date()).day
+        let startOfToday = calendar.startOfDay(for: Date())
+        let startOfWorkout = calendar.startOfDay(for: date)
+        return calendar.dateComponents([.day], from: startOfWorkout, to: startOfToday).day
     }
 
     private(set) var userProfile: Profile?
@@ -211,6 +215,8 @@ class ProgressStatsViewModel: ObservableObject {
             lastWeekVolume = stats.lastWeekVolume
             lastWeekWorkouts = stats.lastWeekWorkouts
             lastWeekDurationMinutes = stats.lastWeekDurationMinutes
+            weeklySets = stats.weeklySets
+            lastWeekSets = stats.lastWeekSets
             lifetimeWorkouts = stats.lifetimeWorkouts
             lifetimeVolume = stats.lifetimeVolume
             lifetimeHours = stats.lifetimeHours

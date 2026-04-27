@@ -67,6 +67,8 @@ struct ProgressStats: Codable {
     let lastWeekVolume: Int?
     let lastWeekWorkouts: Int?
     let lastWeekDurationMinutes: Int?
+    let weeklySets: Int?
+    let lastWeekSets: Int?
 
     enum CodingKeys: String, CodingKey {
         case weeklyVolume = "weekly_volume"
@@ -87,6 +89,8 @@ struct ProgressStats: Codable {
         case lastWeekVolume = "last_week_volume"
         case lastWeekWorkouts = "last_week_workouts"
         case lastWeekDurationMinutes = "last_week_duration_minutes"
+        case weeklySets = "weekly_sets"
+        case lastWeekSets = "last_week_sets"
     }
 }
 
