@@ -489,7 +489,7 @@ struct ExercisePickerSheet: View {
     
     let muscleOptions = [
         "Adductors", "Back", "Biceps", "Calves", "Cardio", "Chest", "Core",
-        "Delts", "Forearms", "Full Body", "Glutes", "Hamstrings", "Hip",
+        "Delts", "Forearms", "Full Body", "Glutes", "Hamstrings", "Hips", "Lats",
         "Upper Back", "Lower Back", "Quads", "Shoulders", "Traps", "Triceps"
     ]
     

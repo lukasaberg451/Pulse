@@ -19,11 +19,11 @@ struct SmartInsight: Identifiable {
 enum SmartInsightEngine {
     
     private static let upperBodyGroups: Set<String> = [
-        "chest", "back", "shoulders", "delts", "biceps", "triceps", "forearms", "abs", "core"
+        "chest", "back", "shoulders", "delts", "biceps", "triceps", "forearms", "abs", "core", "lats"
     ]
 
     private static let lowerBodyGroups: Set<String> = [
-        "legs", "quadriceps", "quads", "hamstrings", "glutes", "calves", "adductors", "hip"
+        "legs", "quadriceps", "quads", "hamstrings", "glutes", "calves", "adductors", "hips"
     ]
     
     /// Generates insights from already-loaded progress stats.
