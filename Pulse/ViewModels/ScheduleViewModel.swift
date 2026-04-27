@@ -19,6 +19,7 @@ class ScheduleViewModel: ObservableObject {
     @Published var routineExerciseCounts: [UUID: Int] = [:]
     @Published var routineExerciseMap: [UUID: [RoutineExercise]] = [:]
     @Published var workoutSessions: [UUID: WorkoutSession] = [:]
+    @Published var sessionExerciseCounts: [UUID: Int] = [:]
     
     /// Exercises are accessed via the singleton cache to avoid storing a
     /// duplicate copy of the entire exercises table in this view model.
@@ -168,6 +169,10 @@ class ScheduleViewModel: ObservableObject {
                 if let session = sessions.first {
                     workoutSessions[session.id] = session
                 }
+
+                let sets = try await workoutRepository.fetchSets(sessionId: sessionId)
+                let uniqueExerciseIds = Set(sets.map(\.exerciseId))
+                sessionExerciseCounts[sessionId] = uniqueExerciseIds.count
             }
             hasLoaded = true
         } catch {

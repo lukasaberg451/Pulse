@@ -483,6 +483,7 @@
     },
     "%@ %@ %@ overall" : {
       "comment" : "Overall weight change summary",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -517,7 +518,7 @@
       }
     },
     "%@ %@ %@ since start" : {
-      "comment" : "Weight change since start",
+      "comment" : "Overall weight change summary\nWeight change since start",
       "localizations" : {
         "de" : {
           "stringUnit" : {

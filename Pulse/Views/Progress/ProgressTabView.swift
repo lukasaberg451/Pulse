@@ -1840,7 +1840,7 @@ struct WeightProgressionChart: View {
                                displayHistory.count > 1 {
                                 let change = last.weight - first.weight
                                 let arrow = change >= 0 ? "↑" : "↓"
-                                Text("\(arrow) \(String(format: "%.1f", abs(change))) \(unitManager.weightUnit) overall", comment: "Overall weight change summary")
+                                Text("\(arrow) \(String(format: "%.1f", abs(change))) \(unitManager.weightUnit) since start", comment: "Overall weight change summary")
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appSecondaryText)
                             }
@@ -1878,7 +1878,23 @@ struct WeightProgressionChart: View {
                                 
                                 chartView
                                     .frame(height: 220)
-                                
+
+                                // X-axis date labels
+                                if let first = displayHistory.first, let last = displayHistory.last {
+                                    HStack {
+                                        Text(formatShortDate(first.date))
+                                            .font(.caption2)
+                                            .foregroundStyle(Color.appSecondaryText.opacity(0.6))
+
+                                        Spacer()
+
+                                        Text(formatShortDate(last.date))
+                                            .font(.caption2)
+                                            .foregroundStyle(Color.appSecondaryText.opacity(0.6))
+                                    }
+                                    .padding(.horizontal, 30)
+                                }
+
                                 // Selected point info
                                 if let selected = selectedEntry {
                                     HStack(spacing: 12) {
@@ -1995,44 +2011,19 @@ struct WeightProgressionChart: View {
                 }
                 
                 if data.count >= 2 {
-                    // Line
-                    Path { path in
-                        for (index, point) in data.enumerated() {
-                            let x = xPosition(for: index, count: data.count, width: width)
-                            let y = yPosition(for: point.weight, height: height, range: range)
-                            
-                            if index == 0 {
-                                path.move(to: CGPoint(x: x, y: y))
-                            } else {
-                                path.addLine(to: CGPoint(x: x, y: y))
-                            }
-                        }
-                    }
-                    .stroke(Color.appAccent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
-                    
+                    // Smooth line
+                    smoothLinePath(for: data, width: width, height: height, range: range)
+                        .stroke(Color.appAccent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+
                     // Gradient fill
-                    Path { path in
-                        for (index, point) in data.enumerated() {
-                            let x = xPosition(for: index, count: data.count, width: width)
-                            let y = yPosition(for: point.weight, height: height, range: range)
-                            
-                            if index == 0 {
-                                path.move(to: CGPoint(x: x, y: y))
-                            } else {
-                                path.addLine(to: CGPoint(x: x, y: y))
-                            }
-                        }
-                        path.addLine(to: CGPoint(x: xPosition(for: data.count - 1, count: data.count, width: width), y: height))
-                        path.addLine(to: CGPoint(x: xPosition(for: 0, count: data.count, width: width), y: height))
-                        path.closeSubpath()
-                    }
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.appAccent.opacity(0.3), Color.appAccent.opacity(0.0)],
-                            startPoint: .top,
-                            endPoint: .bottom
+                    smoothFillPath(for: data, width: width, height: height, range: range)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.appAccent.opacity(0.3), Color.appAccent.opacity(0.0)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
                         )
-                    )
                     
                     // Data points
                     ForEach(Array(data.enumerated()), id: \.offset) { index, point in
@@ -2089,6 +2080,58 @@ struct WeightProgressionChart: View {
         formatter.timeStyle = .none
         formatter.timeZone = viewModel.profile?.resolvedTimeZone ?? .current
         return formatter.string(from: date)
+    }
+
+    private func formatShortDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM yyyy"
+        formatter.timeZone = viewModel.profile?.resolvedTimeZone ?? .current
+        return formatter.string(from: date)
+    }
+
+    private func smoothLinePath(for data: [(date: Date, weight: Double)], width: CGFloat, height: CGFloat, range: Double) -> Path {
+        Path { path in
+            let points = data.enumerated().map { index, point -> CGPoint in
+                CGPoint(
+                    x: xPosition(for: index, count: data.count, width: width),
+                    y: yPosition(for: point.weight, height: height, range: range)
+                )
+            }
+            guard points.count >= 2 else { return }
+            path.move(to: points[0])
+
+            for i in 0..<(points.count - 1) {
+                let p0 = i > 0 ? points[i - 1] : points[i]
+                let p1 = points[i]
+                let p2 = points[i + 1]
+                let p3 = i + 2 < points.count ? points[i + 2] : points[i + 1]
+
+                let cp1 = CGPoint(
+                    x: p1.x + (p2.x - p0.x) / 6,
+                    y: p1.y + (p2.y - p0.y) / 6
+                )
+                let cp2 = CGPoint(
+                    x: p2.x - (p3.x - p1.x) / 6,
+                    y: p2.y - (p3.y - p1.y) / 6
+                )
+
+                path.addCurve(to: p2, control1: cp1, control2: cp2)
+            }
+        }
+    }
+
+    private func smoothFillPath(for data: [(date: Date, weight: Double)], width: CGFloat, height: CGFloat, range: Double) -> Path {
+        var fillPath = smoothLinePath(for: data, width: width, height: height, range: range)
+        fillPath.addLine(to: CGPoint(
+            x: xPosition(for: data.count - 1, count: data.count, width: width),
+            y: height
+        ))
+        fillPath.addLine(to: CGPoint(
+            x: xPosition(for: 0, count: data.count, width: width),
+            y: height
+        ))
+        fillPath.closeSubpath()
+        return fillPath
     }
 }
 
