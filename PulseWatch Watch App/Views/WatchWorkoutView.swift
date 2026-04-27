@@ -18,6 +18,7 @@ struct WatchWorkoutView: View {
     @State private var totalSets: Int = 0
     @State private var targetReps: String = ""
     @State private var targetWeight: Double = 0
+    @State private var weightUnit: String = "kg"
     @State private var exerciseType: String = "strength"
     @State private var targetDuration: Int = 0
     @State private var restSeconds: Int = 60
@@ -34,6 +35,10 @@ struct WatchWorkoutView: View {
     @State private var actualWeightWhole: Int = 0
     @State private var actualWeightDecimal: Int = 0
     @FocusState private var isWeightWholeFocused: Bool
+
+    // Reps input flow (second step after weight)
+    @State private var isEditingReps: Bool = false
+    @State private var actualReps: Int = 10
 
     var body: some View {
         // TimelineView keeps updating even when the watch enters the always-on
@@ -172,16 +177,68 @@ struct WatchWorkoutView: View {
                                         .pickerStyle(.wheel)
                                         .frame(width: 35, height: 80)
 
-                                        Text("kg", comment: "Weight unit label")
+                                        Text(verbatim: weightUnit)
                                             .font(.caption)
                                             .foregroundStyle(.gray)
                                     }
                                     .padding(.bottom, 4)
 
                                     Button {
-                                        logSetWithActualWeight()
+                                        prepareRepsInput()
                                     } label: {
-                                        Text("Log Set", comment: "Button to log a set with custom weight")
+                                        Text("Next", comment: "Button to proceed to reps input")
+                                            .font(.footnote)
+                                            .fontWeight(.semibold)
+                                            .frame(maxWidth: .infinity)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(.green)
+                                } else if isEditingReps {
+                                    // STRENGTH REPS INPUT VIEW
+                                    Text(verbatim: setProgressString(current: currentSet, total: totalSets))
+                                        .font(.caption2)
+                                        .foregroundStyle(.gray)
+                                        .padding(.bottom, -2)
+
+                                    Text("Reps", comment: "Reps label in reps input")
+                                        .font(.caption2)
+                                        .foregroundStyle(.gray)
+
+                                    HStack(spacing: 16) {
+                                        Button {
+                                            if actualReps > 1 {
+                                                actualReps -= 1
+                                                WKInterfaceDevice.current().play(.click)
+                                            }
+                                        } label: {
+                                            Image(systemName: "minus.circle.fill")
+                                                .font(.title2)
+                                                .foregroundStyle(.gray)
+                                        }
+                                        .buttonStyle(.plain)
+
+                                        Text(verbatim: "\(actualReps)")
+                                            .font(.system(size: 36, weight: .bold, design: .rounded))
+                                            .foregroundStyle(.white)
+                                            .frame(minWidth: 50)
+
+                                        Button {
+                                            if actualReps < 999 {
+                                                actualReps += 1
+                                                WKInterfaceDevice.current().play(.click)
+                                            }
+                                        } label: {
+                                            Image(systemName: "plus.circle.fill")
+                                                .font(.title2)
+                                                .foregroundStyle(.gray)
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+
+                                    Button {
+                                        logSetWithActualValues()
+                                    } label: {
+                                        Text("Log Set", comment: "Button to log a set with custom weight and reps")
                                             .font(.footnote)
                                             .fontWeight(.semibold)
                                             .frame(maxWidth: .infinity)
@@ -208,7 +265,7 @@ struct WatchWorkoutView: View {
                                             Text("Weight", comment: "Weight label")
                                                 .font(.body)
                                                 .foregroundStyle(.gray)
-                                            Text(verbatim: String(format: "%.1f kg", targetWeight))
+                                            Text(verbatim: "\(String(format: "%.1f", targetWeight)) \(weightUnit)")
                                                 .font(.body)
                                                 .fontWeight(.semibold)
                                                 .foregroundStyle(.white)
@@ -228,7 +285,7 @@ struct WatchWorkoutView: View {
                                     .padding(.top, 4)
                                 }
 
-                                if !isEditingWeight {
+                                if !isEditingWeight && !isEditingReps {
                                     Button {
                                         if exerciseType == "strength" {
                                             prepareWeightInput()
@@ -351,8 +408,9 @@ struct WatchWorkoutView: View {
             return
         }
 
-        // Reset weight editing state when exercise data updates
+        // Reset editing state when exercise data updates
         isEditingWeight = false
+        isEditingReps = false
 
         // Update exercise details
         if let exerciseName = data["currentExercise"] as? String {
@@ -387,6 +445,10 @@ struct WatchWorkoutView: View {
             targetWeight = Double(weightInt)
         } else {
             debugLog("⌚ WARNING: No weight in data or wrong type, value: \(String(describing: data["weight"]))")
+        }
+
+        if let unit = data["weightUnit"] as? String {
+            weightUnit = unit
         }
 
         if let type = data["exerciseType"] as? String {
@@ -434,7 +496,7 @@ struct WatchWorkoutView: View {
         debugLog("⌚ ========== STATE AFTER UPDATE ==========")
         debugLog("⌚ Exercise: '\(currentExerciseName)'")
         debugLog("⌚ Set: \(currentSet)/\(totalSets)")
-        debugLog("⌚ Weight: \(targetWeight) kg")
+        debugLog("⌚ Weight: \(targetWeight) \(weightUnit)")
         debugLog("⌚ Reps: '\(targetReps)'")
         debugLog("⌚ Rest: \(restSeconds) seconds")
         debugLog("⌚ UI should show: \(totalSets > 0 ? "WORKOUT VIEW" : "NO WORKOUT")")
@@ -453,16 +515,24 @@ struct WatchWorkoutView: View {
         isWeightWholeFocused = true
     }
 
-    func logSetWithActualWeight() {
+    func prepareRepsInput() {
+        WKInterfaceDevice.current().play(.click)
+        actualReps = Int(targetReps) ?? 10
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isEditingWeight = false
+            isEditingReps = true
+        }
+    }
+
+    func logSetWithActualValues() {
         WKInterfaceDevice.current().play(.click)
         let actualWeight = Double(actualWeightWhole) + Double(actualWeightDecimal) / 10.0
 
         withAnimation(.easeInOut(duration: 0.2)) {
-            isEditingWeight = false
+            isEditingReps = false
         }
 
-        // Send completed set with the actual weight
-        sendSetCompleted(overrideWeight: actualWeight)
+        sendSetCompleted(overrideWeight: actualWeight, overrideReps: actualReps)
 
         if currentSet < totalSets {
             startRestTimer()
@@ -500,7 +570,7 @@ struct WatchWorkoutView: View {
         sendSkipRest()
     }
 
-    func sendSetCompleted(overrideWeight: Double? = nil) {
+    func sendSetCompleted(overrideWeight: Double? = nil, overrideReps: Int? = nil) {
         guard let session = WCSession.default as WCSession?, session.isReachable else {
             debugLog("⌚ Cannot send - not reachable")
             return
@@ -513,11 +583,12 @@ struct WatchWorkoutView: View {
         }
 
         let weightToSend = overrideWeight ?? targetWeight
+        let repsToSend = overrideReps ?? Int(targetReps) ?? 10
 
         var message: [String: Any] = [
             "completedSet_exerciseId": exerciseIdString,
             "completedSet_setNumber": currentSet,
-            "completedSet_reps": Int(targetReps) ?? 10,
+            "completedSet_reps": repsToSend,
             "completedSet_weight": weightToSend
         ]
 
@@ -540,12 +611,9 @@ struct WatchWorkoutView: View {
     }
 
     func formatDuration(_ totalSeconds: Int) -> String {
-        let minutes = totalSeconds / 60
-        let seconds = totalSeconds % 60
-        if seconds > 0 {
-            return "\(minutes)m \(seconds)s"
-        }
-        return "\(minutes)m"
+        Duration.seconds(totalSeconds).formatted(
+            .units(allowed: [.minutes, .seconds], width: .narrow)
+        )
     }
 
     func timeString(from duration: TimeInterval) -> String {

@@ -118,6 +118,15 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             return
         }
         
+        let rawWeight = firstRoutineExercise.targetWeight ?? 0
+        #if os(iOS)
+        let displayWeight = UnitManager.shared.displayWeight(rawWeight)
+        let weightUnitLabel = UnitManager.shared.weightUnit
+        #else
+        let displayWeight = rawWeight
+        let weightUnitLabel = "kg"
+        #endif
+
         let workoutData: [String: Any] = [
             "workoutStarted": true,
             "workoutStartTime": startTime.timeIntervalSince1970,
@@ -127,7 +136,8 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             "sets": firstRoutineExercise.sets,
             "currentSet": 1,
             "reps": firstRoutineExercise.repsTarget ?? "",
-            "weight": firstRoutineExercise.targetWeight ?? 0,
+            "weight": displayWeight,
+            "weightUnit": weightUnitLabel,
             "rest": firstRoutineExercise.restSeconds,
             "exerciseType": (firstExercise.exerciseType ?? "strength") as Any,
             "durationSeconds": (firstRoutineExercise.durationSeconds ?? 0) as Any
@@ -206,12 +216,17 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     // MARK: - Receive Data from Watch
     
     func handleSetCompleted(exerciseId: String, setNumber: Int, reps: Int, weight: Double, durationSeconds: Int?) {
-        // This will be called on iPhone when Watch completes a set
+        // Weight arrives in display units from the Watch — convert back to kg for storage
+        #if os(iOS)
+        let weightInKg = UnitManager.shared.toKg(weight)
+        #else
+        let weightInKg = weight
+        #endif
         var userInfo: [String: Any] = [
             "exerciseId": exerciseId,
             "setNumber": setNumber,
             "reps": reps,
-            "weight": weight
+            "weight": weightInKg
         ]
         if let durationSeconds = durationSeconds {
             userInfo["durationSeconds"] = durationSeconds
@@ -227,7 +242,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         // This will be called on iPhone when Watch skips rest
         NotificationCenter.default.post(name: .skipRestFromWatch, object: nil)
     }
-    
+
     func sendCurrentExercise(exercise: Exercise, routineExercise: RoutineExercise, currentSetNumber: Int = 1, totalSets: Int? = nil, restStopped: Bool = false, restStarted: Bool = false, restDuration: Int = 0) {
         #if os(iOS)
         guard SubscriptionManager.shared.isProUser else {
@@ -241,13 +256,23 @@ class WorkoutSyncManager: NSObject, ObservableObject {
             return
         }
         
+        let rawWeight = routineExercise.targetWeight ?? 0
+        #if os(iOS)
+        let displayWeight = UnitManager.shared.displayWeight(rawWeight)
+        let weightUnitLabel = UnitManager.shared.weightUnit
+        #else
+        let displayWeight = rawWeight
+        let weightUnitLabel = "kg"
+        #endif
+
         var exerciseData: [String: Any] = [
             "exerciseId": exercise.id.uuidString,
             "currentExercise": exercise.name,
             "sets": totalSets ?? routineExercise.sets,
             "currentSet": currentSetNumber,
             "reps": routineExercise.repsTarget ?? "",
-            "weight": routineExercise.targetWeight ?? 0,
+            "weight": displayWeight,
+            "weightUnit": weightUnitLabel,
             "rest": routineExercise.restSeconds,
             "exerciseType": (exercise.exerciseType ?? "strength") as Any,
             "durationSeconds": (routineExercise.durationSeconds ?? 0) as Any
@@ -445,6 +470,7 @@ extension WorkoutSyncManager: WCSessionDelegate {
             if message["skipRest"] as? Bool == true {
                 self.handleSkipRest()
             }
+
             #endif
         }
     }

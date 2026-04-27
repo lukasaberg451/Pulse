@@ -113,7 +113,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 self.stopRestTimer()
             }
         }
-        
+
         NotificationCenter.default.addObserver(
             forName: UIApplication.willEnterForegroundNotification,
             object: nil,

@@ -61,6 +61,7 @@
     },
     "kg" : {
       "comment" : "Weight unit label",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -89,7 +90,7 @@
       }
     },
     "Log Set" : {
-      "comment" : "Button to log a set with custom weight",
+      "comment" : "Button to log a set with custom weight and reps",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -116,6 +117,9 @@
           }
         }
       }
+    },
+    "Next" : {
+      "comment" : "Button to proceed to reps input"
     },
     "No Active Workout" : {
       "comment" : "Shown when no workout is in progress",
@@ -147,7 +151,7 @@
       }
     },
     "Reps" : {
-      "comment" : "Reps label",
+      "comment" : "Reps label\nReps label in reps input",
       "localizations" : {
         "de" : {
           "stringUnit" : {
