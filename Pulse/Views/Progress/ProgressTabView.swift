@@ -132,36 +132,6 @@ struct ProgressTabView: View {
                 LinearGradient.dashboardBackground
                     .ignoresSafeArea()
                 
-                // Pro upgrade prompt
-                if !subscriptionManager.isProUser {
-                    VStack(spacing: 24) {
-                        Spacer()
-                        
-                        IconBadge(assetName: "progressup", color: .appAccent, size: 72)
-                        
-                        Text("Unlock Progress Tracking", comment: "Pro upgrade prompt title")
-                            .font(.title2.weight(.bold))
-                            .foregroundStyle(Color.appText)
-                        
-                        Text("Upgrade to Pro to access detailed analytics, personal records, and training insights.", comment: "Pro upgrade prompt subtitle")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.appSecondaryText)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                        
-                        PrimaryCTAButton("Upgrade to Pulse Pro", icon: "starshine") {
-                            let impactLight = UIImpactFeedbackGenerator(style: .light)
-                            impactLight.impactOccurred()
-                            showingPaywall = true
-                        }
-                        .padding(.horizontal)
-                        
-                        Spacer()
-                    }
-                    .accessibilityElement(children: .contain)
-                    .accessibilityIdentifier("progressPaywallPrompt")
-                } else {
-                
                 ScrollView {
                     VStack(spacing: 14) {
                         // Smart Insight
@@ -281,6 +251,31 @@ struct ProgressTabView: View {
                         }
                         .padding(.horizontal)
 
+                        if !subscriptionManager.isProUser {
+                            VStack(spacing: 16) {
+                                IconBadge(assetName: "progressup", color: .appAccent, size: 56)
+
+                                Text("Unlock More Insights", comment: "Inline pro upgrade prompt title")
+                                    .font(.title3.weight(.bold))
+                                    .foregroundStyle(Color.appText)
+
+                                Text("Upgrade to Pro to access personal records, weight progress, and body metrics.", comment: "Inline pro upgrade prompt subtitle")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.appSecondaryText)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 16)
+
+                                PrimaryCTAButton("Upgrade to Pulse Pro", icon: "starshine") {
+                                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                                    impactLight.impactOccurred()
+                                    showingPaywall = true
+                                }
+                            }
+                            .padding(.vertical, 24)
+                            .padding(.horizontal)
+                            .accessibilityElement(children: .contain)
+                            .accessibilityIdentifier("progressPaywallPrompt")
+                        } else {
 
                         // Estimated 1RM Section
                         Estimated1RMSection(viewModel: viewModel)
@@ -322,6 +317,7 @@ struct ProgressTabView: View {
                         HealthMetricsSection()
                             .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("progressBodyMetricsSection")
+                        }
                     }
                     .padding(.top, 30)
                     .padding(.bottom)
@@ -331,13 +327,10 @@ struct ProgressTabView: View {
                     await viewModel.loadStats()
                 }
                 .task {
-                    // Data is loaded from HomeView.task — only reload if not yet loaded
-                    // (e.g., when navigating back after a memory warning)
                     if !viewModel.hasLoaded {
                         await viewModel.loadStats()
                     }
                 }
-                } // end else (pro user)
             }
             .sentryScreen("Progress")
             .sheet(isPresented: $showingPaywall) {

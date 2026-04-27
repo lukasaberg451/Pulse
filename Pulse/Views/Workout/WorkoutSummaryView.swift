@@ -24,6 +24,8 @@ struct WorkoutSummaryView: View {
     let onDismiss: () -> Void
     
     @EnvironmentObject var unitManager: UnitManager
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
+    @State private var showingPaywall = false
     @State private var showShareSheet = false
     @State private var shareImage: UIImage?
     @State private var show1RMShareSheet = false
@@ -176,11 +178,19 @@ struct WorkoutSummaryView: View {
 
                     // Strength Highlights (only shown when there are new PRs)
                     if strength1RMHighlights.contains(where: { $0.isNewPr }) {
-                        strengthHighlightsSection
-                            .padding(.horizontal)
-                            .opacity(animationTrigger ? 1 : 0)
-                            .offset(y: animationTrigger ? 0 : 20)
-                            .animation(.easeOut(duration: 0.4).delay(0.65), value: animationTrigger)
+                        if subscriptionManager.isProUser {
+                            strengthHighlightsSection
+                                .padding(.horizontal)
+                                .opacity(animationTrigger ? 1 : 0)
+                                .offset(y: animationTrigger ? 0 : 20)
+                                .animation(.easeOut(duration: 0.4).delay(0.65), value: animationTrigger)
+                        } else {
+                            locked1RMSection
+                                .padding(.horizontal)
+                                .opacity(animationTrigger ? 1 : 0)
+                                .offset(y: animationTrigger ? 0 : 20)
+                                .animation(.easeOut(duration: 0.4).delay(0.65), value: animationTrigger)
+                        }
                     }
 
                     // Exercise Breakdown
@@ -254,6 +264,10 @@ struct WorkoutSummaryView: View {
                 SharePreviewSheet(image: share1RMImage)
                     .sheetContentTransition()
             }
+        }
+        .sheet(isPresented: $showingPaywall) {
+            SubscriptionView()
+                .sheetContentTransition()
         }
     }
     
@@ -374,6 +388,58 @@ struct WorkoutSummaryView: View {
         }
     }
     
+    // MARK: - Locked 1RM Section (Free Users)
+
+    private var locked1RMSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Highlights", comment: "Section header")
+                .font(.title3.weight(.bold))
+                .foregroundStyle(Color.appText)
+
+            VStack(spacing: 12) {
+                IconBadge(assetName: "crown", color: .orange, size: 44)
+
+                Text("New Personal Records!", comment: "Locked 1RM title")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(Color.appText)
+
+                Text("Upgrade to Pro to see your estimated 1RM and track personal records.", comment: "Locked 1RM subtitle")
+                    .font(.caption)
+                    .foregroundStyle(Color.appSecondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 16)
+
+                Button {
+                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                    impactLight.impactOccurred()
+                    showingPaywall = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "lock.fill")
+                            .font(.caption2)
+                        Text("Unlock 1RM Tracking", comment: "Upgrade button")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .foregroundStyle(Color.orange)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 36)
+                    .background(Color.orange.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .buttonStyle(ScalePressStyle())
+            }
+            .frame(maxWidth: .infinity)
+            .padding(14)
+            .background(Color.orange.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(Color.orange.opacity(0.35), lineWidth: 1.5)
+            }
+            .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
+        }
+    }
+
     // MARK: - Exercises Section
     
     private var exercisesSection: some View {

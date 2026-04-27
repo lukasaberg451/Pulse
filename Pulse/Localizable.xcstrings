@@ -9251,6 +9251,9 @@
         }
       }
     },
+    "New Personal Records!" : {
+      "comment" : "Locked 1RM title"
+    },
     "New PR" : {
       "comment" : "Personal record badge",
       "localizations" : {
@@ -14440,6 +14443,7 @@
       }
     },
     "Total Sets" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -14923,6 +14927,9 @@
         }
       }
     },
+    "Unlock 1RM Tracking" : {
+      "comment" : "Upgrade button"
+    },
     "Unlock Achievement" : {
       "comment" : "Milestone unlock button",
       "localizations" : {
@@ -14951,6 +14958,9 @@
           }
         }
       }
+    },
+    "Unlock More Insights" : {
+      "comment" : "Inline pro upgrade prompt title"
     },
     "Unlock Pro for %@/month" : {
       "comment" : "Subscription price",
@@ -14983,6 +14993,7 @@
     },
     "Unlock Progress Tracking" : {
       "comment" : "Pro upgrade prompt title",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -15183,6 +15194,7 @@
     },
     "Upgrade to Pro to access detailed analytics, personal records, and training insights." : {
       "comment" : "Pro upgrade prompt subtitle",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -15209,6 +15221,12 @@
           }
         }
       }
+    },
+    "Upgrade to Pro to access personal records, weight progress, and body metrics." : {
+      "comment" : "Inline pro upgrade prompt subtitle"
+    },
+    "Upgrade to Pro to see your estimated 1RM and track personal records." : {
+      "comment" : "Locked 1RM subtitle"
     },
     "Upgrade to Pro to unlock streaks, volume tracking, strength gains, and body metrics. All in one place." : {
       "localizations" : {
