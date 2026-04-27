@@ -150,7 +150,7 @@ struct ActiveWorkoutViewContent: View {
                                     )
                                     .id(routineExercise.id)
                                     .padding(.horizontal)
-                                    .animation(.spring(response: 0.4, dampingFraction: 0.85), value: status)
+                                    .transaction { $0.animation = nil }
                                 }
                             }
 
@@ -342,7 +342,7 @@ struct TimerHeaderCard: View {
                 Text(elapsedTimeText)
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.appAccent)
-                    .contentTransition(.numericText())
+                    .monospacedDigit()
             }
             
             Spacer()
@@ -396,7 +396,7 @@ struct RestTimerBanner: View {
                     Text(formatTime(timeRemaining))
                         .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.appAccent)
-                        .contentTransition(.numericText())
+                        .monospacedDigit()
                 }
             }
             
@@ -481,6 +481,56 @@ struct HoldToAddSetButton: View {
         )
         .onChange(of: isDetectingLongPress) { _, pressing in
             holdProgress = pressing ? 1.0 : 0.0
+        }
+    }
+}
+
+// MARK: - Exercise Reorder Menu
+struct ExerciseReorderMenu: View, Equatable {
+    let routineExercises: [RoutineExercise]
+    let allExercises: [Exercise]
+    let onSkip: () -> Void
+    let onJump: (RoutineExercise) -> Void
+    let onSwap: () -> Void
+    
+    static func == (lhs: ExerciseReorderMenu, rhs: ExerciseReorderMenu) -> Bool {
+        lhs.routineExercises.map(\.id) == rhs.routineExercises.map(\.id)
+    }
+    
+    var body: some View {
+        Menu {
+            Button {
+                onSkip()
+            } label: {
+                Label(String(localized: "Skip for Now"), systemImage: "arrow.forward.to.line")
+            }
+            
+            if routineExercises.count > 2 {
+                Menu {
+                    ForEach(Array(routineExercises.dropFirst())) { re in
+                        if let ex = allExercises.first(where: { $0.id == re.exerciseId }) {
+                            Button(ex.name) {
+                                onJump(re)
+                            }
+                        }
+                    }
+                } label: {
+                    Label(String(localized: "Jump to…"), systemImage: "list.bullet")
+                }
+            }
+            
+            Button {
+                onSwap()
+            } label: {
+                Label(String(localized: "Swap with Next"), systemImage: "arrow.up.arrow.down")
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(Color.appSecondaryText)
+                .frame(width: 32, height: 32)
+                .background(Color.appText.opacity(0.06))
+                .clipShape(Circle())
         }
     }
 }
@@ -629,46 +679,25 @@ struct ExerciseCard: View {
             Spacer()
             
             if status == .current && viewModel.routineExercises.count > 1 {
-                Menu {
-                    Button {
+                EquatableView(content: ExerciseReorderMenu(
+                    routineExercises: viewModel.routineExercises,
+                    allExercises: allExercises,
+                    onSkip: {
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                             viewModel.skipCurrentExercise()
                         }
-                    } label: {
-                        Label(String(localized: "Skip for Now"), systemImage: "arrow.forward.to.line")
-                    }
-                    
-                    if viewModel.routineExercises.count > 2 {
-                        Menu {
-                            ForEach(Array(viewModel.routineExercises.dropFirst())) { re in
-                                if let ex = allExercises.first(where: { $0.id == re.exerciseId }) {
-                                    Button(ex.name) {
-                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
-                                            viewModel.jumpToExercise(re)
-                                        }
-                                    }
-                                }
-                            }
-                        } label: {
-                            Label(String(localized: "Jump to…"), systemImage: "list.bullet")
+                    },
+                    onJump: { re in
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                            viewModel.jumpToExercise(re)
                         }
-                    }
-                    
-                    Button {
+                    },
+                    onSwap: {
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                             viewModel.swapWithNextExercise()
                         }
-                    } label: {
-                        Label(String(localized: "Swap with Next"), systemImage: "arrow.up.arrow.down")
                     }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(Color.appSecondaryText)
-                        .frame(width: 32, height: 32)
-                        .background(Color.appText.opacity(0.06))
-                        .clipShape(Circle())
-                }
+                ))
             }
             
             if status == .completed {

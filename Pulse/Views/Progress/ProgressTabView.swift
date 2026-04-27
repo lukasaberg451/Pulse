@@ -60,7 +60,7 @@ struct ProgressTabView: View {
         guard streak.currentStreak > 0 || streak.workoutsThisWeek > 0 else { return nil }
 
         if streak.weekCompleted {
-            return (String(localized: "Completed!"), nil, .green)
+            return (String(localized: "Streak secured this week!"), nil, .green)
         }
 
         if streak.currentStreak == 0 && streak.workoutsThisWeek == 0 {

@@ -3980,9 +3980,6 @@
         }
       }
     },
-    "Completed!" : {
-
-    },
     "CONFIGURATION" : {
       "comment" : "Exercise config section header",
       "localizations" : {
@@ -7680,6 +7677,9 @@
           }
         }
       }
+    },
+    "Highlights" : {
+      "comment" : "Section header"
     },
     "History" : {
       "comment" : "Weight history list header",
@@ -13282,6 +13282,9 @@
         }
       }
     },
+    "Streak secured this week!" : {
+
+    },
     "Strength" : {
       "localizations" : {
         "de" : {
@@ -13312,6 +13315,7 @@
     },
     "Strength Highlights" : {
       "comment" : "Section header",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

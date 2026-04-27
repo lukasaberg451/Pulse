@@ -139,42 +139,39 @@ struct WorkoutSummaryView: View {
                     }
                     .padding(.top, 32)
 
-                    // Stats Grid
-                    VStack(spacing: 12) {
-                        HStack(spacing: 12) {
-                            summaryStatCard(
-                                icon: "clock",
-                                title: "Duration",
-                                value: formattedDuration
-                            )
+                    // Stats
+                    HStack(spacing: 16) {
+                        detailStatCard(
+                            icon: "clock",
+                            title: "Duration",
+                            value: formattedDuration
+                        )
 
-                            summaryStatCard(
-                                icon: "flame",
-                                title: "Total Sets",
-                                value: "\(totalSets)"
-                            )
-                        }
-                        .opacity(animationTrigger ? 1 : 0)
-                        .offset(y: animationTrigger ? 0 : 16)
-                        .animation(.easeOut(duration: 0.4).delay(0.4), value: animationTrigger)
+                        detailStatCard(
+                            icon: "volume",
+                            title: "Volume",
+                            value: String(format: "%.0f %@", unitManager.displayWeight(totalVolume), unitManager.weightUnit)
+                        )
 
-                        HStack(spacing: 12) {
-                            summaryStatCard(
-                                icon: "volume",
-                                title: "Volume",
-                                value: String(format: "%.0f %@", unitManager.displayWeight(totalVolume), unitManager.weightUnit)
-                            )
-
-                            summaryStatCard(
-                                icon: "exercises",
-                                title: "Exercises",
-                                value: "\(exerciseCount)"
-                            )
-                        }
-                        .opacity(animationTrigger ? 1 : 0)
-                        .offset(y: animationTrigger ? 0 : 16)
-                        .animation(.easeOut(duration: 0.4).delay(0.55), value: animationTrigger)
+                        detailStatCard(
+                            icon: "exercises",
+                            title: "Exercises",
+                            value: "\(exerciseCount)"
+                        )
                     }
+                    .padding(16)
+                    .background(Color.appSurface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay {
+                        if colorScheme == .dark {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        }
+                    }
+                    .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 16, x: 0, y: 6)
+                    .opacity(animationTrigger ? 1 : 0)
+                    .offset(y: animationTrigger ? 0 : 16)
+                    .animation(.easeOut(duration: 0.4).delay(0.4), value: animationTrigger)
                     .padding(.horizontal)
 
                     // Strength Highlights (only shown when there are new PRs)
@@ -304,7 +301,7 @@ struct WorkoutSummaryView: View {
     
     private var strengthHighlightsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Strength Highlights", comment: "Section header")
+            Text("Highlights", comment: "Section header")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
             
@@ -563,34 +560,22 @@ struct WorkoutSummaryView: View {
     }
     
     // MARK: - Stat Card
-    
-    private func summaryStatCard(icon: String, title: LocalizedStringKey, value: String, isSystemImage: Bool = false) -> some View {
+
+    private func detailStatCard(icon: String, title: LocalizedStringKey, value: String) -> some View {
         VStack(spacing: 8) {
-            if isSystemImage {
-                IconBadge(systemName: icon, size: 36)
-            } else {
-                IconBadge(assetName: icon, size: 36)
-            }
-            
+            IconBadge(assetName: icon, size: 36)
+
             Text(value)
-                .font(.title3.weight(.bold))
+                .font(.subheadline.weight(.bold))
                 .foregroundStyle(Color.appText)
-            
+                .minimumScaleFactor(0.8)
+                .lineLimit(1)
+
             Text(title)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(Color.appSecondaryText)
         }
-        .frame(maxWidth: .infinity, minHeight: 100)
-        .padding(16)
-        .background(Color.appSurface)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay {
-            if colorScheme == .dark {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-            }
-        }
-        .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 16, x: 0, y: 6)
+        .frame(maxWidth: .infinity)
     }
 }
 

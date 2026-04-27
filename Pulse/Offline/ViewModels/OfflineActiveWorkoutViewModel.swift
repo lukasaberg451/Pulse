@@ -361,7 +361,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
     }
     
     private func startWorkoutTimer() {
-        workoutTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+        let timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
             Task { @MainActor in
@@ -369,6 +369,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 self.elapsedTime = Date().timeIntervalSince(startTime)
             }
         }
+        RunLoop.current.add(timer, forMode: .common)
+        workoutTimer = timer
         
         // Also start periodic persistence so elapsed time is saved
         // even if the app is killed without the background notification
@@ -472,7 +474,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         isRestTimerActive = true
         
         restTimer?.invalidate()
-        restTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+        let timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
             guard let self = self else {
                 timer.invalidate()
                 return
@@ -482,6 +484,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
                 self.updateRestTimeRemaining()
             }
         }
+        RunLoop.current.add(timer, forMode: .common)
+        restTimer = timer
     }
     
     private func updateRestTimeRemaining() {
