@@ -96,7 +96,7 @@ struct PulseApp: App {
     
     @AppStorage("hasCompletedFirstLaunchGuide") private var hasCompletedFirstLaunchGuide = false
     @StateObject private var authViewModel = AuthViewModel()
-    @StateObject private var themeManager = ThemeManager()
+    @StateObject private var themeManager = ThemeManager.shared
     @StateObject private var syncService = WorkoutSyncService.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var healthKitManager = HealthKitManager.shared

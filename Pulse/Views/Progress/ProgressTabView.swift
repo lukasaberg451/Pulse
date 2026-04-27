@@ -2498,6 +2498,7 @@ struct EditTargetWeightSheet: View {
     @State private var targetWeightText: String
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var hadExistingTarget: Bool
 
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
@@ -2510,6 +2511,7 @@ struct EditTargetWeightSheet: View {
         nf.maximumFractionDigits = 1
         let targetWeightStr = targetWeightKg > 0 ? (nf.string(from: NSNumber(value: displayTargetWeight)) ?? "") : ""
         _targetWeightText = State(initialValue: targetWeightStr)
+        _hadExistingTarget = State(initialValue: targetWeightKg > 0)
     }
 
     var body: some View {
@@ -2596,7 +2598,7 @@ struct EditTargetWeightSheet: View {
                         .padding(.horizontal)
                         
                         // Clear target weight option
-                        if viewModel.profile?.targetWeightKg != nil && viewModel.profile!.targetWeightKg! > 0 {
+                        if hadExistingTarget {
                             Button {
                                 Task {
                                     let success = await viewModel.updateHealthMetrics(

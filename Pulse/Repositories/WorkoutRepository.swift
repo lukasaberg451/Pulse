@@ -688,8 +688,7 @@ class WorkoutRepository {
     
     func fetchLastBestSets(exerciseIds: [UUID]) async throws -> [UUID: LastSetInfo] {
         guard !exerciseIds.isEmpty else { return [:] }
-        
-        // Fetch recent completed sets for these exercises, ordered by created_at desc
+
         let sets: [WorkoutSet] = try await supabase
             .from("workout_sets")
             .select()
@@ -697,15 +696,24 @@ class WorkoutRepository {
             .eq("completed", value: true)
             .not("weight", operator: .is, value: "null")
             .order("created_at", ascending: false)
-            .limit(exerciseIds.count * 10) // Fetch enough to cover all exercises
+            .limit(exerciseIds.count * 20)
             .execute()
             .value
-        
-        // Pick the first (most recent) set per exercise
-        var result: [UUID: LastSetInfo] = [:]
+
+        // Group by exercise, find the most recent session per exercise,
+        // then pick the highest weight from that session
+        var setsByExercise: [UUID: [WorkoutSet]] = [:]
         for set in sets {
-            if result[set.exerciseId] == nil, let weight = set.weight {
-                result[set.exerciseId] = LastSetInfo(weight: weight, reps: set.reps)
+            setsByExercise[set.exerciseId, default: []].append(set)
+        }
+
+        var result: [UUID: LastSetInfo] = [:]
+        for (exerciseId, exerciseSets) in setsByExercise {
+            guard let mostRecentSessionId = exerciseSets.first?.sessionId else { continue }
+            let sessionSets = exerciseSets.filter { $0.sessionId == mostRecentSessionId }
+            if let bestSet = sessionSets.max(by: { ($0.weight ?? 0) < ($1.weight ?? 0) }),
+               let weight = bestSet.weight {
+                result[exerciseId] = LastSetInfo(weight: weight, reps: bestSet.reps)
             }
         }
         return result

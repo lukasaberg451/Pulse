@@ -21,6 +21,7 @@ struct Profile: Codable, Identifiable {
     let timezone: String?
     let unitSystem: String?
     let targetWeightKg: Double?
+    let theme: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -36,6 +37,7 @@ struct Profile: Codable, Identifiable {
         case timezone
         case unitSystem = "unit_system"
         case targetWeightKg = "target_weight_kg"
+        case theme
     }
     
     // Resolved TimeZone from stored identifier, falls back to device timezone

@@ -11,6 +11,7 @@ struct ThemeSelectionSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var themeManager: ThemeManager
+    @ObservedObject var viewModel: ProfileViewModel
     
     var body: some View {
         NavigationStack {
@@ -32,7 +33,9 @@ struct ThemeSelectionSheet: View {
                     VStack(spacing: 0) {
                         ForEach(AppTheme.allCases, id: \.self) { theme in
                             Button {
-                                themeManager.selectedTheme = theme
+                                Task {
+                                    await viewModel.updateTheme(theme)
+                                }
                             } label: {
                                 HStack(spacing: 14) {
                                     IconBadge(assetName: iconForTheme(theme), size: 32)
