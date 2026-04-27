@@ -79,17 +79,10 @@ class AuthViewModel: ObservableObject{
     
     private func restoreSession() async {
             do {
-                // Try to get existing session from Keychain
+                // Try to get existing session from Keychain.
+                // This may auto-refresh an expired token, which can throw
+                // a network error when offline.
                 let session = try await supabase.auth.session
-
-                // Check if session is expired
-                if session.isExpired {
-                    debugLog("⚠️ Session is expired, signing out")
-                    self.session = nil
-                    self.isAuthenticated = false
-                    try? await supabase.auth.signOut()
-                    return
-                }
 
                 // Validate session server-side by refreshing it.
                 // Keychain tokens persist across app reinstalls, so a deleted
@@ -112,6 +105,20 @@ class AuthViewModel: ObservableObject{
                     self.session = nil
                     self.isAuthenticated = false
                     try? await supabase.auth.signOut()
+                }
+            } catch where Self.isNetworkError(error) {
+                // The session getter failed due to a network error (e.g. it
+                // tried to auto-refresh an expired token while offline).
+                // Fall back to the locally cached session so the user can
+                // continue using the app in offline mode.
+                if let cachedSession = supabase.auth.currentSession {
+                    debugLog("⚠️ Offline: session getter failed, using cached session")
+                    self.session = cachedSession
+                    self.isAuthenticated = true
+                } else {
+                    debugLog("❌ Offline with no cached session")
+                    self.session = nil
+                    self.isAuthenticated = false
                 }
             } catch {
                 debugLog("❌ No existing session: \(error.localizedDescription)")

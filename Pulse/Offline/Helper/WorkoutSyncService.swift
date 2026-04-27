@@ -137,11 +137,12 @@ class WorkoutSyncService: ObservableObject {
             debugLog("🔽 Found \(localSessions.count) local sessions")
             
             // Delete local sessions that don't exist remotely,
-            // but skip in-progress sessions (completedAt == nil) since they
-            // haven't been synced to the server yet and may be resumable.
+            // but skip sessions that still need sync (they haven't been
+            // uploaded yet, so of course they won't exist on the server)
+            // and in-progress sessions (completedAt == nil) that may be resumable.
             var deletedCount = 0
             for localSession in localSessions {
-                if !remoteSessionIds.contains(localSession.id) && localSession.completedAt != nil {
+                if !remoteSessionIds.contains(localSession.id) && localSession.completedAt != nil && !localSession.needsSync {
                     debugLog("🗑️ Deleting local session that was removed remotely: \(localSession.name) (ID: \(localSession.id))")
                     modelContext.delete(localSession)
                     deletedCount += 1
