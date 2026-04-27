@@ -1468,37 +1468,6 @@ struct HealthMetricsSection: View {
                                         .foregroundStyle(Color.appSecondaryText)
                                 }
                                 
-                                // Target weight row
-                                if let targetWeight = profile.targetWeightKg, targetWeight > 0 {
-                                    Divider()
-                                    
-                                    let remaining = abs(currentWeight - targetWeight)
-                                    let reached = remaining < 0.1
-                                    
-                                    HStack(spacing: 14) {
-                                        IconBadge(
-                                            assetName: reached ? "check-circle" : "circle-dashed",
-                                            color: reached ? .green : .appSecondaryText,
-                                            size: 40
-                                        )
-                                        
-                                        Text("Target: \(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit)", comment: "Target weight display")
-                                            .font(.caption.weight(.medium))
-                                            .foregroundStyle(Color.appSecondaryText)
-                                        
-                                        Spacer()
-                                        
-                                        if reached {
-                                            Text("Reached!", comment: "Target weight reached indicator")
-                                                .font(.caption.weight(.bold))
-                                                .foregroundStyle(.green)
-                                        } else {
-                                            Text("\(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) from target", comment: "Remaining weight to target")
-                                                .font(.caption.weight(.medium))
-                                                .foregroundStyle(Color.appSecondaryText)
-                                        }
-                                    }
-                                }
                             }
                             .padding(16)
                             .background {
@@ -1510,39 +1479,59 @@ struct HealthMetricsSection: View {
                         }
                         .buttonStyle(ScalePressStyle())
                         
-                        // Target Weight Card
+                        // Weight Goal Card
                         Button {
                             let impactLight = UIImpactFeedbackGenerator(style: .light)
                             impactLight.impactOccurred()
                             showingTargetWeightSheet = true
                         } label: {
                             HStack(spacing: 14) {
-                                IconBadge(assetName: "circle-dashed", color: .orange, size: 40)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Weight Goal", comment: "Weight goal card title")
+                                if let targetWeight = profile.targetWeightKg, targetWeight > 0 {
+                                    let remaining = abs(currentWeight - targetWeight)
+                                    let reached = remaining < 0.1
+
+                                    IconBadge(
+                                        assetName: reached ? "check-circle" : "circle-dashed",
+                                        color: reached ? .green : .orange,
+                                        size: 40
+                                    )
+
+                                    Text("Target: \(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit)", comment: "Target weight display")
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundStyle(Color.appText)
 
-                                    if let targetWeight = profile.targetWeightKg, targetWeight > 0 {
-                                        let remaining = abs(currentWeight - targetWeight)
-                                        Text("\(String(format: "%.1f", unitManager.displayWeight(targetWeight))) \(unitManager.weightUnit) — \(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) to go", comment: "Target weight with remaining")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appSecondaryText)
+                                    Spacer()
+
+                                    if reached {
+                                        Text("Reached!", comment: "Target weight reached indicator")
+                                            .font(.caption.weight(.bold))
+                                            .foregroundStyle(.green)
                                     } else {
-                                        Text("Set a target weight", comment: "Prompt to set target weight")
+                                        Text("\(String(format: "%.1f", unitManager.displayWeight(remaining))) \(unitManager.weightUnit) from target", comment: "Remaining weight to target")
                                             .font(.caption)
                                             .foregroundStyle(Color.appSecondaryText)
                                     }
+
+                                    Image("pencil")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 16, height: 16)
+                                        .foregroundStyle(Color.appTertiaryText)
+                                } else {
+                                    IconBadge(assetName: "circle-dashed", color: .orange, size: 40)
+
+                                    Text("Add a weight goal", comment: "Prompt to set target weight")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(Color.appText)
+
+                                    Spacer()
+
+                                    Image("chevron-right")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 12, height: 12)
+                                        .foregroundStyle(Color.appSecondaryText)
                                 }
-                                
-                                Spacer()
-                                
-                                Image("pencil")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 16, height: 16)
-                                    .foregroundStyle(Color.appTertiaryText)
                             }
                             .padding(16)
                             .background {

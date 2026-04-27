@@ -404,6 +404,7 @@
     },
     "%@ %@ — %@ %@ to go" : {
       "comment" : "Target weight with remaining",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1946,6 +1947,9 @@
           }
         }
       }
+    },
+    "Add a weight goal" : {
+      "comment" : "Prompt to set target weight"
     },
     "Add Exercise" : {
       "localizations" : {
@@ -12374,6 +12378,7 @@
     },
     "Set a target weight" : {
       "comment" : "Prompt to set target weight",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -15930,7 +15935,7 @@
       }
     },
     "Weight Goal" : {
-      "comment" : "Edit target weight sheet title\nWeight goal card title",
+      "comment" : "Edit target weight sheet title",
       "localizations" : {
         "de" : {
           "stringUnit" : {
