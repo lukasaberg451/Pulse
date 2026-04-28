@@ -138,9 +138,10 @@ enum SmartInsightEngine {
         if dayOfMonth >= 8 && lastMonthVolume > 0 && monthlyVolume > lastMonthVolume {
             let increase = Int(Double(monthlyVolume - lastMonthVolume) / Double(lastMonthVolume) * 100)
             if increase >= 10 {
+                let formattedIncrease = (Double(increase) / 100).formatted(.percent)
                 insights.append(SmartInsight(
                     title: String(localized: "Volume Is Climbing"),
-                    message: String(localized: "Your training volume is up \(increase)% from last month. Gradual progressive overload is the primary driver of muscle hypertrophy."),
+                    message: String(localized: "Your training volume is up \(formattedIncrease) from last month. Gradual progressive overload is the primary driver of muscle hypertrophy."),
                     iconAsset: "scale",
                     priority: 70
                 ))
@@ -151,9 +152,10 @@ enum SmartInsightEngine {
         if dayOfMonth >= 8 && lastMonthVolume > 0 && monthlyVolume < lastMonthVolume {
             let decrease = Int(Double(lastMonthVolume - monthlyVolume) / Double(lastMonthVolume) * 100)
             if decrease >= 20 {
+                let formattedDecrease = (Double(decrease) / 100).formatted(.percent)
                 insights.append(SmartInsight(
                     title: String(localized: "Volume Dipping"),
-                    message: String(localized: "Your training volume is down \(decrease)% from last month. If you're deloading intentionally that's great, otherwise try to maintain or gradually increase load."),
+                    message: String(localized: "Your training volume is down \(formattedDecrease) from last month. If you're deloading intentionally that's great, otherwise try to maintain or gradually increase load."),
                     iconAsset: "scale",
                     priority: 58
                 ))
@@ -162,10 +164,10 @@ enum SmartInsightEngine {
 
         // 9. Muscle imbalance — one group dominates (need enough workouts for meaningful distribution)
         if let topName = topMuscleGroupName, topMuscleGroupPercentage > 0.40 && muscleGroupCount >= 2 && monthlyWorkouts >= 4 {
-            let pct = Int(topMuscleGroupPercentage * 100)
+            let formattedPct = topMuscleGroupPercentage.formatted(.percent.precision(.fractionLength(0)))
             insights.append(SmartInsight(
                 title: String(localized: "Balance Your Training"),
-                message: String(localized: "\(topName) makes up \(pct)% of your sets this month. Uneven training can create strength imbalances. Consider adding work for opposing muscle groups."),
+                message: String(localized: "\(topName) makes up \(formattedPct) of your sets this month. Uneven training can create strength imbalances. Consider adding work for opposing muscle groups."),
                 iconAsset: "scale",
                 priority: 65
             ))
