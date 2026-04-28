@@ -7511,6 +7511,15 @@
         }
       }
     },
+    "Good afternoon" : {
+
+    },
+    "Good evening" : {
+
+    },
+    "Good morning" : {
+
+    },
     "Got It" : {
       "comment" : "HealthKit permission button",
       "localizations" : {
@@ -7682,6 +7691,9 @@
           }
         }
       }
+    },
+    "Hey" : {
+
     },
     "Highlights" : {
       "comment" : "Section header"
@@ -8199,6 +8211,9 @@
           }
         }
       }
+    },
+    "Let's go" : {
+
     },
     "Let's take a quick tour to help you get the most out of your training. Tap Next to get started!" : {
       "localizations" : {
@@ -11577,6 +11592,9 @@
         }
       }
     },
+    "Rise and shine" : {
+
+    },
     "Routine Copied" : {
       "localizations" : {
         "de" : {
@@ -13263,6 +13281,9 @@
         }
       }
     },
+    "Streak" : {
+
+    },
     "Streak Paused, Not Lost" : {
       "localizations" : {
         "de" : {
@@ -14048,6 +14069,7 @@
     },
     "This Week" : {
       "comment" : "Section header on progress tab",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -14191,6 +14213,9 @@
           }
         }
       }
+    },
+    "Time" : {
+
     },
     "Time to Get Back" : {
       "localizations" : {
@@ -15787,9 +15812,6 @@
         }
       }
     },
-    "Weekly Streak" : {
-
-    },
     "Weekly Workout Goal" : {
       "comment" : "Goal sheet title",
       "localizations" : {
@@ -16079,6 +16101,7 @@
       }
     },
     "Welcome %@!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -16105,6 +16128,9 @@
           }
         }
       }
+    },
+    "Welcome back" : {
+
     },
     "Welcome to Pulse" : {
       "localizations" : {
@@ -16135,6 +16161,7 @@
       }
     },
     "Welcome!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

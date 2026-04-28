@@ -44,6 +44,40 @@ struct DashboardView: View {
     @State private var showingPaywall = false
     @State private var aiAccessToken = ""
     */
+    private var dynamicGreeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        let day = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+        let name = authViewModel.firstName
+
+        let timeGreeting: String
+        switch hour {
+        case 5..<12:
+            let mornings: [LocalizedStringResource] = ["Good morning", "Rise and shine"]
+            timeGreeting = String(localized: mornings[day % mornings.count])
+        case 12..<17:
+            let afternoons: [LocalizedStringResource] = ["Good afternoon", "Hey"]
+            timeGreeting = String(localized: afternoons[day % afternoons.count])
+        case 17..<22:
+            let evenings: [LocalizedStringResource] = ["Good evening", "Hey"]
+            timeGreeting = String(localized: evenings[day % evenings.count])
+        default:
+            timeGreeting = String(localized: "Good evening")
+        }
+
+        let generic: [LocalizedStringResource] = ["Welcome back", "Let's go"]
+        let useGeneric = (day % 3 == 0)
+
+        let greeting = useGeneric
+            ? String(localized: generic[day % generic.count])
+            : timeGreeting
+
+        if name.isEmpty {
+            return "\(greeting)!"
+        } else {
+            return "\(greeting), \(name)!"
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -59,8 +93,8 @@ struct DashboardView: View {
                         
                         // MARK: - Hero Header
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(authViewModel.firstName.isEmpty ? String(localized: "Welcome!") : String(localized: "Welcome \(authViewModel.firstName)!"))
-                                .font(.system(size: 30, weight: .bold, design: .rounded))
+                            Text(dynamicGreeting)
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
                                 .foregroundStyle(Color.appText)
                                 .accessibilityIdentifier("dashboardWelcomeText")
 
@@ -76,8 +110,8 @@ struct DashboardView: View {
 
                         // MARK: - Stats Bar
                         StatsBar(
-                            streak: viewModel.currentStreak,
-                            totalWorkouts: viewModel.totalWorkoutCount,
+                            streak: viewModel.userStreak?.currentStreak ?? viewModel.currentStreak,
+                            weeklyWorkouts: viewModel.weeklyWorkoutCount,
                             weeklyMinutes: viewModel.weeklyWorkoutMinutes,
                             triggerHighlight: triggerStreakHighlight
                         )
@@ -634,7 +668,7 @@ struct EmptyTodayCard: View {
 
 struct StatsBar: View {
     let streak: Int
-    let totalWorkouts: Int
+    let weeklyWorkouts: Int
     let weeklyMinutes: Int
     var triggerHighlight: Bool = false
 
@@ -648,23 +682,19 @@ struct StatsBar: View {
                 StatBarItem(
                     icon: "flame",
                     value: "\(streak)",
-                    label: String(localized: "Weekly Streak")
+                    label: String(localized: "Streak")
                 )
-
-                StatBarDivider()
 
                 StatBarItem(
                     icon: "check-circle",
-                    value: "\(totalWorkouts)",
-                    label: String(localized: "Workouts")
+                    value: "\(weeklyWorkouts)",
+                    label: weeklyWorkouts == 1 ? String(localized: "Workout") : String(localized: "Workouts")
                 )
-
-                StatBarDivider()
 
                 StatBarItem(
                     icon: "stopwatch",
                     value: formattedWeeklyTime,
-                    label: String(localized: "This Week")
+                    label: String(localized: "Time")
                 )
             }
         }
