@@ -815,9 +815,9 @@ struct Exercise1RMDetailView: View {
 
         guard ma.count >= 3 else {
             if atBest {
-                return ("→ Stable (at personal best)", Color.appSecondaryText)
+                return ("→ " + String(localized: "Stable (at personal best)"), Color.appSecondaryText)
             }
-            return ("→ Stable (\(gapStr) \(unit) below best)", Color.appSecondaryText)
+            return ("→ " + String(localized: "Stable (\(gapStr) \(unit) below best)"), Color.appSecondaryText)
         }
 
         let recent = ma.suffix(3)
@@ -828,19 +828,19 @@ struct Exercise1RMDetailView: View {
 
         if change > threshold {
             if atBest {
-                return ("↑ Improving (at personal best)", Color.green)
+                return ("↑ " + String(localized: "Improving (at personal best)"), Color.green)
             }
-            return ("↑ Improving (still \(gapStr) \(unit) below best)", Color.green)
+            return ("↑ " + String(localized: "Improving (still \(gapStr) \(unit) below best)"), Color.green)
         } else if change < -threshold {
             if atBest {
-                return ("↓ Declining (at personal best)", Color.red)
+                return ("↓ " + String(localized: "Declining (at personal best)"), Color.red)
             }
-            return ("↓ Declining (\(gapStr) \(unit) below best)", Color.red)
+            return ("↓ " + String(localized: "Declining (\(gapStr) \(unit) below best)"), Color.red)
         } else {
             if atBest {
-                return ("→ Stable (at personal best)", Color.appSecondaryText)
+                return ("→ " + String(localized: "Stable (at personal best)"), Color.appSecondaryText)
             }
-            return ("→ Stable (\(gapStr) \(unit) below best)", Color.appSecondaryText)
+            return ("→ " + String(localized: "Stable (\(gapStr) \(unit) below best)"), Color.appSecondaryText)
         }
     }
 

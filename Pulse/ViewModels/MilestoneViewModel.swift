@@ -183,7 +183,8 @@ class MilestoneViewModel: ObservableObject {
                 icon: milestone.icon,
                 type: milestone.type,
                 targetValue: milestone.targetValue,
-                sortOrder: milestone.sortOrder
+                sortOrder: milestone.sortOrder,
+                localizationKey: milestone.localizationKey
             )
             allMilestones[index] = updated
         }
