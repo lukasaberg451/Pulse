@@ -40,7 +40,7 @@ final class ScheduleManagementTests: UITestBaseCase {
         let setOnePill = app.buttons.matching(NSPredicate(format: "label == '1'")).firstMatch
         assertExists(setOnePill, timeout: 5, "Set 1 pill not found")
         setOnePill.tap()
-        waitForAnimation()
+        confirmRepsPromptIfPresent()
 
         // Finish the workout
         finishButton.tap()
@@ -226,9 +226,9 @@ final class ScheduleManagementTests: UITestBaseCase {
         assertExists(confirmRemove, timeout: 5, "Remove confirmation alert not found")
         confirmRemove.tap()
 
-        // 7. Verify the card is gone and empty state is shown
-        let noWorkoutsText = app.staticTexts["No workouts scheduled"]
-        assertExists(noWorkoutsText, timeout: 10, "Empty state not shown after deleting scheduled workout")
+        // 7. Verify the deleted routine's card is gone
+        let deletedCard = app.staticTexts[routineName]
+        XCTAssertFalse(deletedCard.waitForExistence(timeout: 3), "Scheduled workout '\(routineName)' should be gone after deletion")
 
         // Cleanup
         cleanupRoutines(containing: String(uniqueSuffix))

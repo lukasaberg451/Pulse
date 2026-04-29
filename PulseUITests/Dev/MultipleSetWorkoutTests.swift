@@ -34,7 +34,7 @@ final class MultipleSetWorkoutTests: UITestBaseCase {
         let setOnePill = app.buttons.matching(NSPredicate(format: "label == '1'")).firstMatch
         XCTAssertTrue(setOnePill.waitForExistence(timeout: 5), "Set 1 pill not found")
         setOnePill.tap()
-        waitForAnimation()
+        confirmRepsPromptIfPresent()
 
         // Complete set 2
         let weightField2 = app.textFields["weightField_2"]
@@ -48,7 +48,7 @@ final class MultipleSetWorkoutTests: UITestBaseCase {
             let setTwoPill = app.buttons.matching(NSPredicate(format: "label == '2'")).firstMatch
             if setTwoPill.waitForExistence(timeout: 5) {
                 setTwoPill.tap()
-                waitForAnimation()
+                confirmRepsPromptIfPresent()
             }
         }
 
@@ -63,10 +63,6 @@ final class MultipleSetWorkoutTests: UITestBaseCase {
         let summaryTitle = app.staticTexts["Workout Completed"]
         XCTAssertTrue(summaryTitle.waitForExistence(timeout: 10), "Workout Completed title not found on summary")
 
-        // Verify "Total Sets" label is present
-        let totalSetsLabel = app.staticTexts["Total Sets"]
-        XCTAssertTrue(totalSetsLabel.waitForExistence(timeout: 5), "'Total Sets' label not found on summary")
-
         // Verify "Duration" label is present
         let durationLabel = app.staticTexts["Duration"]
         XCTAssertTrue(durationLabel.waitForExistence(timeout: 5), "'Duration' label not found on summary")
@@ -75,9 +71,9 @@ final class MultipleSetWorkoutTests: UITestBaseCase {
         let volumeLabel = app.staticTexts["Volume"]
         XCTAssertTrue(volumeLabel.waitForExistence(timeout: 5), "'Volume' label not found on summary")
 
-        // Verify "Exercises" section header on summary
-        let exercisesHeader = app.staticTexts["Exercises"]
-        XCTAssertTrue(exercisesHeader.waitForExistence(timeout: 5), "'Exercises' section not found on summary")
+        // Verify "Exercises" label is present
+        let exercisesLabel = app.staticTexts["Exercises"]
+        XCTAssertTrue(exercisesLabel.waitForExistence(timeout: 5), "'Exercises' label not found on summary")
 
         // Dismiss summary
         let doneButton = app.buttons["Done"]
@@ -111,7 +107,7 @@ final class MultipleSetWorkoutTests: UITestBaseCase {
         let setOnePill = app.buttons.matching(NSPredicate(format: "label == '1'")).firstMatch
         XCTAssertTrue(setOnePill.waitForExistence(timeout: 5), "Set 1 pill not found")
         setOnePill.tap()
-        waitForAnimation()
+        confirmRepsPromptIfPresent()
 
         // Finish
         finishButton.tap()

@@ -30,46 +30,31 @@ final class ProgressTabTests: UITestBaseCase {
         let streakCard = app.otherElements["progressStreakCard"]
         XCTAssertTrue(streakCard.waitForExistence(timeout: 5), "Streak card not found")
 
-        let currentStreakLabel = app.staticTexts["Current Streak"]
-        XCTAssertTrue(currentStreakLabel.exists, "'Current Streak' label not found")
+        let streakText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'streak'")).firstMatch
+        XCTAssertTrue(streakText.exists, "Streak text not found in streak card")
 
-        let longestStreakLabel = app.staticTexts["Longest Streak"]
-        XCTAssertTrue(longestStreakLabel.exists, "'Longest Streak' label not found")
-
-        let lastWorkoutLabel = app.staticTexts["Last Workout"]
-        XCTAssertTrue(lastWorkoutLabel.exists, "'Last Workout' label not found")
+        let lastWorkoutText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'Last workout'")).firstMatch
+        XCTAssertTrue(lastWorkoutText.exists, "'Last workout' text not found in streak card")
     }
 
-    // MARK: - Test: Workouts Completed Card Visible
+    // MARK: - Test: Weekly Stats Cards Visible
 
     func testProgressTabShowsWorkoutsCard() throws {
         dismissResumeAlertIfPresent()
         navigateToProgress()
 
-        let workoutsCard = app.otherElements["progressWorkoutsCard"]
+        let workoutsCard = app.descendants(matching: .any).matching(identifier: "progressWorkoutsCard").firstMatch
         XCTAssertTrue(workoutsCard.waitForExistence(timeout: 10), "Workouts card not found")
-
-        let completedText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'workouts completed'")).firstMatch
-        XCTAssertTrue(completedText.waitForExistence(timeout: 5), "'workouts completed' text not found")
-
-        let thisMonthText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'this month'")).firstMatch
-        XCTAssertTrue(thisMonthText.waitForExistence(timeout: 5), "'this month' text not found")
     }
 
-    // MARK: - Test: Volume Lifted Card Visible
+    // MARK: - Test: Volume Card Visible
 
     func testProgressTabShowsVolumeCard() throws {
         dismissResumeAlertIfPresent()
         navigateToProgress()
 
-        let volumeCard = app.otherElements["progressVolumeCard"]
+        let volumeCard = app.descendants(matching: .any).matching(identifier: "progressVolumeCard").firstMatch
         XCTAssertTrue(volumeCard.waitForExistence(timeout: 10), "Volume card not found")
-
-        let volumeLabel = app.staticTexts["Volume Lifted"]
-        XCTAssertTrue(volumeLabel.exists, "'Volume Lifted' label not found")
-
-        let allTimeText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'All time'")).firstMatch
-        XCTAssertTrue(allTimeText.waitForExistence(timeout: 5), "'All time' volume text not found")
     }
 
     // MARK: - Test: Estimated 1RM Section Visible

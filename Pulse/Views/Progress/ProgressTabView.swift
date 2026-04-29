@@ -88,44 +88,6 @@ struct ProgressTabView: View {
         return (leftText, rightText, color)
     }
 
-    @ViewBuilder
-    private func trendText(current: Int, previous: Int?) -> some View {
-        if let previous, previous > 0 {
-            let pct = Double(current - previous) / Double(previous) * 100
-            if pct > 15 {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.up.right")
-                    Text("Above your usual")
-                }
-                .font(.caption.weight(.medium))
-                .foregroundStyle(Color.green)
-            } else if pct < -15 {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.down.right")
-                    Text("Below your usual")
-                }
-                .font(.caption.weight(.medium))
-                .foregroundStyle(Color.red)
-            } else {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.right")
-                    Text("About the same")
-                }
-                .font(.caption.weight(.medium))
-                .foregroundStyle(Color.appSecondaryText)
-            }
-        } else if let previous, previous == 0, current > 0 {
-            HStack(spacing: 4) {
-                Image(systemName: "arrow.up.right")
-                Text("Above your usual")
-            }
-            .font(.caption.weight(.medium))
-            .foregroundStyle(Color.green)
-        } else {
-            EmptyView()
-        }
-    }
-    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -402,7 +364,7 @@ struct WeeklyStatCard: View {
                     Text("Below your usual")
                 }
                 .font(.caption2.weight(.medium))
-                .foregroundStyle(Color.red.opacity(0.55))
+                .foregroundStyle(Color.red.opacity(0.65))
             } else {
                 HStack(spacing: 4) {
                     Image(systemName: "arrow.right")

@@ -27,7 +27,7 @@ final class DashboardTests: UITestBaseCase {
 
     // MARK: - Test: Dashboard Shows Stats Bar
 
-    /// Verifies the stats bar with Daily Streak, Workouts, and This Week labels is visible.
+    /// Verifies the stats bar with Streak, Workouts, and Time labels is visible.
     func testDashboardShowsStatsBar() throws {
         dismissResumeAlertIfPresent()
         navigateToDashboard()
@@ -35,14 +35,16 @@ final class DashboardTests: UITestBaseCase {
         let statsBar = app.otherElements["dashboardStatsBar"]
         XCTAssertTrue(statsBar.waitForExistence(timeout: 10), "Stats bar not found on the dashboard")
 
-        let dailyStreakLabel = app.staticTexts["Daily Streak"]
-        XCTAssertTrue(dailyStreakLabel.waitForExistence(timeout: 5), "'Daily Streak' label not found in the stats bar")
+        let streakLabel = app.staticTexts["Streak"]
+        XCTAssertTrue(streakLabel.waitForExistence(timeout: 5), "'Streak' label not found in the stats bar")
 
-        let workoutsLabel = app.staticTexts["Workouts"]
-        XCTAssertTrue(workoutsLabel.waitForExistence(timeout: 5), "'Workouts' label not found in the stats bar")
+        let workoutsLabel = app.staticTexts.matching(NSPredicate(
+            format: "label == 'Workout' OR label == 'Workouts'"
+        )).firstMatch
+        XCTAssertTrue(workoutsLabel.waitForExistence(timeout: 5), "'Workout(s)' label not found in the stats bar")
 
-        let thisWeekLabel = app.staticTexts["This Week"]
-        XCTAssertTrue(thisWeekLabel.waitForExistence(timeout: 5), "'This Week' label not found in the stats bar")
+        let timeLabel = app.staticTexts["Time"]
+        XCTAssertTrue(timeLabel.waitForExistence(timeout: 5), "'Time' label not found in the stats bar")
     }
 
     // MARK: - Test: Dashboard Shows Weekly Goal Card

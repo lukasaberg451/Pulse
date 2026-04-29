@@ -76,6 +76,18 @@ class UITestBaseCase: XCTestCase {
         usleep(500_000) // 0.5s
     }
 
+    // MARK: - Reps Confirmation
+
+    /// If the reps confirmation prompt ("Did you hit X reps?") appears after
+    /// tapping a set pill, tap "Yes" to confirm. No-op if the prompt doesn't appear.
+    func confirmRepsPromptIfPresent() {
+        let yesButton = app.buttons["Yes"]
+        if yesButton.waitForExistence(timeout: 2) {
+            yesButton.tap()
+            waitForAnimation()
+        }
+    }
+
     // MARK: - Alert Dismissal
 
     func dismissResumeAlertIfPresent() {

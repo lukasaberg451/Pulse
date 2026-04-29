@@ -27,7 +27,8 @@ final class ProfileTests: XCTestCase {
             heightCm: heightCm,
             timezone: timezone,
             unitSystem: "metric",
-            targetWeightKg: nil
+            targetWeightKg: nil,
+            theme: nil
         )
     }
 

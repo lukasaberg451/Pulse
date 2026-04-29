@@ -685,11 +685,15 @@ struct StatsBar: View {
                     label: String(localized: "Streak")
                 )
 
+                StatBarDivider()
+
                 StatBarItem(
                     icon: "check-circle",
                     value: "\(weeklyWorkouts)",
                     label: weeklyWorkouts == 1 ? String(localized: "Workout") : String(localized: "Workouts")
                 )
+
+                StatBarDivider()
 
                 StatBarItem(
                     icon: "stopwatch",

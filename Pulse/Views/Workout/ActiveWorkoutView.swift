@@ -150,7 +150,6 @@ struct ActiveWorkoutViewContent: View {
                                     )
                                     .id(routineExercise.id)
                                     .padding(.horizontal)
-                                    .transaction { $0.animation = nil }
                                 }
                             }
 
@@ -584,7 +583,7 @@ struct ExerciseCard: View {
                             if viewModel.repsConfirmationSetId == set.id,
                                let targetReps = routineExercise.repsTarget.flatMap({ Int($0) }) {
                                 RepsConfirmationRow(targetReps: targetReps) { reps in
-                                    withAnimation(.spring(response: 0.3)) {
+                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                         viewModel.confirmReps(setId: set.id, reps: reps)
                                     }
                                 }
@@ -878,7 +877,9 @@ struct SetRow: View {
         
         // Dismiss prompt if tapped while awaiting confirmation
         if viewModel.repsConfirmationSetId == set.id {
-            viewModel.dismissRepsConfirmation()
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
+                viewModel.dismissRepsConfirmation()
+            }
             return
         }
         
@@ -1044,22 +1045,30 @@ struct SetRow: View {
 struct RepsConfirmationRow: View {
     let targetReps: Int
     let onConfirm: (Int) -> Void
-    
+
     @State private var isVisible = false
-    
+    @State private var buttonsVisible = false
+    @State private var selectedReps: Int? = nil
+
     private var alternativeReps: [Int] {
         [targetReps - 2, targetReps - 1, targetReps + 1, targetReps + 2].filter { $0 > 0 }
     }
-    
+
+    private var showContent: Bool {
+        isVisible && selectedReps == nil
+    }
+
     var body: some View {
         VStack(spacing: 8) {
             Text("Did you hit \(targetReps) reps?")
                 .font(.caption.weight(.medium))
                 .foregroundStyle(Color.appSecondaryText)
-            
+                .offset(y: showContent ? 0 : 6)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showContent)
+
             HStack(spacing: 8) {
                 Button {
-                    onConfirm(targetReps)
+                    selectReps(targetReps)
                 } label: {
                     Text("Yes", comment: "Confirm target reps")
                         .font(.caption.weight(.semibold))
@@ -1069,11 +1078,15 @@ struct RepsConfirmationRow: View {
                         .background(Color.appAccent)
                         .clipShape(Capsule())
                 }
-                .buttonStyle(.plain)
-                
-                ForEach(alternativeReps, id: \.self) { reps in
+                .buttonStyle(ScalePressStyle())
+                .opacity(buttonsVisible && selectedReps == nil ? 1 : 0)
+                .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.5)
+                .animation(.spring(response: 0.35, dampingFraction: 0.6).delay(buttonsVisible ? 0.08 : 0), value: buttonsVisible)
+                .animation(.spring(response: 0.25, dampingFraction: 0.8), value: selectedReps)
+
+                ForEach(Array(alternativeReps.enumerated()), id: \.element) { index, reps in
                     Button {
-                        onConfirm(reps)
+                        selectReps(reps)
                     } label: {
                         Text("\(reps)")
                             .font(.caption.weight(.semibold))
@@ -1083,19 +1096,37 @@ struct RepsConfirmationRow: View {
                             .background(Color.appText.opacity(0.08))
                             .clipShape(Capsule())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(ScalePressStyle())
+                    .opacity(buttonsVisible && selectedReps == nil ? 1 : 0)
+                    .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.5)
+                    .animation(
+                        .spring(response: 0.35, dampingFraction: 0.6)
+                            .delay(buttonsVisible ? 0.04 * Double(index + 1) + 0.08 : 0),
+                        value: buttonsVisible
+                    )
+                    .animation(.spring(response: 0.25, dampingFraction: 0.8), value: selectedReps)
                 }
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
         .padding(.horizontal, 16)
-        .opacity(isVisible ? 1 : 0)
-        .scaleEffect(isVisible ? 1 : 0.85)
+        .opacity(showContent ? 1 : 0)
+        .scaleEffect(showContent ? 1 : 0.85)
+        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: showContent)
+        .allowsHitTesting(selectedReps == nil)
         .onAppear {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.75).delay(0.15)) {
-                isVisible = true
-            }
+            isVisible = true
+            buttonsVisible = true
+        }
+    }
+
+    private func selectReps(_ reps: Int) {
+        let impact = UINotificationFeedbackGenerator()
+        impact.notificationOccurred(.success)
+        selectedReps = reps
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            onConfirm(reps)
         }
     }
 }
