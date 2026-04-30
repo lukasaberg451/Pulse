@@ -142,7 +142,7 @@ class ScheduleViewModel: ObservableObject {
             let calendar = userProfile?.userCalendar ?? Calendar.current
             let components = calendar.dateComponents([.year, .month], from: currentMonth)
             guard let startOfMonth = calendar.date(from: components),
-                  let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth) else {
+                  let endOfMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth) else {
                 return
             }
             
