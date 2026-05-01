@@ -37,217 +37,217 @@ struct LoginView: View {
             ZStack {
                 LinearGradient.dashboardBackground.ignoresSafeArea()
                 
-                VStack(spacing: 0) {
-                    // Logo section
-                    VStack {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Logo section
                         Image("LoadingLogo")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 180, height: 100)
-                    }
-                    .frame(maxHeight: .infinity, alignment: .top)
-                    .padding(.top, 50)
-                    
-                    // Form section
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Error message
-                        if showError {
-                            HStack(spacing: 8) {
-                                Image("error")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 16, height: 16)
-                                    .foregroundStyle(.red)
-                                Text(errorMessage)
-                                    .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 50)
+                            .padding(.bottom, 30)
+
+                        // Form section
+                        VStack(alignment: .leading, spacing: 20) {
+                            // Error message
+                            if showError {
+                                HStack(spacing: 8) {
+                                    Image("error")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 16, height: 16)
+                                        .foregroundStyle(.red)
+                                    Text(errorMessage)
+                                        .foregroundStyle(.red)
+                                        .font(.caption.weight(.medium))
+                                        .accessibilityIdentifier("loginErrorText")
+                                }
+                                .padding(12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .accessibilityElement(children: .contain)
+                                .accessibilityIdentifier("loginErrorBox")
+                            }
+
+                            // Email field
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Email", comment: "Email field label on login screen")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(Color.appText)
+
+                                HStack {
+                                    TextField(String(localized: "Email"), text: $email)
+                                        .textFieldStyle(.plain)
+                                        .textContentType(.emailAddress)
+                                        .textInputAutocapitalization(.never)
+                                        .keyboardType(.emailAddress)
+                                        .autocorrectionDisabled()
+                                        .focused($focusedField, equals: .email)
+                                        .foregroundStyle(Color.appText)
+                                        .accessibilityIdentifier("loginEmailField")
+                                        .onChange(of: email) {
+                                            showError = false
+                                        }
+                                }
+                                .padding()
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                            }
+                                        }
+                                }
+                            }
+
+                            // Password field
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Password", comment: "Password field label on login screen")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(Color.appText)
+
+                                HStack {
+                                    SecureField(String(localized: "Password"), text: $password)
+                                        .textFieldStyle(.plain)
+                                        .textContentType(.password)
+                                        .focused($focusedField, equals: .password)
+                                        .foregroundStyle(Color.appText)
+                                        .accessibilityIdentifier("loginPasswordField")
+                                        .onChange(of: password) {
+                                            showError = false
+                                        }
+                                }
+                                .padding()
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.appSurface)
+                                        .overlay {
+                                            if colorScheme == .dark {
+                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                            }
+                                        }
+                                }
+                            }
+
+                            // Forgot password
+                            HStack {
+                                Spacer()
+                                Button(String(localized: "Forgot Password?")) {
+                                    showingForgotPassword = true
+                                }
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.appAccent)
+                                .accessibilityIdentifier("forgotPasswordButton")
+                            }
+
+                            // Sign in button
+                            PrimaryCTAButton(authViewModel.rateLimitSecondsRemaining > 0
+                                ? "Wait \(authViewModel.rateLimitSecondsRemaining)s"
+                                : "Sign In"
+                            ) {
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                if email.trimmingCharacters(in: .whitespaces).isEmpty {
+                                    errorMessage = String(localized: "Email is required")
+                                    showError = true
+                                } else if !isValidEmail(email) {
+                                    errorMessage = String(localized: "Please enter a valid email address")
+                                    showError = true
+                                } else if password.isEmpty {
+                                    errorMessage = String(localized: "Password is required")
+                                    showError = true
+                                } else {
+                                    showError = false
+                                    errorMessage = ""
+                                    Task {
+                                        await authViewModel.signIn(email: email, password: password)
+
+                                        // Check for auth errors after sign in attempt
+                                        if let authError = authViewModel.errorMessage {
+                                            errorMessage = authError
+                                            showError = true
+                                        }
+                                    }
+                                }
+                            }
+                            .accessibilityIdentifier("loginButton")
+                            .disabled(authViewModel.rateLimitSecondsRemaining > 0)
+                            .padding(.top, 4)
+
+                            // Divider with "or"
+                            HStack(spacing: 12) {
+                                RoundedRectangle(cornerRadius: 0.5)
+                                    .fill(Color.appTertiaryText)
+                                    .frame(height: 1)
+                                Text("or", comment: "Divider between sign-in methods on login screen")
                                     .font(.caption.weight(.medium))
-                                    .accessibilityIdentifier("loginErrorText")
+                                    .foregroundStyle(Color.appTertiaryText)
+                                RoundedRectangle(cornerRadius: 0.5)
+                                    .fill(Color.appTertiaryText)
+                                    .frame(height: 1)
                             }
-                            .padding(12)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(.red.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            .accessibilityElement(children: .contain)
-                            .accessibilityIdentifier("loginErrorBox")
-                        }
-                        
-                        // Email field
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Email", comment: "Email field label on login screen")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(Color.appText)
+                            .padding(.top, 16)
 
-                            HStack {
-                                TextField(String(localized: "Email"), text: $email)
-                                    .textFieldStyle(.plain)
-                                    .textContentType(.emailAddress)
-                                    .textInputAutocapitalization(.never)
-                                    .keyboardType(.emailAddress)
-                                    .autocorrectionDisabled()
-                                    .focused($focusedField, equals: .email)
-                                    .foregroundStyle(Color.appText)
-                                    .accessibilityIdentifier("loginEmailField")
-                                    .onChange(of: email) {
-                                        showError = false
+                            // Sign in with Apple button
+                            SignInWithAppleButton(.continue) { request in
+                                let nonce = authViewModel.generateNonce()
+                                request.requestedScopes = [.fullName, .email]
+                                request.nonce = authViewModel.sha256(nonce)
+                            } onCompletion: { result in
+                                switch result {
+                                case .success(let authorization):
+                                    Task {
+                                        await authViewModel.signInWithApple(authorization: authorization)
                                     }
-                            }
-                            .padding()
-                            .background {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color.appSurface)
-                                    .overlay {
-                                        if colorScheme == .dark {
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                        }
-                                    }
-                            }
-                                }
-
-                        // Password field
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Password", comment: "Password field label on login screen")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(Color.appText)
-
-                            HStack {
-                                SecureField(String(localized: "Password"), text: $password)
-                                    .textFieldStyle(.plain)
-                                    .textContentType(.password)
-                                    .focused($focusedField, equals: .password)
-                                    .foregroundStyle(Color.appText)
-                                    .accessibilityIdentifier("loginPasswordField")
-                                    .onChange(of: password) {
-                                        showError = false
-                                    }
-                            }
-                            .padding()
-                            .background {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color.appSurface)
-                                    .overlay {
-                                        if colorScheme == .dark {
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                        }
-                                    }
-                            }
-                                }
-
-                        // Forgot password
-                        HStack {
-                            Spacer()
-                            Button(String(localized: "Forgot Password?")) {
-                                showingForgotPassword = true
-                            }
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(Color.appAccent)
-                            .accessibilityIdentifier("forgotPasswordButton")
-                        }
-                        
-                        // Sign in button
-                        PrimaryCTAButton(authViewModel.rateLimitSecondsRemaining > 0
-                            ? "Wait \(authViewModel.rateLimitSecondsRemaining)s"
-                            : "Sign In"
-                        ) {
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            if email.trimmingCharacters(in: .whitespaces).isEmpty {
-                                errorMessage = String(localized: "Email is required")
-                                showError = true
-                            } else if !isValidEmail(email) {
-                                errorMessage = String(localized: "Please enter a valid email address")
-                                showError = true
-                            } else if password.isEmpty {
-                                errorMessage = String(localized: "Password is required")
-                                showError = true
-                            } else {
-                                showError = false
-                                errorMessage = ""
-                                Task {
-                                    await authViewModel.signIn(email: email, password: password)
-                                    
-                                    // Check for auth errors after sign in attempt
-                                    if let authError = authViewModel.errorMessage {
-                                        errorMessage = authError
+                                case .failure(let error):
+                                    if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
+                                        errorMessage = String(localized: "Sign in with Apple failed.")
                                         showError = true
                                     }
                                 }
                             }
-                        }
-                        .accessibilityIdentifier("loginButton")
-                        .disabled(authViewModel.rateLimitSecondsRemaining > 0)
-                        .padding(.top, 4)
-                        
-                        // Divider with "or"
-                        HStack(spacing: 12) {
-                            RoundedRectangle(cornerRadius: 0.5)
-                                .fill(Color.appTertiaryText)
-                                .frame(height: 1)
-                            Text("or", comment: "Divider between sign-in methods on login screen")
-                                .font(.caption.weight(.medium))
-                                .foregroundStyle(Color.appTertiaryText)
-                            RoundedRectangle(cornerRadius: 0.5)
-                                .fill(Color.appTertiaryText)
-                                .frame(height: 1)
-                        }
-                        .padding(.top, 16)
-                        
-                        // Sign in with Apple button
-                        SignInWithAppleButton(.continue) { request in
-                            let nonce = authViewModel.generateNonce()
-                            request.requestedScopes = [.fullName, .email]
-                            request.nonce = authViewModel.sha256(nonce)
-                        } onCompletion: { result in
-                            switch result {
-                            case .success(let authorization):
-                                Task {
-                                    await authViewModel.signInWithApple(authorization: authorization)
+                            .signInWithAppleButtonStyle(.white)
+                            .frame(height: 52)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                            // Terms & Privacy note
+                            HStack(spacing: 4) {
+                                Text("By continuing, you agree to the", comment: "Terms agreement prefix on login screen")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.appTertiaryText)
+
+                                Button(action: {
+                                    safariURL = Constants.URLs.termsOfService
+                                }) {
+                                    Text("Terms of Service", comment: "Terms of Service link on login screen")
+                                        .font(.caption2)
+                                        .foregroundStyle(Color.appAccent)
+                                        .underline()
                                 }
-                            case .failure(let error):
-                                if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
-                                    errorMessage = String(localized: "Sign in with Apple failed.")
-                                    showError = true
+
+                                Text("&", comment: "Conjunction between Terms of Service and Privacy Policy links")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.appTertiaryText)
+
+                                Button(action: {
+                                    safariURL = Constants.URLs.privacyPolicy
+                                }) {
+                                    Text("Privacy Policy", comment: "Privacy Policy link on login screen")
+                                        .font(.caption2)
+                                        .foregroundStyle(Color.appAccent)
+                                        .underline()
                                 }
                             }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 8)
                         }
-                        .signInWithAppleButtonStyle(.white)
-                        .frame(height: 52)
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        
-                        // Terms & Privacy note
-                        HStack(spacing: 4) {
-                            Text("By continuing, you agree to the", comment: "Terms agreement prefix on login screen")
-                                .font(.caption2)
-                                .foregroundStyle(Color.appTertiaryText)
-                            
-                            Button(action: {
-                                safariURL = Constants.URLs.termsOfService
-                            }) {
-                                Text("Terms of Service", comment: "Terms of Service link on login screen")
-                                    .font(.caption2)
-                                    .foregroundStyle(Color.appAccent)
-                                    .underline()
-                            }
-                            
-                            Text("&", comment: "Conjunction between Terms of Service and Privacy Policy links")
-                                .font(.caption2)
-                                .foregroundStyle(Color.appTertiaryText)
-                            
-                            Button(action: {
-                                safariURL = Constants.URLs.privacyPolicy
-                            }) {
-                                Text("Privacy Policy", comment: "Privacy Policy link on login screen")
-                                    .font(.caption2)
-                                    .foregroundStyle(Color.appAccent)
-                                    .underline()
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 8)
+                        .padding(.horizontal, 24)
                     }
-                    .padding(.horizontal, 24)
-                    
-                    Spacer()
                 }
+                .scrollDismissesKeyboard(.interactively)
                 
             }
             .fullScreenCover(item: $safariURL) { url in

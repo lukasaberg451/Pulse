@@ -53,7 +53,7 @@ final class EditSetValuesTests: UITestBaseCase {
         let setOnePill = app.buttons.matching(NSPredicate(format: "label == '1'")).firstMatch
         XCTAssertTrue(setOnePill.waitForExistence(timeout: 5), "Set 1 pill not found")
         setOnePill.tap()
-        waitForAnimation()
+        confirmRepsPromptIfPresent()
 
         // Verify the weight is displayed (completed sets show the weight as text, not a field)
         let completedWeight = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '95'")).firstMatch
@@ -82,7 +82,7 @@ final class EditSetValuesTests: UITestBaseCase {
         let setOnePill = app.buttons.matching(NSPredicate(format: "label == '1'")).firstMatch
         XCTAssertTrue(setOnePill.waitForExistence(timeout: 5), "Set 1 pill not found")
         setOnePill.tap()
-        waitForAnimation()
+        confirmRepsPromptIfPresent()
 
         // Now edit set 2 with 85
         let weightField2 = app.textFields["weightField_2"]
@@ -95,7 +95,7 @@ final class EditSetValuesTests: UITestBaseCase {
         let setTwoPill = app.buttons.matching(NSPredicate(format: "label == '2'")).firstMatch
         XCTAssertTrue(setTwoPill.waitForExistence(timeout: 5), "Set 2 pill not found")
         setTwoPill.tap()
-        waitForAnimation()
+        confirmRepsPromptIfPresent()
 
         // Verify both weights are displayed as completed
         let weight80 = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '80'")).firstMatch

@@ -320,7 +320,9 @@ private struct ScheduledSectionCard: View {
                                 scheduled: scheduled,
                                 isSelectMode: isSelectMode,
                                 isSelected: selectedScheduledIds.contains(scheduled.id),
-                                exerciseCount: viewModel.exerciseCount(for: routine.id),
+                                exerciseCount: scheduled.completed
+                                    ? (scheduled.workoutSessionId.flatMap { viewModel.sessionExerciseCounts[$0] } ?? viewModel.exerciseCount(for: routine.id))
+                                    : viewModel.exerciseCount(for: routine.id),
                                 viewModel: viewModel,
                                 onTap: {
                                     if isSelectMode && !scheduled.completed {

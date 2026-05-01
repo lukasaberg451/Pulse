@@ -118,21 +118,11 @@ struct ActiveWorkoutViewContent: View {
 
                             // Workout Timer Header Card
                             TimerHeaderCard(
-                                elapsedTimeText: viewModel.formatElapsedTime()
+                                elapsedTimeText: viewModel.formatElapsedTime(),
+                                completedExercises: viewModel.allWorkoutExercises.count - viewModel.routineExercises.count,
+                                totalExercises: viewModel.allWorkoutExercises.count
                             )
                             .padding(.horizontal)
-
-                            // Rest Timer Banner
-                            if viewModel.isRestTimerActive {
-                                RestTimerBanner(
-                                    timeRemaining: viewModel.restTimeRemaining,
-                                    onSkip: {
-                                        viewModel.stopRestTimer()
-                                    }
-                                )
-                                .padding(.horizontal)
-                                .transition(.move(edge: .top).combined(with: .opacity))
-                            }
 
                             // Exercise Cards
                             ForEach(viewModel.allWorkoutExercises) { routineExercise in
@@ -155,17 +145,30 @@ struct ActiveWorkoutViewContent: View {
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
+                                        allExercises: exercises
                                     )
                                     .id(routineExercise.id)
                                     .padding(.horizontal)
-                                    .animation(.spring(response: 0.4, dampingFraction: 0.85), value: status)
                                 }
                             }
 
                             Spacer(minLength: 40)
                         }
                         .padding(.top, 8)
+                    }
+                    .safeAreaInset(edge: .bottom) {
+                        if viewModel.isRestTimerActive {
+                            RestTimerBanner(
+                                timeRemaining: viewModel.restTimeRemaining,
+                                onSkip: {
+                                    viewModel.stopRestTimer()
+                                }
+                            )
+                            .padding(.horizontal)
+                            .padding(.bottom, 4)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
                     }
                     .onChange(of: currentExerciseId) { _, newId in
                         guard let newId else { return }
@@ -325,21 +328,33 @@ enum ExerciseCardStatus {
 // MARK: - Timer Header Card
 struct TimerHeaderCard: View {
     let elapsedTimeText: String
+    let completedExercises: Int
+    let totalExercises: Int
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
-        HStack {
+        HStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("WORKOUT TIME", comment: "Timer header label")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(Color.appSecondaryText)
                 Text(elapsedTimeText)
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.appAccent)
-                    .contentTransition(.numericText())
+                    .monospacedDigit()
             }
             
             Spacer()
+            
+            VStack(alignment: .trailing, spacing: 4) {
+                Text("EXERCISES", comment: "Progress header label")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.appSecondaryText)
+                Text("\(completedExercises)/\(totalExercises)")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.appText)
+                    .contentTransition(.numericText())
+            }
         }
         .padding(18)
         .background(Color.appSurface)
@@ -380,7 +395,7 @@ struct RestTimerBanner: View {
                     Text(formatTime(timeRemaining))
                         .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.appAccent)
-                        .contentTransition(.numericText())
+                        .monospacedDigit()
                 }
             }
             
@@ -469,6 +484,56 @@ struct HoldToAddSetButton: View {
     }
 }
 
+// MARK: - Exercise Reorder Menu
+struct ExerciseReorderMenu: View, Equatable {
+    let routineExercises: [RoutineExercise]
+    let allExercises: [Exercise]
+    let onSkip: () -> Void
+    let onJump: (RoutineExercise) -> Void
+    let onSwap: () -> Void
+    
+    static func == (lhs: ExerciseReorderMenu, rhs: ExerciseReorderMenu) -> Bool {
+        lhs.routineExercises.map(\.id) == rhs.routineExercises.map(\.id)
+    }
+    
+    var body: some View {
+        Menu {
+            Button {
+                onSkip()
+            } label: {
+                Label(String(localized: "Skip for Now"), systemImage: "arrow.forward.to.line")
+            }
+            
+            if routineExercises.count > 2 {
+                Menu {
+                    ForEach(Array(routineExercises.dropFirst())) { re in
+                        if let ex = allExercises.first(where: { $0.id == re.exerciseId }) {
+                            Button(ex.name) {
+                                onJump(re)
+                            }
+                        }
+                    }
+                } label: {
+                    Label(String(localized: "Jump to…"), systemImage: "list.bullet")
+                }
+            }
+            
+            Button {
+                onSwap()
+            } label: {
+                Label(String(localized: "Swap with Next"), systemImage: "arrow.up.arrow.down")
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(Color.appSecondaryText)
+                .frame(width: 32, height: 32)
+                .background(Color.appText.opacity(0.06))
+                .clipShape(Circle())
+        }
+    }
+}
+
 // MARK: - Exercise Card
 struct ExerciseCard: View {
     @ObservedObject var viewModel: OfflineActiveWorkoutViewModel
@@ -477,6 +542,7 @@ struct ExerciseCard: View {
     let status: ExerciseCardStatus
     let isExpanded: Bool
     let onToggleExpand: () -> Void
+    var allExercises: [Exercise] = []
     @Environment(\.colorScheme) private var colorScheme
     
     var sets: [LocalWorkoutSet] {
@@ -513,6 +579,17 @@ struct ExerciseCard: View {
                             isCurrent: status == .current,
                             isLocked: status == .completed
                         )
+                        .overlay {
+                            if viewModel.repsConfirmationSetId == set.id,
+                               let targetReps = routineExercise.repsTarget.flatMap({ Int($0) }) {
+                                RepsConfirmationRow(targetReps: targetReps) { reps in
+                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                        viewModel.confirmReps(setId: set.id, reps: reps)
+                                    }
+                                }
+                                .background(Color.appSurface)
+                            }
+                        }
                         
                         if set.id != sets.last?.id {
                             Divider()
@@ -580,19 +657,47 @@ struct ExerciseCard: View {
                 exerciseSubtitle
                 
                 if exercise.exerciseType != "cardio",
-                   let lastWeight = viewModel.lastWeights[exercise.id] {
-                    let displayWeight = UnitManager.shared.displayWeight(lastWeight)
+                   let lastSet = viewModel.lastBestSets[exercise.id] {
+                    let displayWeight = UnitManager.shared.displayWeight(lastSet.weight)
                     let unit = UnitManager.shared.weightUnit
                     let formatted = displayWeight.truncatingRemainder(dividingBy: 1) == 0
                         ? String(format: "%.0f", displayWeight)
                         : String(format: "%.1f", displayWeight)
-                    Text("\(String(localized: "Last session best:")) \(formatted) \(unit)")
-                        .font(.caption)
-                        .foregroundStyle(Color.appAccent)
+                    if let reps = lastSet.reps {
+                        Text("\(String(localized: "Last session:")) \(formatted) \(unit) × \(reps) reps")
+                            .font(.caption)
+                            .foregroundStyle(Color.appAccent)
+                    } else {
+                        Text("\(String(localized: "Last session:")) \(formatted) \(unit)")
+                            .font(.caption)
+                            .foregroundStyle(Color.appAccent)
+                    }
                 }
             }
             
             Spacer()
+            
+            if status == .current && viewModel.routineExercises.count > 1 {
+                EquatableView(content: ExerciseReorderMenu(
+                    routineExercises: viewModel.routineExercises,
+                    allExercises: allExercises,
+                    onSkip: {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                            viewModel.skipCurrentExercise()
+                        }
+                    },
+                    onJump: { re in
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                            viewModel.jumpToExercise(re)
+                        }
+                    },
+                    onSwap: {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                            viewModel.swapWithNextExercise()
+                        }
+                    }
+                ))
+            }
             
             if status == .completed {
                 Image(isExpanded ? "chevron-up" : "chevron-down")
@@ -700,11 +805,11 @@ struct SetRow: View {
                     
                     Text("\(set.setNumber)")
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(set.completed ? .white : Color.appText)
+                        .foregroundStyle(set.completed ? .white : (isFirstIncomplete && isCurrent ? .white : Color.appText))
                         .frame(width: 28, height: 28)
                         .background(
                             Circle()
-                                .fill(set.completed ? Color.green : Color.appText.opacity(0.08))
+                                .fill(set.completed ? Color.green : (isFirstIncomplete && isCurrent ? Color.appAccent : Color.appText.opacity(0.08)))
                         )
                 }
                 .contentShape(Rectangle())
@@ -751,6 +856,8 @@ struct SetRow: View {
                 Color.appSurface
                 if set.completed {
                     Color.green.opacity(0.04)
+                } else if isFirstIncomplete && isCurrent {
+                    Color.appAccent.opacity(0.06)
                 }
             }
         )
@@ -767,6 +874,14 @@ struct SetRow: View {
     private func toggleSetCompletion() {
         // Prevent undoing sets on completed/locked exercises
         if isLocked && set.completed { return }
+        
+        // Dismiss prompt if tapped while awaiting confirmation
+        if viewModel.repsConfirmationSetId == set.id {
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
+                viewModel.dismissRepsConfirmation()
+            }
+            return
+        }
         
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         
@@ -793,14 +908,22 @@ struct SetRow: View {
             let actualWeight = exercise.exerciseType == "strength" ? (enteredWeight ?? routineExercise.targetWeight) : routineExercise.targetWeight
             let targetDuration = routineExercise.durationSeconds
             
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                viewModel.updateSet(
-                    set: set,
-                    reps: targetReps,
+            if exercise.exerciseType == "strength", targetReps != nil {
+                viewModel.prepareRepsConfirmation(
+                    setId: set.id,
                     weight: actualWeight,
-                    durationSeconds: targetDuration,
-                    completed: true
+                    durationSeconds: targetDuration
                 )
+            } else {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    viewModel.updateSet(
+                        set: set,
+                        reps: targetReps,
+                        weight: actualWeight,
+                        durationSeconds: targetDuration,
+                        completed: true
+                    )
+                }
             }
         }
     }
@@ -868,9 +991,15 @@ struct SetRow: View {
         .frame(width: 80, alignment: .leading)
         
         HStack(spacing: 3) {
-            Text(routineExercise.repsTarget ?? "—")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(Color.appText)
+            if set.completed, let actualReps = set.reps {
+                Text("\(actualReps)")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.appText)
+            } else {
+                Text(routineExercise.repsTarget ?? "—")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.appText)
+            }
             Text("reps", comment: "Reps label in set row")
                 .font(.caption2)
                 .foregroundStyle(Color.appSecondaryText)
@@ -908,6 +1037,96 @@ struct SetRow: View {
                     .font(.caption2)
                     .foregroundStyle(Color.appSecondaryText)
             }
+        }
+    }
+}
+
+// MARK: - Reps Confirmation Row
+struct RepsConfirmationRow: View {
+    let targetReps: Int
+    let onConfirm: (Int) -> Void
+
+    @State private var isVisible = false
+    @State private var buttonsVisible = false
+    @State private var selectedReps: Int? = nil
+
+    private var alternativeReps: [Int] {
+        [targetReps - 2, targetReps - 1, targetReps + 1, targetReps + 2].filter { $0 > 0 }
+    }
+
+    private var showContent: Bool {
+        isVisible && selectedReps == nil
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("Did you hit \(targetReps) reps?")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(Color.appSecondaryText)
+                .offset(y: showContent ? 0 : 6)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showContent)
+
+            HStack(spacing: 8) {
+                Button {
+                    selectReps(targetReps)
+                } label: {
+                    Text("Yes", comment: "Confirm target reps")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .background(Color.appAccent)
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(ScalePressStyle())
+                .opacity(buttonsVisible && selectedReps == nil ? 1 : 0)
+                .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.5)
+                .animation(.spring(response: 0.35, dampingFraction: 0.6).delay(buttonsVisible ? 0.08 : 0), value: buttonsVisible)
+                .animation(.spring(response: 0.25, dampingFraction: 0.8), value: selectedReps)
+
+                ForEach(Array(alternativeReps.enumerated()), id: \.element) { index, reps in
+                    Button {
+                        selectReps(reps)
+                    } label: {
+                        Text("\(reps)")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Color.appText)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(Color.appText.opacity(0.08))
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(ScalePressStyle())
+                    .opacity(buttonsVisible && selectedReps == nil ? 1 : 0)
+                    .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.5)
+                    .animation(
+                        .spring(response: 0.35, dampingFraction: 0.6)
+                            .delay(buttonsVisible ? 0.04 * Double(index + 1) + 0.08 : 0),
+                        value: buttonsVisible
+                    )
+                    .animation(.spring(response: 0.25, dampingFraction: 0.8), value: selectedReps)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .opacity(showContent ? 1 : 0)
+        .scaleEffect(showContent ? 1 : 0.85)
+        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: showContent)
+        .allowsHitTesting(selectedReps == nil)
+        .onAppear {
+            isVisible = true
+            buttonsVisible = true
+        }
+    }
+
+    private func selectReps(_ reps: Int) {
+        let impact = UINotificationFeedbackGenerator()
+        impact.notificationOccurred(.success)
+        selectedReps = reps
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            onConfirm(reps)
         }
     }
 }

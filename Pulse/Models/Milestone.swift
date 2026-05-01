@@ -17,7 +17,8 @@ struct UserMilestone: Codable, Identifiable {
     let type: String
     let targetValue: Double
     let sortOrder: Int
-    
+    let localizationKey: String?
+
     enum CodingKeys: String, CodingKey {
         case id = "out_id"
         case milestoneDefinitionId = "out_milestone_definition_id"
@@ -30,8 +31,9 @@ struct UserMilestone: Codable, Identifiable {
         case type = "out_type"
         case targetValue = "out_target_value"
         case sortOrder = "out_sort_order"
+        case localizationKey = "out_localization_key"
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -45,9 +47,10 @@ struct UserMilestone: Codable, Identifiable {
         type = try container.decode(String.self, forKey: .type)
         targetValue = try container.decode(Double.self, forKey: .targetValue)
         sortOrder = try container.decode(Int.self, forKey: .sortOrder)
+        localizationKey = try container.decodeIfPresent(String.self, forKey: .localizationKey)
     }
-    
-    init(id: UUID, milestoneDefinitionId: UUID, currentValue: Double, achievedAt: Date?, unlockedAt: Date?, name: String, description: String, icon: String, type: String, targetValue: Double, sortOrder: Int) {
+
+    init(id: UUID, milestoneDefinitionId: UUID, currentValue: Double, achievedAt: Date?, unlockedAt: Date?, name: String, description: String, icon: String, type: String, targetValue: Double, sortOrder: Int, localizationKey: String? = nil) {
         self.id = id
         self.milestoneDefinitionId = milestoneDefinitionId
         self.currentValue = currentValue
@@ -59,6 +62,21 @@ struct UserMilestone: Codable, Identifiable {
         self.type = type
         self.targetValue = targetValue
         self.sortOrder = sortOrder
+        self.localizationKey = localizationKey
+    }
+
+    var localizedName: String {
+        guard let key = localizationKey else { return name }
+        let nameKey = "milestone.\(key).name"
+        let localized = NSLocalizedString(nameKey, comment: "")
+        return localized == nameKey ? name : localized
+    }
+
+    var localizedDescription: String {
+        guard let key = localizationKey else { return description }
+        let descKey = "milestone.\(key).description"
+        let localized = NSLocalizedString(descKey, comment: "")
+        return localized == descKey ? description : localized
     }
     
     /// Target value has been reached

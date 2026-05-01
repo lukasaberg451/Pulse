@@ -167,17 +167,17 @@ struct WorkoutDetailView: View {
                     title: "Duration",
                     value: viewModel.formattedDuration
                 )
-                
-                detailStatCard(
-                    icon: "flame",
-                    title: "Total Sets",
-                    value: "\(viewModel.totalSets)"
-                )
-                
+
                 detailStatCard(
                     icon: "volume",
                     title: "Volume",
                     value: String(format: "%.0f %@", unitManager.displayWeight(viewModel.totalVolume), unitManager.weightUnit)
+                )
+
+                detailStatCard(
+                    icon: "exercises",
+                    title: "Exercises",
+                    value: "\(viewModel.groupedSets.count)"
                 )
             }
         }

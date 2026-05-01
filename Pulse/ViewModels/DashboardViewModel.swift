@@ -27,6 +27,8 @@ class DashboardViewModel: ObservableObject {
     @Published var bestStreak: Int = 0
     @Published var latestPR: PersonalRecord?
     @Published var totalWorkoutCount: Int = 0
+    @Published var userStreak: UserStreak?
+    @Published var weeklyWorkoutCount: Int = 0
     
     /// Exercises are accessed via the singleton cache to avoid storing a
     /// duplicate copy of the entire exercises table in this view model.
@@ -249,6 +251,11 @@ class DashboardViewModel: ObservableObject {
             bestStreak = stats.bestStreak
             totalWorkoutCount = stats.totalWorkoutCount
             weeklyWorkoutMinutes = stats.weeklyWorkoutMinutes
+
+            if let streak = try? await workoutRepository.refreshUserStreak(userId: userId) {
+                userStreak = streak
+                weeklyWorkoutCount = streak.workoutsThisWeek
+            }
             
             // Update weekly goal from profile
             if let profile = userProfile {

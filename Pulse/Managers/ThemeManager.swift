@@ -31,13 +31,15 @@ enum AppTheme: String, CaseIterable {
 }
 
 class ThemeManager: ObservableObject {
+    static let shared = ThemeManager()
+
     @Published var selectedTheme: AppTheme {
         didSet {
             UserDefaults.standard.set(selectedTheme.rawValue, forKey: "selectedTheme")
             applyToAllWindows()
         }
     }
-    
+
     init() {
         let saved = UserDefaults.standard.string(forKey: "selectedTheme") ?? AppTheme.system.rawValue
         self.selectedTheme = AppTheme(rawValue: saved) ?? .system

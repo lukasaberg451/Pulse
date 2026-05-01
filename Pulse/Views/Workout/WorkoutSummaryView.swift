@@ -24,6 +24,8 @@ struct WorkoutSummaryView: View {
     let onDismiss: () -> Void
     
     @EnvironmentObject var unitManager: UnitManager
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
+    @State private var showingPaywall = false
     @State private var showShareSheet = false
     @State private var shareImage: UIImage?
     @State private var show1RMShareSheet = false
@@ -89,112 +91,115 @@ struct WorkoutSummaryView: View {
         ZStack {
             LinearGradient.dashboardBackground.ignoresSafeArea()
             
-            VStack(spacing: 0) {
-                ScrollView {
-                    VStack(spacing: 24) {
-                        // Header
-                        VStack(spacing: 12) {
-                            IconBadge(assetName: "check-circle", color: .green, size: 56)
-                                .scaleEffect(animationTrigger ? 1.0 : 0.5)
-                                .opacity(animationTrigger ? 1 : 0)
-                                .animation(.spring(response: 0.5, dampingFraction: 0.6), value: animationTrigger)
-                                .keyframeAnimator(
-                                    initialValue: CelebrationValues(),
-                                    trigger: celebrationTrigger
-                                ) { content, value in
-                                    content
-                                        .scaleEffect(value.scale)
-                                        .overlay {
-                                            Circle()
-                                                .fill(Color.green.opacity(value.glowOpacity))
-                                                .blur(radius: 24)
-                                                .scaleEffect(value.scale * 1.6)
-                                                .allowsHitTesting(false)
-                                        }
-                                } keyframes: { _ in
-                                    KeyframeTrack(\.scale) {
-                                        CubicKeyframe(1.18, duration: 0.45)
-                                        CubicKeyframe(1.0, duration: 0.6)
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(spacing: 12) {
+                        IconBadge(assetName: "check-circle", color: .green, size: 56)
+                            .scaleEffect(animationTrigger ? 1.0 : 0.5)
+                            .opacity(animationTrigger ? 1 : 0)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: animationTrigger)
+                            .keyframeAnimator(
+                                initialValue: CelebrationValues(),
+                                trigger: celebrationTrigger
+                            ) { content, value in
+                                content
+                                    .scaleEffect(value.scale)
+                                    .overlay {
+                                        Circle()
+                                            .fill(Color.green.opacity(value.glowOpacity))
+                                            .blur(radius: 24)
+                                            .scaleEffect(value.scale * 1.6)
+                                            .allowsHitTesting(false)
                                     }
-                                    
-                                    KeyframeTrack(\.glowOpacity) {
-                                        CubicKeyframe(0.3, duration: 0.4)
-                                        CubicKeyframe(0.0, duration: 0.7)
-                                    }
+                            } keyframes: { _ in
+                                KeyframeTrack(\.scale) {
+                                    CubicKeyframe(1.18, duration: 0.45)
+                                    CubicKeyframe(1.0, duration: 0.6)
                                 }
-                            
-                            Text("Workout Completed", comment: "Summary header")
-                                .font(.title2.weight(.bold))
-                                .foregroundStyle(Color.appText)
-                                .multilineTextAlignment(.center)
-                                .opacity(animationTrigger ? 1 : 0)
-                                .offset(y: animationTrigger ? 0 : 8)
-                                .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
-                            
-                            Text(routineName)
-                                .font(.subheadline)
-                                .foregroundStyle(Color.appSecondaryText)
-                                .opacity(animationTrigger ? 1 : 0)
-                                .offset(y: animationTrigger ? 0 : 8)
-                                .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
-                        }
-                        .padding(.top, 32)
-                        
-                        // Stats Grid
-                        VStack(spacing: 12) {
-                            HStack(spacing: 12) {
-                                summaryStatCard(
-                                    icon: "clock",
-                                    title: "Duration",
-                                    value: formattedDuration
-                                )
-                                
-                                summaryStatCard(
-                                    icon: "flame",
-                                    title: "Total Sets",
-                                    value: "\(totalSets)"
-                                )
+
+                                KeyframeTrack(\.glowOpacity) {
+                                    CubicKeyframe(0.3, duration: 0.4)
+                                    CubicKeyframe(0.0, duration: 0.7)
+                                }
                             }
+
+                        Text("Workout Completed", comment: "Summary header")
+                            .font(.title2.weight(.bold))
+                            .foregroundStyle(Color.appText)
+                            .multilineTextAlignment(.center)
                             .opacity(animationTrigger ? 1 : 0)
-                            .offset(y: animationTrigger ? 0 : 16)
-                            .animation(.easeOut(duration: 0.4).delay(0.4), value: animationTrigger)
-                            
-                            HStack(spacing: 12) {
-                                summaryStatCard(
-                                    icon: "volume",
-                                    title: "Volume",
-                                    value: String(format: "%.0f %@", unitManager.displayWeight(totalVolume), unitManager.weightUnit)
-                                )
-                                
-                                summaryStatCard(
-                                    icon: "exercises",
-                                    title: "Exercises",
-                                    value: "\(exerciseCount)"
-                                )
-                            }
+                            .offset(y: animationTrigger ? 0 : 8)
+                            .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
+
+                        Text(routineName)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.appSecondaryText)
                             .opacity(animationTrigger ? 1 : 0)
-                            .offset(y: animationTrigger ? 0 : 16)
-                            .animation(.easeOut(duration: 0.4).delay(0.55), value: animationTrigger)
+                            .offset(y: animationTrigger ? 0 : 8)
+                            .animation(.easeOut(duration: 0.35).delay(0.3), value: animationTrigger)
+                    }
+                    .padding(.top, 32)
+
+                    // Stats
+                    HStack(spacing: 16) {
+                        detailStatCard(
+                            icon: "clock",
+                            title: "Duration",
+                            value: formattedDuration
+                        )
+
+                        detailStatCard(
+                            icon: "volume",
+                            title: "Volume",
+                            value: String(format: "%.0f %@", unitManager.displayWeight(totalVolume), unitManager.weightUnit)
+                        )
+
+                        detailStatCard(
+                            icon: "exercises",
+                            title: "Exercises",
+                            value: "\(exerciseCount)"
+                        )
+                    }
+                    .padding(16)
+                    .background(Color.appSurface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay {
+                        if colorScheme == .dark {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
                         }
-                        .padding(.horizontal)
-                        
-                        // Strength Highlights (only shown when there are new PRs)
-                        if strength1RMHighlights.contains(where: { $0.isNewPr }) {
+                    }
+                    .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 16, x: 0, y: 6)
+                    .opacity(animationTrigger ? 1 : 0)
+                    .offset(y: animationTrigger ? 0 : 16)
+                    .animation(.easeOut(duration: 0.4).delay(0.4), value: animationTrigger)
+                    .padding(.horizontal)
+
+                    // Strength Highlights (only shown when there are new PRs)
+                    if strength1RMHighlights.contains(where: { $0.isNewPr }) {
+                        if subscriptionManager.isProUser {
                             strengthHighlightsSection
                                 .padding(.horizontal)
                                 .opacity(animationTrigger ? 1 : 0)
                                 .offset(y: animationTrigger ? 0 : 20)
                                 .animation(.easeOut(duration: 0.4).delay(0.65), value: animationTrigger)
+                        } else {
+                            locked1RMSection
+                                .padding(.horizontal)
+                                .opacity(animationTrigger ? 1 : 0)
+                                .offset(y: animationTrigger ? 0 : 20)
+                                .animation(.easeOut(duration: 0.4).delay(0.65), value: animationTrigger)
                         }
-                        
-                        // Exercise Breakdown
-                        exercisesSection
-                            .padding(.horizontal)
                     }
-                    .padding(.bottom, 24)
+
+                    // Exercise Breakdown
+                    exercisesSection
+                        .padding(.horizontal)
                 }
-                
-                // Action Buttons
+                .padding(.bottom, 24)
+            }
+            .safeAreaInset(edge: .bottom) {
                 HStack(spacing: 12) {
                     Button {
                         shareWorkout()
@@ -215,7 +220,7 @@ struct WorkoutSummaryView: View {
                             .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 12, x: 0, y: 4)
                     }
                     .buttonStyle(ScalePressStyle())
-                    
+
                     PrimaryCTAButton("Done") {
                         onDismiss()
                     }
@@ -226,6 +231,10 @@ struct WorkoutSummaryView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 16)
                 .padding(.top, 8)
+                .background(
+                    Color.appBackground.opacity(0.75)
+                        .ignoresSafeArea()
+                )
             }
         }
         .sentryScreen("WorkoutSummary")
@@ -255,6 +264,10 @@ struct WorkoutSummaryView: View {
                 SharePreviewSheet(image: share1RMImage)
                     .sheetContentTransition()
             }
+        }
+        .sheet(isPresented: $showingPaywall) {
+            SubscriptionView()
+                .sheetContentTransition()
         }
     }
     
@@ -302,7 +315,7 @@ struct WorkoutSummaryView: View {
     
     private var strengthHighlightsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Strength Highlights", comment: "Section header")
+            Text("Highlights", comment: "Section header")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.appText)
             
@@ -375,6 +388,58 @@ struct WorkoutSummaryView: View {
         }
     }
     
+    // MARK: - Locked 1RM Section (Free Users)
+
+    private var locked1RMSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Highlights", comment: "Section header")
+                .font(.title3.weight(.bold))
+                .foregroundStyle(Color.appText)
+
+            VStack(spacing: 12) {
+                IconBadge(assetName: "crown", color: .orange, size: 44)
+
+                Text("New Personal Records!", comment: "Locked 1RM title")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(Color.appText)
+
+                Text("Upgrade to Pro to see your estimated 1RM and track personal records.", comment: "Locked 1RM subtitle")
+                    .font(.caption)
+                    .foregroundStyle(Color.appSecondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 16)
+
+                Button {
+                    let impactLight = UIImpactFeedbackGenerator(style: .light)
+                    impactLight.impactOccurred()
+                    showingPaywall = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "lock.fill")
+                            .font(.caption2)
+                        Text("Unlock 1RM Tracking", comment: "Upgrade button")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .foregroundStyle(Color.orange)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 36)
+                    .background(Color.orange.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .buttonStyle(ScalePressStyle())
+            }
+            .frame(maxWidth: .infinity)
+            .padding(14)
+            .background(Color.orange.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(Color.orange.opacity(0.35), lineWidth: 1.5)
+            }
+            .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
+        }
+    }
+
     // MARK: - Exercises Section
     
     private var exercisesSection: some View {
@@ -561,34 +626,22 @@ struct WorkoutSummaryView: View {
     }
     
     // MARK: - Stat Card
-    
-    private func summaryStatCard(icon: String, title: LocalizedStringKey, value: String, isSystemImage: Bool = false) -> some View {
+
+    private func detailStatCard(icon: String, title: LocalizedStringKey, value: String) -> some View {
         VStack(spacing: 8) {
-            if isSystemImage {
-                IconBadge(systemName: icon, size: 36)
-            } else {
-                IconBadge(assetName: icon, size: 36)
-            }
-            
+            IconBadge(assetName: icon, size: 36)
+
             Text(value)
-                .font(.title3.weight(.bold))
+                .font(.subheadline.weight(.bold))
                 .foregroundStyle(Color.appText)
-            
+                .minimumScaleFactor(0.8)
+                .lineLimit(1)
+
             Text(title)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(Color.appSecondaryText)
         }
-        .frame(maxWidth: .infinity, minHeight: 100)
-        .padding(16)
-        .background(Color.appSurface)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay {
-            if colorScheme == .dark {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-            }
-        }
-        .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 16, x: 0, y: 6)
+        .frame(maxWidth: .infinity)
     }
 }
 

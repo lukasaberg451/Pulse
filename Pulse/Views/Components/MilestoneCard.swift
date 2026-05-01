@@ -57,7 +57,7 @@ struct MilestoneCard: View {
                         .font(.caption.weight(.medium))
                         .foregroundStyle(.green)
 
-                    Text(milestone.name)
+                    Text(milestone.localizedName)
                         .font(.headline)
                         .foregroundStyle(Color.appText)
                 }
@@ -74,7 +74,7 @@ struct MilestoneCard: View {
                 }
             }
 
-            Text(milestone.description)
+            Text(milestone.localizedDescription)
                 .font(.caption)
                 .foregroundStyle(Color.appTertiaryText)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -138,7 +138,7 @@ struct MilestoneCard: View {
                         .font(.caption.weight(.medium))
                         .foregroundStyle(Color.appSecondaryText)
 
-                    Text(milestone.name)
+                    Text(milestone.localizedName)
                         .font(.headline)
                         .foregroundStyle(Color.appText)
                 }
@@ -152,7 +152,7 @@ struct MilestoneCard: View {
 
             PremiumProgressBar(progress: milestone.progress, height: 10)
 
-            Text(milestone.description)
+            Text(milestone.localizedDescription)
                 .font(.caption)
                 .foregroundStyle(Color.appTertiaryText)
                 .frame(maxWidth: .infinity, alignment: .leading)

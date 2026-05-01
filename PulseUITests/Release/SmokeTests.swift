@@ -18,9 +18,7 @@ final class SmokeTests: UITestBaseCase {
     func testAppLaunchesAndDashboardLoads() throws {
         dismissResumeAlertIfPresent()
 
-        let dashboardHeader = app.staticTexts.matching(NSPredicate(
-            format: "label CONTAINS[c] 'Welcome' OR label CONTAINS[c] 'Good'"
-        )).firstMatch
+        let dashboardHeader = app.staticTexts.matching(identifier: "dashboardWelcomeText").firstMatch
         XCTAssertTrue(dashboardHeader.waitForExistence(timeout: 15), "Dashboard header not visible after launch")
     }
 

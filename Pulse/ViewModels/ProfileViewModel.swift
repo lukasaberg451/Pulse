@@ -82,6 +82,12 @@ class ProfileViewModel: ObservableObject {
                let unit = UnitSystem(rawValue: unitRaw) {
                 UnitManager.shared.unitSystem = unit
             }
+
+            // Sync theme preference
+            if let themeRaw = profile.theme,
+               let theme = AppTheme(rawValue: themeRaw) {
+                ThemeManager.shared.selectedTheme = theme
+            }
             
             // Auto-detect timezone on first load if not set
             if profile.timezone == nil {
@@ -131,22 +137,44 @@ class ProfileViewModel: ObservableObject {
     func updateUnitSystem(_ system: UnitSystem) async {
         do {
             guard let userId = supabase.auth.currentUser?.id else { return }
-            
+
             struct UpdateUnitSystem: Encodable {
                 let unit_system: String
             }
-            
+
             try await supabase
                 .from("profiles")
                 .update(UpdateUnitSystem(unit_system: system.rawValue))
                 .eq("id", value: userId.uuidString)
                 .execute()
-            
+
             UnitManager.shared.unitSystem = system
-            
+
             await loadProfile()
         } catch {
             debugLog("Failed to update unit system: \(error)")
+        }
+    }
+
+    func updateTheme(_ theme: AppTheme) async {
+        do {
+            guard let userId = supabase.auth.currentUser?.id else { return }
+
+            struct UpdateTheme: Encodable {
+                let theme: String
+            }
+
+            try await supabase
+                .from("profiles")
+                .update(UpdateTheme(theme: theme.rawValue))
+                .eq("id", value: userId.uuidString)
+                .execute()
+
+            ThemeManager.shared.selectedTheme = theme
+
+            await loadProfile()
+        } catch {
+            debugLog("Failed to update theme: \(error)")
         }
     }
     

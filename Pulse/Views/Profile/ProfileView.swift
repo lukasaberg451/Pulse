@@ -259,7 +259,7 @@ struct ProfileView: View {
 
                                     LifetimeStatCard(
                                         title: String(localized: "Longest Streak"),
-                                        value: "\(progressViewModel.bestStreak) \(progressViewModel.bestStreak == 1 ? String(localized: "day") : String(localized: "days"))",
+                                        value: "\(progressViewModel.userStreak?.bestStreak ?? 0) \((progressViewModel.userStreak?.bestStreak ?? 0) == 1 ? String(localized: "week") : String(localized: "weeks"))",
                                         icon: "flame"
                                     )
                                 }
@@ -1434,75 +1434,94 @@ struct AllCustomExercisesView: View {
             LinearGradient.dashboardBackground
                 .ignoresSafeArea()
             
-            ScrollView {
-                LazyVStack(spacing: 10) {
-                    StaggeredList(items: viewModel.customExercises, id: \.id) { exercise in
-                        HStack(spacing: 12) {
-                            IconBadge(
-                                assetName: exercise.exerciseType?.lowercased() == "cardio" ? "cardio" : "musclegroup",
-                                color: .appAccent,
-                                size: 40
-                            )
-                            
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(exercise.name)
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(Color.appText)
-                                
-                                if let muscleGroup = exercise.muscleGroup {
-                                    Text(muscleGroup.capitalized)
-                                        .font(.caption)
-                                        .foregroundStyle(Color.appSecondaryText)
-                                } else if let exerciseType = exercise.exerciseType {
-                                    Text(exerciseType.capitalized)
-                                        .font(.caption)
-                                        .foregroundStyle(Color.appSecondaryText)
-                                }
-                            }
-                            
-                            Spacer()
-                            
-                            Menu {
-                                Button(role: .destructive) {
-                                    let notificationFeedback = UINotificationFeedbackGenerator()
-                                    notificationFeedback.notificationOccurred(.warning)
-                                    exerciseToDelete = exercise
-                                } label: {
-                                    Label { Text("Delete Exercise", comment: "Menu action") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
-                                }
-                            } label: {
-                                Image("ellipsis-horizontal")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 17, height: 17)
-                                    .foregroundStyle(Color.appTertiaryText)
-                                    .frame(width: 44, height: 44)
-                            }
-                            .accessibilityIdentifier("customExerciseMenu")
-                        }
-                        .padding(14)
-                        .background {
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .fill(Color.appSurface)
-                                .overlay {
-                                    if colorScheme == .dark {
-                                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                            .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                                            .allowsHitTesting(false)
+            if viewModel.customExercises.isEmpty {
+                VStack(spacing: 14) {
+                    Spacer()
+                    IconBadge(assetName: "clipboard-text", size: 48)
+
+                    Text("No custom exercises yet", comment: "Empty state")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.appText)
+
+                    Text("Create custom exercises when adding to a routine", comment: "Empty state hint")
+                        .font(.caption)
+                        .foregroundStyle(Color.appSecondaryText)
+                        .multilineTextAlignment(.center)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .padding(28)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 10) {
+                        StaggeredList(items: viewModel.customExercises, id: \.id) { exercise in
+                            HStack(spacing: 12) {
+                                IconBadge(
+                                    assetName: exercise.exerciseType?.lowercased() == "cardio" ? "cardio" : "musclegroup",
+                                    color: .appAccent,
+                                    size: 40
+                                )
+
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(exercise.name)
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(Color.appText)
+
+                                    if let muscleGroup = exercise.muscleGroup {
+                                        Text(muscleGroup.capitalized)
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appSecondaryText)
+                                    } else if let exerciseType = exercise.exerciseType {
+                                        Text(exerciseType.capitalized)
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appSecondaryText)
                                     }
                                 }
-                                .shadow(
-                                    color: colorScheme == .light
-                                        ? Color.black.opacity(0.06)
-                                        : Color.clear,
-                                    radius: 10,
-                                    x: 0,
-                                    y: 4
-                                )
+
+                                Spacer()
+
+                                Menu {
+                                    Button(role: .destructive) {
+                                        let notificationFeedback = UINotificationFeedbackGenerator()
+                                        notificationFeedback.notificationOccurred(.warning)
+                                        exerciseToDelete = exercise
+                                    } label: {
+                                        Label { Text("Delete Exercise", comment: "Menu action") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
+                                    }
+                                } label: {
+                                    Image("ellipsis-horizontal")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 17, height: 17)
+                                        .foregroundStyle(Color.appTertiaryText)
+                                        .frame(width: 44, height: 44)
+                                }
+                                .accessibilityIdentifier("customExerciseMenu")
+                            }
+                            .padding(14)
+                            .background {
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .fill(Color.appSurface)
+                                    .overlay {
+                                        if colorScheme == .dark {
+                                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                                .allowsHitTesting(false)
+                                        }
+                                    }
+                                    .shadow(
+                                        color: colorScheme == .light
+                                            ? Color.black.opacity(0.06)
+                                            : Color.clear,
+                                        radius: 10,
+                                        x: 0,
+                                        y: 4
+                                    )
+                            }
                         }
                     }
+                    .padding()
                 }
-                .padding()
             }
         }
         .sentryScreen("AllCustomExercises")

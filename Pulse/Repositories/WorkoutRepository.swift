@@ -562,6 +562,17 @@ class WorkoutRepository {
         return stats
     }
     
+    /// Refreshes and returns the user's streak state via server-side RPC.
+    func refreshUserStreak(userId: UUID) async throws -> UserStreak {
+        let streak: UserStreak = try await supabase
+            .rpc("refresh_user_streak", params: [
+                "p_user_id": userId.uuidString
+            ])
+            .execute()
+            .value
+        return streak
+    }
+
     /// Fetches all progress tab stats via server-side RPC.
     func fetchProgressStats(
         userId: UUID,
@@ -570,7 +581,9 @@ class WorkoutRepository {
         monthStart: Date,
         monthEnd: Date,
         lastMonthStart: Date,
-        lastMonthEnd: Date
+        lastMonthEnd: Date,
+        lastWeekStart: Date,
+        lastWeekEnd: Date
     ) async throws -> ProgressStats {
         let stats: ProgressStats = try await supabase
             .rpc("get_progress_stats", params: [
@@ -580,7 +593,9 @@ class WorkoutRepository {
                 "p_month_start": SharedFormatters.iso8601.string(from: monthStart),
                 "p_month_end": SharedFormatters.iso8601.string(from: monthEnd),
                 "p_last_month_start": SharedFormatters.iso8601.string(from: lastMonthStart),
-                "p_last_month_end": SharedFormatters.iso8601.string(from: lastMonthEnd)
+                "p_last_month_end": SharedFormatters.iso8601.string(from: lastMonthEnd),
+                "p_last_week_start": SharedFormatters.iso8601.string(from: lastWeekStart),
+                "p_last_week_end": SharedFormatters.iso8601.string(from: lastWeekEnd)
             ])
             .execute()
             .value
@@ -666,10 +681,14 @@ class WorkoutRepository {
     }
 
     /// Fetches the most recent completed weight for each of the given exercise IDs.
-    func fetchLastWeights(exerciseIds: [UUID]) async throws -> [UUID: Double] {
+    struct LastSetInfo {
+        let weight: Double
+        let reps: Int?
+    }
+    
+    func fetchLastBestSets(exerciseIds: [UUID]) async throws -> [UUID: LastSetInfo] {
         guard !exerciseIds.isEmpty else { return [:] }
-        
-        // Fetch recent completed sets for these exercises, ordered by created_at desc
+
         let sets: [WorkoutSet] = try await supabase
             .from("workout_sets")
             .select()
@@ -677,15 +696,24 @@ class WorkoutRepository {
             .eq("completed", value: true)
             .not("weight", operator: .is, value: "null")
             .order("created_at", ascending: false)
-            .limit(exerciseIds.count * 10) // Fetch enough to cover all exercises
+            .limit(exerciseIds.count * 20)
             .execute()
             .value
-        
-        // Pick the first (most recent) weight per exercise
-        var result: [UUID: Double] = [:]
+
+        // Group by exercise, find the most recent session per exercise,
+        // then pick the highest weight from that session
+        var setsByExercise: [UUID: [WorkoutSet]] = [:]
         for set in sets {
-            if result[set.exerciseId] == nil, let weight = set.weight {
-                result[set.exerciseId] = weight
+            setsByExercise[set.exerciseId, default: []].append(set)
+        }
+
+        var result: [UUID: LastSetInfo] = [:]
+        for (exerciseId, exerciseSets) in setsByExercise {
+            guard let mostRecentSessionId = exerciseSets.first?.sessionId else { continue }
+            let sessionSets = exerciseSets.filter { $0.sessionId == mostRecentSessionId }
+            if let bestSet = sessionSets.max(by: { ($0.weight ?? 0) < ($1.weight ?? 0) }),
+               let weight = bestSet.weight {
+                result[exerciseId] = LastSetInfo(weight: weight, reps: bestSet.reps)
             }
         }
         return result

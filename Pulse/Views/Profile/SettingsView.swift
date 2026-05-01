@@ -396,7 +396,7 @@ struct SettingsView: View {
                 .sheetContentTransition()
         }
         .sheet(isPresented: $showingThemeSheet) {
-            ThemeSelectionSheet()
+            ThemeSelectionSheet(viewModel: viewModel)
                 .sheetContentTransition()
         }
         .sheet(isPresented: $showingUnitSheet) {

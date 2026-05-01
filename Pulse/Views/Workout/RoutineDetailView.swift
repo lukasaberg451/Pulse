@@ -50,28 +50,23 @@ struct RoutineDetailView: View {
     
     private var exerciseList: some View {
         let exercises = editMode == .active ? reorderedExercises : viewModel.routineExercises
-        return List {
-            ForEach(Array(exercises.enumerated()), id: \.element.id) { index, routineExercise in
-                if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
-                    exerciseRow(routineExercise: routineExercise, exercise: exercise, index: index)
-                }
+        return ForEach(Array(exercises.enumerated()), id: \.element.id) { index, routineExercise in
+            if let exercise = viewModel.exercises.first(where: { $0.id == routineExercise.exerciseId }) {
+                exerciseRow(routineExercise: routineExercise, exercise: exercise, index: index)
             }
-            .onMove { source, destination in
-                if editMode == .active {
-                    moveItems(from: source, to: destination)
-                }
+        }
+        .onMove { source, destination in
+            if editMode == .active {
+                moveItems(from: source, to: destination)
             }
-            .onAppear {
-                if !hasExercisesAppeared {
-                    DispatchQueue.main.async {
-                        hasExercisesAppeared = true
-                    }
+        }
+        .onAppear {
+            if !hasExercisesAppeared {
+                DispatchQueue.main.async {
+                    hasExercisesAppeared = true
                 }
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .environment(\.editMode, $editMode)
     }
     
     @ViewBuilder
@@ -114,47 +109,47 @@ struct RoutineDetailView: View {
                 
                 Spacer()
                 
-                if editMode != .active {
-                    Menu {
-                        Button {
-                            editingExercise = routineExercise
-                            let impactLight = UIImpactFeedbackGenerator(style: .light)
-                            impactLight.impactOccurred()
-                        } label: {
-                            Label { Text("Edit Exercise", comment: "Menu action") } icon: { Image("pencil").resizable().scaledToFit().frame(width: 16, height: 16) }
-                        }
+                Menu {
+                    Button {
+                        editingExercise = routineExercise
+                        let impactLight = UIImpactFeedbackGenerator(style: .light)
+                        impactLight.impactOccurred()
+                    } label: {
+                        Label { Text("Edit Exercise", comment: "Menu action") } icon: { Image("pencil").resizable().scaledToFit().frame(width: 16, height: 16) }
+                    }
 
-                        Button(role: .destructive) {
-                            let notificationFeedback = UINotificationFeedbackGenerator()
-                            notificationFeedback.notificationOccurred(.warning)
-                            Task {
-                                await viewModel.deleteExercise(routineExercise)
-                            }
-                        } label: {
-                            Label { Text("Delete Exercise", comment: "Menu action") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
+                    Button(role: .destructive) {
+                        let notificationFeedback = UINotificationFeedbackGenerator()
+                        notificationFeedback.notificationOccurred(.warning)
+                        Task {
+                            await viewModel.deleteExercise(routineExercise)
                         }
                     } label: {
-                        Image("ellipsis-horizontal")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 17, height: 17)
-                            .foregroundStyle(Color.appTertiaryText)
-                            .frame(width: 44, height: 44)
+                        Label { Text("Delete Exercise", comment: "Menu action") } icon: { Image("trash").resizable().scaledToFit().frame(width: 16, height: 16) }
                     }
+                } label: {
+                    Image("ellipsis-horizontal")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 17, height: 17)
+                        .foregroundStyle(Color.appTertiaryText)
+                        .frame(width: 44, height: 44)
                 }
+                .opacity(editMode == .active ? 0 : 1)
+                .allowsHitTesting(editMode != .active)
             }
             .padding(14)
             .background {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .fill(Color.appSurface)
                     .overlay {
-                        if editMode == .active {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .strokeBorder(Color.appAccent.opacity(0.3), lineWidth: 1.5)
-                        }
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(Color.appAccent.opacity(0.3), lineWidth: 1.5)
+                            .opacity(editMode == .active ? 1 : 0)
                     }
             }
         }
+        .animation(.easeInOut(duration: 0.35), value: editMode)
         .listRowBackground(Color.clear)
         .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
         .listRowSeparator(.hidden)
@@ -193,8 +188,8 @@ struct RoutineDetailView: View {
                 }
                 .padding()
             } else {
-                VStack(spacing: 0) {
-                    // Fixed header
+                List {
+                    // Header section
                     VStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(viewModel.routine.name)
@@ -318,7 +313,10 @@ struct RoutineDetailView: View {
                         }
                     }
                     .padding()
-                    
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+
                     // Edit Order button (only show if there are exercises)
                     if !viewModel.routineExercises.isEmpty {
                         HStack {
@@ -327,13 +325,14 @@ struct RoutineDetailView: View {
                                 if editMode == .active {
                                     let notificationFeedback = UINotificationFeedbackGenerator()
                                     notificationFeedback.notificationOccurred(.success)
+                                    let savedOrder = reorderedExercises
+                                    withAnimation(.easeInOut(duration: 0.35)) {
+                                        viewModel.routineExercises = savedOrder
+                                        editMode = .inactive
+                                        reorderedExercises = []
+                                    }
                                     Task {
-                                        await viewModel.saveExerciseOrder(reorderedExercises)
-                                        withAnimation {
-                                            editMode = .inactive
-                                            reorderedExercises = []
-                                            hasExercisesAppeared = false
-                                        }
+                                        await viewModel.saveExerciseOrder(savedOrder)
                                     }
                                 } else {
                                     let impactLight = UIImpactFeedbackGenerator(style: .light)
@@ -371,12 +370,14 @@ struct RoutineDetailView: View {
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 8)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
                     }
-                    
+
                     // Exercises list
                     if viewModel.routineExercises.isEmpty {
                         VStack(spacing: 16) {
-                            Spacer()
                             IconBadge(
                                 assetName: "clipboard-text",
                                 size: 56
@@ -387,19 +388,24 @@ struct RoutineDetailView: View {
                             Text("Add exercises to build your routine", comment: "Empty state hint")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.appSecondaryText)
-                            Spacer()
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                     } else {
                         exerciseList
                     }
                 }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .environment(\.editMode, $editMode)
             }
         }
         .sentryScreen("RoutineDetail")
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("")
-        .toolbarBackground(Color.appBackground, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .sheet(isPresented: $showingExercisePicker) {
             ExercisePickerSheet(routineViewModel: viewModel)
                 .sheetContentTransition()
@@ -483,7 +489,7 @@ struct ExercisePickerSheet: View {
     
     let muscleOptions = [
         "Adductors", "Back", "Biceps", "Calves", "Cardio", "Chest", "Core",
-        "Delts", "Forearms", "Full Body", "Glutes", "Hamstrings", "Hip",
+        "Delts", "Forearms", "Full Body", "Glutes", "Hamstrings", "Hips", "Lats",
         "Upper Back", "Lower Back", "Quads", "Shoulders", "Traps", "Triceps"
     ]
     

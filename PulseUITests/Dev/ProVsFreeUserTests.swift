@@ -21,9 +21,7 @@ final class FreeUserWalkthroughTests: FreeUserUITestBaseCase {
     func testDashboardLoadsForFreeUser() throws {
         dismissResumeAlertIfPresent()
 
-        let dashboardHeader = app.staticTexts.matching(NSPredicate(
-            format: "label CONTAINS[c] 'Welcome' OR label CONTAINS[c] 'Good'"
-        )).firstMatch
+        let dashboardHeader = app.staticTexts.matching(identifier: "dashboardWelcomeText").firstMatch
         XCTAssertTrue(dashboardHeader.waitForExistence(timeout: 15), "Dashboard welcome header not found for free user")
     }
 
@@ -47,14 +45,17 @@ final class FreeUserWalkthroughTests: FreeUserUITestBaseCase {
         // Just verify the tab loaded without crashing
     }
 
-    // MARK: - Test: Progress Tab Shows Paywall for Free User
+    // MARK: - Test: Progress Tab for Free User
 
-    func testProgressTabShowsPaywallForFreeUser() throws {
+    func testProgressTabForFreeUser() throws {
         dismissResumeAlertIfPresent()
 
         let progressTab = app.buttons["Progress"]
         assertExists(progressTab, timeout: 15, "Progress tab not found")
         progressTab.tap()
+
+        let activityHeader = app.staticTexts["Activity"]
+        XCTAssertTrue(activityHeader.waitForExistence(timeout: 10), "'Activity' section should be visible for free user")
 
         let paywallPrompt = app.otherElements["progressPaywallPrompt"]
         XCTAssertTrue(paywallPrompt.waitForExistence(timeout: 10), "Paywall prompt not found on Progress tab for free user")
@@ -81,9 +82,7 @@ final class ProUserWalkthroughTests: UITestBaseCase {
     func testDashboardLoadsForProUser() throws {
         dismissResumeAlertIfPresent()
 
-        let dashboardHeader = app.staticTexts.matching(NSPredicate(
-            format: "label CONTAINS[c] 'Welcome' OR label CONTAINS[c] 'Good'"
-        )).firstMatch
+        let dashboardHeader = app.staticTexts.matching(identifier: "dashboardWelcomeText").firstMatch
         XCTAssertTrue(dashboardHeader.waitForExistence(timeout: 15), "Dashboard welcome header not found for pro user")
     }
 

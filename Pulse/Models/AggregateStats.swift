@@ -7,6 +7,23 @@
 
 import Foundation
 
+/// Response from `refresh_user_streak` RPC
+struct UserStreak: Codable {
+    let currentStreak: Int
+    let bestStreak: Int
+    let weekCompleted: Bool
+    let workoutsThisWeek: Int
+    let workoutsRequired: Int
+
+    enum CodingKeys: String, CodingKey {
+        case currentStreak = "current_streak"
+        case bestStreak = "best_streak"
+        case weekCompleted = "week_completed"
+        case workoutsThisWeek = "workouts_this_week"
+        case workoutsRequired = "workouts_required"
+    }
+}
+
 /// Response from `get_dashboard_stats` RPC
 struct DashboardStats: Codable {
     let currentStreak: Int
@@ -46,6 +63,12 @@ struct ProgressStats: Codable {
     let bestStreak: Int
     let improvingExerciseCount: Int
     let weeklyDurationMinutes: Int
+    let weeklyWorkouts: Int?
+    let lastWeekVolume: Int?
+    let lastWeekWorkouts: Int?
+    let lastWeekDurationMinutes: Int?
+    let weeklySets: Int?
+    let lastWeekSets: Int?
 
     enum CodingKeys: String, CodingKey {
         case weeklyVolume = "weekly_volume"
@@ -62,6 +85,12 @@ struct ProgressStats: Codable {
         case bestStreak = "best_streak"
         case improvingExerciseCount = "improving_exercise_count"
         case weeklyDurationMinutes = "weekly_duration_minutes"
+        case weeklyWorkouts = "weekly_workouts"
+        case lastWeekVolume = "last_week_volume"
+        case lastWeekWorkouts = "last_week_workouts"
+        case lastWeekDurationMinutes = "last_week_duration_minutes"
+        case weeklySets = "weekly_sets"
+        case lastWeekSets = "last_week_sets"
     }
 }
 
@@ -81,6 +110,10 @@ struct Exercise1RMRow: Codable, Identifiable {
     let bestWeight: Double
     let bestReps: Int
     let achievedAt: Date
+    let latestEstimated1rm: Double?
+    let latestWeight: Double?
+    let latestReps: Int?
+    let latestRecordedAt: Date?
 
     enum CodingKeys: String, CodingKey {
         case exerciseId = "exercise_id"
@@ -89,6 +122,10 @@ struct Exercise1RMRow: Codable, Identifiable {
         case bestWeight = "best_weight"
         case bestReps = "best_reps"
         case achievedAt = "achieved_at"
+        case latestEstimated1rm = "latest_estimated_1rm"
+        case latestWeight = "latest_weight"
+        case latestReps = "latest_reps"
+        case latestRecordedAt = "latest_recorded_at"
     }
 }
 

@@ -37,7 +37,7 @@ final class WorkoutDetailViewTests: UITestBaseCase {
         let setOnePill = app.buttons.matching(NSPredicate(format: "label == '1'")).firstMatch
         assertExists(setOnePill, timeout: 5, "Set 1 pill not found")
         setOnePill.tap()
-        waitForAnimation()
+        confirmRepsPromptIfPresent()
 
         finishButton.tap()
 
@@ -93,14 +93,11 @@ final class WorkoutDetailViewTests: UITestBaseCase {
         let durationLabel = app.staticTexts["Duration"]
         assertExists(durationLabel, timeout: 5, "'Duration' stat not found")
 
-        let totalSetsLabel = app.staticTexts["Total Sets"]
-        assertExists(totalSetsLabel, timeout: 5, "'Total Sets' stat not found")
-
         let volumeLabel = app.staticTexts["Volume"]
         assertExists(volumeLabel, timeout: 5, "'Volume' stat not found")
 
-        let exercisesHeader = app.staticTexts["Exercises"]
-        assertExists(exercisesHeader, timeout: 5, "'Exercises' section header not found")
+        let exercisesLabel = app.staticTexts["Exercises"]
+        assertExists(exercisesLabel, timeout: 5, "'Exercises' stat not found")
 
         // Verify Bench Press appears in the exercises list
         let benchPress = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'Bench Press'")).firstMatch

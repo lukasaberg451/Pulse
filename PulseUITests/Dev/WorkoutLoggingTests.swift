@@ -31,7 +31,7 @@ final class WorkoutLoggingTests: UITestBaseCase {
         let setOnePill = app.buttons.matching(NSPredicate(format: "label == '1'")).firstMatch
         assertExists(setOnePill, timeout: 5, "Set 1 pill not found")
         setOnePill.tap()
-        waitForAnimation()
+        confirmRepsPromptIfPresent()
 
         // Tap "Finish" to end the workout
         finishButton.tap()

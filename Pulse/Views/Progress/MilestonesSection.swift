@@ -174,11 +174,11 @@ struct MilestoneRow: View {
                 IconBadge(assetName: milestone.icon, color: .appAccent, size: 38)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(milestone.name)
+                    Text(milestone.localizedName)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
 
-                    Text(milestone.description)
+                    Text(milestone.localizedDescription)
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                 }
@@ -229,11 +229,11 @@ struct UnlockableMilestoneRow: View {
                 IconBadge(assetName: milestone.icon, color: .green, size: 38)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(milestone.name)
+                    Text(milestone.localizedName)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
 
-                    Text(milestone.description)
+                    Text(milestone.localizedDescription)
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
                 }
@@ -354,7 +354,7 @@ struct AchievedMilestoneRow: View {
             IconBadge(assetName: milestone.icon, color: .green, size: 38)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(milestone.name)
+                Text(milestone.localizedName)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.appText)
 

@@ -17,43 +17,43 @@ final class FreeUserSubscriptionTests: FreeUserUITestBaseCase {
         let progressTab = app.buttons["Progress"]
         assertExists(progressTab, timeout: 15, "Progress tab not found")
         progressTab.tap()
-        _ = app.otherElements["progressPaywallPrompt"].waitForExistence(timeout: 10)
+        _ = app.staticTexts["Activity"].waitForExistence(timeout: 10)
     }
 
-    // MARK: - Test: Progress Tab Shows Paywall for Free User
+    // MARK: - Test: Progress Tab Shows Activity and Paywall for Free User
 
-    /// Verifies that a free user sees the paywall prompt instead of analytics
-    /// when navigating to the Progress tab.
-    func testProgressTabShowsPaywallForFreeUser() throws {
+    /// Verifies that a free user sees the Progress, Activity sections and
+    /// the paywall prompt for pro-only features on the Progress tab.
+    func testProgressTabShowsActivityAndPaywallForFreeUser() throws {
         dismissResumeAlertIfPresent()
         navigateToProgress()
+
+        let activityHeader = app.staticTexts["Activity"]
+        XCTAssertTrue(activityHeader.waitForExistence(timeout: 10), "'Activity' section should be visible for free user")
+
+        let streakCard = app.otherElements["progressStreakCard"]
+        XCTAssertTrue(streakCard.waitForExistence(timeout: 5), "Streak card should be visible for free user")
 
         let paywallPrompt = app.otherElements["progressPaywallPrompt"]
         XCTAssertTrue(paywallPrompt.waitForExistence(timeout: 10), "Paywall prompt not found on Progress tab for free user")
 
-        let unlockText = app.staticTexts["Unlock Progress Tracking"]
-        XCTAssertTrue(unlockText.exists, "'Unlock Progress Tracking' text not found")
+        let unlockText = app.staticTexts["Unlock More Insights"]
+        XCTAssertTrue(unlockText.exists, "'Unlock More Insights' text not found")
 
         let upgradeButton = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'Upgrade to Pulse Pro'")).firstMatch
         XCTAssertTrue(upgradeButton.exists, "'Upgrade to Pulse Pro' button not found")
     }
 
-    // MARK: - Test: Progress Tab Does Not Show Analytics for Free User
+    // MARK: - Test: Progress Tab Hides Pro-Only Sections for Free User
 
-    /// Verifies that the Activity section and analytics cards are NOT visible
-    /// for a free user on the Progress tab.
-    func testProgressTabHidesAnalyticsForFreeUser() throws {
+    /// Verifies that pro-only sections (Estimated 1RM, Weight Progress) are
+    /// NOT visible for a free user on the Progress tab.
+    func testProgressTabHidesProSectionsForFreeUser() throws {
         dismissResumeAlertIfPresent()
         navigateToProgress()
 
-        let paywallPrompt = app.otherElements["progressPaywallPrompt"]
-        XCTAssertTrue(paywallPrompt.waitForExistence(timeout: 10), "Paywall prompt should be visible for free user")
-
-        let activityHeader = app.staticTexts["Activity"]
-        XCTAssertFalse(activityHeader.exists, "Activity section should NOT be visible for free user")
-
-        let streakCard = app.otherElements["progressStreakCard"]
-        XCTAssertFalse(streakCard.exists, "Streak card should NOT be visible for free user")
+        let estimated1RM = app.otherElements["progressEstimated1RMSection"]
+        XCTAssertFalse(estimated1RM.exists, "Estimated 1RM section should NOT be visible for free user")
     }
 
     // MARK: - Test: Settings Shows Free Plan Label
@@ -271,18 +271,18 @@ final class ProUserSubscriptionTests: UITestBaseCase {
         dismissResumeAlertIfPresent()
         navigateToProgress()
 
-        let workoutsCard = app.otherElements["progressWorkoutsCard"]
+        let workoutsCard = app.descendants(matching: .any).matching(identifier: "progressWorkoutsCard").firstMatch
         XCTAssertTrue(workoutsCard.waitForExistence(timeout: 10), "Workouts card should be visible for pro user")
     }
 
     // MARK: - Test: Pro User Can See Volume Card on Progress Tab
 
-    /// Verifies the volume lifted card is visible for a pro user.
+    /// Verifies the volume card is visible for a pro user.
     func testProUserSeesVolumeCard() throws {
         dismissResumeAlertIfPresent()
         navigateToProgress()
 
-        let volumeCard = app.otherElements["progressVolumeCard"]
+        let volumeCard = app.descendants(matching: .any).matching(identifier: "progressVolumeCard").firstMatch
         XCTAssertTrue(volumeCard.waitForExistence(timeout: 10), "Volume card should be visible for pro user")
     }
 }
