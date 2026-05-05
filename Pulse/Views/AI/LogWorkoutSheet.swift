@@ -456,36 +456,36 @@ struct LogWorkoutSheet: View {
         VStack(spacing: 10) {
             Divider().opacity(0.3)
             
-            editorField(label: "Name", text: Binding(
+            EditorField(label: "Name", text: Binding(
                 get: { parsedWorkout?.exercises[index].name ?? "" },
                 set: { parsedWorkout?.exercises[index].name = $0 }
             ))
             
             if exercise.isCardio {
                 HStack(spacing: 12) {
-                    editorNumberField(label: "Sets", value: Binding(
+                    EditorNumberField(label: "Sets", value: Binding(
                         get: { parsedWorkout?.exercises[index].sets ?? 0 },
                         set: { parsedWorkout?.exercises[index].sets = $0 }
                     ))
                     
-                    editorNumberField(label: "Duration (min)", value: Binding(
+                    EditorNumberField(label: "Duration (min)", value: Binding(
                         get: { (parsedWorkout?.exercises[index].durationSeconds ?? 0) / 60 },
                         set: { parsedWorkout?.exercises[index].durationSeconds = $0 == 0 ? nil : $0 * 60 }
                     ))
                 }
             } else {
                 HStack(spacing: 12) {
-                    editorNumberField(label: "Sets", value: Binding(
+                    EditorNumberField(label: "Sets", value: Binding(
                         get: { parsedWorkout?.exercises[index].sets ?? 0 },
                         set: { parsedWorkout?.exercises[index].sets = $0 }
                     ))
                     
-                    editorNumberField(label: "Reps", value: Binding(
+                    EditorNumberField(label: "Reps", value: Binding(
                         get: { parsedWorkout?.exercises[index].reps ?? 0 },
                         set: { parsedWorkout?.exercises[index].reps = $0 == 0 ? nil : $0 }
                     ))
                     
-                    editorDecimalField(
+                    EditorDecimalField(
                         label: "Weight (\(unitManager.weightUnit))",
                         value: Binding(
                             get: {
@@ -504,47 +504,80 @@ struct LogWorkoutSheet: View {
         }
     }
     
-    private func editorField(label: String, text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(Color.appTertiaryText)
-            TextField(label, text: text)
-                .font(.subheadline)
-                .foregroundStyle(Color.appText)
+    private struct EditorField: View {
+        let label: String
+        @Binding var text: String
+        @FocusState private var isFocused: Bool
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(label)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.appTertiaryText)
+                HStack {
+                    TextField(label, text: $text)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appText)
+                        .focused($isFocused)
+                }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
+                .contentShape(Rectangle())
+                .onTapGesture { isFocused = true }
                 .background(Color.appBackground.opacity(0.6), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
         }
     }
-    
-    private func editorNumberField(label: String, value: Binding<Int>) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(Color.appTertiaryText)
-            TextField(label, value: value, format: .number)
-                .keyboardType(.numberPad)
-                .font(.subheadline)
-                .foregroundStyle(Color.appText)
+
+    private struct EditorNumberField: View {
+        let label: String
+        @Binding var value: Int
+        @FocusState private var isFocused: Bool
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(label)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.appTertiaryText)
+                HStack {
+                    TextField(label, value: $value, format: .number)
+                        .keyboardType(.numberPad)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appText)
+                        .focused($isFocused)
+                }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
+                .contentShape(Rectangle())
+                .onTapGesture { isFocused = true }
                 .background(Color.appBackground.opacity(0.6), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
         }
     }
-    
-    private func editorDecimalField(label: String, value: Binding<Double>) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(Color.appTertiaryText)
-            TextField(label, value: value, format: .number)
-                .keyboardType(.decimalPad)
-                .font(.subheadline)
-                .foregroundStyle(Color.appText)
+
+    private struct EditorDecimalField: View {
+        let label: String
+        @Binding var value: Double
+        @FocusState private var isFocused: Bool
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(label)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.appTertiaryText)
+                HStack {
+                    TextField(label, value: $value, format: .number)
+                        .keyboardType(.decimalPad)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appText)
+                        .focused($isFocused)
+                }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
+                .contentShape(Rectangle())
+                .onTapGesture { isFocused = true }
                 .background(Color.appBackground.opacity(0.6), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
         }
     }
     

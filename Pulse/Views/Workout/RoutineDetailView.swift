@@ -611,6 +611,8 @@ struct ExercisePickerSheet: View {
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
+                        .contentShape(Rectangle())
+                        .onTapGesture { isSearchFocused = true }
                         .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .overlay {
                             if pickerColorScheme == .dark {
@@ -1526,16 +1528,19 @@ struct ExerciseConfigSheet: View {
     
     // Cardio-specific
     @State private var cardioMode: CardioMode = .continuous
-    
+    @FocusState private var focusedConfigField: ConfigField?
+
+    private enum ConfigField { case reps, weight }
+
     enum CardioMode: String, CaseIterable {
         case continuous = "Continuous"
         case intervals = "Intervals"
     }
-    
+
     var isCardio: Bool {
         exercise.exerciseType == "cardio"
     }
-    
+
     private var isAddDisabled: Bool {
         if isCardio {
             return durationMinutes == 0 && durationSeconds == 0
@@ -1824,18 +1829,23 @@ struct ExerciseConfigSheet: View {
                                             
                                             Spacer()
                                             
-                                            TextField("8", text: $repsTarget)
-                                                .foregroundStyle(Color.appText)
-                                                .keyboardType(.numberPad)
-                                                .multilineTextAlignment(.trailing)
-                                                .frame(width: 80)
-                                                .padding(10)
-                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                            HStack {
+                                                TextField("8", text: $repsTarget)
+                                                    .foregroundStyle(Color.appText)
+                                                    .keyboardType(.numberPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                    .focused($focusedConfigField, equals: .reps)
+                                            }
+                                            .frame(width: 80)
+                                            .padding(10)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture { focusedConfigField = .reps }
+                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }
                                     .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                    
+
                                     // Weight
                                     VStack(spacing: 0) {
                                         HStack {
@@ -1843,23 +1853,28 @@ struct ExerciseConfigSheet: View {
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
-                                            
+
                                             Spacer()
-                                            
-                                            TextField("", text: $targetWeight)
-                                                .foregroundStyle(Color.appText)
-                                                .keyboardType(.decimalPad)
-                                                .multilineTextAlignment(.trailing)
-                                                .frame(width: 80)
-                                                .padding(10)
-                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                                .onChange(of: targetWeight) { _, newValue in
-                                                    let sanitized = sanitizeWeightInput(newValue)
-                                                    if sanitized != newValue {
-                                                        targetWeight = sanitized
+
+                                            HStack {
+                                                TextField("", text: $targetWeight)
+                                                    .foregroundStyle(Color.appText)
+                                                    .keyboardType(.decimalPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                    .focused($focusedConfigField, equals: .weight)
+                                                    .onChange(of: targetWeight) { _, newValue in
+                                                        let sanitized = sanitizeWeightInput(newValue)
+                                                        if sanitized != newValue {
+                                                            targetWeight = sanitized
+                                                        }
                                                     }
-                                                }
-                                                .accessibilityIdentifier("exerciseWeightField")
+                                                    .accessibilityIdentifier("exerciseWeightField")
+                                            }
+                                            .frame(width: 80)
+                                            .padding(10)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture { focusedConfigField = .weight }
+                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }
@@ -2184,16 +2199,19 @@ struct EditExerciseSheet: View {
     
     // Cardio-specific
     @State private var cardioMode: CardioMode
-    
+    @FocusState private var focusedEditField: EditField?
+
+    private enum EditField { case reps, weight }
+
     enum CardioMode: String, CaseIterable {
         case continuous = "Continuous"
         case intervals = "Intervals"
     }
-    
+
     var isCardio: Bool {
         exercise.exerciseType == "cardio"
     }
-    
+
     private var isSaveDisabled: Bool {
         if isCardio {
             return durationMinutes == 0 && durationSeconds == 0
@@ -2503,18 +2521,23 @@ struct EditExerciseSheet: View {
                                             
                                             Spacer()
                                             
-                                            TextField("8", text: $repsTarget)
-                                                .foregroundStyle(Color.appText)
-                                                .keyboardType(.numberPad)
-                                                .multilineTextAlignment(.trailing)
-                                                .frame(width: 80)
-                                                .padding(10)
-                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                            HStack {
+                                                TextField("8", text: $repsTarget)
+                                                    .foregroundStyle(Color.appText)
+                                                    .keyboardType(.numberPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                    .focused($focusedEditField, equals: .reps)
+                                            }
+                                            .frame(width: 80)
+                                            .padding(10)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture { focusedEditField = .reps }
+                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }
                                     .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                    
+
                                     // Weight
                                     VStack(spacing: 0) {
                                         HStack {
@@ -2522,22 +2545,27 @@ struct EditExerciseSheet: View {
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
-                                            
+
                                             Spacer()
-                                            
-                                            TextField("", text: $targetWeight)
-                                                .foregroundStyle(Color.appText)
-                                                .keyboardType(.decimalPad)
-                                                .multilineTextAlignment(.trailing)
-                                                .frame(width: 80)
-                                                .padding(10)
-                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                                .onChange(of: targetWeight) { _, newValue in
-                                                    let sanitized = sanitizeWeightInput(newValue)
-                                                    if sanitized != newValue {
-                                                        targetWeight = sanitized
+
+                                            HStack {
+                                                TextField("", text: $targetWeight)
+                                                    .foregroundStyle(Color.appText)
+                                                    .keyboardType(.decimalPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                    .focused($focusedEditField, equals: .weight)
+                                                    .onChange(of: targetWeight) { _, newValue in
+                                                        let sanitized = sanitizeWeightInput(newValue)
+                                                        if sanitized != newValue {
+                                                            targetWeight = sanitized
+                                                        }
                                                     }
-                                                }
+                                            }
+                                            .frame(width: 80)
+                                            .padding(10)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture { focusedEditField = .weight }
+                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }

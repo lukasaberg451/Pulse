@@ -1292,17 +1292,21 @@ struct DeleteAccountConfirmationSheet: View {
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Color.appSecondaryText)
 
-                        TextField(text: $confirmationText) { Text(verbatim: "DELETE") }
-                            .textInputAutocapitalization(.characters)
-                            .autocorrectionDisabled()
-                            .padding(14)
-                            .background(Color.appSurface)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .strokeBorder(isTextFieldFocused ? Color.red : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
-                            )
-                            .focused($isTextFieldFocused)
+                        HStack {
+                            TextField(text: $confirmationText) { Text(verbatim: "DELETE") }
+                                .textInputAutocapitalization(.characters)
+                                .autocorrectionDisabled()
+                                .focused($isTextFieldFocused)
+                        }
+                        .padding(14)
+                        .contentShape(Rectangle())
+                        .onTapGesture { isTextFieldFocused = true }
+                        .background(Color.appSurface)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .strokeBorder(isTextFieldFocused ? Color.red : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
+                        )
                     }
                     .padding(.horizontal)
                     
