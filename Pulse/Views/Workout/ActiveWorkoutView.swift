@@ -583,7 +583,7 @@ struct ExerciseCard: View {
                             if viewModel.repsConfirmationSetId == set.id,
                                let targetReps = routineExercise.repsTarget.flatMap({ Int($0) }) {
                                 RepsConfirmationRow(targetReps: targetReps) { reps in
-                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) {
                                         viewModel.confirmReps(setId: set.id, reps: reps)
                                     }
                                 }
@@ -1063,8 +1063,8 @@ struct RepsConfirmationRow: View {
             Text("Did you hit \(targetReps) reps?")
                 .font(.caption.weight(.medium))
                 .foregroundStyle(Color.appSecondaryText)
-                .offset(y: showContent ? 0 : 6)
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showContent)
+                .offset(y: showContent ? 0 : 5)
+                .animation(.spring(response: 0.25, dampingFraction: 0.82), value: showContent)
 
             HStack(spacing: 8) {
                 Button {
@@ -1080,9 +1080,9 @@ struct RepsConfirmationRow: View {
                 }
                 .buttonStyle(ScalePressStyle())
                 .opacity(buttonsVisible && selectedReps == nil ? 1 : 0)
-                .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.5)
-                .animation(.spring(response: 0.35, dampingFraction: 0.6).delay(buttonsVisible ? 0.08 : 0), value: buttonsVisible)
-                .animation(.spring(response: 0.25, dampingFraction: 0.8), value: selectedReps)
+                .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.6)
+                .animation(.spring(response: 0.28, dampingFraction: 0.7).delay(buttonsVisible ? 0.04 : 0), value: buttonsVisible)
+                .animation(.spring(response: 0.22, dampingFraction: 0.82), value: selectedReps)
 
                 ForEach(Array(alternativeReps.enumerated()), id: \.element) { index, reps in
                     Button {
@@ -1098,13 +1098,13 @@ struct RepsConfirmationRow: View {
                     }
                     .buttonStyle(ScalePressStyle())
                     .opacity(buttonsVisible && selectedReps == nil ? 1 : 0)
-                    .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.5)
+                    .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.6)
                     .animation(
-                        .spring(response: 0.35, dampingFraction: 0.6)
-                            .delay(buttonsVisible ? 0.04 * Double(index + 1) + 0.08 : 0),
+                        .spring(response: 0.28, dampingFraction: 0.7)
+                            .delay(buttonsVisible ? 0.03 * Double(index + 1) + 0.04 : 0),
                         value: buttonsVisible
                     )
-                    .animation(.spring(response: 0.25, dampingFraction: 0.8), value: selectedReps)
+                    .animation(.spring(response: 0.22, dampingFraction: 0.82), value: selectedReps)
                 }
             }
         }
@@ -1112,8 +1112,8 @@ struct RepsConfirmationRow: View {
         .padding(.vertical, 10)
         .padding(.horizontal, 16)
         .opacity(showContent ? 1 : 0)
-        .scaleEffect(showContent ? 1 : 0.85)
-        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: showContent)
+        .scaleEffect(showContent ? 1 : 0.88)
+        .animation(.spring(response: 0.28, dampingFraction: 0.75), value: showContent)
         .allowsHitTesting(selectedReps == nil)
         .onAppear {
             isVisible = true
@@ -1125,7 +1125,7 @@ struct RepsConfirmationRow: View {
         let impact = UINotificationFeedbackGenerator()
         impact.notificationOccurred(.success)
         selectedReps = reps
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
             onConfirm(reps)
         }
     }
