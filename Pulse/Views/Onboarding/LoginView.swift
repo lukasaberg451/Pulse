@@ -91,6 +91,8 @@ struct LoginView: View {
                                         }
                                 }
                                 .padding()
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .email }
                                 .background {
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                                         .fill(Color.appSurface)
@@ -121,6 +123,8 @@ struct LoginView: View {
                                         }
                                 }
                                 .padding()
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .password }
                                 .background {
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                                         .fill(Color.appSurface)
@@ -395,6 +399,8 @@ struct ForgotPasswordView: View {
                             }
                     }
                     .padding()
+                    .contentShape(Rectangle())
+                    .onTapGesture { focusedResetField = .email }
                     .background {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .fill(Color.appSurface)
@@ -543,6 +549,8 @@ struct ForgotPasswordView: View {
                         .textContentType(.newPassword)
                 }
                 .padding()
+                .contentShape(Rectangle())
+                .onTapGesture { focusedResetField = .newPassword }
                 .background {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(Color.appSurface)
@@ -601,6 +609,8 @@ struct ForgotPasswordView: View {
                         .textContentType(.newPassword)
                 }
                 .padding()
+                .contentShape(Rectangle())
+                .onTapGesture { focusedResetField = .confirmPassword }
                 .background {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(Color.appSurface)

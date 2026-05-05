@@ -1247,6 +1247,8 @@ struct CreateCustomExerciseSheet: View {
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
+                        .contentShape(Rectangle())
+                        .onTapGesture { isExerciseNameFocused = true }
                         .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .overlay {
                             if colorScheme == .dark {
@@ -1254,7 +1256,6 @@ struct CreateCustomExerciseSheet: View {
                                     .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
                             }
                         }
-                        .onTapGesture { isExerciseNameFocused = true }
                     }
                     
                     // Exercise type
@@ -2049,6 +2050,8 @@ struct EditRoutineSheet: View {
                                     .accessibilityIdentifier("editRoutineNameField")
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .name }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)
@@ -2101,6 +2104,8 @@ struct EditRoutineSheet: View {
                                     }
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .notes }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)

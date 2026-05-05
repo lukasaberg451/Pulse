@@ -2091,6 +2091,8 @@ struct EditHeightSheet: View {
     @State private var heightInches: String
     @State private var showError = false
     @State private var errorMessage = ""
+    @FocusState private var focusedHeight: HeightField?
+    private enum HeightField { case metric, feet, inches }
 
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
@@ -2164,11 +2166,14 @@ struct EditHeightSheet: View {
                                         .textFieldStyle(.plain)
                                         .font(.title3.weight(.semibold))
                                         .foregroundStyle(Color.appText)
+                                        .focused($focusedHeight, equals: .metric)
                                     Text("cm")
                                         .font(.subheadline)
                                         .foregroundStyle(Color.appSecondaryText)
                                 }
                                 .padding(14)
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedHeight = .metric }
                                 .background {
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                                         .fill(Color.appSurface)
@@ -2191,11 +2196,14 @@ struct EditHeightSheet: View {
                                             .textFieldStyle(.plain)
                                             .font(.title3.weight(.semibold))
                                             .foregroundStyle(Color.appText)
+                                            .focused($focusedHeight, equals: .feet)
                                         Text("ft")
                                             .font(.subheadline)
                                             .foregroundStyle(Color.appSecondaryText)
                                     }
                                     .padding(14)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { focusedHeight = .feet }
                                     .background {
                                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                                             .fill(Color.appSurface)
@@ -2212,11 +2220,14 @@ struct EditHeightSheet: View {
                                             .textFieldStyle(.plain)
                                             .font(.title3.weight(.semibold))
                                             .foregroundStyle(Color.appText)
+                                            .focused($focusedHeight, equals: .inches)
                                         Text("in")
                                             .font(.subheadline)
                                             .foregroundStyle(Color.appSecondaryText)
                                     }
                                     .padding(14)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { focusedHeight = .inches }
                                     .background {
                                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                                             .fill(Color.appSurface)
@@ -2322,6 +2333,7 @@ struct EditWeightSheet: View {
     @State private var weightText = ""
     @State private var showError = false
     @State private var errorMessage = ""
+    @FocusState private var isFieldFocused: Bool
 
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
@@ -2389,11 +2401,14 @@ struct EditWeightSheet: View {
                                     .textFieldStyle(.plain)
                                     .font(.title3.weight(.semibold))
                                     .foregroundStyle(Color.appText)
+                                    .focused($isFieldFocused)
                                 Text(unitManager.weightUnit)
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appSecondaryText)
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { isFieldFocused = true }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)
@@ -2486,6 +2501,7 @@ struct EditTargetWeightSheet: View {
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var hadExistingTarget: Bool
+    @FocusState private var isFieldFocused: Bool
 
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
@@ -2553,11 +2569,14 @@ struct EditTargetWeightSheet: View {
                                     .textFieldStyle(.plain)
                                     .font(.title3.weight(.semibold))
                                     .foregroundStyle(Color.appText)
+                                    .focused($isFieldFocused)
                                 Text(unitManager.weightUnit)
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appSecondaryText)
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { isFieldFocused = true }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)

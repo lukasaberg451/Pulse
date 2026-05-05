@@ -683,13 +683,14 @@ struct EditFieldSheet: View {
                                 }
                         }
                         .padding(14)
+                        .contentShape(Rectangle())
+                        .onTapGesture { isFocused = true }
                         .background(Color.appSurface)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
                                 .strokeBorder(isFocused ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
                         )
-                        .onTapGesture { isFocused = true }
                         
                         // Character counter (visible when close to limit)
                         if editedValue.count >= counterVisibleThreshold {
@@ -854,13 +855,14 @@ struct FeedbackSheet: View {
                                     .foregroundStyle(Color.appText)
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .title }
                             .background(Color.appSurface)
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                                     .strokeBorder(focusedField == .title ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
                             )
-                            .onTapGesture { focusedField = .title }
                         }
                         .padding(.horizontal)
                         
@@ -1106,25 +1108,26 @@ struct ChangeEmailSheet: View {
                                     .foregroundStyle(Color.appSecondaryText)
                                 
                                 HStack {
-                                TextField("Enter new email", text: $newEmail)
-                                    .textFieldStyle(.plain)
-                                    .textInputAutocapitalization(.never)
-                                    .foregroundStyle(Color.appText)
-                                    .keyboardType(.emailAddress)
-                                    .autocorrectionDisabled()
-                                    .focused($focusedField, equals: .email)
-                                    .onChange(of: newEmail) { _, newValue in
-                                        newEmail = sanitizeInput(newValue, maxLength: 254)
-                                    }
-                            }
-                            .padding(14)
-                            .background(Color.appSurface)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .strokeBorder(focusedField == .email ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
-                            )
-                            .onTapGesture { focusedField = .email }
+                                    TextField("Enter new email", text: $newEmail)
+                                        .textFieldStyle(.plain)
+                                        .textInputAutocapitalization(.never)
+                                        .foregroundStyle(Color.appText)
+                                        .keyboardType(.emailAddress)
+                                        .autocorrectionDisabled()
+                                        .focused($focusedField, equals: .email)
+                                        .onChange(of: newEmail) { _, newValue in
+                                            newEmail = sanitizeInput(newValue, maxLength: 254)
+                                        }
+                                }
+                                .padding(14)
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .email }
+                                .background(Color.appSurface)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .strokeBorder(focusedField == .email ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
+                                )
                                 
                                 // Character counter (visible when close to limit)
                                 if newEmail.count >= 244 {
@@ -1152,13 +1155,14 @@ struct ChangeEmailSheet: View {
                                         .focused($focusedField, equals: .password)
                                 }
                                 .padding(14)
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .password }
                                 .background(Color.appSurface)
                                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                                         .strokeBorder(focusedField == .password ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
                                 )
-                                .onTapGesture { focusedField = .password }
                             }
                             .padding(.horizontal)
                             

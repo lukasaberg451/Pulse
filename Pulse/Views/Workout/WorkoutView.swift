@@ -1147,6 +1147,8 @@ struct CreateRoutineSheet: View {
                                     .accessibilityIdentifier("routineNameField")
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .name }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)
@@ -1199,6 +1201,8 @@ struct CreateRoutineSheet: View {
                                     }
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .notes }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)
