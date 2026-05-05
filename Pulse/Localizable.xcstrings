@@ -4976,6 +4976,7 @@
       }
     },
     "Almost There" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -16891,7 +16892,11 @@
         }
       }
     },
+    "It's been %lld days since your last session. Getting back in the gym helps maintain the progress you've built. Even a light workout counts." : {
+
+    },
     "It's been %lld days since your last session. Strength can decline after 72 hours of inactivity. Even a light workout helps maintain your gains." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -17008,6 +17013,7 @@
       }
     },
     "Just %lld more workout this week to hit your goal and start building a streak." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -17066,6 +17072,7 @@
       }
     },
     "Just %lld more workout to keep your %lld-week streak alive. You've got this!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -17128,6 +17135,15 @@
           }
         }
       }
+    },
+    "Just 1 more workout this week to start building a streak." : {
+
+    },
+    "Just 1 more workout to keep your %lld-week streak alive. You've got this!" : {
+
+    },
+    "Keep It Going" : {
+
     },
     "Keep It Up" : {
       "localizations" : {
@@ -31315,6 +31331,9 @@
         }
       }
     },
+    "Solid Week" : {
+
+    },
     "Something went wrong" : {
       "comment" : "Error state",
       "localizations" : {
@@ -37047,6 +37066,7 @@
       }
     },
     "Week Goal Smashed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -39046,6 +39066,7 @@
       }
     },
     "You hit your target of %lld workouts this week. Consistency like this is what drives real results. Enjoy the rest of the week or keep pushing!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -39337,7 +39358,18 @@
         }
       }
     },
+    "You've already completed %lld workouts so far this month, compared to %lld all of last month. Consistency is the strongest predictor of long-term strength gains." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You've already completed %1$lld workouts so far this month, compared to %2$lld all of last month. Consistency is the strongest predictor of long-term strength gains."
+          }
+        }
+      }
+    },
     "You've completed %lld workouts this month vs %lld last month. Consistency is the strongest predictor of long-term strength gains." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -39400,6 +39432,9 @@
           }
         }
       }
+    },
+    "You've completed %lld workouts this week. Consistency like this is what drives real results. Enjoy the rest of the week or keep pushing!" : {
+
     },
     "You've completed %lld workouts. Most people quit within the first few weeks. You've proven real commitment to your fitness." : {
       "localizations" : {
@@ -39698,6 +39733,7 @@
       }
     },
     "You've trained %lld times this week. Muscle tissue repairs and grows during rest, scheduling a recovery day can actually accelerate your progress." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -39755,7 +39791,21 @@
         }
       }
     },
+    "You've trained %lld times this week. Muscle tissue repairs and grows during rest. Scheduling a recovery day can actually accelerate your progress." : {
+
+    },
+    "Your %lld-week streak ended, but the strength you built didn't disappear. Get %lld workouts in this week to start a new one." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your %1$lld-week streak ended, but the strength you built didn't disappear. Get %2$lld workouts in this week to start a new one."
+          }
+        }
+      }
+    },
     "Your %lld-week streak ended, but the strength you built didn't disappear. Hit your %lld workouts this week to start a new one." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -39878,7 +39928,11 @@
         }
       }
     },
+    "Your average session is %lld minutes. Longer sessions can be effective, but if you're feeling drained, consider higher-intensity shorter sessions to stay fresh." : {
+
+    },
     "Your average session is %lld minutes. Research shows diminishing returns after 60–75 minutes as cortisol rises. Consider higher-intensity, shorter sessions." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -40170,6 +40224,7 @@
       }
     },
     "Your training volume is down %@ from last month. If you're deloading intentionally that's great, otherwise try to maintain or gradually increase load." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -40228,6 +40283,7 @@
       }
     },
     "Your training volume is up %@ from last month. Gradual progressive overload is the primary driver of muscle hypertrophy." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -40284,6 +40340,12 @@
           }
         }
       }
+    },
+    "Your training volume so far this month is already up %@ compared to all of last month. Gradual progressive overload is the primary driver of muscle growth." : {
+
+    },
+    "Your training volume so far this month is down %@ compared to last month. If you're deloading intentionally that's great, otherwise try to maintain or gradually increase load." : {
+
     },
     "Your version of Pulse is no longer supported. Please update to continue using the app." : {
       "localizations" : {
