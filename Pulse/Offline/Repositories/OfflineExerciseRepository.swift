@@ -172,6 +172,7 @@ class OfflineExerciseRepository {
                 existing.durationSeconds = routineExercise.durationSeconds
                 existing.restSeconds = routineExercise.restSeconds
                 existing.orderIndex = routineExercise.orderIndex
+                existing.notes = routineExercise.notes
             } else {
                 let localRoutineExercise = LocalRoutineExercise.from(routineExercise)
                 modelContext.insert(localRoutineExercise)

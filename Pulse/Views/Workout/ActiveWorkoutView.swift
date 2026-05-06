@@ -544,6 +544,7 @@ struct ExerciseCard: View {
     let onToggleExpand: () -> Void
     var allExercises: [Exercise] = []
     @Environment(\.colorScheme) private var colorScheme
+    @State private var showingNotes = false
     
     var sets: [LocalWorkoutSet] {
         viewModel.sets.filter { $0.exerciseId == exercise.id && $0.orderIndex == routineExercise.orderIndex }
@@ -676,6 +677,28 @@ struct ExerciseCard: View {
             }
             
             Spacer()
+            
+            if let notes = routineExercise.notes, !notes.isEmpty {
+                Button {
+                    showingNotes.toggle()
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appAccent)
+                        .frame(width: 32, height: 32)
+                        .background(Color.appAccent.opacity(0.1))
+                        .clipShape(Circle())
+                }
+                .popover(isPresented: $showingNotes, arrowEdge: .top) {
+                    Text(notes)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appText)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding()
+                        .frame(width: 280)
+                        .presentationCompactAdaptation(.popover)
+                }
+            }
             
             if status == .current && viewModel.routineExercises.count > 1 {
                 EquatableView(content: ExerciseReorderMenu(

@@ -1525,12 +1525,13 @@ struct ExerciseConfigSheet: View {
     @State private var durationMinutes = 5
     @State private var durationSeconds = 0
     @State private var restSeconds = 60
+    @State private var notes = ""
     
     // Cardio-specific
     @State private var cardioMode: CardioMode = .continuous
     @FocusState private var focusedConfigField: ConfigField?
 
-    private enum ConfigField { case reps, weight }
+    private enum ConfigField { case reps, weight, notes }
 
     enum CardioMode: String, CaseIterable {
         case continuous = "Continuous"
@@ -1928,6 +1929,37 @@ struct ExerciseConfigSheet: View {
                                     }
                                     .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 }
+                                
+                                // Notes
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Text("Notes (Optional)", comment: "Exercise notes label")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(notes.count)/200")
+                                            .font(.caption2)
+                                            .foregroundStyle(notes.count >= 200 ? Color.red : Color.appTertiaryText)
+                                    }
+                                    
+                                    TextField(String(localized: "e.g. Slow eccentric, pause at bottom"), text: $notes, axis: .vertical)
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.appText)
+                                        .lineLimit(2...4)
+                                        .focused($focusedConfigField, equals: .notes)
+                                        .onChange(of: notes) { _, newValue in
+                                            if newValue.count > 200 {
+                                                notes = String(newValue.prefix(200))
+                                            }
+                                        }
+                                        .padding(12)
+                                        .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                }
+                                .padding()
+                                .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                             }
                         }
                     }
@@ -1956,6 +1988,9 @@ struct ExerciseConfigSheet: View {
                                 viewModel.exercises.append(exercise)
                             }
                             
+                            let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+                            let exerciseNotes: String? = trimmedNotes.isEmpty ? nil : trimmedNotes
+                            
                             if isCardio {
                                 let totalSeconds = (durationMinutes * 60) + durationSeconds
                                 let actualSets = cardioMode == .continuous ? 1 : sets
@@ -1967,7 +2002,8 @@ struct ExerciseConfigSheet: View {
                                     repsTarget: nil,
                                     targetWeight: nil,
                                     durationSeconds: totalSeconds,
-                                    restSeconds: actualRest
+                                    restSeconds: actualRest,
+                                    notes: exerciseNotes
                                 )
                             } else {
                                 let normalizedWeight = targetWeight.replacingOccurrences(of: ",", with: ".")
@@ -1978,7 +2014,8 @@ struct ExerciseConfigSheet: View {
                                     repsTarget: repsTarget,
                                     targetWeight: weight,
                                     durationSeconds: nil,
-                                    restSeconds: restSeconds
+                                    restSeconds: restSeconds,
+                                    notes: exerciseNotes
                                 )
                             }
                             onAdded?()
@@ -2196,12 +2233,13 @@ struct EditExerciseSheet: View {
     @State private var durationMinutes: Int
     @State private var durationSeconds: Int
     @State private var restSeconds: Int
+    @State private var notes: String
     
     // Cardio-specific
     @State private var cardioMode: CardioMode
     @FocusState private var focusedEditField: EditField?
 
-    private enum EditField { case reps, weight }
+    private enum EditField { case reps, weight, notes }
 
     enum CardioMode: String, CaseIterable {
         case continuous = "Continuous"
@@ -2232,6 +2270,7 @@ struct EditExerciseSheet: View {
         let displayWeight = UnitManager.shared.displayWeight(routineExercise.targetWeight ?? 0)
         _targetWeight = State(initialValue: displayWeight > 0 ? String(format: "%.1f", displayWeight) : "")
         _restSeconds = State(initialValue: routineExercise.restSeconds)
+        _notes = State(initialValue: routineExercise.notes ?? "")
         
         let totalSeconds = routineExercise.durationSeconds ?? 0
         _durationMinutes = State(initialValue: totalSeconds / 60)
@@ -2619,6 +2658,37 @@ struct EditExerciseSheet: View {
                                     }
                                     .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 }
+                                
+                                // Notes
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Text("Notes (Optional)", comment: "Exercise notes label")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(notes.count)/200")
+                                            .font(.caption2)
+                                            .foregroundStyle(notes.count >= 200 ? Color.red : Color.appTertiaryText)
+                                    }
+                                    
+                                    TextField(String(localized: "e.g. Slow eccentric, pause at bottom"), text: $notes, axis: .vertical)
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.appText)
+                                        .lineLimit(2...4)
+                                        .focused($focusedEditField, equals: .notes)
+                                        .onChange(of: notes) { _, newValue in
+                                            if newValue.count > 200 {
+                                                notes = String(newValue.prefix(200))
+                                            }
+                                        }
+                                        .padding(12)
+                                        .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                }
+                                .padding()
+                                .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                             }
                         }
                     }
@@ -2642,6 +2712,9 @@ struct EditExerciseSheet: View {
                         let notificationFeedback = UINotificationFeedbackGenerator()
                         notificationFeedback.notificationOccurred(.success)
                         Task {
+                            let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+                            let exerciseNotes: String? = trimmedNotes.isEmpty ? nil : trimmedNotes
+                            
                             if isCardio {
                                 let totalSeconds = (durationMinutes * 60) + durationSeconds
                                 let actualSets = cardioMode == .continuous ? 1 : sets
@@ -2653,7 +2726,8 @@ struct EditExerciseSheet: View {
                                     repsTarget: nil,
                                     targetWeight: nil,
                                     durationSeconds: totalSeconds,
-                                    restSeconds: actualRest
+                                    restSeconds: actualRest,
+                                    notes: exerciseNotes
                                 )
                             } else {
                                 let normalizedWeight = targetWeight.replacingOccurrences(of: ",", with: ".")
@@ -2664,7 +2738,8 @@ struct EditExerciseSheet: View {
                                     repsTarget: repsTarget,
                                     targetWeight: weight,
                                     durationSeconds: nil,
-                                    restSeconds: restSeconds
+                                    restSeconds: restSeconds,
+                                    notes: exerciseNotes
                                 )
                             }
                             dismiss()

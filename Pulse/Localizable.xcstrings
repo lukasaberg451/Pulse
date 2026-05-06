@@ -2572,6 +2572,9 @@
         }
       }
     },
+    "%lld/200" : {
+
+    },
     "%lld/254" : {
       "localizations" : {
         "de" : {
@@ -11516,6 +11519,9 @@
           }
         }
       }
+    },
+    "e.g. Slow eccentric, pause at bottom" : {
+
     },
     "Edit" : {
       "localizations" : {
@@ -24789,7 +24795,7 @@
       }
     },
     "Notes (Optional)" : {
-      "comment" : "Edit routine notes label\nField label",
+      "comment" : "Edit routine notes label\nExercise notes label\nField label",
       "localizations" : {
         "de" : {
           "stringUnit" : {

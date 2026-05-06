@@ -89,7 +89,7 @@ class RoutineDetailViewModel: ObservableObject {
         }
     }
     
-    func addExercise(exerciseId: UUID, sets: Int, repsTarget: String?, targetWeight: Double?, durationSeconds: Int?, restSeconds: Int) async {
+    func addExercise(exerciseId: UUID, sets: Int, repsTarget: String?, targetWeight: Double?, durationSeconds: Int?, restSeconds: Int, notes: String? = nil) async {
         do {
             let nextOrderIndex = (routineExercises.map(\.orderIndex).max() ?? -1) + 1
             let newExercise = try await routineRepository.addExerciseToRoutine(
@@ -100,7 +100,8 @@ class RoutineDetailViewModel: ObservableObject {
                 targetWeight: targetWeight,
                 durationSeconds: durationSeconds,
                 restSeconds: restSeconds,
-                orderIndex: nextOrderIndex
+                orderIndex: nextOrderIndex,
+                notes: notes
             )
             routineExercises.append(newExercise)
             NotificationCenter.default.post(name: .routineDataChanged, object: nil)
@@ -114,7 +115,7 @@ class RoutineDetailViewModel: ObservableObject {
         exercises.first { $0.id == routineExercise.exerciseId }
     }
     
-    func updateExercise(id: UUID, sets: Int, repsTarget: String?, targetWeight: Double?, durationSeconds: Int?, restSeconds: Int) async {
+    func updateExercise(id: UUID, sets: Int, repsTarget: String?, targetWeight: Double?, durationSeconds: Int?, restSeconds: Int, notes: String? = nil) async {
         do {
             try await routineRepository.updateRoutineExercise(
                 id: id,
@@ -122,7 +123,8 @@ class RoutineDetailViewModel: ObservableObject {
                 repsTarget: repsTarget,
                 targetWeight: targetWeight,
                 durationSeconds: durationSeconds,
-                restSeconds: restSeconds
+                restSeconds: restSeconds,
+                notes: notes
             )
             
             // Reload exercises
