@@ -129,6 +129,7 @@ class RoutineDetailViewModel: ObservableObject {
             
             // Reload exercises
             await loadRoutineExercises()
+            NotificationCenter.default.post(name: .routineDataChanged, object: nil)
         } catch {
             actionError = String(localized: "Failed to update exercise. Please try again.")
         }

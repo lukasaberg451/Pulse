@@ -774,6 +774,16 @@
         }
       }
     },
+    "%@ · %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@ %3$@"
+          }
+        }
+      }
+    },
     "%@ (%@)" : {
       "localizations" : {
         "de" : {
@@ -11640,6 +11650,9 @@
         }
       }
     },
+    "Edit Details" : {
+      "comment" : "Edit routine sheet title"
+    },
     "Edit Exercise" : {
       "comment" : "Menu action",
       "localizations" : {
@@ -11760,6 +11773,7 @@
     },
     "Edit Routine" : {
       "comment" : "Edit routine sheet title",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

@@ -88,9 +88,20 @@ struct RoutineDetailView: View {
                         .foregroundStyle(Color.appText)
                     
                     if let reps = routineExercise.repsTarget {
-                        Text("\(routineExercise.sets) \(String(localized: "sets")) × \(reps) \(String(localized: "reps"))")
-                            .font(.caption)
-                            .foregroundStyle(Color.appSecondaryText)
+                        let base = "\(routineExercise.sets) \(String(localized: "sets")) × \(reps) \(String(localized: "reps"))"
+                        if let weight = routineExercise.targetWeight, weight > 0 {
+                            let displayWeight = UnitManager.shared.displayWeight(weight)
+                            let formatted = displayWeight.truncatingRemainder(dividingBy: 1) == 0
+                                ? String(format: "%.0f", displayWeight)
+                                : String(format: "%.1f", displayWeight)
+                            Text("\(base) · \(formatted) \(UnitManager.shared.weightUnit)")
+                                .font(.caption)
+                                .foregroundStyle(Color.appSecondaryText)
+                        } else {
+                            Text(base)
+                                .font(.caption)
+                                .foregroundStyle(Color.appSecondaryText)
+                        }
                     } else if let durationSeconds = routineExercise.durationSeconds {
                         let minutes = durationSeconds / 60
                         let seconds = durationSeconds % 60
@@ -248,7 +259,7 @@ struct RoutineDetailView: View {
                                 // Edit Routine
                                 DetailActionButton(
                                     icon: "pencil",
-                                    title: String(localized: "Edit Routine"),
+                                    title: String(localized: "Edit Details"),
                                     identifier: "editRoutineButton"
                                 ) {
                                     cancelEditMode()
@@ -2073,7 +2084,7 @@ struct EditRoutineSheet: View {
                     VStack(spacing: 8) {
                         IconBadge(assetName: "edit-pencil", color: .appAccent, size: 48)
 
-                        Text("Edit Routine", comment: "Edit routine sheet title")
+                        Text("Edit Details", comment: "Edit routine sheet title")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
 
