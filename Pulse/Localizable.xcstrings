@@ -12522,6 +12522,9 @@
         }
       }
     },
+    "Estimated using the Epley formula" : {
+      "comment" : "Note explaining the 1RM calculation method"
+    },
     "exercise" : {
       "localizations" : {
         "de" : {
@@ -34376,6 +34379,7 @@
       }
     },
     "Track your daily streak, total workouts, and weekly training time right here." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -34490,6 +34494,9 @@
           }
         }
       }
+    },
+    "Track your weekly streak, workouts and training time right here." : {
+
     },
     "Training Weights" : {
       "comment" : "Section header for training weights grid",
@@ -35956,7 +35963,11 @@
         }
       }
     },
+    "Upgrade to Pro to unlock estimated 1RM, weight progress, strength gains, and body metrics. All in one place." : {
+
+    },
     "Upgrade to Pro to unlock streaks, volume tracking, strength gains, and body metrics. All in one place." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
