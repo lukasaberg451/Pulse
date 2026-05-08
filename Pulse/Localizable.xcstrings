@@ -2207,7 +2207,63 @@
       }
     },
     "%lld weeks in a row" : {
-      "comment" : "Streak count"
+      "comment" : "Streak count",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Wochen in ​Folge"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld semanas seguidas"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld semanas seguidas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld semaines d​'affilée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld週連続"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld주 연속"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld weken op rij"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld semanas seguidas"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Veckor i rad"
+          }
+        }
+      }
     },
     "%lld Workouts Strong" : {
       "localizations" : {
@@ -37458,7 +37514,63 @@
       }
     },
     "Weekly Streak!" : {
-      "comment" : "Streak celebration title"
+      "comment" : "Streak celebration title",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wochenserie!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡​Racha semanal!"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡​Racha semanal!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Série hebdomadaire !"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "週間ストリーク！"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "주간 연속 달성!"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekreeks!"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sequência semanal!"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veckosvit!"
+          }
+        }
+      }
     },
     "Weekly Workout Goal" : {
       "comment" : "Goal sheet title",
@@ -38691,7 +38803,62 @@
       }
     },
     "Workouts can only be started from the routine during offline mode. Your data will sync when you're back online, which may take a moment." : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trainings können im ​Offline​-​Modus nur über die ​Routine gestartet werden. ​Deine ​Daten werden synchronisiert, sobald du wieder online bist – das kann einen ​Moment dauern."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los entrenamientos solo se pueden iniciar desde la rutina en modo sin conexión. ​Tus datos se sincronizarán cuando vuelvas a estar en línea, lo que puede tardar un momento."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los entrenamientos solo se pueden iniciar desde la rutina en modo sin conexión. ​Tus datos se sincronizarán cuando vuelvas a estar en línea, lo que puede tardar un momento."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les entraînements ne peuvent être lancés qu​'à partir de la routine en mode hors ligne. ​Vos données se synchroniseront lorsque vous serez de nouveau en ligne, ce qui peut prendre un instant."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オフラインモードでは​、ルーティンからのみワークアウトを開始できます​。オンラインに戻るとデータが同期されますが​、少し時間がかかる場合があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오프라인 모드에서는 루틴에서만 운동을 시작할 수 있습니다. 온라인에 다시 연결되면 데이터가 동기화되며, 잠시 시간이 걸릴 수 있습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trainingen kunnen in de offlinemodus alleen vanuit de routine worden gestart. ​Je gegevens worden gesynchroniseerd zodra je weer online bent, wat even kan duren."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os treinos só podem ser iniciados a partir da rotina no modo offline. ​Seus dados serão sincronizados quando você voltar a ficar online, o que pode levar um momento."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Träningspass kan bara startas från rutinen i offlineläge. ​Data synkroniseras när du är online igen, vilket kan ta en stund."
+          }
+        }
+      }
     },
     "years" : {
       "localizations" : {
