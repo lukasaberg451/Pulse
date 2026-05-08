@@ -1019,6 +1019,9 @@ struct Exercise1RMDetailView: View {
                         .foregroundStyle(Color.appSecondaryText.opacity(0.7))
                         .frame(maxWidth: .infinity)
                         .padding(.top, 4)
+                        .opacity(animationTrigger ? 1 : 0)
+                        .offset(y: animationTrigger ? 0 : 16)
+                        .animation(.easeOut(duration: 0.4).delay(0.5), value: animationTrigger)
 
                     Spacer(minLength: 20)
                 }

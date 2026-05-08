@@ -74,7 +74,7 @@ struct ScheduleContentView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    OfflineStatusBanner(subtitle: "Workouts can only be started from the routine during offline mode. Your workout will sync when you're back online.")
+                    OfflineStatusBanner(subtitle: "Workouts can only be started from the routine during offline mode. Your data will sync when you're back online, which may take a moment.")
                         .padding(.top, 4)
                         .padding(.bottom, -4)
                         .animation(.easeInOut, value: syncService.isOnline)

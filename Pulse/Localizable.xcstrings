@@ -38690,63 +38690,8 @@
         }
       }
     },
-    "Workouts can only be started from the routine during offline mode. Your workout will sync when you're back online." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trainings können im Offline-Modus nur über die Routine gestartet werden. Dein Training wird synchronisiert, sobald du wieder online bist."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los entrenamientos solo se pueden iniciar desde la rutina en modo sin conexión. Tu entrenamiento se sincronizará cuando vuelvas a estar en línea."
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los entrenamientos solo se pueden iniciar desde la rutina en modo sin conexión. Tu entrenamiento se sincronizará cuando vuelvas a estar en línea."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les entraînements ne peuvent être démarrés qu'à partir de la routine en mode hors ligne. Ton entraînement sera synchronisé quand tu seras de nouveau en ligne."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "オフラインモードではルーティンからのみワークアウトを開始できます。オンラインに戻るとワークアウトが同期されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "오프라인 모드에서는 루틴에서만 운동을 시작할 수 있습니다. 온라인에 복귀하면 운동이 동기화됩니다."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trainingen kunnen alleen vanuit de routine worden gestart in offline modus. Je training wordt gesynchroniseerd wanneer je weer online bent."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os treinos só podem ser iniciados pela rotina no modo offline. Seu treino será sincronizado quando você voltar a ficar online."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Träningspass kan bara startas från rutinen i offlineläge. Ditt pass synkas när du är online igen."
-          }
-        }
-      }
+    "Workouts can only be started from the routine during offline mode. Your data will sync when you're back online, which may take a moment." : {
+
     },
     "years" : {
       "localizations" : {

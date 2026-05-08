@@ -848,6 +848,8 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             
             // Await 1RM updates to finish
             await onermResult
+            session.oneRMUpdated = true
+            try? modelContext.save()
             
             // Post notification to refresh UI
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)

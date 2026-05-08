@@ -1956,18 +1956,23 @@ struct ExerciseConfigSheet: View {
                                             .foregroundStyle(notes.count >= 200 ? Color.red : Color.appTertiaryText)
                                     }
                                     
-                                    TextField(String(localized: "e.g. Slow eccentric, pause at bottom"), text: $notes, axis: .vertical)
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.appText)
-                                        .lineLimit(2...4)
-                                        .focused($focusedConfigField, equals: .notes)
-                                        .onChange(of: notes) { _, newValue in
-                                            if newValue.count > 200 {
-                                                notes = String(newValue.prefix(200))
+                                    HStack(alignment: .top) {
+                                        TextField(String(localized: "e.g. Slow eccentric, pause at bottom"), text: $notes, axis: .vertical)
+                                            .textFieldStyle(.plain)
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.appText)
+                                            .lineLimit(2...4)
+                                            .focused($focusedConfigField, equals: .notes)
+                                            .onChange(of: notes) { _, newValue in
+                                                if newValue.count > 200 {
+                                                    notes = String(newValue.prefix(200))
+                                                }
                                             }
-                                        }
-                                        .padding(12)
-                                        .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    }
+                                    .padding(12)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { focusedConfigField = .notes }
+                                    .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                 }
                                 .padding()
                                 .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -2685,18 +2690,23 @@ struct EditExerciseSheet: View {
                                             .foregroundStyle(notes.count >= 200 ? Color.red : Color.appTertiaryText)
                                     }
                                     
-                                    TextField(String(localized: "e.g. Slow eccentric, pause at bottom"), text: $notes, axis: .vertical)
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.appText)
-                                        .lineLimit(2...4)
-                                        .focused($focusedEditField, equals: .notes)
-                                        .onChange(of: notes) { _, newValue in
-                                            if newValue.count > 200 {
-                                                notes = String(newValue.prefix(200))
+                                    HStack(alignment: .top) {
+                                        TextField(String(localized: "e.g. Slow eccentric, pause at bottom"), text: $notes, axis: .vertical)
+                                            .textFieldStyle(.plain)
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.appText)
+                                            .lineLimit(2...4)
+                                            .focused($focusedEditField, equals: .notes)
+                                            .onChange(of: notes) { _, newValue in
+                                                if newValue.count > 200 {
+                                                    notes = String(newValue.prefix(200))
+                                                }
                                             }
-                                        }
-                                        .padding(12)
-                                        .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    }
+                                    .padding(12)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { focusedEditField = .notes }
+                                    .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                 }
                                 .padding()
                                 .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
