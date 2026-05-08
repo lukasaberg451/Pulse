@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import StoreKit
 import WatchConnectivity
+import Supabase
 
 enum WorkoutAlertType {
     case cancel, finish, emptyFinish
@@ -54,6 +55,9 @@ struct ActiveWorkoutViewContent: View {
     @State private var summaryElapsedTime: TimeInterval = 0
     @State private var summarySets: [LocalWorkoutSet] = []
     @State private var summary1RMHighlights: [Strength1RMHighlight] = []
+    @State private var weekWasAlreadyCompleted = false
+    @State private var summaryStreakCompleted = false
+    @State private var summaryStreakWeeks = 0
     @AppStorage("hasSeenWatchTip") private var hasSeenWatchTip = false
     @State private var expandedCompletedExercises: Set<UUID> = []
 
@@ -278,6 +282,13 @@ struct ActiveWorkoutViewContent: View {
                             summarySets = viewModel.sets
                             await viewModel.finishWorkout()
                             summary1RMHighlights = viewModel.strength1RMHighlights
+
+                            if let userId = SupabaseManager.shared.client.auth.currentUser?.id,
+                               let streak = try? await WorkoutRepository().refreshUserStreak(userId: userId) {
+                                summaryStreakCompleted = !weekWasAlreadyCompleted && streak.weekCompleted
+                                summaryStreakWeeks = streak.currentStreak
+                            }
+
                             showWorkoutSummary = true
                         }
                     }
@@ -301,6 +312,8 @@ struct ActiveWorkoutViewContent: View {
                     exercises: exercises,
                     routineExercises: routineExercises,
                     strength1RMHighlights: summary1RMHighlights,
+                    weeklyStreakCompleted: summaryStreakCompleted,
+                    currentStreakWeeks: summaryStreakWeeks,
                     onDismiss: {
                         showWorkoutSummary = false
                         dismiss()
@@ -314,6 +327,10 @@ struct ActiveWorkoutViewContent: View {
                 )
             }
             .task {
+                if let userId = SupabaseManager.shared.client.auth.currentUser?.id,
+                   let streak = try? await WorkoutRepository().refreshUserStreak(userId: userId) {
+                    weekWasAlreadyCompleted = streak.weekCompleted
+                }
                 await viewModel.startWorkout()
             }
         }

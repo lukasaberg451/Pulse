@@ -16,7 +16,7 @@ struct RoutineExercise: Codable, Identifiable {
     let targetWeight: Double?
     let durationSeconds: Int?
     let restSeconds: Int
-    let orderIndex: Int
+    var orderIndex: Int
     let notes: String?
     let createdAt: Date
     

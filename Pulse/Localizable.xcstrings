@@ -2206,6 +2206,9 @@
         }
       }
     },
+    "%lld weeks in a row" : {
+      "comment" : "Streak count"
+    },
     "%lld Workouts Strong" : {
       "localizations" : {
         "de" : {
@@ -37453,6 +37456,9 @@
           }
         }
       }
+    },
+    "Weekly Streak!" : {
+      "comment" : "Streak celebration title"
     },
     "Weekly Workout Goal" : {
       "comment" : "Goal sheet title",

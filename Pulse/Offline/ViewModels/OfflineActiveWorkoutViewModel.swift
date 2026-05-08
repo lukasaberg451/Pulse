@@ -672,6 +672,34 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         let remainingIds = Set(routineExercises.map { $0.id })
         let completed = allWorkoutExercises.filter { !remainingIds.contains($0.id) }
         allWorkoutExercises = completed + routineExercises
+
+        // Reassign orderIndex on sets to reflect the actual workout order.
+        // Collect updates first (keyed by set ID) to avoid conflicts when
+        // the same exercise appears multiple times with different orderIndex values.
+        var setOrderUpdates: [UUID: Int] = [:]
+        for (newIndex, exercise) in allWorkoutExercises.enumerated() {
+            for set in sets where set.exerciseId == exercise.exerciseId && set.orderIndex == exercise.orderIndex {
+                setOrderUpdates[set.id] = newIndex
+            }
+        }
+
+        for i in sets.indices {
+            if let newOrder = setOrderUpdates[sets[i].id] {
+                sets[i].orderIndex = newOrder
+                sets[i].needsSync = true
+            }
+        }
+
+        for i in allWorkoutExercises.indices {
+            allWorkoutExercises[i].orderIndex = i
+        }
+        for i in routineExercises.indices {
+            if let match = allWorkoutExercises.first(where: { $0.id == routineExercises[i].id }) {
+                routineExercises[i].orderIndex = match.orderIndex
+            }
+        }
+
+        try? modelContext.save()
     }
     
     // MARK: - Reps Confirmation
