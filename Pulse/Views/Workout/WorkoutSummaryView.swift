@@ -391,7 +391,7 @@ struct WorkoutSummaryView: View {
                     .font(.title3.weight(.bold))
                     .foregroundStyle(Color.appText)
 
-                Text("\(currentStreakWeeks) weeks in a row", comment: "Streak count")
+                Text("^[\(currentStreakWeeks) \("week")](inflect: true) in a row", comment: "Streak count")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.orange)
             }
