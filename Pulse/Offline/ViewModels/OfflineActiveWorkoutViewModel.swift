@@ -672,6 +672,34 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         let remainingIds = Set(routineExercises.map { $0.id })
         let completed = allWorkoutExercises.filter { !remainingIds.contains($0.id) }
         allWorkoutExercises = completed + routineExercises
+
+        // Reassign orderIndex on sets to reflect the actual workout order.
+        // Collect updates first (keyed by set ID) to avoid conflicts when
+        // the same exercise appears multiple times with different orderIndex values.
+        var setOrderUpdates: [UUID: Int] = [:]
+        for (newIndex, exercise) in allWorkoutExercises.enumerated() {
+            for set in sets where set.exerciseId == exercise.exerciseId && set.orderIndex == exercise.orderIndex {
+                setOrderUpdates[set.id] = newIndex
+            }
+        }
+
+        for i in sets.indices {
+            if let newOrder = setOrderUpdates[sets[i].id] {
+                sets[i].orderIndex = newOrder
+                sets[i].needsSync = true
+            }
+        }
+
+        for i in allWorkoutExercises.indices {
+            allWorkoutExercises[i].orderIndex = i
+        }
+        for i in routineExercises.indices {
+            if let match = allWorkoutExercises.first(where: { $0.id == routineExercises[i].id }) {
+                routineExercises[i].orderIndex = match.orderIndex
+            }
+        }
+
+        try? modelContext.save()
     }
     
     // MARK: - Reps Confirmation
@@ -775,14 +803,19 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         
         if syncService.isOnline {
             debugLog("🔄 Syncing completed workout to Supabase...")
-            
+
+            // Mark 1RM as handled so the sync service won't also update it —
+            // the view model owns 1RM updates in online mode (it builds highlights for the summary).
+            session.oneRMUpdated = true
+            try? modelContext.save()
+
             // Wait for any in-progress sync to finish before starting ours
             // (completeSession may have triggered a background sync)
             while syncService.isSyncing {
                 try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
             }
             await syncService.syncPendingWorkouts()
-            
+
             // Start 1RM updates concurrently (the main bottleneck)
             async let onermResult: Void = updateEstimated1RMForCompletedSets()
             
@@ -820,7 +853,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             
             // Await 1RM updates to finish
             await onermResult
-            
+
             // Post notification to refresh UI
             NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
             debugLog("📢 Posted workoutDataChanged notification")

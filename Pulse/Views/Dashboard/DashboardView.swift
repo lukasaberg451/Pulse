@@ -88,7 +88,7 @@ struct DashboardView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         // MARK: - Offline Banner
-                        OfflineStatusBanner(subtitle: "Workouts can only be started from the routine during offline mode. Your workout will sync when you're back online.")
+                        OfflineStatusBanner(subtitle: "Workouts can only be started from the routine during offline mode. Your data will sync when you're back online, which may take a moment.")
                             .animation(.easeInOut, value: syncService.isOnline)
                         
                         // MARK: - Hero Header

@@ -19,6 +19,7 @@ class LocalRoutineExercise {
     var durationSeconds: Int?
     var restSeconds: Int
     var orderIndex: Int
+    var notes: String?
     var createdAt: Date
     
     // Relationships
@@ -35,6 +36,7 @@ class LocalRoutineExercise {
         durationSeconds: Int? = nil,
         restSeconds: Int = 60,
         orderIndex: Int,
+        notes: String? = nil,
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -46,6 +48,7 @@ class LocalRoutineExercise {
         self.durationSeconds = durationSeconds
         self.restSeconds = restSeconds
         self.orderIndex = orderIndex
+        self.notes = notes
         self.createdAt = createdAt
     }
     
@@ -61,6 +64,7 @@ class LocalRoutineExercise {
             durationSeconds: durationSeconds,
             restSeconds: restSeconds,
             orderIndex: orderIndex,
+            notes: notes,
             createdAt: createdAt
         )
     }
@@ -77,6 +81,7 @@ class LocalRoutineExercise {
             durationSeconds: routineExercise.durationSeconds,
             restSeconds: routineExercise.restSeconds,
             orderIndex: routineExercise.orderIndex,
+            notes: routineExercise.notes,
             createdAt: routineExercise.createdAt
         )
     }

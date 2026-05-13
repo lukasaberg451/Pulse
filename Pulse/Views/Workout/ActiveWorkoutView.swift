@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import StoreKit
 import WatchConnectivity
+import Supabase
 
 enum WorkoutAlertType {
     case cancel, finish, emptyFinish
@@ -54,6 +55,9 @@ struct ActiveWorkoutViewContent: View {
     @State private var summaryElapsedTime: TimeInterval = 0
     @State private var summarySets: [LocalWorkoutSet] = []
     @State private var summary1RMHighlights: [Strength1RMHighlight] = []
+    @State private var weekWasAlreadyCompleted = false
+    @State private var summaryStreakCompleted = false
+    @State private var summaryStreakWeeks = 0
     @AppStorage("hasSeenWatchTip") private var hasSeenWatchTip = false
     @State private var expandedCompletedExercises: Set<UUID> = []
 
@@ -278,6 +282,13 @@ struct ActiveWorkoutViewContent: View {
                             summarySets = viewModel.sets
                             await viewModel.finishWorkout()
                             summary1RMHighlights = viewModel.strength1RMHighlights
+
+                            if let userId = SupabaseManager.shared.client.auth.currentUser?.id,
+                               let streak = try? await WorkoutRepository().refreshUserStreak(userId: userId) {
+                                summaryStreakCompleted = !weekWasAlreadyCompleted && streak.weekCompleted
+                                summaryStreakWeeks = streak.currentStreak
+                            }
+
                             showWorkoutSummary = true
                         }
                     }
@@ -301,6 +312,8 @@ struct ActiveWorkoutViewContent: View {
                     exercises: exercises,
                     routineExercises: routineExercises,
                     strength1RMHighlights: summary1RMHighlights,
+                    weeklyStreakCompleted: summaryStreakCompleted,
+                    currentStreakWeeks: summaryStreakWeeks,
                     onDismiss: {
                         showWorkoutSummary = false
                         dismiss()
@@ -314,6 +327,10 @@ struct ActiveWorkoutViewContent: View {
                 )
             }
             .task {
+                if let userId = SupabaseManager.shared.client.auth.currentUser?.id,
+                   let streak = try? await WorkoutRepository().refreshUserStreak(userId: userId) {
+                    weekWasAlreadyCompleted = streak.weekCompleted
+                }
                 await viewModel.startWorkout()
             }
         }
@@ -544,6 +561,7 @@ struct ExerciseCard: View {
     let onToggleExpand: () -> Void
     var allExercises: [Exercise] = []
     @Environment(\.colorScheme) private var colorScheme
+    @State private var showingNotes = false
     
     var sets: [LocalWorkoutSet] {
         viewModel.sets.filter { $0.exerciseId == exercise.id && $0.orderIndex == routineExercise.orderIndex }
@@ -583,7 +601,7 @@ struct ExerciseCard: View {
                             if viewModel.repsConfirmationSetId == set.id,
                                let targetReps = routineExercise.repsTarget.flatMap({ Int($0) }) {
                                 RepsConfirmationRow(targetReps: targetReps) { reps in
-                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) {
                                         viewModel.confirmReps(setId: set.id, reps: reps)
                                     }
                                 }
@@ -676,6 +694,28 @@ struct ExerciseCard: View {
             }
             
             Spacer()
+            
+            if let notes = routineExercise.notes, !notes.isEmpty {
+                Button {
+                    showingNotes.toggle()
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appAccent)
+                        .frame(width: 32, height: 32)
+                        .background(Color.appAccent.opacity(0.1))
+                        .clipShape(Circle())
+                }
+                .popover(isPresented: $showingNotes, arrowEdge: .top) {
+                    Text(notes)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appText)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding()
+                        .frame(width: 280)
+                        .presentationCompactAdaptation(.popover)
+                }
+            }
             
             if status == .current && viewModel.routineExercises.count > 1 {
                 EquatableView(content: ExerciseReorderMenu(
@@ -1063,8 +1103,8 @@ struct RepsConfirmationRow: View {
             Text("Did you hit \(targetReps) reps?")
                 .font(.caption.weight(.medium))
                 .foregroundStyle(Color.appSecondaryText)
-                .offset(y: showContent ? 0 : 6)
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showContent)
+                .offset(y: showContent ? 0 : 5)
+                .animation(.spring(response: 0.25, dampingFraction: 0.82), value: showContent)
 
             HStack(spacing: 8) {
                 Button {
@@ -1080,9 +1120,9 @@ struct RepsConfirmationRow: View {
                 }
                 .buttonStyle(ScalePressStyle())
                 .opacity(buttonsVisible && selectedReps == nil ? 1 : 0)
-                .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.5)
-                .animation(.spring(response: 0.35, dampingFraction: 0.6).delay(buttonsVisible ? 0.08 : 0), value: buttonsVisible)
-                .animation(.spring(response: 0.25, dampingFraction: 0.8), value: selectedReps)
+                .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.6)
+                .animation(.spring(response: 0.28, dampingFraction: 0.7).delay(buttonsVisible ? 0.04 : 0), value: buttonsVisible)
+                .animation(.spring(response: 0.22, dampingFraction: 0.82), value: selectedReps)
 
                 ForEach(Array(alternativeReps.enumerated()), id: \.element) { index, reps in
                     Button {
@@ -1098,13 +1138,13 @@ struct RepsConfirmationRow: View {
                     }
                     .buttonStyle(ScalePressStyle())
                     .opacity(buttonsVisible && selectedReps == nil ? 1 : 0)
-                    .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.5)
+                    .scaleEffect(buttonsVisible && selectedReps == nil ? 1 : 0.6)
                     .animation(
-                        .spring(response: 0.35, dampingFraction: 0.6)
-                            .delay(buttonsVisible ? 0.04 * Double(index + 1) + 0.08 : 0),
+                        .spring(response: 0.28, dampingFraction: 0.7)
+                            .delay(buttonsVisible ? 0.03 * Double(index + 1) + 0.04 : 0),
                         value: buttonsVisible
                     )
-                    .animation(.spring(response: 0.25, dampingFraction: 0.8), value: selectedReps)
+                    .animation(.spring(response: 0.22, dampingFraction: 0.82), value: selectedReps)
                 }
             }
         }
@@ -1112,8 +1152,8 @@ struct RepsConfirmationRow: View {
         .padding(.vertical, 10)
         .padding(.horizontal, 16)
         .opacity(showContent ? 1 : 0)
-        .scaleEffect(showContent ? 1 : 0.85)
-        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: showContent)
+        .scaleEffect(showContent ? 1 : 0.88)
+        .animation(.spring(response: 0.28, dampingFraction: 0.75), value: showContent)
         .allowsHitTesting(selectedReps == nil)
         .onAppear {
             isVisible = true
@@ -1125,7 +1165,7 @@ struct RepsConfirmationRow: View {
         let impact = UINotificationFeedbackGenerator()
         impact.notificationOccurred(.success)
         selectedReps = reps
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
             onConfirm(reps)
         }
     }

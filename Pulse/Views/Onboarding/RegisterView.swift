@@ -176,6 +176,8 @@ struct RegisterView: View {
                                         }
                                 }
                                 .padding()
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .firstName }
                                 .background {
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                                         .fill(Color.appSurface)
@@ -217,6 +219,8 @@ struct RegisterView: View {
                                         }
                                 }
                                 .padding()
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .lastName }
                                 .background {
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                                         .fill(Color.appSurface)
@@ -260,6 +264,8 @@ struct RegisterView: View {
                                         }
                                 }
                                 .padding()
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .email }
                                 .background {
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                                         .fill(Color.appSurface)
@@ -306,7 +312,7 @@ struct RegisterView: View {
                                             .foregroundStyle(Color.appText)
                                             .accessibilityIdentifier("registerPasswordField")
                                     }
-                                    
+
                                     Button {
                                         showPassword.toggle()
                                     } label: {
@@ -318,6 +324,8 @@ struct RegisterView: View {
                                     }
                                 }
                                 .padding()
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedField = .password }
                                 .background {
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                                         .fill(Color.appSurface)

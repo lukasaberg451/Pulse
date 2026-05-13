@@ -119,7 +119,7 @@ struct ProgressTabView: View {
                         VStack(spacing: 0) {
                             HStack(spacing: 12) {
                                 IconBadge(assetName: "flame", color: .orange, size: 36)
-                                Text("\(viewModel.userStreak?.currentStreak ?? viewModel.currentStreak) \((viewModel.userStreak?.currentStreak ?? viewModel.currentStreak) == 1 ? String(localized: "week") : String(localized: "weeks")) streak")
+                                Text("^[\(viewModel.userStreak?.currentStreak ?? viewModel.currentStreak) \("week")](inflect: true) streak")
                                     .font(.subheadline.weight(.bold))
                                     .foregroundStyle(Color.appText)
                                 Spacer()
@@ -690,6 +690,7 @@ struct Estimated1RMCard: View {
             .padding(.horizontal)
         }
         .buttonStyle(ScalePressStyle())
+        .accessibilityIdentifier("estimated1RMCard_\(stat.exerciseName)")
     }
 }
 
@@ -1014,6 +1015,15 @@ struct Exercise1RMDetailView: View {
                     .offset(y: animationTrigger ? 0 : 16)
                     .animation(.easeOut(duration: 0.4).delay(0.4), value: animationTrigger)
 
+                    Text("Estimated using the Epley formula", comment: "Note explaining the 1RM calculation method")
+                        .font(.caption2)
+                        .foregroundStyle(Color.appSecondaryText.opacity(0.7))
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 4)
+                        .opacity(animationTrigger ? 1 : 0)
+                        .offset(y: animationTrigger ? 0 : 16)
+                        .animation(.easeOut(duration: 0.4).delay(0.5), value: animationTrigger)
+
                     Spacer(minLength: 20)
                 }
             }
@@ -1021,6 +1031,12 @@ struct Exercise1RMDetailView: View {
         .navigationTitle(String(localized: "Estimated 1RM"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
+        .overlay {
+            Text(verbatim: "\(history.count)")
+                .frame(width: 0, height: 0)
+                .clipped()
+                .accessibilityIdentifier("exercise1RMHistoryCount")
+        }
         .task {
             await loadHistory()
             withAnimation {
@@ -2091,6 +2107,8 @@ struct EditHeightSheet: View {
     @State private var heightInches: String
     @State private var showError = false
     @State private var errorMessage = ""
+    @FocusState private var focusedHeight: HeightField?
+    private enum HeightField { case metric, feet, inches }
 
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
@@ -2164,11 +2182,14 @@ struct EditHeightSheet: View {
                                         .textFieldStyle(.plain)
                                         .font(.title3.weight(.semibold))
                                         .foregroundStyle(Color.appText)
+                                        .focused($focusedHeight, equals: .metric)
                                     Text("cm")
                                         .font(.subheadline)
                                         .foregroundStyle(Color.appSecondaryText)
                                 }
                                 .padding(14)
+                                .contentShape(Rectangle())
+                                .onTapGesture { focusedHeight = .metric }
                                 .background {
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                                         .fill(Color.appSurface)
@@ -2191,11 +2212,14 @@ struct EditHeightSheet: View {
                                             .textFieldStyle(.plain)
                                             .font(.title3.weight(.semibold))
                                             .foregroundStyle(Color.appText)
+                                            .focused($focusedHeight, equals: .feet)
                                         Text("ft")
                                             .font(.subheadline)
                                             .foregroundStyle(Color.appSecondaryText)
                                     }
                                     .padding(14)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { focusedHeight = .feet }
                                     .background {
                                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                                             .fill(Color.appSurface)
@@ -2212,11 +2236,14 @@ struct EditHeightSheet: View {
                                             .textFieldStyle(.plain)
                                             .font(.title3.weight(.semibold))
                                             .foregroundStyle(Color.appText)
+                                            .focused($focusedHeight, equals: .inches)
                                         Text("in")
                                             .font(.subheadline)
                                             .foregroundStyle(Color.appSecondaryText)
                                     }
                                     .padding(14)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { focusedHeight = .inches }
                                     .background {
                                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                                             .fill(Color.appSurface)
@@ -2322,6 +2349,7 @@ struct EditWeightSheet: View {
     @State private var weightText = ""
     @State private var showError = false
     @State private var errorMessage = ""
+    @FocusState private var isFieldFocused: Bool
 
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
@@ -2389,11 +2417,14 @@ struct EditWeightSheet: View {
                                     .textFieldStyle(.plain)
                                     .font(.title3.weight(.semibold))
                                     .foregroundStyle(Color.appText)
+                                    .focused($isFieldFocused)
                                 Text(unitManager.weightUnit)
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appSecondaryText)
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { isFieldFocused = true }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)
@@ -2486,6 +2517,7 @@ struct EditTargetWeightSheet: View {
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var hadExistingTarget: Bool
+    @FocusState private var isFieldFocused: Bool
 
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
@@ -2553,11 +2585,14 @@ struct EditTargetWeightSheet: View {
                                     .textFieldStyle(.plain)
                                     .font(.title3.weight(.semibold))
                                     .foregroundStyle(Color.appText)
+                                    .focused($isFieldFocused)
                                 Text(unitManager.weightUnit)
                                     .font(.subheadline)
                                     .foregroundStyle(Color.appSecondaryText)
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { isFieldFocused = true }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)

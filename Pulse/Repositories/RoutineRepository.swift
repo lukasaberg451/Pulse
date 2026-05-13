@@ -57,7 +57,8 @@ class RoutineRepository {
         targetWeight: Double?,
         durationSeconds: Int?,
         restSeconds: Int,
-        orderIndex: Int
+        orderIndex: Int,
+        notes: String? = nil
     ) async throws -> RoutineExercise {
         struct NewRoutineExercise: Encodable {
             let routine_id: String
@@ -68,6 +69,7 @@ class RoutineRepository {
             let duration_seconds: Int?
             let rest_seconds: Int
             let order_index: Int
+            let notes: String?
         }
         
         let newExercise = NewRoutineExercise(
@@ -78,7 +80,8 @@ class RoutineRepository {
             target_weight: targetWeight,
             duration_seconds: durationSeconds,
             rest_seconds: restSeconds,
-            order_index: orderIndex
+            order_index: orderIndex,
+            notes: notes
         )
         
         let response: RoutineExercise = try await supabase
@@ -106,7 +109,8 @@ class RoutineRepository {
         repsTarget: String?,
         targetWeight: Double?,
         durationSeconds: Int?,
-        restSeconds: Int
+        restSeconds: Int,
+        notes: String? = nil
     ) async throws {
         struct UpdateData: Encodable {
             let sets: Int
@@ -114,6 +118,7 @@ class RoutineRepository {
             let target_weight: Double?
             let duration_seconds: Int?
             let rest_seconds: Int
+            let notes: String?
         }
         
         let data = UpdateData(
@@ -121,7 +126,8 @@ class RoutineRepository {
             reps_target: repsTarget,
             target_weight: targetWeight,
             duration_seconds: durationSeconds,
-            rest_seconds: restSeconds
+            rest_seconds: restSeconds,
+            notes: notes
         )
         
         try await supabase
@@ -239,7 +245,8 @@ class RoutineRepository {
                 targetWeight: exercise.targetWeight,
                 durationSeconds: exercise.durationSeconds,
                 restSeconds: exercise.restSeconds,
-                orderIndex: exercise.orderIndex
+                orderIndex: exercise.orderIndex,
+                notes: exercise.notes
             )
         }
         

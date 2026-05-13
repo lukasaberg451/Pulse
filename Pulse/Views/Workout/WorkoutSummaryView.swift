@@ -21,8 +21,10 @@ struct WorkoutSummaryView: View {
     let exercises: [Exercise]
     let routineExercises: [RoutineExercise]
     let strength1RMHighlights: [Strength1RMHighlight]
+    let weeklyStreakCompleted: Bool
+    let currentStreakWeeks: Int
     let onDismiss: () -> Void
-    
+
     @EnvironmentObject var unitManager: UnitManager
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @State private var showingPaywall = false
@@ -30,10 +32,11 @@ struct WorkoutSummaryView: View {
     @State private var shareImage: UIImage?
     @State private var show1RMShareSheet = false
     @State private var share1RMImage: UIImage?
-    
+
     // MARK: - Animation State
     @State private var animationTrigger = false
     @State private var celebrationTrigger = 0
+    @State private var streakCelebrationTrigger = 0
     
     // MARK: - Computed Stats
     
@@ -176,6 +179,15 @@ struct WorkoutSummaryView: View {
                     .animation(.easeOut(duration: 0.4).delay(0.4), value: animationTrigger)
                     .padding(.horizontal)
 
+                    // Weekly Streak Celebration
+                    if weeklyStreakCompleted {
+                        streakCelebrationSection
+                            .padding(.horizontal)
+                            .opacity(animationTrigger ? 1 : 0)
+                            .offset(y: animationTrigger ? 0 : 20)
+                            .animation(.easeOut(duration: 0.4).delay(0.55), value: animationTrigger)
+                    }
+
                     // Strength Highlights (only shown when there are new PRs)
                     if strength1RMHighlights.contains(where: { $0.isNewPr }) {
                         if subscriptionManager.isProUser {
@@ -248,6 +260,15 @@ struct WorkoutSummaryView: View {
                 let impact = UIImpactFeedbackGenerator(style: .medium)
                 impact.impactOccurred()
             }
+
+            // Fire streak celebration shortly after
+            if weeklyStreakCompleted {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+                    streakCelebrationTrigger += 1
+                    let impact = UIImpactFeedbackGenerator(style: .heavy)
+                    impact.impactOccurred()
+                }
+            }
         }
         .sheet(isPresented: $showShareSheet) {
             shareImage = nil
@@ -308,6 +329,83 @@ struct WorkoutSummaryView: View {
         if let image = renderer.uiImage {
             share1RMImage = image
             show1RMShareSheet = true
+        }
+    }
+
+    // MARK: - Streak Celebration Section
+
+    private var streakCelebrationSection: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "flame.fill")
+                .font(.system(size: 56))
+                .foregroundStyle(
+                    .linearGradient(
+                        colors: [Color.yellow, Color.orange, Color.red],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .shadow(color: .orange.opacity(0.6), radius: 16, x: 0, y: 4)
+                .scaleEffect(animationTrigger ? 1.0 : 0.3)
+                .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.6), value: animationTrigger)
+                .keyframeAnimator(
+                    initialValue: StreakFlameValues(),
+                    trigger: streakCelebrationTrigger
+                ) { content, value in
+                    content
+                        .rotationEffect(.degrees(value.wobble))
+                        .overlay {
+                            Circle()
+                                .fill(
+                                    RadialGradient(
+                                        colors: [Color.orange.opacity(value.glowOpacity), Color.clear],
+                                        center: .center,
+                                        startRadius: 0,
+                                        endRadius: 60
+                                    )
+                                )
+                                .frame(width: 120, height: 120)
+                                .blur(radius: 12)
+                                .allowsHitTesting(false)
+                        }
+                } keyframes: { _ in
+                    KeyframeTrack(\.wobble) {
+                        CubicKeyframe(0, duration: 0.1)
+                        CubicKeyframe(-10, duration: 0.08)
+                        CubicKeyframe(10, duration: 0.08)
+                        CubicKeyframe(-7, duration: 0.08)
+                        CubicKeyframe(7, duration: 0.08)
+                        CubicKeyframe(-3, duration: 0.08)
+                        CubicKeyframe(0, duration: 0.15)
+                    }
+
+                    KeyframeTrack(\.glowOpacity) {
+                        CubicKeyframe(0.0, duration: 0.05)
+                        CubicKeyframe(0.5, duration: 0.25)
+                        CubicKeyframe(0.15, duration: 0.8)
+                    }
+                }
+
+            VStack(spacing: 6) {
+                Text("Weekly Streak!", comment: "Streak celebration title")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Color.appText)
+
+                Text("^[\(currentStreakWeeks) \("week")](inflect: true) in a row", comment: "Streak count")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.orange)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.orange.opacity(0.08))
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Color.orange.opacity(0.25), lineWidth: 1)
         }
     }
 
@@ -916,6 +1014,14 @@ struct SharePreviewSheet: View {
         }
         presenter.present(activityVC, animated: true)
     }
+}
+
+// MARK: - Streak Flame Keyframe Values
+
+private struct StreakFlameValues {
+    var scale = 1.0
+    var wobble = 0.0
+    var glowOpacity = 0.0
 }
 
 // MARK: - Celebration Keyframe Values

@@ -24,7 +24,7 @@ final class OnboardingTourManager: ObservableObject {
         TourStep(
             id: "statsBar",
             title: String(localized: "Your Stats at a Glance"),
-            body: String(localized: "Track your daily streak, total workouts, and weekly training time right here."),
+            body: String(localized: "Track your weekly streak, workouts and training time right here."),
             tab: .dashboard
         ),
         TourStep(
@@ -68,7 +68,7 @@ final class OnboardingTourManager: ObservableObject {
         TourStep(
             id: "progressTab",
             title: String(localized: "Track Your Progress"),
-            body: String(localized: "Upgrade to Pro to unlock streaks, volume tracking, strength gains, and body metrics. All in one place."),
+            body: String(localized: "Upgrade to Pro to unlock estimated 1RM, weight progress, strength gains, and body metrics. All in one place."),
             tab: .progress,
             spotlightCornerRadius: 16,
             spotlightPadding: 4

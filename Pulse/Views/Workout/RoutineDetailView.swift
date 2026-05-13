@@ -88,9 +88,20 @@ struct RoutineDetailView: View {
                         .foregroundStyle(Color.appText)
                     
                     if let reps = routineExercise.repsTarget {
-                        Text("\(routineExercise.sets) \(String(localized: "sets")) × \(reps) \(String(localized: "reps"))")
-                            .font(.caption)
-                            .foregroundStyle(Color.appSecondaryText)
+                        let base = "\(routineExercise.sets) \(String(localized: "sets")) × \(reps) \(String(localized: "reps"))"
+                        if let weight = routineExercise.targetWeight, weight > 0 {
+                            let displayWeight = UnitManager.shared.displayWeight(weight)
+                            let formatted = displayWeight.truncatingRemainder(dividingBy: 1) == 0
+                                ? String(format: "%.0f", displayWeight)
+                                : String(format: "%.1f", displayWeight)
+                            Text("\(base) · \(formatted) \(UnitManager.shared.weightUnit)")
+                                .font(.caption)
+                                .foregroundStyle(Color.appSecondaryText)
+                        } else {
+                            Text(base)
+                                .font(.caption)
+                                .foregroundStyle(Color.appSecondaryText)
+                        }
                     } else if let durationSeconds = routineExercise.durationSeconds {
                         let minutes = durationSeconds / 60
                         let seconds = durationSeconds % 60
@@ -248,7 +259,7 @@ struct RoutineDetailView: View {
                                 // Edit Routine
                                 DetailActionButton(
                                     icon: "pencil",
-                                    title: String(localized: "Edit Routine"),
+                                    title: String(localized: "Edit Details"),
                                     identifier: "editRoutineButton"
                                 ) {
                                     cancelEditMode()
@@ -611,6 +622,8 @@ struct ExercisePickerSheet: View {
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
+                        .contentShape(Rectangle())
+                        .onTapGesture { isSearchFocused = true }
                         .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .overlay {
                             if pickerColorScheme == .dark {
@@ -1247,6 +1260,8 @@ struct CreateCustomExerciseSheet: View {
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 12)
+                        .contentShape(Rectangle())
+                        .onTapGesture { isExerciseNameFocused = true }
                         .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .overlay {
                             if colorScheme == .dark {
@@ -1254,7 +1269,6 @@ struct CreateCustomExerciseSheet: View {
                                     .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
                             }
                         }
-                        .onTapGesture { isExerciseNameFocused = true }
                     }
                     
                     // Exercise type
@@ -1522,19 +1536,23 @@ struct ExerciseConfigSheet: View {
     @State private var durationMinutes = 5
     @State private var durationSeconds = 0
     @State private var restSeconds = 60
+    @State private var notes = ""
     
     // Cardio-specific
     @State private var cardioMode: CardioMode = .continuous
-    
+    @FocusState private var focusedConfigField: ConfigField?
+
+    private enum ConfigField { case reps, weight, notes }
+
     enum CardioMode: String, CaseIterable {
         case continuous = "Continuous"
         case intervals = "Intervals"
     }
-    
+
     var isCardio: Bool {
         exercise.exerciseType == "cardio"
     }
-    
+
     private var isAddDisabled: Bool {
         if isCardio {
             return durationMinutes == 0 && durationSeconds == 0
@@ -1823,18 +1841,23 @@ struct ExerciseConfigSheet: View {
                                             
                                             Spacer()
                                             
-                                            TextField("8", text: $repsTarget)
-                                                .foregroundStyle(Color.appText)
-                                                .keyboardType(.numberPad)
-                                                .multilineTextAlignment(.trailing)
-                                                .frame(width: 80)
-                                                .padding(10)
-                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                            HStack {
+                                                TextField("8", text: $repsTarget)
+                                                    .foregroundStyle(Color.appText)
+                                                    .keyboardType(.numberPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                    .focused($focusedConfigField, equals: .reps)
+                                            }
+                                            .frame(width: 80)
+                                            .padding(10)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture { focusedConfigField = .reps }
+                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }
                                     .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                    
+
                                     // Weight
                                     VStack(spacing: 0) {
                                         HStack {
@@ -1842,23 +1865,28 @@ struct ExerciseConfigSheet: View {
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
-                                            
+
                                             Spacer()
-                                            
-                                            TextField("", text: $targetWeight)
-                                                .foregroundStyle(Color.appText)
-                                                .keyboardType(.decimalPad)
-                                                .multilineTextAlignment(.trailing)
-                                                .frame(width: 80)
-                                                .padding(10)
-                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                                .onChange(of: targetWeight) { _, newValue in
-                                                    let sanitized = sanitizeWeightInput(newValue)
-                                                    if sanitized != newValue {
-                                                        targetWeight = sanitized
+
+                                            HStack {
+                                                TextField("", text: $targetWeight)
+                                                    .foregroundStyle(Color.appText)
+                                                    .keyboardType(.decimalPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                    .focused($focusedConfigField, equals: .weight)
+                                                    .onChange(of: targetWeight) { _, newValue in
+                                                        let sanitized = sanitizeWeightInput(newValue)
+                                                        if sanitized != newValue {
+                                                            targetWeight = sanitized
+                                                        }
                                                     }
-                                                }
-                                                .accessibilityIdentifier("exerciseWeightField")
+                                                    .accessibilityIdentifier("exerciseWeightField")
+                                            }
+                                            .frame(width: 80)
+                                            .padding(10)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture { focusedConfigField = .weight }
+                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }
@@ -1912,6 +1940,42 @@ struct ExerciseConfigSheet: View {
                                     }
                                     .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 }
+                                
+                                // Notes
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Text("Notes (Optional)", comment: "Exercise notes label")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(notes.count)/200")
+                                            .font(.caption2)
+                                            .foregroundStyle(notes.count >= 200 ? Color.red : Color.appTertiaryText)
+                                    }
+                                    
+                                    HStack(alignment: .top) {
+                                        TextField(String(localized: "e.g. Slow eccentric, pause at bottom"), text: $notes, axis: .vertical)
+                                            .textFieldStyle(.plain)
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.appText)
+                                            .lineLimit(2...4)
+                                            .focused($focusedConfigField, equals: .notes)
+                                            .onChange(of: notes) { _, newValue in
+                                                if newValue.count > 200 {
+                                                    notes = String(newValue.prefix(200))
+                                                }
+                                            }
+                                    }
+                                    .padding(12)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { focusedConfigField = .notes }
+                                    .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                }
+                                .padding()
+                                .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                             }
                         }
                     }
@@ -1940,6 +2004,9 @@ struct ExerciseConfigSheet: View {
                                 viewModel.exercises.append(exercise)
                             }
                             
+                            let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+                            let exerciseNotes: String? = trimmedNotes.isEmpty ? nil : trimmedNotes
+                            
                             if isCardio {
                                 let totalSeconds = (durationMinutes * 60) + durationSeconds
                                 let actualSets = cardioMode == .continuous ? 1 : sets
@@ -1951,7 +2018,8 @@ struct ExerciseConfigSheet: View {
                                     repsTarget: nil,
                                     targetWeight: nil,
                                     durationSeconds: totalSeconds,
-                                    restSeconds: actualRest
+                                    restSeconds: actualRest,
+                                    notes: exerciseNotes
                                 )
                             } else {
                                 let normalizedWeight = targetWeight.replacingOccurrences(of: ",", with: ".")
@@ -1962,7 +2030,8 @@ struct ExerciseConfigSheet: View {
                                     repsTarget: repsTarget,
                                     targetWeight: weight,
                                     durationSeconds: nil,
-                                    restSeconds: restSeconds
+                                    restSeconds: restSeconds,
+                                    notes: exerciseNotes
                                 )
                             }
                             onAdded?()
@@ -2020,7 +2089,7 @@ struct EditRoutineSheet: View {
                     VStack(spacing: 8) {
                         IconBadge(assetName: "edit-pencil", color: .appAccent, size: 48)
 
-                        Text("Edit Routine", comment: "Edit routine sheet title")
+                        Text("Edit Details", comment: "Edit routine sheet title")
                             .font(.title2.weight(.bold))
                             .foregroundStyle(Color.appText)
 
@@ -2049,6 +2118,8 @@ struct EditRoutineSheet: View {
                                     .accessibilityIdentifier("editRoutineNameField")
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .name }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)
@@ -2101,6 +2172,8 @@ struct EditRoutineSheet: View {
                                     }
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .notes }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)
@@ -2176,19 +2249,23 @@ struct EditExerciseSheet: View {
     @State private var durationMinutes: Int
     @State private var durationSeconds: Int
     @State private var restSeconds: Int
+    @State private var notes: String
     
     // Cardio-specific
     @State private var cardioMode: CardioMode
-    
+    @FocusState private var focusedEditField: EditField?
+
+    private enum EditField { case reps, weight, notes }
+
     enum CardioMode: String, CaseIterable {
         case continuous = "Continuous"
         case intervals = "Intervals"
     }
-    
+
     var isCardio: Bool {
         exercise.exerciseType == "cardio"
     }
-    
+
     private var isSaveDisabled: Bool {
         if isCardio {
             return durationMinutes == 0 && durationSeconds == 0
@@ -2209,6 +2286,7 @@ struct EditExerciseSheet: View {
         let displayWeight = UnitManager.shared.displayWeight(routineExercise.targetWeight ?? 0)
         _targetWeight = State(initialValue: displayWeight > 0 ? String(format: "%.1f", displayWeight) : "")
         _restSeconds = State(initialValue: routineExercise.restSeconds)
+        _notes = State(initialValue: routineExercise.notes ?? "")
         
         let totalSeconds = routineExercise.durationSeconds ?? 0
         _durationMinutes = State(initialValue: totalSeconds / 60)
@@ -2498,18 +2576,23 @@ struct EditExerciseSheet: View {
                                             
                                             Spacer()
                                             
-                                            TextField("8", text: $repsTarget)
-                                                .foregroundStyle(Color.appText)
-                                                .keyboardType(.numberPad)
-                                                .multilineTextAlignment(.trailing)
-                                                .frame(width: 80)
-                                                .padding(10)
-                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                            HStack {
+                                                TextField("8", text: $repsTarget)
+                                                    .foregroundStyle(Color.appText)
+                                                    .keyboardType(.numberPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                    .focused($focusedEditField, equals: .reps)
+                                            }
+                                            .frame(width: 80)
+                                            .padding(10)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture { focusedEditField = .reps }
+                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }
                                     .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                    
+
                                     // Weight
                                     VStack(spacing: 0) {
                                         HStack {
@@ -2517,22 +2600,27 @@ struct EditExerciseSheet: View {
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundStyle(Color.appText)
-                                            
+
                                             Spacer()
-                                            
-                                            TextField("", text: $targetWeight)
-                                                .foregroundStyle(Color.appText)
-                                                .keyboardType(.decimalPad)
-                                                .multilineTextAlignment(.trailing)
-                                                .frame(width: 80)
-                                                .padding(10)
-                                                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                                .onChange(of: targetWeight) { _, newValue in
-                                                    let sanitized = sanitizeWeightInput(newValue)
-                                                    if sanitized != newValue {
-                                                        targetWeight = sanitized
+
+                                            HStack {
+                                                TextField("", text: $targetWeight)
+                                                    .foregroundStyle(Color.appText)
+                                                    .keyboardType(.decimalPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                    .focused($focusedEditField, equals: .weight)
+                                                    .onChange(of: targetWeight) { _, newValue in
+                                                        let sanitized = sanitizeWeightInput(newValue)
+                                                        if sanitized != newValue {
+                                                            targetWeight = sanitized
+                                                        }
                                                     }
-                                                }
+                                            }
+                                            .frame(width: 80)
+                                            .padding(10)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture { focusedEditField = .weight }
+                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                         }
                                         .padding()
                                     }
@@ -2586,6 +2674,42 @@ struct EditExerciseSheet: View {
                                     }
                                     .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 }
+                                
+                                // Notes
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Text("Notes (Optional)", comment: "Exercise notes label")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(Color.appText)
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(notes.count)/200")
+                                            .font(.caption2)
+                                            .foregroundStyle(notes.count >= 200 ? Color.red : Color.appTertiaryText)
+                                    }
+                                    
+                                    HStack(alignment: .top) {
+                                        TextField(String(localized: "e.g. Slow eccentric, pause at bottom"), text: $notes, axis: .vertical)
+                                            .textFieldStyle(.plain)
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.appText)
+                                            .lineLimit(2...4)
+                                            .focused($focusedEditField, equals: .notes)
+                                            .onChange(of: notes) { _, newValue in
+                                                if newValue.count > 200 {
+                                                    notes = String(newValue.prefix(200))
+                                                }
+                                            }
+                                    }
+                                    .padding(12)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { focusedEditField = .notes }
+                                    .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                }
+                                .padding()
+                                .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                             }
                         }
                     }
@@ -2609,6 +2733,9 @@ struct EditExerciseSheet: View {
                         let notificationFeedback = UINotificationFeedbackGenerator()
                         notificationFeedback.notificationOccurred(.success)
                         Task {
+                            let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+                            let exerciseNotes: String? = trimmedNotes.isEmpty ? nil : trimmedNotes
+                            
                             if isCardio {
                                 let totalSeconds = (durationMinutes * 60) + durationSeconds
                                 let actualSets = cardioMode == .continuous ? 1 : sets
@@ -2620,7 +2747,8 @@ struct EditExerciseSheet: View {
                                     repsTarget: nil,
                                     targetWeight: nil,
                                     durationSeconds: totalSeconds,
-                                    restSeconds: actualRest
+                                    restSeconds: actualRest,
+                                    notes: exerciseNotes
                                 )
                             } else {
                                 let normalizedWeight = targetWeight.replacingOccurrences(of: ",", with: ".")
@@ -2631,7 +2759,8 @@ struct EditExerciseSheet: View {
                                     repsTarget: repsTarget,
                                     targetWeight: weight,
                                     durationSeconds: nil,
-                                    restSeconds: restSeconds
+                                    restSeconds: restSeconds,
+                                    notes: exerciseNotes
                                 )
                             }
                             dismiss()

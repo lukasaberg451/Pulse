@@ -16,7 +16,8 @@ struct RoutineExercise: Codable, Identifiable {
     let targetWeight: Double?
     let durationSeconds: Int?
     let restSeconds: Int
-    let orderIndex: Int
+    var orderIndex: Int
+    let notes: String?
     let createdAt: Date
     
     enum CodingKeys: String, CodingKey {
@@ -29,6 +30,7 @@ struct RoutineExercise: Codable, Identifiable {
         case durationSeconds = "duration_seconds"
         case restSeconds = "rest_seconds"
         case orderIndex = "order_index"
+        case notes
         case createdAt = "created_at"
     }
 }

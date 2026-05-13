@@ -74,7 +74,7 @@ struct ScheduleContentView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    OfflineStatusBanner(subtitle: "Workouts can only be started from the routine during offline mode. Your workout will sync when you're back online.")
+                    OfflineStatusBanner(subtitle: "Workouts can only be started from the routine during offline mode. Your data will sync when you're back online, which may take a moment.")
                         .padding(.top, 4)
                         .padding(.bottom, -4)
                         .animation(.easeInOut, value: syncService.isOnline)
@@ -1147,6 +1147,8 @@ struct CreateRoutineSheet: View {
                                     .accessibilityIdentifier("routineNameField")
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .name }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)
@@ -1199,6 +1201,8 @@ struct CreateRoutineSheet: View {
                                     }
                             }
                             .padding(14)
+                            .contentShape(Rectangle())
+                            .onTapGesture { focusedField = .notes }
                             .background {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color.appSurface)

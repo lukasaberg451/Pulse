@@ -285,6 +285,13 @@ class WorkoutSyncService: ObservableObject {
                     debugLog("⏭️ Scheduled entry already created, skipping")
                 }
                 
+                // Update estimated 1RM for completed sets (only if not already done by finishWorkout)
+                if !session.oneRMUpdated {
+                    await updateEstimated1RMForSession(session)
+                    session.oneRMUpdated = true
+                    debugLog("✅ Updated estimated 1RM for synced session")
+                }
+                
                 // Post notification to refresh UI
                 NotificationCenter.default.post(name: .workoutDataChanged, object: nil)
             }
@@ -355,6 +362,65 @@ class WorkoutSyncService: ObservableObject {
             }
         } catch {
             debugLog("❌ Failed to sync set: \(error)")
+        }
+    }
+    
+    private func updateEstimated1RMForSession(_ session: LocalWorkoutSession) async {
+        guard let userId = SupabaseManager.shared.client.auth.currentUser?.id else { return }
+        
+        let completedSets = (session.sets ?? []).filter { $0.completed }
+        
+        let eligibleSets = completedSets.filter { set in
+            guard let weight = set.weight, weight > 0,
+                  let reps = set.reps, reps >= 1, reps <= 10 else { return false }
+            return set.exercise?.exerciseType != "cardio"
+        }
+        
+        guard !eligibleSets.isEmpty else { return }
+        
+        struct SetInput: Sendable {
+            let exerciseId: UUID
+            let weight: Double
+            let reps: Int
+        }
+        
+        var bestSetPerExercise: [UUID: SetInput] = [:]
+        for set in eligibleSets {
+            let weight = set.weight!
+            let reps = set.reps!
+            let estimated1rm = weight * (1 + 0.0333 * Double(reps))
+            let input = SetInput(exerciseId: set.exerciseId, weight: weight, reps: reps)
+            if let existing = bestSetPerExercise[set.exerciseId] {
+                let existingEstimate = existing.weight * (1 + 0.0333 * Double(existing.reps))
+                if estimated1rm > existingEstimate {
+                    bestSetPerExercise[set.exerciseId] = input
+                }
+            } else {
+                bestSetPerExercise[set.exerciseId] = input
+            }
+        }
+        
+        let supabaseClient = SupabaseManager.shared.client
+        let inputs = Array(bestSetPerExercise.values)
+        
+        await withTaskGroup(of: Void.self) { group in
+            for input in inputs {
+                group.addTask {
+                    do {
+                        let _ = try await supabaseClient
+                            .rpc("update_exercise_1rm", params: [
+                                "p_user_id": userId.uuidString,
+                                "p_exercise_id": input.exerciseId.uuidString,
+                                "p_weight": String(input.weight),
+                                "p_reps": String(input.reps)
+                            ])
+                            .execute()
+                        debugLog("✅ Updated 1RM for exercise \(input.exerciseId)")
+                    } catch {
+                        debugLog("❌ Failed to update 1RM for exercise \(input.exerciseId): \(error)")
+                    }
+                }
+            }
         }
     }
     

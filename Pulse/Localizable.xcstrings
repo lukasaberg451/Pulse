@@ -534,7 +534,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$.1f %2$@"
           }
         },
@@ -598,7 +598,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$.1f %2$@ × %3$lld"
           }
         },
@@ -662,7 +662,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$.1f %2$@ × %3$lld reps"
           }
         },
@@ -774,6 +774,70 @@
         }
       }
     },
+    "%@ · %@ %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ %3$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ %3$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ %3$@"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ %3$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ %3$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ %3$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ %3$@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ %3$@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ %3$@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ %3$@"
+          }
+        }
+      }
+    },
     "%@ (%@)" : {
       "localizations" : {
         "de" : {
@@ -784,7 +848,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ (%2$@)"
           }
         },
@@ -848,7 +912,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ %2$@"
           }
         },
@@ -912,7 +976,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ %2$@ %3$@"
           }
         },
@@ -976,7 +1040,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ %2$@ %3$@ × %4$lld reps"
           }
         },
@@ -1041,7 +1105,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ %2$@ %3$@ since start"
           }
         },
@@ -1106,7 +1170,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ %2$@ from target"
           }
         },
@@ -1170,7 +1234,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ %2$lld %3$@ %4$lld"
           }
         },
@@ -1234,7 +1298,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ free, then %2$@/month"
           }
         },
@@ -1298,7 +1362,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ makes up %2$@ of your sets this month. Uneven training can create strength imbalances. Consider adding work for opposing muscle groups."
           }
         },
@@ -1478,7 +1542,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$lld (%2$@)"
           }
         },
@@ -1542,7 +1606,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$lld %2$@"
           }
         },
@@ -1606,7 +1670,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$lld %2$@ × %3$@"
           }
         },
@@ -1670,7 +1734,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$lld %2$@ × %3$@ %4$@"
           }
         },
@@ -1720,70 +1784,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld %@ × %@ %@"
-          }
-        }
-      }
-    },
-    "%lld %@ streak" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld %@ Serie"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld %2$@ streak"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Racha de %lld %@"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Racha de %lld %@"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Série de %lld %@"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld %@連続"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld %@ 연속"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld %@ reeks"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sequência de %lld %@"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld %@ svit"
           }
         }
       }
@@ -1972,7 +1972,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$lld more %2$@ to stay on track"
           }
         },
@@ -2210,7 +2210,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$lld/%2$lld"
           }
         },
@@ -2274,7 +2274,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$lld/%2$lld %3$@"
           }
         },
@@ -2338,7 +2338,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$lld/%2$lld %3$@ • %4$@ %5$@ • %6$llds %7$@"
           }
         },
@@ -2402,7 +2402,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$lld/%2$lld %3$@ • %4$@ • %5$llds %6$@"
           }
         },
@@ -2568,6 +2568,64 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld/72"
+          }
+        }
+      }
+    },
+    "%lld/200" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/200"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/200"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/200"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/200"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/200"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/200"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/200"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/200"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/200"
           }
         }
       }
@@ -2756,7 +2814,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$llds %2$@"
           }
         },
@@ -2868,6 +2926,135 @@
         }
       }
     },
+    "^[%lld %@](inflect: true) in a row" : {
+      "comment" : "Streak count",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) in Folge"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) in a row"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) seguidas"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) seguidas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) d'affilée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true)連続"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) 연속"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) op rij"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) seguidas"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) i rad"
+          }
+        }
+      }
+    },
+    "^[%lld %@](inflect: true) streak" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) ​Serie"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "^[%1$lld %2$@](inflect: true) streak"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Racha de ^[%1$lld %2$@](inflect: true)"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Racha de ^[%1$lld %2$@](inflect: true)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Série de ^[%1$lld %2$@](inflect: true)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true​)ストリーク"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) 연속 기록"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) reeks"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sequência de ^[%1$lld %2$@](inflect: true)"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "^[%1$lld %2$@](inflect: true) i sträck"
+          }
+        }
+      }
+    },
     "+%.1f %@" : {
       "localizations" : {
         "de" : {
@@ -2878,7 +3065,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "+%1$.1f %2$@"
           }
         },
@@ -4975,64 +5162,6 @@
         }
       }
     },
-    "Almost There" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fast geschafft"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Casi ahí"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Casi ahí"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Presque"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "あと少し"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "거의 다 왔어요"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bijna daar"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quase lá"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nästan där"
-          }
-        }
-      }
-    },
     "Already Have an Account" : {
       "comment" : "Sign in link",
       "localizations" : {
@@ -6268,7 +6397,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Based on %1$.1f %2$@ × %3$lld reps"
           }
         },
@@ -11516,6 +11645,64 @@
         }
       }
     },
+    "e.g. Slow eccentric, pause at bottom" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z.B. Langsame Exzentrik, Pause unten"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ej. Excéntrica lenta, pausa abajo"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ej. Excéntrica lenta, pausa abajo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ex. Excentrique lent, pause en bas"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "例: ゆっくりエキセントリック、ボトムで停止"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "예: 느린 이완, 바닥에서 정지"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bijv. Langzame excentriek, pauze onderaan"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ex. Excêntrica lenta, pausa embaixo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "t.ex. Långsam excentrisk, paus i botten"
+          }
+        }
+      }
+    },
     "Edit" : {
       "localizations" : {
         "de" : {
@@ -11629,6 +11816,65 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Redigera %@"
+          }
+        }
+      }
+    },
+    "Edit Details" : {
+      "comment" : "Edit routine sheet title",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details bearbeiten"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar detalles"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar detalles"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier les détails"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳細を編集"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세부 정보 편집"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details bewerken"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar detalhes"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redigera detaljer"
           }
         }
       }
@@ -11747,65 +11993,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Redigera profil"
-          }
-        }
-      }
-    },
-    "Edit Routine" : {
-      "comment" : "Edit routine sheet title",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Routine bearbeiten"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Editar Rutina"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Editar Rutina"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modifier la routine"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ルーティンを編集"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "루틴 편집"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Routine bewerken"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Editar Rotina"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Redigera rutin"
           }
         }
       }
@@ -12467,7 +12654,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Estimated 1RM: %1$.1f %2$@"
           }
         },
@@ -12517,6 +12704,65 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uppskattad 1RM: %1$.1f %2$@"
+          }
+        }
+      }
+    },
+    "Estimated using the Epley formula" : {
+      "comment" : "Note explaining the 1RM calculation method",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geschätzt mit der Epley-Formel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimado con la fórmula de Epley"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimado con la fórmula de Epley"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimé avec la formule d'Epley"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epley公式による推定"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epley 공식으로 추정"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geschat met de Epley-formule"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimado usando a fórmula de Epley"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beräknat med Epleys formel"
           }
         }
       }
@@ -16891,60 +17137,60 @@
         }
       }
     },
-    "It's been %lld days since your last session. Strength can decline after 72 hours of inactivity. Even a light workout helps maintain your gains." : {
+    "It's been %lld days since your last session. Getting back in the gym helps maintain the progress you've built. Even a light workout counts." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Es sind %lld Tage seit deiner letzten Einheit vergangen. Kraft kann nach 72 Stunden Inaktivität abnehmen. Selbst ein leichtes Training hilft, deine Fortschritte zu erhalten."
+            "value" : "Es sind %lld Tage seit deiner letzten Einheit vergangen. Zurück ins Training zu gehen hilft, den Fortschritt zu erhalten, den du aufgebaut hast. Auch ein leichtes Workout zählt."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Han pasado %lld días desde tu última sesión. La fuerza puede disminuir después de 72 horas de inactividad. Incluso un entrenamiento ligero ayuda a mantener tus logros."
+            "value" : "Han pasado %lld días desde tu última sesión. Volver al gimnasio ayuda a mantener el progreso que has construido. Incluso un entrenamiento ligero cuenta."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Han pasado %lld días desde tu última sesión. La fuerza puede disminuir después de 72 horas de inactividad. Incluso un entrenamiento ligero ayuda a mantener tus logros."
+            "value" : "Han pasado %lld días desde tu última sesión. Volver al gimnasio ayuda a mantener el progreso que has construido. Incluso un entrenamiento ligero cuenta."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cela fait %lld jours depuis ta dernière séance. La force peut diminuer après 72 heures d'inactivité. Même un entraînement léger aide à maintenir tes acquis."
+            "value" : "Ça fait %lld jours depuis ta dernière séance. Reprendre l'entraînement aide à maintenir les progrès que tu as construits. Même un entraînement léger compte."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "前回のセッションから%lld日経過しています。72時間の非活動後には筋力が低下する可能性があります。軽いワークアウトでも成果を維持するのに役立ちます。"
+            "value" : "前回のセッションから%lld日が経ちました。ジムに戻ることで築いた進歩を維持できます。軽いワークアウトでも大丈夫です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "마지막 세션 이후 %lld일이 지났습니다. 72시간 비활동 후 근력이 감소할 수 있습니다. 가벼운 운동이라도 성과 유지에 도움이 됩니다."
+            "value" : "마지막 세션 이후 %lld일이 지났습니다. 다시 운동을 시작하면 쌓아온 성과를 유지하는 데 도움이 됩니다. 가벼운 운동이라도 괜찮습니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Het is %lld dagen geleden sinds je laatste sessie. Kracht kan afnemen na 72 uur inactiviteit. Zelfs een lichte training helpt je vooruitgang te behouden."
+            "value" : "Het is %lld dagen geleden sinds je laatste sessie. Teruggaan naar de sportschool helpt om de vooruitgang die je hebt opgebouwd te behouden. Zelfs een lichte training telt."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Já se passaram %lld dias desde sua última sessão. A força pode diminuir após 72 horas de inatividade. Mesmo um treino leve ajuda a manter seus ganhos."
+            "value" : "Já se passaram %lld dias desde sua última sessão. Voltar à academia ajuda a manter o progresso que você construiu. Até um treino leve conta."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Det har gått %lld dagar sedan ditt senaste pass. Styrka kan minska efter 72 timmars inaktivitet. Även ett lätt pass hjälper till att behålla dina framsteg."
+            "value" : "Det har gått %lld dagar sedan ditt senaste pass. Att komma tillbaka till gymmet hjälper dig behålla framstegen du byggt upp. Även ett lätt träningspass räknas."
           }
         }
       }
@@ -17007,124 +17253,176 @@
         }
       }
     },
-    "Just %lld more workout this week to hit your goal and start building a streak." : {
+    "Just 1 more workout this week to start building a streak." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nur noch %lld Training diese Woche, um dein Ziel zu erreichen und eine Serie zu starten."
+            "value" : "Nur noch 1 Workout diese Woche, um eine Serie aufzubauen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solo %lld entrenamiento más esta semana para alcanzar tu objetivo y comenzar una racha."
+            "value" : "Solo 1 entrenamiento más esta semana para empezar a construir una racha."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solo %lld entrenamiento más esta semana para alcanzar tu objetivo y comenzar una racha."
+            "value" : "Solo 1 entrenamiento más esta semana para empezar a construir una racha."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plus que %lld entraînement cette semaine pour atteindre ton objectif et commencer une série."
+            "value" : "Plus qu'1 entraînement cette semaine pour commencer une série."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "あと%lld回のワークアウトで今週の目標達成、連続記録をスタートしましょう。"
+            "value" : "今週あと1回のワークアウトで連続記録を始められます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이번 주 %lld번만 더 운동하면 목표 달성 및 연속 기록을 시작할 수 있습니다."
+            "value" : "이번 주 1회만 더 운동하면 연속 기록을 시작할 수 있습니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nog maar %lld training deze week om je doel te halen en een reeks op te bouwen."
+            "value" : "Nog maar 1 training deze week om een reeks op te bouwen."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Só mais %lld treino esta semana para atingir sua meta e começar uma sequência."
+            "value" : "Só mais 1 treino esta semana para começar uma sequência."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bara %lld träningspass till denna vecka för att nå ditt mål och börja bygga en svit."
+            "value" : "Bara 1 träningspass till denna vecka för att börja bygga en svit."
           }
         }
       }
     },
-    "Just %lld more workout to keep your %lld-week streak alive. You've got this!" : {
+    "Just 1 more workout to keep your %lld-week streak alive. You've got this!" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nur noch %lld Training, um deine %lld-Wochen-Serie zu halten. Du schaffst das!"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Just %1$lld more workout to keep your %2$lld-week streak alive. You've got this!"
+            "value" : "Nur noch 1 Workout, um deine %lld-Wochen-Serie am Leben zu halten. Du schaffst das!"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solo %lld entrenamiento más para mantener tu racha de %lld semanas. ¡Tú puedes!"
+            "value" : "Solo 1 entrenamiento más para mantener tu racha de %lld semanas. ¡Tú puedes!"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solo %lld entrenamiento más para mantener tu racha de %lld semanas. ¡Tú puedes!"
+            "value" : "Solo 1 entrenamiento más para mantener tu racha de %lld semanas. ¡Tú puedes!"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plus que %lld entraînement pour maintenir ta série de %lld semaines. Tu peux le faire !"
+            "value" : "Plus qu'1 entraînement pour garder ta série de %lld semaines. Tu peux le faire !"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "あと%lld回のワークアウトで%lld週間の連続記録を維持できます。頑張って！"
+            "value" : "あと1回のワークアウトで%lld週間の連続記録を維持できます。頑張って！"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld번만 더 운동하면 %lld주 연속 기록을 유지할 수 있습니다. 할 수 있어요!"
+            "value" : "%lld주 연속 기록을 유지하려면 1회만 더 운동하세요. 할 수 있습니다!"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nog maar %lld training om je %lld-weken reeks in stand te houden. Je kunt het!"
+            "value" : "Nog maar 1 training om je reeks van %lld weken voort te zetten. Je kunt het!"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Só mais %lld treino para manter sua sequência de %lld semanas. Você consegue!"
+            "value" : "Só mais 1 treino para manter sua sequência de %lld semanas. Você consegue!"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bara %lld träningspass till för att behålla din %lld-veckorssvit. Du klarar det!"
+            "value" : "Bara 1 träningspass till för att hålla din %lld veckors svit vid liv. Du klarar det!"
+          }
+        }
+      }
+    },
+    "Keep It Going" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weiter so"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sigue así"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sigue así"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue comme ça"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "その調子"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "계속 이어가세요"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ga zo door"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue assim"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortsätt så"
           }
         }
       }
@@ -24770,7 +25068,7 @@
       }
     },
     "Notes (Optional)" : {
-      "comment" : "Edit routine notes label\nField label",
+      "comment" : "Edit routine notes label\nExercise notes label\nField label",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -31315,6 +31613,64 @@
         }
       }
     },
+    "Solid Week" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starke Woche"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gran semana"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gran semana"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonne semaine"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充実した週"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알찬 한 주"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sterke week"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ótima semana"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bra vecka"
+          }
+        }
+      }
+    },
     "Something went wrong" : {
       "comment" : "Error state",
       "localizations" : {
@@ -33134,7 +33490,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Target: %1$@ %2$@"
           }
         },
@@ -34356,64 +34712,6 @@
         }
       }
     },
-    "Track your daily streak, total workouts, and weekly training time right here." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verfolge hier deine tägliche Serie, Gesamttrainings und wöchentliche Trainingszeit."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sigue tu racha diaria, entrenamientos totales y tiempo de entrenamiento semanal aquí."
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sigue tu racha diaria, entrenamientos totales y tiempo de entrenamiento semanal aquí."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suis ta série quotidienne, tes entraînements totaux et ton temps d'entraînement hebdomadaire ici."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ここで毎日の連続記録、ワークアウト合計、週間トレーニング時間を追跡しましょう。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "여기서 일일 연속 기록, 총 운동 횟수, 주간 훈련 시간을 추적하세요."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Volg hier je dagelijkse reeks, totale trainingen en wekelijkse trainingstijd."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acompanhe sua sequência diária, treinos totais e tempo de treino semanal aqui."
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Följ din dagliga svit, totala träningspass och veckovis träningstid här."
-          }
-        }
-      }
-    },
     "Track Your Progress" : {
       "localizations" : {
         "de" : {
@@ -34468,6 +34766,64 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Följ dina framsteg"
+          }
+        }
+      }
+    },
+    "Track your weekly streak, workouts and training time right here." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verfolge hier deine wöchentliche Serie, Workouts und Trainingszeit."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sigue tu racha semanal, entrenamientos y tiempo de entrenamiento aquí."
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sigue tu racha semanal, entrenamientos y tiempo de entrenamiento aquí."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suis ta série hebdomadaire, tes entraînements et ton temps d'entraînement ici."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "週間連続記録、ワークアウト、トレーニング時間をここで確認できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "주간 연속 기록, 운동 및 훈련 시간을 여기서 추적하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volg hier je wekelijkse reeks, trainingen en trainingstijd."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acompanhe sua sequência semanal, treinos e tempo de treino aqui."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Följ din veckosvit, träningspass och träningstid här."
           }
         }
       }
@@ -35937,60 +36293,60 @@
         }
       }
     },
-    "Upgrade to Pro to unlock streaks, volume tracking, strength gains, and body metrics. All in one place." : {
+    "Upgrade to Pro to unlock estimated 1RM, weight progress, strength gains, and body metrics. All in one place." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Upgrade auf Pro, um Serien, Volumen-Tracking, Kraftzuwächse und Körperdaten freizuschalten. Alles an einem Ort."
+            "value" : "Upgrade auf Pro, um geschätztes 1RM, Gewichtsfortschritt, Kraftzuwächse und Körpermetriken freizuschalten. Alles an einem Ort."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Actualiza a Pro para desbloquear rachas, seguimiento de volumen, ganancias de fuerza y métricas corporales. Todo en un solo lugar."
+            "value" : "Actualiza a Pro para desbloquear 1RM estimado, progreso de peso, ganancias de fuerza y métricas corporales. Todo en un solo lugar."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Actualiza a Pro para desbloquear rachas, seguimiento de volumen, ganancias de fuerza y métricas corporales. Todo en un solo lugar."
+            "value" : "Actualiza a Pro para desbloquear 1RM estimado, progreso de peso, ganancias de fuerza y métricas corporales. Todo en un solo lugar."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Passe à Pro pour débloquer les séries, le suivi de volume, les gains de force et les données corporelles. Tout au même endroit."
+            "value" : "Passe à Pro pour débloquer le 1RM estimé, le suivi de poids, les gains de force et les métriques corporelles. Tout au même endroit."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Proにアップグレードして連続記録、ボリュームトラッキング、筋力の向上、ボディデータをアンロック。すべてを一箇所で。"
+            "value" : "Proにアップグレードして、推定1RM、体重の推移、筋力の向上、体の指標をアンロックしましょう。すべてを一か所で。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pro로 업그레이드하여 연속 기록, 볼륨 추적, 근력 성장, 신체 지표를 잠금 해제하세요. 모두 한곳에서."
+            "value" : "Pro로 업그레이드하여 추정 1RM, 체중 변화, 근력 향상, 신체 지표를 잠금 해제하세요. 모든 것을 한곳에서."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Upgrade naar Pro om reeksen, volumetracking, krachtwinst en lichaamsgegevens te ontgrendelen. Alles op één plek."
+            "value" : "Upgrade naar Pro om geschat 1RM, gewichtsvoortgang, krachtwinst en lichaamsmetrieken te ontgrendelen. Alles op één plek."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atualize para Pro para desbloquear sequências, rastreamento de volume, ganhos de força e métricas corporais. Tudo em um só lugar."
+            "value" : "Atualize para Pro para desbloquear 1RM estimado, progresso de peso, ganhos de força e métricas corporais. Tudo em um só lugar."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uppgradera till Pro för att låsa upp svitar, volymspårning, styrkeökningar och kroppsdata. Allt på ett ställe."
+            "value" : "Uppgradera till Pro för att låsa upp beräknat 1RM, viktutveckling, styrkeökningar och kroppsstatistik. Allt på ett ställe."
           }
         }
       }
@@ -37046,64 +37402,6 @@
         }
       }
     },
-    "Week Goal Smashed" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wochenziel erreicht"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Objetivo semanal cumplido"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Objetivo semanal cumplido"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Objectif hebdo atteint"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "週間目標達成"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "주간 목표 달성"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Weekdoel gehaald"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Meta semanal batida"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Veckomål uppnått"
-          }
-        }
-      }
-    },
     "Week's Not Over Yet" : {
       "localizations" : {
         "de" : {
@@ -37217,6 +37515,65 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Veckomål"
+          }
+        }
+      }
+    },
+    "Weekly Streak!" : {
+      "comment" : "Streak celebration title",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wochenserie!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡​Racha semanal!"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡​Racha semanal!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Série hebdomadaire !"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "週間ストリーク！"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "주간 연속 달성!"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekreeks!"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sequência semanal!"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veckosvit!"
           }
         }
       }
@@ -38451,60 +38808,60 @@
         }
       }
     },
-    "Workouts can only be started from the routine during offline mode. Your workout will sync when you're back online." : {
+    "Workouts can only be started from the routine during offline mode. Your data will sync when you're back online, which may take a moment." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trainings können im Offline-Modus nur über die Routine gestartet werden. Dein Training wird synchronisiert, sobald du wieder online bist."
+            "value" : "Trainings können im ​Offline​-​Modus nur über die ​Routine gestartet werden. ​Deine ​Daten werden synchronisiert, sobald du wieder online bist – das kann einen ​Moment dauern."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los entrenamientos solo se pueden iniciar desde la rutina en modo sin conexión. Tu entrenamiento se sincronizará cuando vuelvas a estar en línea."
+            "value" : "Los entrenamientos solo se pueden iniciar desde la rutina en modo sin conexión. ​Tus datos se sincronizarán cuando vuelvas a estar en línea, lo que puede tardar un momento."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los entrenamientos solo se pueden iniciar desde la rutina en modo sin conexión. Tu entrenamiento se sincronizará cuando vuelvas a estar en línea."
+            "value" : "Los entrenamientos solo se pueden iniciar desde la rutina en modo sin conexión. ​Tus datos se sincronizarán cuando vuelvas a estar en línea, lo que puede tardar un momento."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les entraînements ne peuvent être démarrés qu'à partir de la routine en mode hors ligne. Ton entraînement sera synchronisé quand tu seras de nouveau en ligne."
+            "value" : "Les entraînements ne peuvent être lancés qu​'à partir de la routine en mode hors ligne. ​Vos données se synchroniseront lorsque vous serez de nouveau en ligne, ce qui peut prendre un instant."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "オフラインモードではルーティンからのみワークアウトを開始できます。オンラインに戻るとワークアウトが同期されます。"
+            "value" : "オフラインモードでは​、ルーティンからのみワークアウトを開始できます​。オンラインに戻るとデータが同期されますが​、少し時間がかかる場合があります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "오프라인 모드에서는 루틴에서만 운동을 시작할 수 있습니다. 온라인에 복귀하면 운동이 동기화됩니다."
+            "value" : "오프라인 모드에서는 루틴에서만 운동을 시작할 수 있습니다. 온라인에 다시 연결되면 데이터가 동기화되며, 잠시 시간이 걸릴 수 있습니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trainingen kunnen alleen vanuit de routine worden gestart in offline modus. Je training wordt gesynchroniseerd wanneer je weer online bent."
+            "value" : "Trainingen kunnen in de offlinemodus alleen vanuit de routine worden gestart. ​Je gegevens worden gesynchroniseerd zodra je weer online bent, wat even kan duren."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os treinos só podem ser iniciados pela rotina no modo offline. Seu treino será sincronizado quando você voltar a ficar online."
+            "value" : "Os treinos só podem ser iniciados a partir da rotina no modo offline. ​Seus dados serão sincronizados quando você voltar a ficar online, o que pode levar um momento."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Träningspass kan bara startas från rutinen i offlineläge. Ditt pass synkas när du är online igen."
+            "value" : "Träningspass kan bara startas från rutinen i offlineläge. ​Data synkroniseras när du är online igen, vilket kan ta en stund."
           }
         }
       }
@@ -38811,7 +39168,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "You have %1$lld workout%2$@ under your belt. Kick this month off with a session. Momentum builds fast once you start."
           }
         },
@@ -38875,7 +39232,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "You have an unfinished \"%1$@\" workout from %2$lld minutes ago. Would you like to continue?"
           }
         },
@@ -39041,64 +39398,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Du har inte tränat denna vecka ännu. Även ett pass före helgen hjälper till att behålla framstegen du byggt upp."
-          }
-        }
-      }
-    },
-    "You hit your target of %lld workouts this week. Consistency like this is what drives real results. Enjoy the rest of the week or keep pushing!" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Du hast dein Ziel von %lld Trainings diese Woche erreicht. Diese Konstanz bringt echte Ergebnisse. Genieß den Rest der Woche oder mach weiter!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alcanzaste tu objetivo de %lld entrenamientos esta semana. Esta constancia es lo que trae resultados reales. ¡Disfruta el resto de la semana o sigue adelante!"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alcanzaste tu objetivo de %lld entrenamientos esta semana. Esta constancia es lo que trae resultados reales. ¡Disfruta el resto de la semana o sigue adelante!"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu as atteint ton objectif de %lld entraînements cette semaine. C'est cette régularité qui génère de vrais résultats. Profite du reste de la semaine ou continue !"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今週%lldのワークアウト目標を達成しました。このような継続が本当の結果を生みます。残りの週を楽しむか、さらに頑張りましょう！"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이번 주 %lld회 운동 목표를 달성했습니다. 이런 꾸준함이 진정한 성과를 만듭니다. 남은 주를 즐기거나 계속 도전하세요!"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Je hebt je doel van %lld trainingen deze week gehaald. Dit soort consistentie zorgt voor echte resultaten. Geniet van de rest van de week of ga door!"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Você atingiu sua meta de %lld treinos esta semana. Essa consistência é o que traz resultados reais. Aproveite o resto da semana ou continue firme!"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Du nådde ditt mål på %lld träningspass denna vecka. Sådan konsekvens är det som driver riktiga resultat. Njut av resten av veckan eller fortsätt!"
           }
         }
       }
@@ -39337,66 +39636,124 @@
         }
       }
     },
-    "You've completed %lld workouts this month vs %lld last month. Consistency is the strongest predictor of long-term strength gains." : {
+    "You've already completed %lld workouts so far this month, compared to %lld all of last month. Consistency is the strongest predictor of long-term strength gains." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du hast %lld Workouts diesen Monat abgeschlossen gegenüber %lld letzten Monat. Beständigkeit ist der stärkste Indikator für langfristige Kraftzuwächse."
+            "value" : "Du hast diesen Monat bereits %1$lld Trainingseinheiten absolviert, verglichen mit %2$lld im gesamten letzten Monat. Konstanz ist der stärkste Indikator für langfristige Kraftzuwächse."
           }
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You've completed %1$lld workouts this month vs %2$lld last month. Consistency is the strongest predictor of long-term strength gains."
+            "state" : "translated",
+            "value" : "You've already completed %1$lld workouts so far this month, compared to %2$lld all of last month. Consistency is the strongest predictor of long-term strength gains."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Has completado %lld entrenamientos este mes vs %lld el mes pasado. La constancia es el mejor predictor de ganancias de fuerza a largo plazo."
+            "value" : "Ya has completado %1$lld entrenamientos este mes, comparado con %2$lld en todo el mes pasado. La consistencia es el mejor predictor de ganancias de fuerza a largo plazo."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Has completado %lld entrenamientos este mes vs %lld el mes pasado. La constancia es el mejor predictor de ganancias de fuerza a largo plazo."
+            "value" : "Ya has completado %1$lld entrenamientos este mes, comparado con %2$lld en todo el mes pasado. La consistencia es el mejor predictor de ganancias de fuerza a largo plazo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu as terminé %lld entraînements ce mois-ci contre %lld le mois dernier. La régularité est le meilleur indicateur de gains de force à long terme."
+            "value" : "Tu as déjà complété %1$lld entraînements ce mois-ci, contre %2$lld pour tout le mois dernier. La constance est le meilleur indicateur de gains de force à long terme."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今月%lldのワークアウトを完了（先月は%lld）。継続が長期的な筋力向上の最も強力な予測因子です。"
+            "value" : "今月すでに%1$lld回のワークアウトを完了しました。先月全体では%2$lld回でした。一貫性は長期的な筋力向上の最も強力な予測因子です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이번 달 %lld회 운동 완료 (지난달 %lld회). 꾸준함이 장기적인 근력 향상의 가장 강력한 예측 인자입니다."
+            "value" : "이번 달 이미 %1$lld회 운동을 완료했으며, 지난 달 전체 %2$lld회와 비교됩니다. 꾸준함은 장기적인 근력 향상의 가장 강력한 예측 인자입니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je hebt %lld trainingen deze maand voltooid tegenover %lld vorige maand. Consistentie is de sterkste voorspeller van langdurige krachtwinst."
+            "value" : "Je hebt deze maand al %1$lld trainingen voltooid, vergeleken met %2$lld vorige maand. Consistentie is de sterkste voorspeller van langdurige krachtwinst."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Você completou %lld treinos este mês vs %lld no mês passado. A consistência é o maior indicador de ganhos de força a longo prazo."
+            "value" : "Você já completou %1$lld treinos este mês, comparado com %2$lld no mês passado inteiro. Consistência é o melhor indicador de ganhos de força a longo prazo."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du har genomfört %lld träningspass denna månad mot %lld förra månaden. Konsekvens är den starkaste indikatorn för långsiktig styrkeökning."
+            "value" : "Du har redan genomfört %1$lld träningspass den här månaden, jämfört med %2$lld hela förra månaden. Konsistens är den starkaste prediktorn för långsiktiga styrkeökningar."
+          }
+        }
+      }
+    },
+    "You've completed %lld workouts this week. Consistency like this is what drives real results. Enjoy the rest of the week or keep pushing!" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du hast diese Woche %lld Workouts absolviert. Solche Konstanz ist es, die echte Ergebnisse bringt. Genieße den Rest der Woche oder mach weiter!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Has completado %lld entrenamientos esta semana. La consistencia como esta es lo que produce resultados reales. ¡Disfruta el resto de la semana o sigue adelante!"
+          }
+        },
+        "es-419" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Has completado %lld entrenamientos esta semana. La consistencia como esta es lo que produce resultados reales. ¡Disfruta el resto de la semana o sigue adelante!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu as terminé %lld entraînements cette semaine. C'est cette constance qui produit de vrais résultats. Profite du reste de la semaine ou continue à progresser !"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今週%lld回のワークアウトを完了しました。このような一貫性が本当の結果を生みます。残りの週を楽しむか、さらに頑張りましょう！"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이번 주 %lld회 운동을 완료했습니다. 이런 꾸준함이 진정한 결과를 만듭니다. 남은 주를 즐기거나 계속 도전하세요!"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je hebt deze week %lld trainingen voltooid. Dit soort consistentie levert echte resultaten op. Geniet van de rest van de week of blijf doorgaan!"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Você completou %lld treinos esta semana. Consistência assim é o que gera resultados reais. Aproveite o resto da semana ou continue firme!"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du har genomfört %lld träningspass den här veckan. Sådan konsistens är det som ger verkliga resultat. Njut av resten av veckan eller fortsätt köra!"
           }
         }
       }
@@ -39585,7 +39942,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "You've logged %1$lld workout%2$@ this month and %3$lld overall. Staying consistent is what separates short-term effort from lasting results."
           }
         },
@@ -39697,124 +40054,124 @@
         }
       }
     },
-    "You've trained %lld times this week. Muscle tissue repairs and grows during rest, scheduling a recovery day can actually accelerate your progress." : {
+    "You've trained %lld times this week. Muscle tissue repairs and grows during rest. Scheduling a recovery day can actually accelerate your progress." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du hast diese Woche %lld Mal trainiert. Muskelgewebe repariert und wächst in der Ruhe – ein Erholungstag kann deinen Fortschritt sogar beschleunigen."
+            "value" : "Du hast diese Woche %lld Mal trainiert. Muskelgewebe repariert und wächst während der Ruhe. Einen Erholungstag einzuplanen kann deinen Fortschritt tatsächlich beschleunigen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Has entrenado %lld veces esta semana. El tejido muscular se repara y crece durante el descanso, programar un día de recuperación puede acelerar tu progreso."
+            "value" : "Has entrenado %lld veces esta semana. El tejido muscular se repara y crece durante el descanso. Programar un día de recuperación puede acelerar tu progreso."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Has entrenado %lld veces esta semana. El tejido muscular se repara y crece durante el descanso, programar un día de recuperación puede acelerar tu progreso."
+            "value" : "Has entrenado %lld veces esta semana. El tejido muscular se repara y crece durante el descanso. Programar un día de recuperación puede acelerar tu progreso."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu t'es entraîné %lld fois cette semaine. Le tissu musculaire se répare et se développe pendant le repos, planifier un jour de récupération peut en fait accélérer tes progrès."
+            "value" : "Tu t'es entraîné %lld fois cette semaine. Le tissu musculaire se répare et grandit pendant le repos. Planifier un jour de récupération peut accélérer tes progrès."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今週%lld回トレーニングしました。筋組織は休息中に修復・成長します。回復日を設けることで、実際に進歩を加速できます。"
+            "value" : "今週%lld回トレーニングしました。筋組織は休息中に修復・成長します。回復日を設けることで、実際に進歩を加速させることができます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이번 주 %lld번 훈련했습니다. 근육 조직은 휴식 중에 회복하고 성장합니다. 회복일을 계획하면 실제로 진행을 가속화할 수 있습니다."
+            "value" : "이번 주 %lld회 운동했습니다. 근육 조직은 휴식 중에 회복되고 성장합니다. 회복일을 계획하면 실제로 발전을 가속화할 수 있습니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je hebt %lld keer getraind deze week. Spierweefsel herstelt en groeit tijdens rust, een hersteldag plannen kan je voortgang daadwerkelijk versnellen."
+            "value" : "Je hebt deze week %lld keer getraind. Spierweefsel herstelt en groeit tijdens rust. Een hersteldag inplannen kan je vooruitgang versnellen."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Você treinou %lld vezes esta semana. O tecido muscular se repara e cresce durante o descanso — agendar um dia de recuperação pode acelerar seu progresso."
+            "value" : "Você treinou %lld vezes esta semana. O tecido muscular se repara e cresce durante o descanso. Programar um dia de recuperação pode acelerar seu progresso."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du har tränat %lld gånger denna vecka. Muskelvävnad repareras och växer under vila, att schemalägga en vilodag kan faktiskt accelerera dina framsteg."
+            "value" : "Du har tränat %lld gånger den här veckan. Muskelvävnad repareras och växer under vila. Att planera in en vilodag kan faktiskt påskynda dina framsteg."
           }
         }
       }
     },
-    "Your %lld-week streak ended, but the strength you built didn't disappear. Hit your %lld workouts this week to start a new one." : {
+    "Your %lld-week streak ended, but the strength you built didn't disappear. Get %lld workouts in this week to start a new one." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deine %lld-Wochen-Serie ist vorbei, aber die aufgebaute Kraft ist nicht weg. Schaffe deine %lld Trainings diese Woche, um eine neue zu starten."
+            "value" : "Deine %1$lld-Wochen-Serie ist beendet, aber die Kraft, die du aufgebaut hast, ist nicht verschwunden. Absolviere diese Woche %2$lld Trainingseinheiten, um eine neue zu starten."
           }
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your %1$lld-week streak ended, but the strength you built didn't disappear. Hit your %2$lld workouts this week to start a new one."
+            "state" : "translated",
+            "value" : "Your %1$lld-week streak ended, but the strength you built didn't disappear. Get %2$lld workouts in this week to start a new one."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu racha de %lld semanas terminó, pero la fuerza que construiste no desapareció. Completa tus %lld entrenamientos esta semana para comenzar una nueva."
+            "value" : "Tu racha de %1$lld semanas terminó, pero la fuerza que construiste no desapareció. Haz %2$lld entrenamientos esta semana para comenzar una nueva."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu racha de %lld semanas terminó, pero la fuerza que construiste no desapareció. Completa tus %lld entrenamientos esta semana para comenzar una nueva."
+            "value" : "Tu racha de %1$lld semanas terminó, pero la fuerza que construiste no desapareció. Haz %2$lld entrenamientos esta semana para comenzar una nueva."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ta série de %lld semaines est terminée, mais la force que tu as construite n'a pas disparu. Atteins tes %lld entraînements cette semaine pour en commencer une nouvelle."
+            "value" : "Ta série de %1$lld semaines est terminée, mais la force que tu as développée n'a pas disparu. Fais %2$lld entraînements cette semaine pour en commencer une nouvelle."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld週間の連続記録は途切れましたが、築いた筋力は消えていません。今週%lldのワークアウトを達成して、新しい記録を始めましょう。"
+            "value" : "%1$lld週間の連続記録は途切れましたが、築いた筋力は消えていません。今週%2$lld回のワークアウトで新しい記録を始めましょう。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld주 연속 기록이 끝났지만 쌓아온 근력은 사라지지 않았습니다. 이번 주 %lld회 운동을 완료하여 새로운 기록을 시작하세요."
+            "value" : "%1$lld주 연속 기록이 끝났지만, 쌓아온 근력은 사라지지 않았습니다. 이번 주 %2$lld회 운동으로 새로운 기록을 시작하세요."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je %lld-weken reeks is beëindigd, maar de kracht die je hebt opgebouwd is niet verdwenen. Haal je %lld trainingen deze week om een nieuwe te starten."
+            "value" : "Je reeks van %1$lld weken is beëindigd, maar de kracht die je hebt opgebouwd is niet verdwenen. Doe deze week %2$lld trainingen om een nieuwe te starten."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sua sequência de %lld semanas acabou, mas a força que você construiu não desapareceu. Complete seus %lld treinos esta semana para começar uma nova."
+            "value" : "Sua sequência de %1$lld semanas terminou, mas a força que você construiu não desapareceu. Faça %2$lld treinos esta semana para começar uma nova."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Din %lld-veckorssvit avslutades, men styrkan du byggt försvann inte. Nå dina %lld träningspass denna vecka för att starta en ny."
+            "value" : "Din %1$lld veckors svit avbröts, men styrkan du byggt upp försvann inte. Genomför %2$lld träningspass den här veckan för att starta en ny."
           }
         }
       }
@@ -39878,60 +40235,60 @@
         }
       }
     },
-    "Your average session is %lld minutes. Research shows diminishing returns after 60–75 minutes as cortisol rises. Consider higher-intensity, shorter sessions." : {
+    "Your average session is %lld minutes. Longer sessions can be effective, but if you're feeling drained, consider higher-intensity shorter sessions to stay fresh." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deine durchschnittliche Einheit dauert %lld Minuten. Studien zeigen abnehmende Erträge nach 60–75 Minuten, da Cortisol ansteigt. Erwäge intensivere, kürzere Einheiten."
+            "value" : "Deine durchschnittliche Einheit dauert %lld Minuten. Längere Einheiten können effektiv sein, aber wenn du dich ausgelaugt fühlst, erwäge kürzere Einheiten mit höherer Intensität, um frisch zu bleiben."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu sesión promedio dura %lld minutos. Los estudios muestran rendimientos decrecientes después de 60–75 minutos cuando el cortisol aumenta. Considera sesiones más cortas e intensas."
+            "value" : "Tu sesión promedio dura %lld minutos. Las sesiones más largas pueden ser efectivas, pero si te sientes agotado, considera sesiones más cortas de mayor intensidad para mantenerte fresco."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu sesión promedio dura %lld minutos. Los estudios muestran rendimientos decrecientes después de 60–75 minutos cuando el cortisol aumenta. Considera sesiones más cortas e intensas."
+            "value" : "Tu sesión promedio dura %lld minutos. Las sesiones más largas pueden ser efectivas, pero si te sientes agotado, considera sesiones más cortas de mayor intensidad para mantenerte fresco."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ta séance moyenne dure %lld minutes. Les recherches montrent des rendements décroissants après 60–75 minutes avec la hausse du cortisol. Envisage des séances plus courtes et plus intenses."
+            "value" : "Ta séance moyenne dure %lld minutes. Les séances plus longues peuvent être efficaces, mais si tu te sens épuisé, essaie des séances plus courtes et plus intenses pour rester frais."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "平均セッション時間は%lld分です。研究によると、コルチゾールの上昇により60〜75分後は効果が減少します。より高強度で短いセッションを検討してみてください。"
+            "value" : "平均セッション時間は%lld分です。長いセッションも効果的ですが、疲れを感じているなら、高強度の短いセッションで体力を維持することを検討してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "평균 세션 시간은 %lld분입니다. 연구에 따르면 코르티솔 상승으로 60-75분 이후 효과가 감소합니다. 더 높은 강도의 짧은 세션을 고려해 보세요."
+            "value" : "평균 세션 시간은 %lld분입니다. 긴 세션도 효과적일 수 있지만, 지치는 느낌이 든다면 더 짧고 강도 높은 세션으로 컨디션을 유지하세요."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je gemiddelde sessie is %lld minuten. Onderzoek toont afnemende resultaten na 60-75 minuten als cortisol stijgt. Overweeg kortere sessies met hogere intensiteit."
+            "value" : "Je gemiddelde sessie duurt %lld minuten. Langere sessies kunnen effectief zijn, maar als je je uitgeput voelt, overweeg dan kortere sessies met hogere intensiteit om fris te blijven."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sua sessão média dura %lld minutos. Pesquisas mostram retornos decrescentes após 60–75 minutos com o aumento do cortisol. Considere sessões mais curtas e intensas."
+            "value" : "Sua sessão média dura %lld minutos. Sessões mais longas podem ser eficazes, mas se você está se sentindo esgotado, considere sessões mais curtas e intensas para se manter disposto."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ditt genomsnittliga pass är %lld minuter. Forskning visar minskande avkastning efter 60–75 minuter då kortisol stiger. Överväg kortare pass med högre intensitet."
+            "value" : "Ditt genomsnittliga pass är %lld minuter. Längre pass kan vara effektiva, men om du känner dig utmattad, överväg kortare pass med högre intensitet för att hålla dig pigg."
           }
         }
       }
@@ -40169,118 +40526,118 @@
         }
       }
     },
-    "Your training volume is down %@ from last month. If you're deloading intentionally that's great, otherwise try to maintain or gradually increase load." : {
+    "Your training volume so far this month is already up %@ compared to all of last month. Gradual progressive overload is the primary driver of muscle growth." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dein Trainingsvolumen ist %@ niedriger als letzten Monat. Wenn du absichtlich deloadest, ist das großartig – ansonsten versuche, die Belastung beizubehalten oder schrittweise zu steigern."
+            "value" : "Dein Trainingsvolumen ist diesen Monat bereits um %@ gestiegen im Vergleich zum gesamten letzten Monat. Schrittweise progressive Überlastung ist der wichtigste Faktor für Muskelwachstum."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu volumen de entrenamiento bajó un %@ respecto al mes pasado. Si estás descargando intencionalmente, genial; de lo contrario, intenta mantener o aumentar gradualmente la carga."
+            "value" : "Tu volumen de entrenamiento este mes ya ha subido %@ comparado con todo el mes pasado. La sobrecarga progresiva gradual es el principal impulsor del crecimiento muscular."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu volumen de entrenamiento bajó un %@ respecto al mes pasado. Si estás descargando intencionalmente, genial; de lo contrario, intenta mantener o aumentar gradualmente la carga."
+            "value" : "Tu volumen de entrenamiento este mes ya ha subido %@ comparado con todo el mes pasado. La sobrecarga progresiva gradual es el principal impulsor del crecimiento muscular."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ton volume d'entraînement a baissé de %@ par rapport au mois dernier. Si c'est un deload intentionnel c'est très bien, sinon essaie de maintenir ou d'augmenter progressivement la charge."
+            "value" : "Ton volume d'entraînement ce mois-ci est déjà en hausse de %@ par rapport à tout le mois dernier. La surcharge progressive est le principal moteur de la croissance musculaire."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "トレーニングボリュームが先月比%@減少しています。意図的なディロードなら問題ありませんが、そうでなければ負荷を維持または徐々に増やすようにしましょう。"
+            "value" : "今月のトレーニングボリュームは先月全体と比べてすでに%@増加しています。段階的な漸進的過負荷が筋肉成長の主な要因です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "훈련 볼륨이 지난달 대비 %@ 감소했습니다. 의도적인 디로드라면 좋지만, 그렇지 않다면 부하를 유지하거나 점진적으로 늘려보세요."
+            "value" : "이번 달 훈련량은 지난 달 전체 대비 이미 %@ 증가했습니다. 점진적인 과부하가 근육 성장의 주요 동력입니다."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je trainingsvolume is %@ gedaald ten opzichte van vorige maand. Als je bewust deloadt is dat prima, anders probeer de belasting te behouden of geleidelijk te verhogen."
+            "value" : "Je trainingsvolume deze maand is al %@ gestegen ten opzichte van vorige maand. Geleidelijke progressieve overbelasting is de belangrijkste aanjager van spiergroei."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seu volume de treino caiu %@ em relação ao mês passado. Se você está fazendo deload intencionalmente, ótimo; caso contrário, tente manter ou aumentar gradualmente a carga."
+            "value" : "Seu volume de treino este mês já subiu %@ comparado com todo o mês passado. Sobrecarga progressiva gradual é o principal fator de crescimento muscular."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Din träningsvolym har minskat %@ från förra månaden. Om du deloadar medvetet är det bra, annars försök att behålla eller gradvis öka belastningen."
+            "value" : "Din träningsvolym hittills denna månad har redan ökat %@ jämfört med hela förra månaden. Gradvis progressiv överbelastning är den främsta drivkraften för muskeltillväxt."
           }
         }
       }
     },
-    "Your training volume is up %@ from last month. Gradual progressive overload is the primary driver of muscle hypertrophy." : {
+    "Your training volume so far this month is down %@ compared to last month. If you're deloading intentionally that's great, otherwise try to maintain or gradually increase load." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dein Trainingsvolumen ist %@ gegenüber letztem Monat gestiegen. Schrittweise progressive Überlastung ist der Haupttreiber für Muskelhypertrophie."
+            "value" : "Dein Trainingsvolumen ist diesen Monat bisher um %@ gesunken im Vergleich zum letzten Monat. Wenn du absichtlich eine Entlastungswoche machst, ist das großartig, ansonsten versuche die Belastung beizubehalten oder schrittweise zu erhöhen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu volumen de entrenamiento subió %@ respecto al mes pasado. La sobrecarga progresiva gradual es el principal impulsor de la hipertrofia muscular."
+            "value" : "Tu volumen de entrenamiento este mes ha bajado %@ comparado con el mes pasado. Si estás descargando intencionalmente, genial, de lo contrario intenta mantener o aumentar gradualmente la carga."
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu volumen de entrenamiento subió %@ respecto al mes pasado. La sobrecarga progresiva gradual es el principal impulsor de la hipertrofia muscular."
+            "value" : "Tu volumen de entrenamiento este mes ha bajado %@ comparado con el mes pasado. Si estás descargando intencionalmente, genial, de lo contrario intenta mantener o aumentar gradualmente la carga."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ton volume d'entraînement a augmenté de %@ par rapport au mois dernier. La surcharge progressive est le principal moteur de l'hypertrophie musculaire."
+            "value" : "Ton volume d'entraînement ce mois-ci est en baisse de %@ par rapport au mois dernier. Si tu fais une semaine de décharge intentionnellement, c'est bien, sinon essaie de maintenir ou d'augmenter progressivement la charge."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "トレーニングボリュームが先月比%@増加しています。漸進的な過負荷が筋肥大の主な原動力です。"
+            "value" : "今月のトレーニングボリュームは先月と比べて%@減少しています。意図的にディロードしているなら問題ありませんが、そうでなければ負荷を維持するか徐々に増やしてみてください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "훈련 볼륨이 지난달 대비 %@ 증가했습니다. 점진적 과부하가 근비대의 주요 동인입니다."
+            "value" : "이번 달 훈련량은 지난 달 대비 %@ 감소했습니다. 의도적으로 디로딩 중이라면 좋지만, 그렇지 않다면 부하를 유지하거나 점진적으로 늘려보세요."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je trainingsvolume is %@ gestegen ten opzichte van vorige maand. Geleidelijke progressieve overbelasting is de belangrijkste aandrijver van spierhypertrofie."
+            "value" : "Je trainingsvolume deze maand is %@ gedaald ten opzichte van vorige maand. Als je bewust aan het ontladen bent, is dat prima, anders probeer de belasting te behouden of geleidelijk te verhogen."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seu volume de treino subiu %@ em relação ao mês passado. A sobrecarga progressiva gradual é o principal fator para a hipertrofia muscular."
+            "value" : "Seu volume de treino este mês caiu %@ comparado com o mês passado. Se você está fazendo um deload intencional, ótimo, caso contrário tente manter ou aumentar gradualmente a carga."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Din träningsvolym har ökat %@ från förra månaden. Gradvis progressiv överbelastning är den främsta drivkraften för muskeltillväxt."
+            "value" : "Din träningsvolym hittills denna månad har minskat %@ jämfört med förra månaden. Om du medvetet kör en lättare period är det bra, annars försök att bibehålla eller gradvis öka belastningen."
           }
         }
       }
@@ -40353,7 +40710,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Your workout count is down from %1$lld last month to %2$lld so far. Training at least 2–3 times per week is enough to maintain and build strength."
           }
         },
