@@ -717,7 +717,7 @@ struct ExerciseCard: View {
                 }
             }
             
-            if status == .current && viewModel.routineExercises.count > 1 {
+            if status == .current && viewModel.routineExercises.count > 1 && completedSetsCount == 0 {
                 EquatableView(content: ExerciseReorderMenu(
                     routineExercises: viewModel.routineExercises,
                     allExercises: allExercises,
@@ -1009,12 +1009,15 @@ struct SetRow: View {
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
             } else {
-                SelectAllTextField(text: $weightText, placeholder: "0", identifier: "weightField_\(set.setNumber)")
+                SelectAllTextField(
+                    text: $weightText,
+                    placeholder: "0",
+                    identifier: "weightField_\(set.setNumber)",
+                    textInsets: UIEdgeInsets(top: 4, left: 6, bottom: 4, right: 6)
+                )
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
-                    .frame(width: 50, height: 24)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 4)
+                    .frame(width: 62, height: 32)
                     .background(Color.appText.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                     .onChange(of: weightText) { _, newValue in
@@ -1171,22 +1174,39 @@ struct RepsConfirmationRow: View {
     }
 }
 
+// MARK: - Inset Text Field
+final class InsetTextField: UITextField {
+    var textInsets: UIEdgeInsets = .zero
+    
+    override func textRect(forBounds bounds: CGRect) -> CGRect {
+        bounds.inset(by: textInsets)
+    }
+    
+    override func editingRect(forBounds bounds: CGRect) -> CGRect {
+        bounds.inset(by: textInsets)
+    }
+    
+    override func placeholderRect(forBounds bounds: CGRect) -> CGRect {
+        bounds.inset(by: textInsets)
+    }
+}
+
 // MARK: - Select All TextField
 struct SelectAllTextField: UIViewRepresentable {
     @Binding var text: String
     var placeholder: String
     var identifier: String?
+    var textInsets: UIEdgeInsets = .zero
     
     func makeUIView(context: Context) -> UITextField {
-        let textField = UITextField()
+        let textField = InsetTextField()
+        textField.textInsets = textInsets
         textField.placeholder = placeholder
         textField.keyboardType = .decimalPad
-        textField.textAlignment = .right
+        textField.textAlignment = .center
         textField.font = .preferredFont(forTextStyle: .subheadline)
         textField.delegate = context.coordinator
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textChanged(_:)), for: .editingChanged)
-        textField.setContentHuggingPriority(.required, for: .horizontal)
-        textField.setContentCompressionResistancePriority(.required, for: .horizontal)
         textField.accessibilityIdentifier = identifier
         return textField
     }
