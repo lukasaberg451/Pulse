@@ -43,7 +43,7 @@ final class SignOutFlowTests: UITestBaseCase {
     // MARK: - Test: Sign Out then Sign In Round-Trip
 
     /// Signs out, then signs back in with test credentials and verifies
-    /// the home screen appears — proving the full auth lifecycle works.
+    /// the home screen appears - proving the full auth lifecycle works.
     func testSignOutThenSignInRoundTrip() throws {
         dismissResumeAlertIfPresent()
         navigateToSettings()

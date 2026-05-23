@@ -220,7 +220,7 @@ class RoutineDetailViewModel: ObservableObject {
 
             routineExercises = orderedExercises
 
-            // Silent reload to ensure consistency — skip isLoading to avoid a flash
+            // Silent reload to ensure consistency - skip isLoading to avoid a flash
             await loadRoutineExercises(silent: true)
         } catch {
             actionError = String(localized: "Failed to save exercise order. Please try again.")

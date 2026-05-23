@@ -295,7 +295,7 @@ struct ProfileView: View {
         viewModel.profile?.email?.contains("privaterelay.appleid.com") == true
     }
     
-    // Email to display — nil when it's a private relay address
+    // Email to display - nil when it's a private relay address
     private var displayEmail: String? {
         guard let email = viewModel.profile?.email, !isPrivateRelayEmail else { return nil }
         return email

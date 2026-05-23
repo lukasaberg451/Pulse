@@ -44,7 +44,7 @@ class UnitManager: ObservableObject {
         self.unitSystem = UnitSystem(rawValue: saved) ?? .metric
     }
 
-    /// Testable initializer — creates a standalone instance without touching UserDefaults.
+    /// Testable initializer - creates a standalone instance without touching UserDefaults.
     init(unitSystem: UnitSystem) {
         self.unitSystem = unitSystem
     }

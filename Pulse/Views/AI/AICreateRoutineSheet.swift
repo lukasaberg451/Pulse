@@ -188,13 +188,13 @@ struct AICreateRoutineSheet: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             suggestionChip("Push day") {
-                                appendText("Push day — chest, shoulders, triceps")
+                                appendText("Push day - chest, shoulders, triceps")
                             }
                             suggestionChip("Pull day") {
-                                appendText("Pull day — back, biceps")
+                                appendText("Pull day - back, biceps")
                             }
                             suggestionChip("Leg day") {
-                                appendText("Leg day — quads, hamstrings, glutes")
+                                appendText("Leg day - quads, hamstrings, glutes")
                             }
                             suggestionChip("Full body") {
                                 appendText("Full body workout, balanced")
@@ -423,7 +423,7 @@ struct AICreateRoutineSheet: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 12, height: 12)
-                    Text(exercise.note ?? String(localized: "Low confidence — please verify"))
+                    Text(exercise.note ?? String(localized: "Low confidence - please verify"))
                         .font(.caption)
                 }
                 .foregroundStyle(.orange)

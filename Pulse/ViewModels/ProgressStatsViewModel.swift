@@ -227,7 +227,7 @@ class ProgressStatsViewModel: ObservableObject {
             currentStreak = stats.currentStreak
             bestStreak = stats.bestStreak
         } catch is CancellationError {
-            // Ignore — a newer refresh replaced this one
+            // Ignore - a newer refresh replaced this one
         } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
             // Ignore URL session cancellation
         } catch {
@@ -257,7 +257,7 @@ class ProgressStatsViewModel: ObservableObject {
                 MuscleGroupStat(name: row.name, sets: row.sets, percentage: row.percentage)
             }
         } catch is CancellationError {
-            // Ignore — a newer refresh replaced this one
+            // Ignore - a newer refresh replaced this one
         } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
             // Ignore URL session cancellation
         } catch {
@@ -282,7 +282,7 @@ class ProgressStatsViewModel: ObservableObject {
                 )
             }
         } catch is CancellationError {
-            // Ignore — a newer refresh replaced this one
+            // Ignore - a newer refresh replaced this one
         } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
             // Ignore URL session cancellation
         } catch {
@@ -298,7 +298,7 @@ class ProgressStatsViewModel: ObservableObject {
         do {
             exercise1RMStats = try await workoutRepository.fetchExercise1RMStats(userId: userId)
         } catch is CancellationError {
-            // Ignore — a newer refresh replaced this one
+            // Ignore - a newer refresh replaced this one
         } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
             // Ignore URL session cancellation
         } catch {
@@ -322,7 +322,7 @@ class ProgressStatsViewModel: ObservableObject {
         do {
             recentSessions = try await workoutRepository.fetchCompletedSessions(limit: 3, offset: 0)
         } catch is CancellationError {
-            // Ignore — a newer refresh replaced this one
+            // Ignore - a newer refresh replaced this one
         } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
             // Ignore URL session cancellation
         } catch {

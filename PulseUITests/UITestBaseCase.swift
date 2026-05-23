@@ -71,7 +71,7 @@ class UITestBaseCase: XCTestCase {
         XCTAssertTrue(element.waitForExistence(timeout: timeout), message.isEmpty ? "\(element) not found" : message)
     }
 
-    /// Brief pause for animations only — use sparingly.
+    /// Brief pause for animations only - use sparingly.
     func waitForAnimation() {
         usleep(500_000) // 0.5s
     }
@@ -422,7 +422,7 @@ class AuthFlowUITestBaseCase: UITestBaseCase {
 
     /// Navigate from auth selection to the login form.
     func navigateToLogin() {
-        // Wait for splash screen to dismiss — poll for the auth button instead of sleeping
+        // Wait for splash screen to dismiss - poll for the auth button instead of sleeping
         let signInButton = app.buttons["Already Have an Account"]
         let signInText = app.staticTexts["Already Have an Account"]
 

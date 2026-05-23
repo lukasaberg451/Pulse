@@ -45,7 +45,7 @@ class MilestoneViewModel: ObservableObject {
             .sorted { ($0.achievedAt ?? .distantPast) < ($1.achievedAt ?? .distantPast) }
     }
     
-    /// Not yet achieved — still working toward the target, sorted by closest to completion
+    /// Not yet achieved - still working toward the target, sorted by closest to completion
     var inProgressMilestones: [UserMilestone] {
         allMilestones
             .filter { !$0.isAchieved }
@@ -59,7 +59,7 @@ class MilestoneViewModel: ObservableObject {
             .sorted { ($0.unlockedAt ?? .distantPast) > ($1.unlockedAt ?? .distantPast) }
     }
     
-    /// Legacy computed property — now returns only unlocked milestones
+    /// Legacy computed property - now returns only unlocked milestones
     var achievedMilestones: [UserMilestone] {
         unlockedMilestones
     }

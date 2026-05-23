@@ -58,7 +58,7 @@ enum SmartInsightEngine {
         let workoutsRequired = userStreak?.workoutsRequired ?? 3
         let weekCompleted = userStreak?.weekCompleted ?? false
 
-        // 1. Week goal completed — celebrate
+        // 1. Week goal completed - celebrate
         if weekCompleted {
             insights.append(SmartInsight(
                 title: String(localized: "Solid Week"),
@@ -68,7 +68,7 @@ enum SmartInsightEngine {
             ))
         }
 
-        // 2. High training frequency this week — suggest rest
+        // 2. High training frequency this week - suggest rest
         if workoutsThisWeek >= 5 {
             insights.append(SmartInsight(
                 title: String(localized: "Recovery Matters"),
@@ -78,7 +78,7 @@ enum SmartInsightEngine {
             ))
         }
 
-        // 3. Inactivity — encourage return
+        // 3. Inactivity - encourage return
         if let daysSince = daysSinceLastWorkout, daysSince >= 4 {
             insights.append(SmartInsight(
                 title: String(localized: "Time to Get Back"),
@@ -95,7 +95,7 @@ enum SmartInsightEngine {
             ))
         }
 
-        // 4. Almost there — one workout away from completing weekly goal
+        // 4. Almost there - one workout away from completing weekly goal
         if !weekCompleted && workoutsThisWeek == workoutsRequired - 1 && workoutsRequired > 1 {
             insights.append(SmartInsight(
                 title: String(localized: "Keep It Going"),
@@ -107,7 +107,7 @@ enum SmartInsightEngine {
             ))
         }
 
-        // 5. Monthly workout frequency increase (skip first week — not enough data)
+        // 5. Monthly workout frequency increase (skip first week - not enough data)
         if dayOfMonth >= 8 && lastMonthWorkouts > 0 && monthlyWorkouts > lastMonthWorkouts {
             let increase = Int(Double(monthlyWorkouts - lastMonthWorkouts) / Double(lastMonthWorkouts) * 100)
             if increase >= 20 {
@@ -120,7 +120,7 @@ enum SmartInsightEngine {
             }
         }
 
-        // 6. Monthly workout frequency decrease (skip first week — not enough data)
+        // 6. Monthly workout frequency decrease (skip first week - not enough data)
         if dayOfMonth >= 8 && lastMonthWorkouts > 0 && monthlyWorkouts < lastMonthWorkouts {
             let decrease = Int(Double(lastMonthWorkouts - monthlyWorkouts) / Double(lastMonthWorkouts) * 100)
             if decrease >= 30 {
@@ -133,7 +133,7 @@ enum SmartInsightEngine {
             }
         }
 
-        // 7. Volume progressive overload (skip first week — not enough data)
+        // 7. Volume progressive overload (skip first week - not enough data)
         if dayOfMonth >= 8 && lastMonthVolume > 0 && monthlyVolume > lastMonthVolume {
             let increase = Int(Double(monthlyVolume - lastMonthVolume) / Double(lastMonthVolume) * 100)
             if increase >= 10 {
@@ -147,7 +147,7 @@ enum SmartInsightEngine {
             }
         }
 
-        // 8. Volume declining (skip first week — not enough data)
+        // 8. Volume declining (skip first week - not enough data)
         if dayOfMonth >= 8 && lastMonthVolume > 0 && monthlyVolume < lastMonthVolume {
             let decrease = Int(Double(lastMonthVolume - monthlyVolume) / Double(lastMonthVolume) * 100)
             if decrease >= 20 {
@@ -161,7 +161,7 @@ enum SmartInsightEngine {
             }
         }
 
-        // 9. Muscle imbalance — one group dominates (need enough workouts for meaningful distribution)
+        // 9. Muscle imbalance - one group dominates (need enough workouts for meaningful distribution)
         if let topName = topMuscleGroupName, topMuscleGroupPercentage > 0.40 && muscleGroupCount >= 2 && monthlyWorkouts >= 4 {
             let formattedPct = topMuscleGroupPercentage.formatted(.percent.precision(.fractionLength(0)))
             insights.append(SmartInsight(
@@ -224,7 +224,7 @@ enum SmartInsightEngine {
                     ? String(localized: "New Personal Record")
                     : String(localized: "PRs Rolling In"),
                 message: recentPRCount == 1
-                    ? String(localized: "You set a new estimated 1RM record this week. Progressive overload in action — keep challenging yourself.")
+                    ? String(localized: "You set a new estimated 1RM record this week. Progressive overload in action - keep challenging yourself.")
                     : String(localized: "You've hit \(recentPRCount) new 1RM records this week. Your training is clearly paying off."),
                 iconAsset: "trophy",
                 priority: 76

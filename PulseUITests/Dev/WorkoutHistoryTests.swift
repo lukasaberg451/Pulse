@@ -43,7 +43,7 @@ final class WorkoutHistoryTests: UITestBaseCase {
         }
         assertExists(section, timeout: 5, "Completed workouts section not found")
 
-        // Try scrolling within the profile view — this tests that the list
+        // Try scrolling within the profile view - this tests that the list
         // renders and doesn't crash on scroll
         app.swipeUp()
         waitForAnimation()
@@ -73,7 +73,7 @@ final class WorkoutHistoryTests: UITestBaseCase {
         if seeAll.waitForExistence(timeout: 5) {
             seeAll.tap()
 
-            // Should be on the all workouts list — look for any workout card
+            // Should be on the all workouts list - look for any workout card
             let firstWorkout = app.buttons.firstMatch
             if firstWorkout.waitForExistence(timeout: 5) {
                 firstWorkout.tap()

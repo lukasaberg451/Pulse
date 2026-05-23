@@ -29,7 +29,7 @@ final class WorkoutLiveActivityManager {
         // Don't start a Live Activity until a Widget Extension is added to the
         // project to provide the presentation UI. Starting one without a widget
         // can freeze the app's main thread.
-        debugLog("📱 Live Activity skipped — no widget extension configured yet")
+        debugLog("📱 Live Activity skipped - no widget extension configured yet")
         #endif
     }
     

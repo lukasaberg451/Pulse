@@ -64,7 +64,7 @@ class HealthKitManager: NSObject, ObservableObject {
     
     /// Ensures HealthKit is authorized for workout sessions.
     /// Unlike requestAuthorization(), this does not show a denied alert or
-    /// change the sync toggle — it only ensures we have the minimum permission
+    /// change the sync toggle - it only ensures we have the minimum permission
     /// needed for background execution.
     func ensureAuthorizedForBackgroundExecution() async -> Bool {
         guard isAvailable else { return false }
@@ -78,7 +78,7 @@ class HealthKitManager: NSObject, ObservableObject {
         // The authorization dialog can appear behind a fullScreenCover
         // and hang the main thread indefinitely. Authorization should be
         // requested explicitly from the settings/onboarding UI instead.
-        debugLog("📱 HealthKit not authorized (status: \(status.rawValue)) — skipping workout session")
+        debugLog("📱 HealthKit not authorized (status: \(status.rawValue)) - skipping workout session")
         return false
     }
     
@@ -100,18 +100,18 @@ class HealthKitManager: NSObject, ObservableObject {
             workoutBuilder = nil
         }
         
-        // Run EVERYTHING in a detached task — including auth checks.
+        // Run EVERYTHING in a detached task - including auth checks.
         // This guarantees zero blocking on the main actor.
         Task.detached { [weak self] in
             guard available else {
-                debugLog("📱 HealthKit not available on this device — no background execution protection")
+                debugLog("📱 HealthKit not available on this device - no background execution protection")
                 if let self { await MainActor.run { self.hasActiveBackgroundProtection = false } }
                 return
             }
             
             let status = store.authorizationStatus(for: HKObjectType.workoutType())
             guard status == .sharingAuthorized else {
-                debugLog("📱 HealthKit not authorized (status: \(status.rawValue)) — no background execution protection")
+                debugLog("📱 HealthKit not authorized (status: \(status.rawValue)) - no background execution protection")
                 if let self { await MainActor.run { self.hasActiveBackgroundProtection = false } }
                 return
             }
@@ -159,7 +159,7 @@ class HealthKitManager: NSObject, ObservableObject {
         session.end()
         
         if isSyncEnabled {
-            // User wants workouts saved to Health — finish and save
+            // User wants workouts saved to Health - finish and save
             do {
                 if let name = name {
                     try await builder.addMetadata([
@@ -174,9 +174,9 @@ class HealthKitManager: NSObject, ObservableObject {
                 debugLog("📱 ❌ Failed to end workout session: \(error.localizedDescription)")
             }
         } else {
-            // Session was only used for background execution — discard the workout
+            // Session was only used for background execution - discard the workout
             builder.discardWorkout()
-            debugLog("📱 ✅ Ended HKWorkoutSession (workout discarded — sync not enabled)")
+            debugLog("📱 ✅ Ended HKWorkoutSession (workout discarded - sync not enabled)")
         }
         
         workoutSession = nil
@@ -203,7 +203,7 @@ class HealthKitManager: NSObject, ObservableObject {
         workoutSession?.state == .running
     }
     
-    // MARK: - Save Workout (Legacy — used when workout session wasn't started)
+    // MARK: - Save Workout (Legacy - used when workout session wasn't started)
     
     func saveWorkout(
         name: String,

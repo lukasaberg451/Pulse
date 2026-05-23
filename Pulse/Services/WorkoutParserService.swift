@@ -111,7 +111,7 @@ final class WorkoutParserService {
             
         case 422:
             let parsed = try? decoder.decode(ParseRoutineResponse.self, from: data)
-            let message = parsed?.message ?? "Describe the routine you'd like — e.g. Upper body push day, 5 exercises"
+            let message = parsed?.message ?? "Describe the routine you'd like - e.g. Upper body push day, 5 exercises"
             throw ParserError.offTopic(message)
             
         case 429:
@@ -165,7 +165,7 @@ final class WorkoutParserService {
             
         case 422:
             let parsed = try? decoder.decode(ParseResponse.self, from: data)
-            let message = parsed?.message ?? "Just describe your workout and I'll log it — e.g. Chest day, bench 4x8 at 80kg"
+            let message = parsed?.message ?? "Just describe your workout and I'll log it - e.g. Chest day, bench 4x8 at 80kg"
             throw ParserError.offTopic(message)
             
         case 429:

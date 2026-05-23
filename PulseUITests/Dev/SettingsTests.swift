@@ -72,7 +72,7 @@ final class SettingsTests: UITestBaseCase {
         XCTAssertTrue(planButton.waitForExistence(timeout: 10), "Plan button not found")
         planButton.tap()
 
-        // The subscription sheet should be presented — look for common subscription UI
+        // The subscription sheet should be presented - look for common subscription UI
         let subscriptionContent = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'Pro' OR label CONTAINS[c] 'Upgrade' OR label CONTAINS[c] 'Subscribe' OR label CONTAINS[c] 'Pulse Pro'")).firstMatch
         XCTAssertTrue(subscriptionContent.waitForExistence(timeout: 5), "Subscription sheet content not found after tapping Plan button")
     }
@@ -118,7 +118,7 @@ final class SettingsTests: UITestBaseCase {
         XCTAssertTrue(appearanceRow.waitForExistence(timeout: 10), "Appearance row not found")
         appearanceRow.tap()
 
-        // Select "Dark" theme — use the button in the sheet, not staticTexts (avoids ambiguity with settings row)
+        // Select "Dark" theme - use the button in the sheet, not staticTexts (avoids ambiguity with settings row)
         let darkOption = app.buttons.matching(NSPredicate(format: "label == 'Dark'")).firstMatch
         XCTAssertTrue(darkOption.waitForExistence(timeout: 5), "'Dark' option not found")
         darkOption.tap()

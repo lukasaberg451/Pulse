@@ -265,7 +265,7 @@ final class RoutineManagementTests: UITestBaseCase {
         XCTAssertTrue(createExerciseButton.waitForExistence(timeout: 5), "Create Exercise button not found")
         createExerciseButton.tap()
 
-        // Cancel the config sheet — we only needed the exercise created
+        // Cancel the config sheet - we only needed the exercise created
         let cancelButton = app.buttons["Cancel"]
         if cancelButton.waitForExistence(timeout: 3) {
             cancelButton.tap()

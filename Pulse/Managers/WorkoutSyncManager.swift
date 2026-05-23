@@ -54,7 +54,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     #if os(iOS)
     func launchWatchApp(exercises: [Exercise]) {
         guard let session = session, session.isPaired else {
-            debugLog("📱 No watch paired — skipping watch app launch")
+            debugLog("📱 No watch paired - skipping watch app launch")
             return
         }
         
@@ -107,7 +107,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         
         #if os(iOS)
         guard session.isPaired else {
-            debugLog("📱 No watch paired — skipping watch sync")
+            debugLog("📱 No watch paired - skipping watch sync")
             return
         }
         #endif
@@ -216,7 +216,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     // MARK: - Receive Data from Watch
     
     func handleSetCompleted(exerciseId: String, setNumber: Int, reps: Int, weight: Double, durationSeconds: Int?) {
-        // Weight arrives in display units from the Watch — convert back to kg for storage
+        // Weight arrives in display units from the Watch - convert back to kg for storage
         #if os(iOS)
         let weightInKg = UnitManager.shared.toKg(weight)
         #else
@@ -246,7 +246,7 @@ class WorkoutSyncManager: NSObject, ObservableObject {
     func sendCurrentExercise(exercise: Exercise, routineExercise: RoutineExercise, currentSetNumber: Int = 1, totalSets: Int? = nil, restStopped: Bool = false, restStarted: Bool = false, restDuration: Int = 0) {
         #if os(iOS)
         guard SubscriptionManager.shared.isProUser else {
-            debugLog("📱 Skipping watch sync — user is not pro")
+            debugLog("📱 Skipping watch sync - user is not pro")
             return
         }
         #endif

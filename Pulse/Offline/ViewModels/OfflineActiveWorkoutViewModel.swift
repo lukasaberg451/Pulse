@@ -408,7 +408,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         
         guard backgroundTaskID == .invalid else { return }
         backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "WorkoutStateSave") { [weak self] in
-            // Expiration handler — save one more time and end the task
+            // Expiration handler - save one more time and end the task
             guard let self = self else { return }
             Task { @MainActor in
                 self.saveElapsedTime()
@@ -581,7 +581,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             // Update Live Activity with current progress
             updateWorkoutLiveActivity()
         } else {
-            // Undo path — a previously completed set was uncompleted
+            // Undo path - a previously completed set was uncompleted
             
             // Stop the rest timer since the user is going back
             stopRestTimer()
@@ -804,7 +804,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         if syncService.isOnline {
             debugLog("🔄 Syncing completed workout to Supabase...")
 
-            // Mark 1RM as handled so the sync service won't also update it —
+            // Mark 1RM as handled so the sync service won't also update it -
             // the view model owns 1RM updates in online mode (it builds highlights for the summary).
             session.oneRMUpdated = true
             try? modelContext.save()
@@ -864,7 +864,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             debugLog("📱 Offline - workout will sync when back online")
         }
         
-        // Let HealthKit save finish in the background — don't block the UI
+        // Let HealthKit save finish in the background - don't block the UI
         debugLog("📱 HealthKit save running in background, not blocking workout completion")
 
         // Tell the watch the workout has ended so it dismisses

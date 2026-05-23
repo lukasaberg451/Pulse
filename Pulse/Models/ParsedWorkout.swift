@@ -54,7 +54,7 @@ struct ParsedExercise: Codable, Identifiable {
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        // The edge function won't send an id — generate one locally
+        // The edge function won't send an id - generate one locally
         self.id = (try? container.decode(UUID.self, forKey: .id)) ?? UUID()
         self.name = try container.decode(String.self, forKey: .name)
         self.sets = try container.decode(Int.self, forKey: .sets)

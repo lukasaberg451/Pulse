@@ -2,9 +2,9 @@ import Foundation
 import Supabase
 
 enum AppUpdateStatus: Equatable {
-    /// Current version is below minimum — user must update.
+    /// Current version is below minimum - user must update.
     case forceUpdate(latestVersion: String)
-    /// Current version is supported but outdated — user can dismiss.
+    /// Current version is supported but outdated - user can dismiss.
     case softUpdate(latestVersion: String)
     /// App is up to date (or check failed).
     case upToDate

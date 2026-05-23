@@ -94,13 +94,13 @@ class AuthViewModel: ObservableObject{
                     self.isAuthenticated = true
                     await fetchUserProfile()
                 } catch where Self.isNetworkError(error) {
-                    // Network error — we're offline. Trust the local session
+                    // Network error - we're offline. Trust the local session
                     // so the user can continue using the app in offline mode.
                     debugLog("⚠️ Offline: could not refresh session (\(error.localizedDescription)), using local session")
                     self.session = session
                     self.isAuthenticated = true
                 } catch {
-                    // Auth error (e.g. user deleted, token revoked) — clear session
+                    // Auth error (e.g. user deleted, token revoked) - clear session
                     debugLog("❌ Session refresh failed: \(error.localizedDescription)")
                     self.session = nil
                     self.isAuthenticated = false
@@ -322,7 +322,7 @@ class AuthViewModel: ObservableObject{
             
             await fetchUserProfile()
             
-            // Set isAuthenticated last — isLoading stays true so the
+            // Set isAuthenticated last - isLoading stays true so the
             // LoginView loading overlay covers the view-tree swap until
             // PulseApp's PostLoginLoadingView takes over.
             self.isAuthenticated = true
@@ -361,7 +361,7 @@ class AuthViewModel: ObservableObject{
             try await supabase.rpc("delete_user_account").execute()
             // Sign out to clear Keychain tokens. Use try? because the server
             // may reject the call if the auth user was already removed by the
-            // RPC — but we still need local cleanup to happen.
+            // RPC - but we still need local cleanup to happen.
             try? await supabase.auth.signOut()
             self.session = nil
             self.isAuthenticated = false
@@ -527,7 +527,7 @@ class AuthViewModel: ObservableObject{
             
             await fetchUserProfile()
             
-            // Set isAuthenticated last — isLoading stays true so the
+            // Set isAuthenticated last - isLoading stays true so the
             // loading overlay covers the view-tree swap.
             self.isAuthenticated = true
         } catch {

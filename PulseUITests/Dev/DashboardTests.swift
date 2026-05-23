@@ -76,7 +76,7 @@ final class DashboardTests: UITestBaseCase {
         let todayHeader = app.staticTexts["Today"]
         XCTAssertTrue(todayHeader.waitForExistence(timeout: 10), "'Today' section header not found")
 
-        // Check for empty state text — may or may not be present depending on schedule
+        // Check for empty state text - may or may not be present depending on schedule
         // If workouts are scheduled, we'll see the routine name; otherwise, the empty state.
         let noWorkoutsText = app.staticTexts["No workouts scheduled"]
         let addButton = app.buttons["dashboardAddWorkoutButton"]
@@ -144,7 +144,7 @@ final class DashboardTests: UITestBaseCase {
         // If a workout is already scheduled, the empty card won't show.
         // Skip gracefully in that case.
         guard addButton.waitForExistence(timeout: 10) else {
-            // A workout is already scheduled — the Add button won't appear.
+            // A workout is already scheduled - the Add button won't appear.
             // This is not a failure; just skip the rest of the test.
             return
         }

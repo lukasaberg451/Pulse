@@ -1418,7 +1418,7 @@ struct CalendarGridView: View {
                 }
             }
 
-            // Calendar days — height adapts to the number of rows in the current month
+            // Calendar days - height adapts to the number of rows in the current month
             LazyVGrid(columns: columns, spacing: 10) {
                 ForEach(calendarItems) { item in
                     if let date = item.date {

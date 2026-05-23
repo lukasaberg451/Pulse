@@ -147,7 +147,7 @@ class SubscriptionManager: NSObject, ObservableObject {
     private func updateProStatus(from customerInfo: CustomerInfo) {
         let entitlement = customerInfo.entitlements[Self.entitlementID]
         let newStatus = entitlement?.isActive == true
-        debugLog("RevenueCat status — user: \(customerInfo.originalAppUserId), entitlement: \(entitlement != nil ? "found" : "nil"), isActive: \(entitlement?.isActive ?? false), expiresDate: \(entitlement?.expirationDate?.description ?? "nil"), isProUser: \(isProUser) → \(newStatus)")
+        debugLog("RevenueCat status - user: \(customerInfo.originalAppUserId), entitlement: \(entitlement != nil ? "found" : "nil"), isActive: \(entitlement?.isActive ?? false), expiresDate: \(entitlement?.expirationDate?.description ?? "nil"), isProUser: \(isProUser) → \(newStatus)")
         isProUser = newStatus
     }
 }

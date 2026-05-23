@@ -276,7 +276,7 @@ struct WatchWorkoutView: View {
                                                 .font(.body)
                                                 .foregroundStyle(.gray)
 
-                                            Text(verbatim: targetReps.isEmpty ? "—" : targetReps)
+                                            Text(verbatim: targetReps.isEmpty ? "-" : targetReps)
                                                 .font(.body)
                                                 .fontWeight(.semibold)
                                                 .foregroundStyle(.white)

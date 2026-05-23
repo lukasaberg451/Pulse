@@ -60,7 +60,7 @@ class WatchWorkoutSessionManager: NSObject, ObservableObject, HKWorkoutSessionDe
             self.builder = workoutBuilder
             self.workoutSession = session
 
-            // Start mirroring to iPhone — this creates a proper mirrored session link
+            // Start mirroring to iPhone - this creates a proper mirrored session link
             // which makes the workout delivery reliable and keeps the watch app prioritized.
             Task {
                 do {
@@ -99,7 +99,7 @@ class WatchWorkoutSessionManager: NSObject, ObservableObject, HKWorkoutSessionDe
 
         session.end()
 
-        // Discard the workout (we don't save it to HealthKit — the app is just for tracking sets)
+        // Discard the workout (we don't save it to HealthKit - the app is just for tracking sets)
         builder?.discardWorkout()
         debugLog("⌚ Workout builder discarded")
 
@@ -140,7 +140,7 @@ class WatchWorkoutSessionManager: NSObject, ObservableObject, HKWorkoutSessionDe
 class WatchAppDelegate: NSObject, WKApplicationDelegate {
     func handle(_ workoutConfiguration: HKWorkoutConfiguration) {
         debugLog("⌚ handle(_:) called from iPhone with activity: \(workoutConfiguration.activityType.rawValue)")
-        // Start the HKWorkoutSession immediately — this brings the app to the foreground
+        // Start the HKWorkoutSession immediately - this brings the app to the foreground
         WatchWorkoutSessionManager.shared.startSession(configuration: workoutConfiguration)
     }
 }

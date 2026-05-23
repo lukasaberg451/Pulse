@@ -209,7 +209,7 @@ struct MilestoneCard: View {
         let impactLight = UIImpactFeedbackGenerator(style: .light)
         impactLight.impactOccurred()
 
-        // Commit the unlock to local state — this changes dashboardMilestone
+        // Commit the unlock to local state - this changes dashboardMilestone
         // and SwiftUI will create a fresh card via .id(dashboardMilestone.id)
         viewModel.commitUnlock(milestone)
     }

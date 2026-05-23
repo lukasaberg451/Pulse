@@ -422,7 +422,7 @@ struct DashboardView: View {
             let exerciseRepo = OfflineExerciseRepository(modelContext: modelContext)
             let routines = try await exerciseRepo.getRoutines()
             guard let routine = routines.first(where: { $0.id == routineId }) else {
-                // Routine was deleted — discard the orphaned session
+                // Routine was deleted - discard the orphaned session
                 repository.deleteSession(session)
                 return
             }

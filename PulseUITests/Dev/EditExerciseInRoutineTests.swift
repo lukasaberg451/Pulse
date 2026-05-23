@@ -39,7 +39,7 @@ final class EditExerciseInRoutineTests: UITestBaseCase {
             XCTAssertTrue(editOption.waitForExistence(timeout: 5), "'Edit Exercise' option not found in menu")
             editOption.tap()
 
-            // Verify the edit sheet appeared — look for weight or sets fields
+            // Verify the edit sheet appeared - look for weight or sets fields
             let weightField = app.textFields["exerciseWeightField"]
             let setsField = app.textFields.matching(NSPredicate(format: "label CONTAINS[c] 'sets' OR identifier CONTAINS 'sets'")).firstMatch
             let saveButton = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Save' OR label CONTAINS[c] 'Update'")).firstMatch

@@ -109,7 +109,7 @@ class ScheduleViewModel: ObservableObject {
                 .value
             userProfile = profile
         } catch is CancellationError {
-            // Ignore — a newer refresh replaced this one
+            // Ignore - a newer refresh replaced this one
         } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
             // Ignore URL session cancellation
         } catch {
@@ -124,7 +124,7 @@ class ScheduleViewModel: ObservableObject {
         do {
             await fetchUserProfile()
             
-            // Warm the exercise cache (shared singleton — no local copy stored)
+            // Warm the exercise cache (shared singleton - no local copy stored)
             _ = try await exerciseRepository.fetchAllExercises()
             
             // Load routines

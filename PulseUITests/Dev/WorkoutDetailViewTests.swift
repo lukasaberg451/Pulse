@@ -81,7 +81,7 @@ final class WorkoutDetailViewTests: UITestBaseCase {
         let completedText = app.staticTexts["Completed"]
         assertExists(completedText, timeout: 10, "Completed badge not found")
 
-        // Tap the completed workout card — it's a NavigationLink (button), not otherElement
+        // Tap the completed workout card - it's a NavigationLink (button), not otherElement
         let completedCard = app.buttons.matching(identifier: "scheduledWorkoutCard").firstMatch
         assertExists(completedCard, timeout: 5, "Completed workout card not found")
         completedCard.tap()

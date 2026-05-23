@@ -86,7 +86,7 @@ struct SplashOverlay: View {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(remaining))
             
-            // Freeze at the exact current scale — no jump
+            // Freeze at the exact current scale - no jump
             timer?.invalidate()
             timer = nil
             frozenScale = breatheScale
@@ -111,7 +111,7 @@ struct SplashOverlay: View {
 /// Loading screen shown after sign-in/sign-out transitions.
 ///
 /// Uses a manual timer-driven breathe animation so the scale can be
-/// frozen at its exact current value when dismissing — no jump.
+/// frozen at its exact current value when dismissing - no jump.
 struct PostLoginLoadingView: View {
     @Binding var isVisible: Bool
     
@@ -183,7 +183,7 @@ struct PostLoginLoadingView: View {
     
     @MainActor
     private func dismiss() async {
-        // Freeze at the exact current scale — no jump
+        // Freeze at the exact current scale - no jump
         timer?.invalidate()
         timer = nil
         frozenScale = breatheScale

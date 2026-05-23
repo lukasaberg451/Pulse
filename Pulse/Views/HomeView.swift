@@ -265,7 +265,7 @@ private struct HomeTabButton: View {
                     }
                     .frame(height: 24)
 
-                // Label — instant color change, no animation
+                // Label - instant color change, no animation
                 Text(tab.title)
                     .font(.caption2)
                     .fontWeight(.medium)

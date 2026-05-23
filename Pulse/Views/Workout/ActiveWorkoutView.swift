@@ -835,7 +835,7 @@ struct SetRow: View {
     var body: some View {
         // Foreground row content
         HStack(spacing: 14) {
-            // Set number pill — tap target for complete/undo
+            // Set number pill - tap target for complete/undo
             Button {
                 toggleSetCompletion()
             } label: {
@@ -864,7 +864,7 @@ struct SetRow: View {
             
             Spacer()
             
-            // Status indicator — primary tap target for complete/undo
+            // Status indicator - primary tap target for complete/undo
             Button {
                 toggleSetCompletion()
             } label: {
@@ -926,7 +926,7 @@ struct SetRow: View {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         
         if set.completed {
-            // Undo — light haptic
+            // Undo - light haptic
             let impact = UIImpactFeedbackGenerator(style: .light)
             impact.impactOccurred()
             
@@ -940,7 +940,7 @@ struct SetRow: View {
                 )
             }
         } else {
-            // Complete — medium haptic
+            // Complete - medium haptic
             let impact = UIImpactFeedbackGenerator(style: .medium)
             impact.impactOccurred()
             
@@ -1036,7 +1036,7 @@ struct SetRow: View {
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
             } else {
-                Text(routineExercise.repsTarget ?? "—")
+                Text(routineExercise.repsTarget ?? "-")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.appText)
             }

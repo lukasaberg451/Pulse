@@ -39,7 +39,7 @@ struct ProgressTabView: View {
     
     private var lastWorkoutDaysAgoText: String {
         guard let days = viewModel.daysSinceLastWorkout else {
-            return "—"
+            return "-"
         }
         switch days {
         case 0: return String(localized: "Today")
@@ -769,15 +769,15 @@ struct Exercise1RMDetailView: View {
         guard let minVal = displayHistory.map(\.value).min(),
               let maxVal = displayHistory.map(\.value).max() else { return 0 }
         let range = maxVal - minVal
-        let padding = Swift.max(range * 0.15, 1)
-        return (minVal - padding).rounded(.down)
+        let padding = Swift.max(range * 0.6, Swift.max(maxVal * 0.08, 2))
+        return Swift.max(0, (minVal - padding).rounded(.down))
     }
 
     private var yMax: Double {
         guard let minVal = displayHistory.map(\.value).min(),
               let maxVal = displayHistory.map(\.value).max() else { return 100 }
         let range = maxVal - minVal
-        let padding = Swift.max(range * 0.15, 1)
+        let padding = Swift.max(range * 0.6, Swift.max(maxVal * 0.08, 2))
         return (maxVal + padding).rounded(.up)
     }
 

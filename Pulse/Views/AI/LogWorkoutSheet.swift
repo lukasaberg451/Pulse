@@ -422,7 +422,7 @@ struct LogWorkoutSheet: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 12, height: 12)
-                    Text(exercise.note ?? String(localized: "Low confidence — please verify"))
+                    Text(exercise.note ?? String(localized: "Low confidence - please verify"))
                         .font(.caption)
                 }
                 .foregroundStyle(.orange)
@@ -757,7 +757,7 @@ struct LogWorkoutSheet: View {
                 recentSessions = results
             }
         } catch {
-            // Silently fail — recent sessions are a nice-to-have
+            // Silently fail - recent sessions are a nice-to-have
         }
     }
 }

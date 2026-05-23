@@ -233,64 +233,6 @@
         }
       }
     },
-    "—" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "—"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "—"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "—"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "—"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "—"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "—"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "—"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "—"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "—"
-          }
-        }
-      }
-    },
     "·" : {
       "localizations" : {
         "de" : {
@@ -18887,60 +18829,60 @@
         }
       }
     },
-    "Low confidence — please verify" : {
+    "Low confidence - please verify" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geringe Zuverlässigkeit — bitte überprüfen"
+            "value" : "Geringe Zuverlässigkeit - bitte überprüfen"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Baja confianza — por favor verifica"
+            "value" : "Baja confianza - por favor verifica"
           }
         },
         "es-419" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Baja confianza — por favor verifica"
+            "value" : "Baja confianza - por favor verifica"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Faible fiabilité — veuillez vérifier"
+            "value" : "Faible fiabilité - veuillez vérifier"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "信頼度が低い — 確認してください"
+            "value" : "信頼度が低い - 確認してください"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "낮은 신뢰도 — 확인해 주세요"
+            "value" : "낮은 신뢰도 - 확인해 주세요"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lage betrouwbaarheid — controleer a.u.b."
+            "value" : "Lage betrouwbaarheid - controleer a.u.b."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Baixa confiança — por favor verifique"
+            "value" : "Baixa confiança - por favor verifique"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Låg tillförlitlighet — vänligen verifiera"
+            "value" : "Låg tillförlitlighet - vänligen verifiera"
           }
         }
       }
@@ -39461,12 +39403,12 @@
         }
       }
     },
-    "You set a new estimated 1RM record this week. Progressive overload in action — keep challenging yourself." : {
+    "You set a new estimated 1RM record this week. Progressive overload in action - keep challenging yourself." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du hast diese Woche einen neuen geschätzten 1RM-Rekord aufgestellt. Progressive Überlastung in Aktion – fordere dich weiter heraus."
+            "value" : "Du hast diese Woche einen neuen geschätzten 1RM-Rekord aufgestellt. Progressive Überlastung in Aktion - fordere dich weiter heraus."
           }
         },
         "es" : {
@@ -39484,37 +39426,37 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu as établi un nouveau record de 1RM estimé cette semaine. La surcharge progressive en action — continue à te dépasser."
+            "value" : "Tu as établi un nouveau record de 1RM estimé cette semaine. La surcharge progressive en action - continue à te dépasser."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今週、新しい推定1RM記録を樹立しました。漸進的過負荷の実践 — 自分への挑戦を続けましょう。"
+            "value" : "今週、新しい推定1RM記録を樹立しました。漸進的過負荷の実践 - 自分への挑戦を続けましょう。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이번 주 새로운 추정 1RM 기록을 세웠습니다. 점진적 과부하 실천 — 계속 도전하세요."
+            "value" : "이번 주 새로운 추정 1RM 기록을 세웠습니다. 점진적 과부하 실천 - 계속 도전하세요."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Je hebt deze week een nieuw geschat 1RM-record gevestigd. Progressieve overbelasting in actie — blijf jezelf uitdagen."
+            "value" : "Je hebt deze week een nieuw geschat 1RM-record gevestigd. Progressieve overbelasting in actie - blijf jezelf uitdagen."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Você bateu um novo recorde estimado de 1RM esta semana. Sobrecarga progressiva em ação — continue se desafiando."
+            "value" : "Você bateu um novo recorde estimado de 1RM esta semana. Sobrecarga progressiva em ação - continue se desafiando."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du satte ett nytt uppskattat 1RM-rekord denna vecka. Progressiv överbelastning i praktiken — fortsätt utmana dig själv."
+            "value" : "Du satte ett nytt uppskattat 1RM-rekord denna vecka. Progressiv överbelastning i praktiken - fortsätt utmana dig själv."
           }
         }
       }

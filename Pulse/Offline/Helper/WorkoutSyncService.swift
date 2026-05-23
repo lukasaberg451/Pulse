@@ -262,7 +262,7 @@ class WorkoutSyncService: ObservableObject {
                 // Create/update scheduled workout entry (only if not already done by finishWorkout)
                 if !session.scheduledEntryCreated {
                     if let scheduledWorkoutId = session.scheduledWorkoutId {
-                        // This was a scheduled workout — mark it as completed
+                        // This was a scheduled workout - mark it as completed
                         try await repository.completeScheduledWorkout(
                             id: scheduledWorkoutId,
                             sessionId: session.id
@@ -270,7 +270,7 @@ class WorkoutSyncService: ObservableObject {
                         session.scheduledEntryCreated = true
                         debugLog("✅ Marked scheduled workout \(scheduledWorkoutId) as completed")
                     } else if let routineId = session.routineId {
-                        // Non-scheduled workout — create a completed scheduled entry for the calendar
+                        // Non-scheduled workout - create a completed scheduled entry for the calendar
                         let userTimeZone = await Self.fetchUserTimeZone()
                         try await repository.createCompletedScheduledWorkout(
                             routineId: routineId,

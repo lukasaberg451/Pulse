@@ -203,7 +203,7 @@ struct PulseApp: App {
                 try? await Task.sleep(for: .milliseconds(400))
                 let success = await authViewModel.deleteAccount()
                 if !success {
-                    // Deletion failed — hide the overlay since we're still signed in
+                    // Deletion failed - hide the overlay since we're still signed in
                     showPostLogoutLoading = false
                 }
                 return success
@@ -247,7 +247,7 @@ struct PulseApp: App {
             .onChange(of: authViewModel.isAuthenticated) { oldValue, isAuthenticated in
                 if !authViewModel.isInitializing && !PulseApp.isUITesting {
                     if isAuthenticated && !oldValue {
-                        // User just signed in — show the post-login overlay and
+                        // User just signed in - show the post-login overlay and
                         // clear isLoading so the auth view model state is clean.
                         selectedTab = .dashboard
                         showPostLoginLoading = true

@@ -25,7 +25,7 @@ final class ScheduleManagementTests: UITestBaseCase {
 
         // Verify active workout screen appeared
         let finishButton = app.buttons["finishWorkoutButton"]
-        assertExists(finishButton, timeout: 10, "Finish button not found — active workout screen may not have appeared")
+        assertExists(finishButton, timeout: 10, "Finish button not found - active workout screen may not have appeared")
 
         // Enter a weight in the first set
         let weightField = app.textFields["weightField_1"]
@@ -323,7 +323,7 @@ final class ScheduleManagementTests: UITestBaseCase {
         let totalCards = scheduledCards.count + scheduledOther.count
         XCTAssertTrue(totalCards > 0, "No scheduled workout cards found in select mode")
 
-        // Cleanup — cancel select mode first
+        // Cleanup - cancel select mode first
         let cancelButton = app.buttons["Cancel"]
         if cancelButton.waitForExistence(timeout: 3) {
             cancelButton.tap()
@@ -343,7 +343,7 @@ final class ScheduleManagementTests: UITestBaseCase {
 
         navigateToScheduleTab()
 
-        // Check for empty state — either "No workouts scheduled" text or the "Add Workout" CTA
+        // Check for empty state - either "No workouts scheduled" text or the "Add Workout" CTA
         let noWorkoutsText = app.staticTexts["No workouts scheduled"]
         let addWorkoutButton = app.buttons["addScheduledWorkoutButton"]
 

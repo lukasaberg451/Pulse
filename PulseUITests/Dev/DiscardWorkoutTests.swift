@@ -63,7 +63,7 @@ final class DiscardWorkoutTests: UITestBaseCase {
         // Verify we're still on the active workout screen
         XCTAssertTrue(finishButton.waitForExistence(timeout: 5), "Should still be on active workout after choosing Continue")
 
-        // Cleanup — discard the workout
+        // Cleanup - discard the workout
         cancelButton.tap()
         let discardButton = app.alerts["Cancel Workout?"].buttons["Discard"]
         if discardButton.waitForExistence(timeout: 5) {

@@ -65,7 +65,7 @@ struct Profile: Codable, Identifiable {
         return weight / (heightInMeters * heightInMeters)
     }
     
-    /// Internal key for BMI category — use `bmiCategoryDisplayName` for UI.
+    /// Internal key for BMI category - use `bmiCategoryDisplayName` for UI.
     var bmiCategory: String? {
         guard let bmi = bmi else { return nil }
 

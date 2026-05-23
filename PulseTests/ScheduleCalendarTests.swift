@@ -51,7 +51,7 @@ final class ScheduleCalendarTests: XCTestCase {
     }
 
     func testCalendarDaysForFebruaryLeapYear() {
-        // 2028 is a leap year — February has 29 days
+        // 2028 is a leap year - February has 29 days
         var cal = Calendar.current
         cal.timeZone = TimeZone(identifier: "UTC")!
         let feb2028 = cal.date(from: DateComponents(year: 2028, month: 2, day: 1))!
@@ -64,7 +64,7 @@ final class ScheduleCalendarTests: XCTestCase {
     }
 
     func testCalendarDaysForFebruaryNonLeapYear() {
-        // 2026 is not a leap year — February has 28 days
+        // 2026 is not a leap year - February has 28 days
         var cal = Calendar.current
         cal.timeZone = TimeZone(identifier: "UTC")!
         let feb2026 = cal.date(from: DateComponents(year: 2026, month: 2, day: 1))!
