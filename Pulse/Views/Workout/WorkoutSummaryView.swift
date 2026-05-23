@@ -37,6 +37,7 @@ struct WorkoutSummaryView: View {
     @State private var animationTrigger = false
     @State private var celebrationTrigger = 0
     @State private var streakCelebrationTrigger = 0
+    @State private var streakCardShown = false
     
     // MARK: - Computed Stats
     
@@ -76,13 +77,22 @@ struct WorkoutSummaryView: View {
     }
     
     private var formattedDuration: String {
+        // For workouts of an hour or more, round to nearest minute and omit seconds
+        if elapsedTime >= 3600 {
+            let totalMinutes = Int((elapsedTime / 60).rounded())
+            let hours = totalMinutes / 60
+            let minutes = totalMinutes % 60
+            var parts: [String] = []
+            if hours > 0 { parts.append("\(hours)h") }
+            if minutes > 0 { parts.append("\(minutes)m") }
+            return parts.joined(separator: " ")
+        }
+        
         let totalSeconds = Int(elapsedTime)
-        let hours = totalSeconds / 3600
-        let minutes = (totalSeconds % 3600) / 60
+        let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
         
         var parts: [String] = []
-        if hours > 0 { parts.append("\(hours)h") }
         if minutes > 0 { parts.append("\(minutes)m") }
         if seconds > 0 || parts.isEmpty { parts.append("\(seconds)s") }
         return parts.joined(separator: " ")
@@ -183,9 +193,8 @@ struct WorkoutSummaryView: View {
                     if weeklyStreakCompleted {
                         streakCelebrationSection
                             .padding(.horizontal)
-                            .opacity(animationTrigger ? 1 : 0)
-                            .offset(y: animationTrigger ? 0 : 20)
-                            .animation(.easeOut(duration: 0.4).delay(0.55), value: animationTrigger)
+                            .opacity(streakCardShown ? 1 : 0)
+                            .offset(y: streakCardShown ? 0 : 20)
                     }
 
                     // Strength Highlights (only shown when there are new PRs)
@@ -252,22 +261,27 @@ struct WorkoutSummaryView: View {
         .sentryScreen("WorkoutSummary")
         .interactiveDismissDisabled()
         .onAppear {
-            animationTrigger = true
-            
-            // Fire celebration after the header fades in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                celebrationTrigger += 1
-                let impact = UIImpactFeedbackGenerator(style: .medium)
-                impact.impactOccurred()
-            }
-
-            // Fire streak celebration shortly after
-            if weeklyStreakCompleted {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
-                    streakCelebrationTrigger += 1
-                    let impact = UIImpactFeedbackGenerator(style: .heavy)
-                    impact.impactOccurred()
+            // Defer to next runloop so the view is fully laid out before animations fire
+            DispatchQueue.main.async {
+                animationTrigger = true
+                if weeklyStreakCompleted {
+                    withAnimation(.easeOut(duration: 0.4).delay(0.55)) {
+                        streakCardShown = true
+                    }
                 }
+            }
+        }
+        .task {
+            // Header celebration
+            try? await Task.sleep(for: .milliseconds(500))
+            celebrationTrigger += 1
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            
+            // Streak wobble
+            if weeklyStreakCompleted {
+                try? await Task.sleep(for: .milliseconds(400))
+                streakCelebrationTrigger += 1
+                UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
             }
         }
         .sheet(isPresented: $showShareSheet) {
@@ -347,7 +361,6 @@ struct WorkoutSummaryView: View {
                 )
                 .shadow(color: .orange.opacity(0.6), radius: 16, x: 0, y: 4)
                 .scaleEffect(animationTrigger ? 1.0 : 0.3)
-                .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.6), value: animationTrigger)
                 .keyframeAnimator(
                     initialValue: StreakFlameValues(),
                     trigger: streakCelebrationTrigger

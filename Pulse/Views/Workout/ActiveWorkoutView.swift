@@ -289,6 +289,8 @@ struct ActiveWorkoutViewContent: View {
                                 summaryStreakWeeks = streak.currentStreak
                             }
 
+                            // Let all preceding @State mutations commit before presenting
+                            try? await Task.sleep(for: .milliseconds(50))
                             showWorkoutSummary = true
                         }
                     }
