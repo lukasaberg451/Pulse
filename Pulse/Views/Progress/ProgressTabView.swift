@@ -2190,20 +2190,7 @@ struct EditHeightSheet: View {
                                 .padding(14)
                                 .contentShape(Rectangle())
                                 .onTapGesture { focusedHeight = .metric }
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                                            }
-                                        }
-                                        .shadow(
-                                            color: colorScheme == .light ? Color.black.opacity(0.04) : Color.clear,
-                                            radius: 6, x: 0, y: 2
-                                        )
-                                }
+                                .appTextFieldStyle(isFocused: focusedHeight == .metric)
                             } else {
                                 HStack(spacing: 12) {
                                     HStack {
@@ -2220,16 +2207,7 @@ struct EditHeightSheet: View {
                                     .padding(14)
                                     .contentShape(Rectangle())
                                     .onTapGesture { focusedHeight = .feet }
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .fill(Color.appSurface)
-                                            .overlay {
-                                                if colorScheme == .dark {
-                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                                                }
-                                            }
-                                    }
+                                    .appTextFieldStyle(isFocused: focusedHeight == .feet)
                                     HStack {
                                         TextField("0", text: $heightInches)
                                             .keyboardType(.numberPad)
@@ -2244,16 +2222,7 @@ struct EditHeightSheet: View {
                                     .padding(14)
                                     .contentShape(Rectangle())
                                     .onTapGesture { focusedHeight = .inches }
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .fill(Color.appSurface)
-                                            .overlay {
-                                                if colorScheme == .dark {
-                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                                                }
-                                            }
-                                    }
+                                    .appTextFieldStyle(isFocused: focusedHeight == .inches)
                                 }
                             }
                         }
@@ -2425,20 +2394,7 @@ struct EditWeightSheet: View {
                             .padding(14)
                             .contentShape(Rectangle())
                             .onTapGesture { isFieldFocused = true }
-                            .background {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color.appSurface)
-                                    .overlay {
-                                        if colorScheme == .dark {
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                                        }
-                                    }
-                                    .shadow(
-                                        color: colorScheme == .light ? Color.black.opacity(0.04) : Color.clear,
-                                        radius: 6, x: 0, y: 2
-                                    )
-                            }
+                            .appTextFieldStyle(isFocused: isFieldFocused)
                         }
                         .padding(.horizontal)
 
@@ -2593,20 +2549,7 @@ struct EditTargetWeightSheet: View {
                             .padding(14)
                             .contentShape(Rectangle())
                             .onTapGesture { isFieldFocused = true }
-                            .background {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color.appSurface)
-                                    .overlay {
-                                        if colorScheme == .dark {
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                                        }
-                                    }
-                                    .shadow(
-                                        color: colorScheme == .light ? Color.black.opacity(0.04) : Color.clear,
-                                        radius: 6, x: 0, y: 2
-                                    )
-                            }
+                            .appTextFieldStyle(isFocused: isFieldFocused)
                         }
                         .padding(.horizontal)
 

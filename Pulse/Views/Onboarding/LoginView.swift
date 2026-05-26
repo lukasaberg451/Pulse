@@ -93,16 +93,7 @@ struct LoginView: View {
                                 .padding()
                                 .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .email }
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                            }
-                                        }
-                                }
+                                .appTextFieldStyle(isFocused: focusedField == .email)
                             }
 
                             // Password field
@@ -125,16 +116,7 @@ struct LoginView: View {
                                 .padding()
                                 .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .password }
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                            }
-                                        }
-                                }
+                                .appTextFieldStyle(isFocused: focusedField == .password)
                             }
 
                             // Forgot password
@@ -401,16 +383,7 @@ struct ForgotPasswordView: View {
                     .padding()
                     .contentShape(Rectangle())
                     .onTapGesture { focusedResetField = .email }
-                    .background {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color.appSurface)
-                            .overlay {
-                                if colorScheme == .dark {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                }
-                            }
-                    }
+                    .appTextFieldStyle(isFocused: focusedResetField == .email)
                 }
 
                 PrimaryCTAButton("Send Code") {
@@ -551,16 +524,7 @@ struct ForgotPasswordView: View {
                 .padding()
                 .contentShape(Rectangle())
                 .onTapGesture { focusedResetField = .newPassword }
-                .background {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.appSurface)
-                        .overlay {
-                            if colorScheme == .dark {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                            }
-                        }
-                }
+                .appTextFieldStyle(isFocused: focusedResetField == .newPassword)
                 .onChange(of: viewModel.newPassword) { _, newValue in
                     viewModel.newPassword = sanitizeInput(newValue, maxLength: 72)
                 }
@@ -611,16 +575,7 @@ struct ForgotPasswordView: View {
                 .padding()
                 .contentShape(Rectangle())
                 .onTapGesture { focusedResetField = .confirmPassword }
-                .background {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.appSurface)
-                        .overlay {
-                            if colorScheme == .dark {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                            }
-                        }
-                }
+                .appTextFieldStyle(isFocused: focusedResetField == .confirmPassword)
                 .onChange(of: viewModel.confirmPassword) { _, newValue in
                     viewModel.confirmPassword = sanitizeInput(newValue, maxLength: 72)
                 }

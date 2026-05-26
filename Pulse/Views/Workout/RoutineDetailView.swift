@@ -624,13 +624,7 @@ struct ExercisePickerSheet: View {
                         .padding(.vertical, 12)
                         .contentShape(Rectangle())
                         .onTapGesture { isSearchFocused = true }
-                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .overlay {
-                            if pickerColorScheme == .dark {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                            }
-                        }
+                        .appTextFieldStyle(isFocused: isSearchFocused)
                         
                         // Filter button
                         Button {
@@ -1262,13 +1256,7 @@ struct CreateCustomExerciseSheet: View {
                         .padding(.vertical, 12)
                         .contentShape(Rectangle())
                         .onTapGesture { isExerciseNameFocused = true }
-                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .overlay {
-                            if colorScheme == .dark {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-                            }
-                        }
+                        .appTextFieldStyle(isFocused: isExerciseNameFocused)
                     }
                     
                     // Exercise type
@@ -1852,7 +1840,7 @@ struct ExerciseConfigSheet: View {
                                             .padding(10)
                                             .contentShape(Rectangle())
                                             .onTapGesture { focusedConfigField = .reps }
-                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                            .appTextFieldStyle(.inset, isFocused: focusedConfigField == .reps)
                                         }
                                         .padding()
                                     }
@@ -1886,7 +1874,7 @@ struct ExerciseConfigSheet: View {
                                             .padding(10)
                                             .contentShape(Rectangle())
                                             .onTapGesture { focusedConfigField = .weight }
-                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                            .appTextFieldStyle(.inset, isFocused: focusedConfigField == .weight)
                                         }
                                         .padding()
                                     }
@@ -2120,27 +2108,7 @@ struct EditRoutineSheet: View {
                             .padding(14)
                             .contentShape(Rectangle())
                             .onTapGesture { focusedField = .name }
-                            .background {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color.appSurface)
-                                    .overlay {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .strokeBorder(
-                                                focusedField == .name
-                                                    ? Color.appAccent.opacity(0.5)
-                                                    : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
-                                                lineWidth: 1
-                                            )
-                                    }
-                                    .shadow(
-                                        color: colorScheme == .light
-                                            ? Color.black.opacity(0.04)
-                                            : Color.clear,
-                                        radius: 6,
-                                        x: 0,
-                                        y: 2
-                                    )
-                            }
+                            .appTextFieldStyle(isFocused: focusedField == .name)
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
@@ -2174,27 +2142,7 @@ struct EditRoutineSheet: View {
                             .padding(14)
                             .contentShape(Rectangle())
                             .onTapGesture { focusedField = .notes }
-                            .background {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color.appSurface)
-                                    .overlay {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .strokeBorder(
-                                                focusedField == .notes
-                                                    ? Color.appAccent.opacity(0.5)
-                                                    : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
-                                                lineWidth: 1
-                                            )
-                                    }
-                                    .shadow(
-                                        color: colorScheme == .light
-                                            ? Color.black.opacity(0.04)
-                                            : Color.clear,
-                                        radius: 6,
-                                        x: 0,
-                                        y: 2
-                                    )
-                            }
+                            .appTextFieldStyle(isFocused: focusedField == .notes)
                         }
                     }
                     .padding(.horizontal)
@@ -2587,7 +2535,7 @@ struct EditExerciseSheet: View {
                                             .padding(10)
                                             .contentShape(Rectangle())
                                             .onTapGesture { focusedEditField = .reps }
-                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                            .appTextFieldStyle(.inset, isFocused: focusedEditField == .reps)
                                         }
                                         .padding()
                                     }
@@ -2620,7 +2568,7 @@ struct EditExerciseSheet: View {
                                             .padding(10)
                                             .contentShape(Rectangle())
                                             .onTapGesture { focusedEditField = .weight }
-                                            .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                            .appTextFieldStyle(.inset, isFocused: focusedEditField == .weight)
                                         }
                                         .padding()
                                     }
@@ -2706,7 +2654,7 @@ struct EditExerciseSheet: View {
                                     .padding(12)
                                     .contentShape(Rectangle())
                                     .onTapGesture { focusedEditField = .notes }
-                                    .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    .appTextFieldStyle(.inset, isFocused: focusedEditField == .notes)
                                 }
                                 .padding()
                                 .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))

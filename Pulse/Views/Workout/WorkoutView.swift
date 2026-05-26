@@ -1149,27 +1149,7 @@ struct CreateRoutineSheet: View {
                             .padding(14)
                             .contentShape(Rectangle())
                             .onTapGesture { focusedField = .name }
-                            .background {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color.appSurface)
-                                    .overlay {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .strokeBorder(
-                                                focusedField == .name
-                                                    ? Color.appAccent.opacity(0.5)
-                                                    : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
-                                                lineWidth: 1
-                                            )
-                                    }
-                                    .shadow(
-                                        color: colorScheme == .light
-                                            ? Color.black.opacity(0.04)
-                                            : Color.clear,
-                                        radius: 6,
-                                        x: 0,
-                                        y: 2
-                                    )
-                            }
+                            .appTextFieldStyle(isFocused: focusedField == .name)
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
@@ -1203,27 +1183,7 @@ struct CreateRoutineSheet: View {
                             .padding(14)
                             .contentShape(Rectangle())
                             .onTapGesture { focusedField = .notes }
-                            .background {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color.appSurface)
-                                    .overlay {
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .strokeBorder(
-                                                focusedField == .notes
-                                                    ? Color.appAccent.opacity(0.5)
-                                                    : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
-                                                lineWidth: 1
-                                            )
-                                    }
-                                    .shadow(
-                                        color: colorScheme == .light
-                                            ? Color.black.opacity(0.04)
-                                            : Color.clear,
-                                        radius: 6,
-                                        x: 0,
-                                        y: 2
-                                    )
-                            }
+                            .appTextFieldStyle(isFocused: focusedField == .notes)
                         }
                     }
                     .padding(.horizontal)

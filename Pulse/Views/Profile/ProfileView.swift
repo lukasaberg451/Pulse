@@ -685,12 +685,7 @@ struct EditFieldSheet: View {
                         .padding(14)
                         .contentShape(Rectangle())
                         .onTapGesture { isFocused = true }
-                        .background(Color.appSurface)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .strokeBorder(isFocused ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
-                        )
+                        .appTextFieldStyle(isFocused: isFocused)
                         
                         // Character counter (visible when close to limit)
                         if editedValue.count >= counterVisibleThreshold {
@@ -857,12 +852,7 @@ struct FeedbackSheet: View {
                             .padding(14)
                             .contentShape(Rectangle())
                             .onTapGesture { focusedField = .title }
-                            .background(Color.appSurface)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .strokeBorder(focusedField == .title ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
-                            )
+                            .appTextFieldStyle(isFocused: focusedField == .title)
                         }
                         .padding(.horizontal)
                         
@@ -878,12 +868,7 @@ struct FeedbackSheet: View {
                                 .scrollContentBackground(.hidden)
                                 .foregroundStyle(Color.appText)
                                 .padding(10)
-                                .background(Color.appSurface)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .strokeBorder(focusedField == .description ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
-                                )
+                                .appTextFieldStyle(isFocused: focusedField == .description)
                                 .onTapGesture { focusedField = .description }
                         }
                         .padding(.horizontal)
@@ -1122,12 +1107,7 @@ struct ChangeEmailSheet: View {
                                 .padding(14)
                                 .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .email }
-                                .background(Color.appSurface)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .strokeBorder(focusedField == .email ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
-                                )
+                                .appTextFieldStyle(isFocused: focusedField == .email)
                                 
                                 // Character counter (visible when close to limit)
                                 if newEmail.count >= 244 {
@@ -1157,12 +1137,7 @@ struct ChangeEmailSheet: View {
                                 .padding(14)
                                 .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .password }
-                                .background(Color.appSurface)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .strokeBorder(focusedField == .password ? Color.appAccent : (colorScheme == .dark ? Color.white.opacity(0.1) : Color.clear), lineWidth: 1)
-                                )
+                                .appTextFieldStyle(isFocused: focusedField == .password)
                             }
                             .padding(.horizontal)
                             

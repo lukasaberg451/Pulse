@@ -178,16 +178,7 @@ struct RegisterView: View {
                                 .padding()
                                 .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .firstName }
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                            }
-                                        }
-                                }
+                                .appTextFieldStyle(isFocused: focusedField == .firstName)
 
                                 if firstName.count >= 40 {
                                     HStack {
@@ -221,16 +212,7 @@ struct RegisterView: View {
                                 .padding()
                                 .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .lastName }
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                            }
-                                        }
-                                }
+                                .appTextFieldStyle(isFocused: focusedField == .lastName)
 
                                 if lastName.count >= 40 {
                                     HStack {
@@ -266,16 +248,7 @@ struct RegisterView: View {
                                 .padding()
                                 .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .email }
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                            }
-                                        }
-                                }
+                                .appTextFieldStyle(isFocused: focusedField == .email)
 
                                 if email.count >= 244 {
                                     HStack {
@@ -326,16 +299,7 @@ struct RegisterView: View {
                                 .padding()
                                 .contentShape(Rectangle())
                                 .onTapGesture { focusedField = .password }
-                                .background {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.appSurface)
-                                        .overlay {
-                                            if colorScheme == .dark {
-                                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                                            }
-                                        }
-                                }
+                                .appTextFieldStyle(isFocused: focusedField == .password)
                                 .onChange(of: password) { _, newValue in
                                     password = sanitizeInput(newValue, maxLength: 72)
                                 }

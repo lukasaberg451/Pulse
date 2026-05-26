@@ -539,7 +539,7 @@ struct AICreateRoutineSheet: View {
                 .padding(.vertical, 8)
                 .contentShape(Rectangle())
                 .onTapGesture { isFocused = true }
-                .background(Color.appBackground.opacity(0.6), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .appTextFieldStyle(.inset, isFocused: isFocused)
             }
         }
     }
@@ -565,7 +565,7 @@ struct AICreateRoutineSheet: View {
                 .padding(.vertical, 8)
                 .contentShape(Rectangle())
                 .onTapGesture { isFocused = true }
-                .background(Color.appBackground.opacity(0.6), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .appTextFieldStyle(.inset, isFocused: isFocused)
             }
         }
     }
@@ -591,7 +591,7 @@ struct AICreateRoutineSheet: View {
                 .padding(.vertical, 8)
                 .contentShape(Rectangle())
                 .onTapGesture { isFocused = true }
-                .background(Color.appBackground.opacity(0.6), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .appTextFieldStyle(.inset, isFocused: isFocused)
             }
         }
     }
