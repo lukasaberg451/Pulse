@@ -472,7 +472,9 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
         restEndTime = Date().addingTimeInterval(Double(seconds))
         restTimeRemaining = seconds
         isRestTimerActive = true
-        
+
+        WorkoutSyncManager.shared.sendRestTimerUpdate(timeRemaining: seconds)
+
         restTimer?.invalidate()
         let timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
             guard let self = self else {

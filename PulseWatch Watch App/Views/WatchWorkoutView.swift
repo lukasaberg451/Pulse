@@ -618,9 +618,14 @@ struct WatchWorkoutView: View {
 
     func timeString(from duration: TimeInterval) -> String {
         let totalSeconds = Int(duration)
-        let minutes = totalSeconds / 60
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds / 60) % 60
         let secs = totalSeconds % 60
-        return String(format: "%d:%02d", minutes, secs)
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, secs)
+        } else {
+            return String(format: "%d:%02d", minutes, secs)
+        }
     }
 
     func setProgressString(current: Int, total: Int) -> String {

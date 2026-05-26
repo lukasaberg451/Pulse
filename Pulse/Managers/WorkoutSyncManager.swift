@@ -175,10 +175,20 @@ class WorkoutSyncManager: NSObject, ObservableObject {
         #if os(iOS)
         guard SubscriptionManager.shared.isProUser else { return }
         #endif
-        guard let session = session, session.isReachable else { return }
-        
-        let message = ["restTimer": timeRemaining]
-        session.sendMessage(message, replyHandler: nil)
+        guard let session = session else { return }
+
+        let message: [String: Any] = ["restTimer": timeRemaining]
+
+        if session.isReachable {
+            session.sendMessage(message, replyHandler: nil) { error in
+                debugLog("📱 Error sending restTimer via message: \(error.localizedDescription)")
+                session.transferUserInfo(message)
+                debugLog("📱 Queued restTimer via transferUserInfo fallback")
+            }
+        } else {
+            session.transferUserInfo(message)
+            debugLog("📱 Queued restTimer via transferUserInfo (not reachable)")
+        }
     }
     
     func sendRestTimerStopped() {
@@ -398,7 +408,17 @@ extension WorkoutSyncManager: WCSessionDelegate {
                 self.restTimerStoppedFromPhone = true
                 return
             }
-            
+
+            if let timeRemaining = userInfo["restTimer"] as? Int {
+                debugLog("⌚ Rest timer started from iPhone (via userInfo): \(timeRemaining)s")
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("RestTimerUpdate"),
+                    object: nil,
+                    userInfo: ["timeRemaining": timeRemaining]
+                )
+                return
+            }
+
             self.currentWorkoutData = userInfo
             NotificationCenter.default.post(
                 name: NSNotification.Name("WorkoutDataReceived"),
@@ -454,6 +474,15 @@ extension WorkoutSyncManager: WCSessionDelegate {
             if message["restTimerStopped"] as? Bool == true {
                 debugLog("⌚ Rest timer stopped from iPhone (via message)")
                 self.restTimerStoppedFromPhone = true
+            }
+
+            if let timeRemaining = message["restTimer"] as? Int {
+                debugLog("⌚ Rest timer started from iPhone (via message): \(timeRemaining)s")
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("RestTimerUpdate"),
+                    object: nil,
+                    userInfo: ["timeRemaining": timeRemaining]
+                )
             }
             #endif
             
