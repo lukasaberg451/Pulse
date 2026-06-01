@@ -377,7 +377,7 @@ struct AICreateRoutineSheet: View {
                                 Text("·")
                                 Text("\(reps) reps")
                             }
-                            if let weight = exercise.targetWeight {
+                            if !exercise.isBodyweight, let weight = exercise.targetWeight {
                                 Text("·")
                                 Text(String(format: "%.1f %@", unitManager.displayWeight(weight), unitManager.weightUnit))
                             }
@@ -474,6 +474,23 @@ struct AICreateRoutineSheet: View {
                         set: { parsedRoutine?.exercises[index].durationSeconds = $0 == 0 ? nil : $0 * 60 }
                     ))
                     
+                    EditorNumberField(label: "Rest (s)", value: Binding(
+                        get: { parsedRoutine?.exercises[index].restSeconds ?? 60 },
+                        set: { parsedRoutine?.exercises[index].restSeconds = $0 }
+                    ))
+                }
+            } else if exercise.isBodyweight {
+                HStack(spacing: 12) {
+                    EditorNumberField(label: "Sets", value: Binding(
+                        get: { parsedRoutine?.exercises[index].sets ?? 0 },
+                        set: { parsedRoutine?.exercises[index].sets = $0 }
+                    ))
+
+                    EditorField(label: "Reps", text: Binding(
+                        get: { parsedRoutine?.exercises[index].repsTarget ?? "" },
+                        set: { parsedRoutine?.exercises[index].repsTarget = $0.isEmpty ? nil : $0 }
+                    ))
+
                     EditorNumberField(label: "Rest (s)", value: Binding(
                         get: { parsedRoutine?.exercises[index].restSeconds ?? 60 },
                         set: { parsedRoutine?.exercises[index].restSeconds = $0 }

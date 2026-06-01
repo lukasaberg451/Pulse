@@ -246,7 +246,7 @@ struct WatchWorkoutView: View {
                                     .buttonStyle(.bordered)
                                     .tint(.green)
                                 } else {
-                                    // STRENGTH VIEW - show weight and reps
+                                    // STRENGTH / BODYWEIGHT VIEW - show weight and reps (weight hidden for bodyweight)
                                     // Workout timer
                                     Text(timeString(from: workoutDuration))
                                         .font(.caption2)
@@ -261,14 +261,16 @@ struct WatchWorkoutView: View {
 
                                     // Target weight and reps
                                     HStack(spacing: 20) {
-                                        VStack(spacing: 0) {
-                                            Text("Weight", comment: "Weight label")
-                                                .font(.body)
-                                                .foregroundStyle(.gray)
-                                            Text(verbatim: "\(String(format: "%.1f", targetWeight)) \(weightUnit)")
-                                                .font(.body)
-                                                .fontWeight(.semibold)
-                                                .foregroundStyle(.white)
+                                        if exerciseType != "bodyweight" {
+                                            VStack(spacing: 0) {
+                                                Text("Weight", comment: "Weight label")
+                                                    .font(.body)
+                                                    .foregroundStyle(.gray)
+                                                Text(verbatim: "\(String(format: "%.1f", targetWeight)) \(weightUnit)")
+                                                    .font(.body)
+                                                    .fontWeight(.semibold)
+                                                    .foregroundStyle(.white)
+                                            }
                                         }
 
                                         VStack(spacing: 0) {
@@ -289,6 +291,8 @@ struct WatchWorkoutView: View {
                                     Button {
                                         if exerciseType == "strength" {
                                             prepareWeightInput()
+                                        } else if exerciseType == "bodyweight" {
+                                            prepareRepsInput()
                                         } else {
                                             logSetAndStartRest()
                                         }

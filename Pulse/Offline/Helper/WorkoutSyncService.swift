@@ -373,7 +373,7 @@ class WorkoutSyncService: ObservableObject {
         let eligibleSets = completedSets.filter { set in
             guard let weight = set.weight, weight > 0,
                   let reps = set.reps, reps >= 1, reps <= 10 else { return false }
-            return set.exercise?.exerciseType != "cardio"
+            return set.exercise?.tracksWeight == true
         }
         
         guard !eligibleSets.isEmpty else { return }

@@ -676,7 +676,7 @@ struct ExerciseCard: View {
                 
                 exerciseSubtitle
                 
-                if exercise.exerciseType != "cardio",
+                if exercise.tracksWeight,
                    let lastSet = viewModel.lastBestSets[exercise.id] {
                     let displayWeight = UnitManager.shared.displayWeight(lastSet.weight)
                     let unit = UnitManager.shared.weightUnit
@@ -858,8 +858,10 @@ struct SetRow: View {
             }
             .buttonStyle(.plain)
             
-            if exercise.exerciseType == "strength" {
+            if exercise.tracksWeight {
                 strengthContent
+            } else if exercise.isBodyweight {
+                bodyweightContent
             } else {
                 cardioContent
             }
@@ -947,10 +949,17 @@ struct SetRow: View {
             impact.impactOccurred()
             
             let targetReps = routineExercise.repsTarget.flatMap { Int($0) }
-            let actualWeight = exercise.exerciseType == "strength" ? (enteredWeight ?? routineExercise.targetWeight) : routineExercise.targetWeight
+            let actualWeight: Double?
+            if exercise.isBodyweight {
+                actualWeight = nil
+            } else if exercise.tracksWeight {
+                actualWeight = enteredWeight ?? routineExercise.targetWeight
+            } else {
+                actualWeight = routineExercise.targetWeight
+            }
             let targetDuration = routineExercise.durationSeconds
-            
-            if exercise.exerciseType == "strength", targetReps != nil {
+
+            if !exercise.isCardio, targetReps != nil {
                 viewModel.prepareRepsConfirmation(
                     setId: set.id,
                     weight: actualWeight,
@@ -1059,6 +1068,24 @@ struct SetRow: View {
         }
     }
     
+    @ViewBuilder
+    private var bodyweightContent: some View {
+        HStack(spacing: 3) {
+            if set.completed, let actualReps = set.reps {
+                Text("\(actualReps)")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.appText)
+            } else {
+                Text(routineExercise.repsTarget ?? "-")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.appText)
+            }
+            Text("reps", comment: "Reps label in set row")
+                .font(.caption2)
+                .foregroundStyle(Color.appSecondaryText)
+        }
+    }
+
     @ViewBuilder
     private var cardioContent: some View {
         let totalSeconds = routineExercise.durationSeconds ?? 0

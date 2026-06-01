@@ -1215,11 +1215,13 @@ struct CreateCustomExerciseSheet: View {
     
     enum ExerciseType: String, CaseIterable {
         case strength = "Strength"
+        case bodyweight = "Bodyweight"
         case cardio = "Cardio"
 
         var databaseValue: String {
             switch self {
             case .strength: return "strength"
+            case .bodyweight: return "bodyweight"
             case .cardio: return "cardio"
             }
         }
@@ -1227,6 +1229,7 @@ struct CreateCustomExerciseSheet: View {
         var displayName: String {
             switch self {
             case .strength: return String(localized: "Strength")
+            case .bodyweight: return String(localized: "Bodyweight")
             case .cardio: return String(localized: "Cardio")
             }
         }
@@ -1451,17 +1454,17 @@ struct FilterChip: View {
 }
 
 // MARK: - Exercise 1RM Banner
-/// Shows the estimated 1RM for an exercise if one exists. Hidden for cardio.
+/// Shows the estimated 1RM for an exercise if one exists. Only shown for weight-tracked exercises.
 struct Exercise1RMBanner: View {
     let exerciseId: UUID
-    let isCardio: Bool
+    let tracksWeight: Bool
     @EnvironmentObject var unitManager: UnitManager
     @Environment(\.colorScheme) private var colorScheme
     @State private var stat: Exercise1RMRow?
 
     var body: some View {
         VStack(spacing: 0) {
-            if !isCardio, let stat {
+            if tracksWeight, let stat {
                 HStack(spacing: 12) {
                     IconBadge(assetName: "crown", color: .orange, size: 36)
 
@@ -1497,7 +1500,7 @@ struct Exercise1RMBanner: View {
             }
         }
         .task(id: exerciseId) {
-            guard !isCardio else { return }
+            guard tracksWeight else { return }
             debugLog("Exercise1RMBanner .task fired for exerciseId: \(exerciseId)")
             do {
                 let result = try await WorkoutRepository().fetchSingleExercise1RMForCurrentUser(exerciseId: exerciseId)
@@ -1538,16 +1541,23 @@ struct ExerciseConfigSheet: View {
     }
 
     var isCardio: Bool {
-        exercise.exerciseType == "cardio"
+        exercise.isCardio
+    }
+
+    var isBodyweight: Bool {
+        exercise.isBodyweight
     }
 
     private var isAddDisabled: Bool {
         if isCardio {
             return durationMinutes == 0 && durationSeconds == 0
         }
+        guard let reps = Int(repsTarget), reps > 0 else { return true }
+        if isBodyweight {
+            return false
+        }
         let normalized = targetWeight.replacingOccurrences(of: ",", with: ".")
         guard let weight = Double(normalized), weight > 0 else { return true }
-        guard let reps = Int(repsTarget), reps > 0 else { return true }
         return false
     }
     
@@ -1601,7 +1611,7 @@ struct ExerciseConfigSheet: View {
                         .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
                         
                         // Estimated 1RM Banner
-                        Exercise1RMBanner(exerciseId: exercise.id, isCardio: isCardio)
+                        Exercise1RMBanner(exerciseId: exercise.id, tracksWeight: exercise.tracksWeight)
                         
                         // Configuration Section
                         VStack(alignment: .leading, spacing: 16) {
@@ -1846,40 +1856,42 @@ struct ExerciseConfigSheet: View {
                                     }
                                     .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-                                    // Weight
-                                    VStack(spacing: 0) {
-                                        HStack {
-                                            Text("\(String(localized: "Weight")) (\(unitManager.weightUnit))")
-                                                .font(.subheadline)
-                                                .fontWeight(.medium)
-                                                .foregroundStyle(Color.appText)
-
-                                            Spacer()
-
+                                    // Weight (strength only)
+                                    if !isBodyweight {
+                                        VStack(spacing: 0) {
                                             HStack {
-                                                TextField("", text: $targetWeight)
+                                                Text("\(String(localized: "Weight")) (\(unitManager.weightUnit))")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
                                                     .foregroundStyle(Color.appText)
-                                                    .keyboardType(.decimalPad)
-                                                    .multilineTextAlignment(.trailing)
-                                                    .focused($focusedConfigField, equals: .weight)
-                                                    .onChange(of: targetWeight) { _, newValue in
-                                                        let sanitized = sanitizeWeightInput(newValue)
-                                                        if sanitized != newValue {
-                                                            targetWeight = sanitized
+
+                                                Spacer()
+
+                                                HStack {
+                                                    TextField("", text: $targetWeight)
+                                                        .foregroundStyle(Color.appText)
+                                                        .keyboardType(.decimalPad)
+                                                        .multilineTextAlignment(.trailing)
+                                                        .focused($focusedConfigField, equals: .weight)
+                                                        .onChange(of: targetWeight) { _, newValue in
+                                                            let sanitized = sanitizeWeightInput(newValue)
+                                                            if sanitized != newValue {
+                                                                targetWeight = sanitized
+                                                            }
                                                         }
-                                                    }
-                                                    .accessibilityIdentifier("exerciseWeightField")
+                                                        .accessibilityIdentifier("exerciseWeightField")
+                                                }
+                                                .frame(width: 80)
+                                                .padding(10)
+                                                .contentShape(Rectangle())
+                                                .onTapGesture { focusedConfigField = .weight }
+                                                .appTextFieldStyle(.inset, isFocused: focusedConfigField == .weight)
                                             }
-                                            .frame(width: 80)
-                                            .padding(10)
-                                            .contentShape(Rectangle())
-                                            .onTapGesture { focusedConfigField = .weight }
-                                            .appTextFieldStyle(.inset, isFocused: focusedConfigField == .weight)
+                                            .padding()
                                         }
-                                        .padding()
+                                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     }
-                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                    
+
                                     // Rest
                                     VStack(spacing: 0) {
                                         HStack {
@@ -2007,6 +2019,16 @@ struct ExerciseConfigSheet: View {
                                     targetWeight: nil,
                                     durationSeconds: totalSeconds,
                                     restSeconds: actualRest,
+                                    notes: exerciseNotes
+                                )
+                            } else if isBodyweight {
+                                await viewModel.addExercise(
+                                    exerciseId: exercise.id,
+                                    sets: sets,
+                                    repsTarget: repsTarget,
+                                    targetWeight: nil,
+                                    durationSeconds: nil,
+                                    restSeconds: restSeconds,
                                     notes: exerciseNotes
                                 )
                             } else {
@@ -2211,16 +2233,23 @@ struct EditExerciseSheet: View {
     }
 
     var isCardio: Bool {
-        exercise.exerciseType == "cardio"
+        exercise.isCardio
+    }
+
+    var isBodyweight: Bool {
+        exercise.isBodyweight
     }
 
     private var isSaveDisabled: Bool {
         if isCardio {
             return durationMinutes == 0 && durationSeconds == 0
         }
+        guard let reps = Int(repsTarget), reps > 0 else { return true }
+        if isBodyweight {
+            return false
+        }
         let normalized = targetWeight.replacingOccurrences(of: ",", with: ".")
         guard let weight = Double(normalized), weight > 0 else { return true }
-        guard let reps = Int(repsTarget), reps > 0 else { return true }
         return false
     }
     
@@ -2296,7 +2325,7 @@ struct EditExerciseSheet: View {
                         .shadow(color: colorScheme == .light ? Color.black.opacity(0.06) : Color.clear, radius: 12, x: 0, y: 4)
                         
                         // Estimated 1RM Banner
-                        Exercise1RMBanner(exerciseId: exercise.id, isCardio: isCardio)
+                        Exercise1RMBanner(exerciseId: exercise.id, tracksWeight: exercise.tracksWeight)
                         
                         // Configuration Section
                         VStack(alignment: .leading, spacing: 16) {
@@ -2541,39 +2570,41 @@ struct EditExerciseSheet: View {
                                     }
                                     .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-                                    // Weight
-                                    VStack(spacing: 0) {
-                                        HStack {
-                                            Text("\(String(localized: "Weight")) (\(unitManager.weightUnit))")
-                                                .font(.subheadline)
-                                                .fontWeight(.medium)
-                                                .foregroundStyle(Color.appText)
-
-                                            Spacer()
-
+                                    // Weight (strength only)
+                                    if !isBodyweight {
+                                        VStack(spacing: 0) {
                                             HStack {
-                                                TextField("", text: $targetWeight)
+                                                Text("\(String(localized: "Weight")) (\(unitManager.weightUnit))")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
                                                     .foregroundStyle(Color.appText)
-                                                    .keyboardType(.decimalPad)
-                                                    .multilineTextAlignment(.trailing)
-                                                    .focused($focusedEditField, equals: .weight)
-                                                    .onChange(of: targetWeight) { _, newValue in
-                                                        let sanitized = sanitizeWeightInput(newValue)
-                                                        if sanitized != newValue {
-                                                            targetWeight = sanitized
+
+                                                Spacer()
+
+                                                HStack {
+                                                    TextField("", text: $targetWeight)
+                                                        .foregroundStyle(Color.appText)
+                                                        .keyboardType(.decimalPad)
+                                                        .multilineTextAlignment(.trailing)
+                                                        .focused($focusedEditField, equals: .weight)
+                                                        .onChange(of: targetWeight) { _, newValue in
+                                                            let sanitized = sanitizeWeightInput(newValue)
+                                                            if sanitized != newValue {
+                                                                targetWeight = sanitized
+                                                            }
                                                         }
-                                                    }
+                                                }
+                                                .frame(width: 80)
+                                                .padding(10)
+                                                .contentShape(Rectangle())
+                                                .onTapGesture { focusedEditField = .weight }
+                                                .appTextFieldStyle(.inset, isFocused: focusedEditField == .weight)
                                             }
-                                            .frame(width: 80)
-                                            .padding(10)
-                                            .contentShape(Rectangle())
-                                            .onTapGesture { focusedEditField = .weight }
-                                            .appTextFieldStyle(.inset, isFocused: focusedEditField == .weight)
+                                            .padding()
                                         }
-                                        .padding()
+                                        .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     }
-                                    .background(Color.appSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                    
+
                                     // Rest
                                     VStack(spacing: 0) {
                                         HStack {
@@ -2696,6 +2727,16 @@ struct EditExerciseSheet: View {
                                     targetWeight: nil,
                                     durationSeconds: totalSeconds,
                                     restSeconds: actualRest,
+                                    notes: exerciseNotes
+                                )
+                            } else if isBodyweight {
+                                await viewModel.updateExercise(
+                                    id: routineExercise.id,
+                                    sets: sets,
+                                    repsTarget: repsTarget,
+                                    targetWeight: nil,
+                                    durationSeconds: nil,
+                                    restSeconds: restSeconds,
                                     notes: exerciseNotes
                                 )
                             } else {

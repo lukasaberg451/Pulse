@@ -566,7 +566,8 @@ struct WorkoutSummaryView: View {
                 exerciseCard(
                     name: group.exercise.name,
                     sets: group.sets,
-                    isCardio: group.exercise.exerciseType == "cardio"
+                    isCardio: group.exercise.isCardio,
+                    isBodyweight: group.exercise.isBodyweight
                 )
                 .opacity(animationTrigger ? 1 : 0)
                 .offset(y: animationTrigger ? 0 : 20)
@@ -575,7 +576,7 @@ struct WorkoutSummaryView: View {
         }
     }
     
-    private func exerciseCard(name: String, sets: [LocalWorkoutSet], isCardio: Bool) -> some View {
+    private func exerciseCard(name: String, sets: [LocalWorkoutSet], isCardio: Bool, isBodyweight: Bool) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
                 IconBadge(
@@ -595,6 +596,9 @@ struct WorkoutSummaryView: View {
 
                     if isCardio {
                         Text("DURATION", comment: "Column header")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    } else if isBodyweight {
+                        Text("REPS", comment: "Column header")
                             .frame(maxWidth: .infinity, alignment: .center)
                     } else {
                         Text("WEIGHT", comment: "Column header")
@@ -619,7 +623,7 @@ struct WorkoutSummaryView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 
                 ForEach(sets, id: \.id) { set in
-                    setRow(set: set, isCardio: isCardio)
+                    setRow(set: set, isCardio: isCardio, isBodyweight: isBodyweight)
                 }
             }
         }
@@ -635,7 +639,7 @@ struct WorkoutSummaryView: View {
         .shadow(color: colorScheme == .light ? Color.black.opacity(0.08) : Color.clear, radius: 16, x: 0, y: 6)
     }
     
-    private func setRow(set: LocalWorkoutSet, isCardio: Bool) -> some View {
+    private func setRow(set: LocalWorkoutSet, isCardio: Bool, isBodyweight: Bool) -> some View {
         let routineExercise = routineExercises.first(where: {
             $0.exerciseId == set.exerciseId && $0.orderIndex == (set.orderIndex ?? Int.max)
         })
@@ -659,6 +663,23 @@ struct WorkoutSummaryView: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else if let targetDuration = routineExercise?.durationSeconds {
                     Text(formattedSetDuration(targetDuration))
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.appTertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    Text("-")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.appTertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            } else if isBodyweight {
+                if let reps = set.reps {
+                    Text("\(reps)")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(set.completed ? Color.appText : Color.appTertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else if let targetReps = routineExercise?.repsTarget {
+                    Text(targetReps)
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.appTertiaryText)
                         .frame(maxWidth: .infinity, alignment: .center)

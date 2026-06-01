@@ -55,6 +55,10 @@ class LocalExercise {
         self.lastSyncedAt = lastSyncedAt
     }
     
+    var isCardio: Bool { exerciseType == "cardio" }
+    var isBodyweight: Bool { exerciseType == "bodyweight" }
+    var tracksWeight: Bool { exerciseType == "strength" }
+
     // Convert to Exercise struct
     func toExercise() -> Exercise {
         Exercise(

@@ -154,7 +154,10 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
               currentRoutineExercise.exerciseId == exerciseId else {
             return
         }
-        
+
+        let exercise = exercises.first { $0.id == exerciseId }
+        let storedWeight: Double? = exercise?.isBodyweight == true ? nil : weight
+
         let currentOrderIndex = currentRoutineExercise.orderIndex
         if let setIndex = sets.firstIndex(where: {
             $0.exerciseId == exerciseId &&
@@ -166,7 +169,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             updateSet(
                 set: set,
                 reps: reps,
-                weight: weight,
+                weight: storedWeight,
                 durationSeconds: durationSeconds,
                 completed: true
             )
@@ -922,7 +925,7 @@ class OfflineActiveWorkoutViewModel: ObservableObject {
             guard let weight = set.weight, weight > 0,
                   let reps = set.reps, reps >= 1, reps <= 10 else { return false }
             let exercise = exercises.first { $0.id == set.exerciseId }
-            return exercise?.exerciseType != "cardio"
+            return exercise?.tracksWeight == true
         }
         
         guard !eligibleSets.isEmpty else { return }

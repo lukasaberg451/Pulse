@@ -381,7 +381,7 @@ struct DashboardView: View {
                         exerciseId: exerciseId,
                         setNumber: setNumber,
                         reps: exercise.isCardio ? nil : exercise.reps,
-                        weight: exercise.isCardio ? nil : exercise.weightKg,
+                        weight: (exercise.isCardio || exercise.isBodyweight) ? nil : exercise.weightKg,
                         durationSeconds: exercise.isCardio ? exercise.durationSeconds : nil,
                         orderIndex: orderIndex,
                         completed: true

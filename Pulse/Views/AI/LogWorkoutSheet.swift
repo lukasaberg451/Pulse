@@ -377,6 +377,16 @@ struct LogWorkoutSheet: View {
                         }
                         .font(.caption)
                         .foregroundStyle(Color.appSecondaryText)
+                    } else if exercise.isBodyweight {
+                        HStack(spacing: 8) {
+                            Text("\(exercise.sets) sets")
+                            if let reps = exercise.reps {
+                                Text("·")
+                                Text("\(reps) reps")
+                            }
+                        }
+                        .font(.caption)
+                        .foregroundStyle(Color.appSecondaryText)
                     } else {
                         HStack(spacing: 8) {
                             Text("\(exercise.sets) sets")
@@ -471,6 +481,18 @@ struct LogWorkoutSheet: View {
                     EditorNumberField(label: "Duration (min)", value: Binding(
                         get: { (parsedWorkout?.exercises[index].durationSeconds ?? 0) / 60 },
                         set: { parsedWorkout?.exercises[index].durationSeconds = $0 == 0 ? nil : $0 * 60 }
+                    ))
+                }
+            } else if exercise.isBodyweight {
+                HStack(spacing: 12) {
+                    EditorNumberField(label: "Sets", value: Binding(
+                        get: { parsedWorkout?.exercises[index].sets ?? 0 },
+                        set: { parsedWorkout?.exercises[index].sets = $0 }
+                    ))
+
+                    EditorNumberField(label: "Reps", value: Binding(
+                        get: { parsedWorkout?.exercises[index].reps ?? 0 },
+                        set: { parsedWorkout?.exercises[index].reps = $0 == 0 ? nil : $0 }
                     ))
                 }
             } else {

@@ -33,7 +33,15 @@ struct ParsedExercise: Codable, Identifiable {
     var isCardio: Bool {
         exerciseType == "cardio"
     }
-    
+
+    var isBodyweight: Bool {
+        exerciseType == "bodyweight"
+    }
+
+    var tracksWeight: Bool {
+        exerciseType == "strength"
+    }
+
     enum Confidence: String, Codable {
         case high
         case medium
@@ -121,7 +129,15 @@ struct ParsedRoutineExercise: Codable, Identifiable {
     var isCardio: Bool {
         exerciseType == "cardio"
     }
-    
+
+    var isBodyweight: Bool {
+        exerciseType == "bodyweight"
+    }
+
+    var tracksWeight: Bool {
+        exerciseType == "strength"
+    }
+
     enum CodingKeys: String, CodingKey {
         case id
         case name

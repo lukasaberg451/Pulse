@@ -35,4 +35,8 @@ struct Exercise: Codable, Identifiable {
         case createdAt = "created_at"
         case isCustom = "is_custom"
     }
+
+    var isCardio: Bool { exerciseType == "cardio" }
+    var isBodyweight: Bool { exerciseType == "bodyweight" }
+    var tracksWeight: Bool { exerciseType == "strength" }
 }
