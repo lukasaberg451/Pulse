@@ -1015,10 +1015,12 @@ struct Exercise1RMDetailView: View {
                     .offset(y: animationTrigger ? 0 : 16)
                     .animation(.easeOut(duration: 0.4).delay(0.4), value: animationTrigger)
 
-                    Text("Estimated using the Epley formula", comment: "Note explaining the 1RM calculation method")
+                    Text("Estimated using the Epley formula from sets between 1 and 10 reps", comment: "Note explaining the 1RM calculation method and rep range")
                         .font(.caption2)
                         .foregroundStyle(Color.appSecondaryText.opacity(0.7))
+                        .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
+                        .padding(.horizontal)
                         .padding(.top, 4)
                         .opacity(animationTrigger ? 1 : 0)
                         .offset(y: animationTrigger ? 0 : 16)

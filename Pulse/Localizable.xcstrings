@@ -12650,64 +12650,8 @@
         }
       }
     },
-    "Estimated using the Epley formula" : {
-      "comment" : "Note explaining the 1RM calculation method",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geschätzt mit der Epley-Formel"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estimado con la fórmula de Epley"
-          }
-        },
-        "es-419" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estimado con la fórmula de Epley"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estimé avec la formule d'Epley"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Epley公式による推定"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Epley 공식으로 추정"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geschat met de Epley-formule"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estimado usando a fórmula de Epley"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beräknat med Epleys formel"
-          }
-        }
-      }
+    "Estimated using the Epley formula from sets between 1 and 10 reps" : {
+      "comment" : "Note explaining the 1RM calculation method and rep range"
     },
     "exercise" : {
       "localizations" : {
