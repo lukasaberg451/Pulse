@@ -240,10 +240,8 @@ struct LoginView: View {
                 SafariView(url: url)
                     .ignoresSafeArea()
             }
-            .navigationBarBackButtonHidden(authViewModel.isLoading)
             .toolbar {
             }
-            .toolbar(authViewModel.isLoading ? .hidden : .automatic, for: .navigationBar)
             .sentryScreen("Login")
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .sheet(isPresented: $showingForgotPassword) {
@@ -252,19 +250,6 @@ struct LoginView: View {
                     .sheetContentTransition()
             }
         }
-        .overlay(content: {
-            if authViewModel.isLoading {
-                ZStack {
-                    Color.appBackground
-                    LinearGradient.dashboardBackground
-
-                    Image("LoadingLogo")
-                }
-                .ignoresSafeArea()
-                .transition(.opacity)
-            }
-        })
-        .animation(.easeInOut, value: authViewModel.isLoading)
     }
 }
 
@@ -328,7 +313,7 @@ struct ForgotPasswordView: View {
             }
         }
         .presentationBackground(LinearGradient.dashboardBackground)
-        .animation(.easeInOut, value: viewModel.isLoading)
+        .animation(.easeInOut(duration: 0.5), value: viewModel.isLoading)
         .animation(.easeInOut, value: viewModel.step)
         .onDisappear {
             viewModel.reset()

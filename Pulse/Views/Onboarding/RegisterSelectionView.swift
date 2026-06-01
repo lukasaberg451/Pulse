@@ -149,18 +149,5 @@ struct RegisterSelectionView: View {
             }
             .toolbarBackground(Color.appBackground, for: .navigationBar)
         }
-        .overlay {
-            if authViewModel.isLoading {
-                ZStack {
-                    Color.appBackground
-                    LinearGradient.dashboardBackground
-                    
-                    Image("LoadingLogo")
-                }
-                .ignoresSafeArea()
-                .transition(.opacity)
-            }
-        }
-        .animation(.easeInOut, value: authViewModel.isLoading)
     }
 }

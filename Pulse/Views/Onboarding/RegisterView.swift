@@ -439,18 +439,5 @@ struct RegisterView: View {
             .sentryScreen("Register")
             .toolbarBackground(Color.appBackground, for: .navigationBar)
         }
-        .overlay {
-            if authViewModel.isRegistering {
-                ZStack {
-                    Color.appBackground
-                    LinearGradient.dashboardBackground
-                    
-                    Image("LoadingLogo")
-                }
-                .ignoresSafeArea()
-                .transition(.opacity)
-            }
-        }
-        .animation(.easeInOut, value: authViewModel.isRegistering)
     }
 }

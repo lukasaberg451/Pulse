@@ -112,6 +112,7 @@ struct PulseApp: App {
     @State private var showSplash = !PulseApp.isUITesting
     @State private var selectedTab: HomeTab = .dashboard
     @State private var appUpdateStatus: AppUpdateStatus = .upToDate
+    @State private var showAuthLoadingBridge = false
     
     // SwiftData model container for offline support
     let modelContainer: ModelContainer
@@ -212,14 +213,24 @@ struct PulseApp: App {
                 // Bridging overlay: covers the view tree swap while
                 // isLoading is still true but PostLoginLoadingView
                 // hasn't been activated yet (prevents dashboard flash).
-                if authViewModel.isLoading && !showPostLoginLoading {
-                    ZStack {
-                        Color.appBackground
-                        LinearGradient.dashboardBackground
-                        Image("LoadingLogo")
-                    }
-                    .ignoresSafeArea()
+                ZStack {
+                    Color.appBackground
+                    LinearGradient.dashboardBackground
+                    Image("LoadingLogo")
                 }
+                .ignoresSafeArea()
+                .opacity(showAuthLoadingBridge ? 1 : 0)
+                .animation(.easeInOut(duration: 0.5), value: showAuthLoadingBridge)
+                .allowsHitTesting(showAuthLoadingBridge)
+            }
+            .onChange(of: authViewModel.isLoading) { _, _ in
+                updateAuthLoadingBridge()
+            }
+            .onChange(of: authViewModel.isRegistering) { _, _ in
+                updateAuthLoadingBridge()
+            }
+            .onChange(of: showPostLoginLoading) { _, _ in
+                updateAuthLoadingBridge()
             }
             .overlay {
                 if showPostLoginLoading {
@@ -302,6 +313,11 @@ struct PulseApp: App {
 
         }
         .modelContainer(modelContainer)
+    }
+
+    private func updateAuthLoadingBridge() {
+        let busy = authViewModel.isLoading || authViewModel.isRegistering
+        showAuthLoadingBridge = busy && !showPostLoginLoading
     }
 
     private func checkForAppUpdate() {
