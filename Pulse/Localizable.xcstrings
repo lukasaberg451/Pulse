@@ -35008,6 +35008,9 @@
         }
       }
     },
+    "TYPE %@ TO CONFIRM" : {
+      "comment" : "Delete account confirmation instruction"
+    },
     "Unable to get Apple ID credential." : {
       "localizations" : {
         "de" : {

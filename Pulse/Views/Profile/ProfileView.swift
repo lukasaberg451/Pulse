@@ -1263,7 +1263,7 @@ struct DeleteAccountConfirmationSheet: View {
                         .padding(.horizontal)
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(verbatim: "TYPE DELETE TO CONFIRM")
+                        Text("TYPE \(Text(verbatim: "DELETE").foregroundColor(.red).fontWeight(.heavy)) TO CONFIRM", comment: "Delete account confirmation instruction")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Color.appSecondaryText)
 
