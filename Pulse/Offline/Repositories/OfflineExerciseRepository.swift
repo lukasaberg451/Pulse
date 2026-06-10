@@ -52,6 +52,54 @@ class OfflineExerciseRepository {
     func getCachedExercises() throws -> [Exercise] {
         return try fetchLocalExercises()
     }
+
+    /// One-shot refresh that re-fetches all cached exercises from Supabase
+    /// and updates their fields in place. Used to propagate schema changes
+    /// (e.g. the introduction of the bodyweight exercise type) to existing
+    /// SwiftData caches after an app update.
+    func refreshExerciseTypesIfNeeded() async {
+        let migrationKey = "hasRefreshedExerciseTypes_bodyweight_v1"
+        guard !UserDefaults.standard.bool(forKey: migrationKey) else { return }
+
+        do {
+            let descriptor = FetchDescriptor<LocalExercise>()
+            let localExercises = try modelContext.fetch(descriptor)
+            guard !localExercises.isEmpty else {
+                UserDefaults.standard.set(true, forKey: migrationKey)
+                return
+            }
+
+            let ids = localExercises.map { $0.id.uuidString }
+            let remote: [Exercise] = try await supabase
+                .from("exercises")
+                .select()
+                .in("id", values: ids)
+                .execute()
+                .value
+
+            let remoteById = Dictionary(uniqueKeysWithValues: remote.map { ($0.id, $0) })
+
+            for local in localExercises {
+                guard let updated = remoteById[local.id] else { continue }
+                local.name = updated.name
+                local.exerciseDescription = updated.description
+                local.muscleGroup = updated.muscleGroup
+                local.secondaryMuscleGroup = updated.secondaryMuscleGroup
+                local.equipment = updated.equipment
+                local.instructions = updated.instructions
+                local.exerciseType = updated.exerciseType
+                local.difficulty = updated.difficulty
+                local.isCustom = updated.isCustom ?? false
+                local.lastSyncedAt = Date()
+            }
+
+            try modelContext.save()
+            UserDefaults.standard.set(true, forKey: migrationKey)
+            debugLog("✅ Refreshed exercise types for \(localExercises.count) cached exercises")
+        } catch {
+            debugLog("⚠️ Failed to refresh exercise types: \(error)")
+        }
+    }
     
     // MARK: - Routines
     

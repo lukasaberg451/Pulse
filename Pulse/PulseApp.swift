@@ -178,6 +178,10 @@ struct PulseApp: App {
                                     tourManager.start()
                                 }
                             }
+                            Task {
+                                await OfflineExerciseRepository(modelContext: modelContainer.mainContext)
+                                    .refreshExerciseTypesIfNeeded()
+                            }
                         }
                 } else {
                     AuthSelectionView(authViewModel: authViewModel)
@@ -271,6 +275,8 @@ struct PulseApp: App {
                 Task {
                     if isAuthenticated {
                         await subscriptionManager.syncUser()
+                        await OfflineExerciseRepository(modelContext: modelContainer.mainContext)
+                            .refreshExerciseTypesIfNeeded()
                     } else {
                         await subscriptionManager.logout()
                     }
