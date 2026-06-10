@@ -110,6 +110,81 @@ final class ParsedWorkoutTests: XCTestCase {
         XCTAssertFalse(exercise.isCardio)
     }
 
+    // MARK: - ParsedExercise.isBodyweight / tracksWeight
+
+    func testIsBodyweightTrueForBodyweightType() {
+        let exercise = ParsedExercise(name: "Push Ups", sets: 3, reps: 15, weightKg: nil, exerciseType: "bodyweight", confidence: .high, note: nil)
+        XCTAssertTrue(exercise.isBodyweight)
+        XCTAssertFalse(exercise.isCardio)
+        XCTAssertFalse(exercise.tracksWeight)
+    }
+
+    func testIsBodyweightFalseForStrengthType() {
+        let exercise = ParsedExercise(name: "Bench Press", sets: 4, reps: 8, weightKg: 80, exerciseType: "strength", confidence: .high, note: nil)
+        XCTAssertFalse(exercise.isBodyweight)
+        XCTAssertTrue(exercise.tracksWeight)
+    }
+
+    func testTracksWeightOnlyForStrength() {
+        let strength = ParsedExercise(name: "Squat", sets: 3, reps: 5, weightKg: 100, exerciseType: "strength", confidence: .high, note: nil)
+        let bodyweight = ParsedExercise(name: "Pull Up", sets: 3, reps: 10, weightKg: nil, exerciseType: "bodyweight", confidence: .high, note: nil)
+        let cardio = ParsedExercise(name: "Running", sets: 1, reps: nil, weightKg: nil, durationSeconds: 1800, exerciseType: "cardio", confidence: .high, note: nil)
+        let unknown = ParsedExercise(name: "Other", sets: 1, reps: 10, weightKg: nil, exerciseType: nil, confidence: .low, note: nil)
+
+        XCTAssertTrue(strength.tracksWeight)
+        XCTAssertFalse(bodyweight.tracksWeight)
+        XCTAssertFalse(cardio.tracksWeight)
+        XCTAssertFalse(unknown.tracksWeight)
+    }
+
+    func testParsedExerciseDecodesBodyweightType() throws {
+        let json = """
+        {
+            "name": "Push Ups",
+            "sets": 3,
+            "reps": 15,
+            "weight_kg": null,
+            "exercise_type": "bodyweight",
+            "confidence": "high"
+        }
+        """.data(using: .utf8)!
+
+        let exercise = try JSONDecoder().decode(ParsedExercise.self, from: json)
+        XCTAssertEqual(exercise.exerciseType, "bodyweight")
+        XCTAssertTrue(exercise.isBodyweight)
+        XCTAssertFalse(exercise.tracksWeight)
+        XCTAssertNil(exercise.weightKg)
+        XCTAssertEqual(exercise.reps, 15)
+    }
+
+    func testParsedRoutineExerciseBodyweightHelpers() {
+        let bodyweight = ParsedRoutineExercise(name: "Plank", sets: 3, repsTarget: "60", targetWeight: nil, exerciseType: "bodyweight", restSeconds: 30, confidence: .high, note: nil)
+        XCTAssertTrue(bodyweight.isBodyweight)
+        XCTAssertFalse(bodyweight.isCardio)
+        XCTAssertFalse(bodyweight.tracksWeight)
+    }
+
+    func testParsedRoutineExerciseDecodesBodyweightType() throws {
+        let json = """
+        {
+            "name": "Pull Ups",
+            "sets": 4,
+            "reps_target": "8-10",
+            "target_weight": null,
+            "exercise_type": "bodyweight",
+            "rest_seconds": 90,
+            "confidence": "high"
+        }
+        """.data(using: .utf8)!
+
+        let exercise = try JSONDecoder().decode(ParsedRoutineExercise.self, from: json)
+        XCTAssertEqual(exercise.exerciseType, "bodyweight")
+        XCTAssertTrue(exercise.isBodyweight)
+        XCTAssertFalse(exercise.tracksWeight)
+        XCTAssertNil(exercise.targetWeight)
+        XCTAssertEqual(exercise.repsTarget, "8-10")
+    }
+
     // MARK: - ParsedExercise generates local UUID when missing
 
     func testParsedExerciseGeneratesIdWhenMissing() throws {
