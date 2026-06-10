@@ -684,7 +684,8 @@ struct ExerciseCard: View {
                         ? String(format: "%.0f", displayWeight)
                         : String(format: "%.1f", displayWeight)
                     if let reps = lastSet.reps {
-                        Text("\(String(localized: "Last session:")) \(formatted) \(unit) × \(reps) reps")
+                        let repsLabel = reps == 1 ? String(localized: "rep") : String(localized: "reps")
+                        Text("\(String(localized: "Last session:")) \(formatted) \(unit) × \(reps) \(repsLabel)")
                             .font(.caption)
                             .foregroundStyle(Color.appAccent)
                     } else {
@@ -782,32 +783,39 @@ struct ExerciseCard: View {
     private var exerciseSubtitle: some View {
         switch status {
         case .completed:
-            Text("\(completedSetsCount)/\(totalSetsCount) \(String(localized: "sets completed"))")
+            let completedLabel = totalSetsCount == 1 ? String(localized: "set completed") : String(localized: "sets completed")
+            Text("\(completedSetsCount)/\(totalSetsCount) \(completedLabel)")
                 .font(.caption)
                 .foregroundStyle(.green)
         case .current:
             if let reps = routineExercise.repsTarget {
-                Text("\(completedSetsCount)/\(totalSetsCount) \(String(localized: "sets")) \u{2022} \(reps) \(String(localized: "reps")) \u{2022} \(routineExercise.restSeconds)s \(String(localized: "rest"))")
+                let setsLabel = totalSetsCount == 1 ? String(localized: "set") : String(localized: "sets")
+                let repsLabel = reps.trimmingCharacters(in: .whitespaces) == "1" ? String(localized: "rep") : String(localized: "reps")
+                Text("\(completedSetsCount)/\(totalSetsCount) \(setsLabel) \u{2022} \(reps) \(repsLabel) \u{2022} \(routineExercise.restSeconds)s \(String(localized: "rest"))")
                     .font(.caption)
                     .foregroundStyle(Color.appSecondaryText)
             } else if let durationSeconds = routineExercise.durationSeconds {
                 let minutes = durationSeconds / 60
                 let seconds = durationSeconds % 60
                 let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
-                Text("\(completedSetsCount)/\(totalSetsCount) \(String(localized: "sets")) \u{2022} \(durationText) \u{2022} \(routineExercise.restSeconds)s \(String(localized: "rest"))")
+                let setsLabel = totalSetsCount == 1 ? String(localized: "set") : String(localized: "sets")
+                Text("\(completedSetsCount)/\(totalSetsCount) \(setsLabel) \u{2022} \(durationText) \u{2022} \(routineExercise.restSeconds)s \(String(localized: "rest"))")
                     .font(.caption)
                     .foregroundStyle(Color.appSecondaryText)
             }
         case .upcoming:
             if let reps = routineExercise.repsTarget {
-                Text("\(routineExercise.sets) \(String(localized: "sets")) \u{00d7} \(reps) \(String(localized: "reps"))")
+                let setsLabel = routineExercise.sets == 1 ? String(localized: "set") : String(localized: "sets")
+                let repsLabel = reps.trimmingCharacters(in: .whitespaces) == "1" ? String(localized: "rep") : String(localized: "reps")
+                Text("\(routineExercise.sets) \(setsLabel) \u{00d7} \(reps) \(repsLabel)")
                     .font(.caption)
                     .foregroundStyle(Color.appTertiaryText)
             } else if let durationSeconds = routineExercise.durationSeconds {
                 let minutes = durationSeconds / 60
                 let seconds = durationSeconds % 60
                 let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
-                Text("\(routineExercise.sets) \(String(localized: "sets")) \u{00d7} \(durationText)")
+                let setsLabel = routineExercise.sets == 1 ? String(localized: "set") : String(localized: "sets")
+                Text("\(routineExercise.sets) \(setsLabel) \u{00d7} \(durationText)")
                     .font(.caption)
                     .foregroundStyle(Color.appTertiaryText)
             }
@@ -1131,8 +1139,9 @@ struct RepsConfirmationRow: View {
     }
 
     var body: some View {
+        let repsLabel = targetReps == 1 ? String(localized: "rep") : String(localized: "reps")
         VStack(spacing: 8) {
-            Text("Did you hit \(targetReps) reps?")
+            Text("Did you hit \(targetReps) \(repsLabel)?")
                 .font(.caption.weight(.medium))
                 .foregroundStyle(Color.appSecondaryText)
                 .offset(y: showContent ? 0 : 5)

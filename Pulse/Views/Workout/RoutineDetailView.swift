@@ -88,7 +88,9 @@ struct RoutineDetailView: View {
                         .foregroundStyle(Color.appText)
                     
                     if let reps = routineExercise.repsTarget {
-                        let base = "\(routineExercise.sets) \(String(localized: "sets")) × \(reps) \(String(localized: "reps"))"
+                        let setsLabel = routineExercise.sets == 1 ? String(localized: "set") : String(localized: "sets")
+                        let repsLabel = reps.trimmingCharacters(in: .whitespaces) == "1" ? String(localized: "rep") : String(localized: "reps")
+                        let base = "\(routineExercise.sets) \(setsLabel) × \(reps) \(repsLabel)"
                         if let weight = routineExercise.targetWeight, weight > 0 {
                             let displayWeight = UnitManager.shared.displayWeight(weight)
                             let formatted = displayWeight.truncatingRemainder(dividingBy: 1) == 0
@@ -106,7 +108,8 @@ struct RoutineDetailView: View {
                         let minutes = durationSeconds / 60
                         let seconds = durationSeconds % 60
                         let durationText = seconds > 0 ? "\(minutes)m \(seconds)s" : "\(minutes)m"
-                        Text("\(routineExercise.sets) \(String(localized: "sets")) × \(durationText)")
+                        let setsLabel = routineExercise.sets == 1 ? String(localized: "set") : String(localized: "sets")
+                        Text("\(routineExercise.sets) \(setsLabel) × \(durationText)")
                             .font(.caption)
                             .foregroundStyle(Color.appSecondaryText)
                     }

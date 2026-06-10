@@ -594,6 +594,16 @@
         }
       }
     },
+    "%.1f %@ × %lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$.1f %2$@ × %3$lld %4$@"
+          }
+        }
+      }
+    },
     "%.1f %@ × %lld reps" : {
       "localizations" : {
         "de" : {
@@ -972,7 +982,18 @@
         }
       }
     },
+    "%@ %@ %@ × %lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ %3$@ × %4$lld %5$@"
+          }
+        }
+      }
+    },
     "%@ %@ %@ × %lld reps" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1359,6 +1380,7 @@
       }
     },
     "%@ reps" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1969,6 +1991,7 @@
       }
     },
     "%lld reps" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2027,6 +2050,7 @@
       }
     },
     "%lld sets" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -11009,7 +11033,18 @@
         }
       }
     },
+    "Did you hit %lld %@?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Did you hit %1$lld %2$@?"
+          }
+        }
+      }
+    },
     "Did you hit %lld reps?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -27588,6 +27623,9 @@
         }
       }
     },
+    "rep" : {
+
+    },
     "reps" : {
       "comment" : "Reps label in set row",
       "localizations" : {
@@ -30274,6 +30312,9 @@
           }
         }
       }
+    },
+    "set completed" : {
+
     },
     "Set New Password" : {
       "comment" : "Title for new password step",

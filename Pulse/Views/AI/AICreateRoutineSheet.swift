@@ -360,9 +360,10 @@ struct AICreateRoutineSheet: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.appText)
                     
+                    let setsLabel = exercise.sets == 1 ? String(localized: "set") : String(localized: "sets")
                     if exercise.isCardio {
                         HStack(spacing: 8) {
-                            Text("\(exercise.sets) sets")
+                            Text("\(exercise.sets) \(setsLabel)")
                             if let duration = exercise.durationSeconds {
                                 Text("·")
                                 Text(formattedDuration(duration))
@@ -372,10 +373,11 @@ struct AICreateRoutineSheet: View {
                         .foregroundStyle(Color.appSecondaryText)
                     } else {
                         HStack(spacing: 8) {
-                            Text("\(exercise.sets) sets")
+                            Text("\(exercise.sets) \(setsLabel)")
                             if let reps = exercise.repsTarget {
+                                let repsLabel = reps.trimmingCharacters(in: .whitespaces) == "1" ? String(localized: "rep") : String(localized: "reps")
                                 Text("·")
-                                Text("\(reps) reps")
+                                Text("\(reps) \(repsLabel)")
                             }
                             if !exercise.isBodyweight, let weight = exercise.targetWeight {
                                 Text("·")
