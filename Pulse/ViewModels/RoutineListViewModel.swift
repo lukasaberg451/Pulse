@@ -23,9 +23,20 @@ class RoutineListViewModel: ObservableObject {
     private let repository = RoutineRepository()
     private let workoutRepository = WorkoutRepository()
     private let syncService = WorkoutSyncService.shared
-    
+    private var cancellables = Set<AnyCancellable>()
+
     var modelContext: ModelContext?
-    
+
+    init() {
+        NotificationCenter.default.publisher(for: .networkRestored)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    await self?.loadRoutines()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
     func loadRoutines() async {
         isLoading = true
         errorMessage = nil

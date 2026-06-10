@@ -59,6 +59,14 @@ class DashboardViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: .networkRestored)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    await self?.refreshAll()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     func refreshAll() async {

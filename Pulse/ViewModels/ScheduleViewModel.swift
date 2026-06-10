@@ -58,6 +58,15 @@ class ScheduleViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: .networkRestored)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    debugLog("📅 Schedule: Network restored, reloading...")
+                    await self?.loadData()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     var currentMonthYear: String {

@@ -14,6 +14,7 @@ import Supabase
 extension Notification.Name {
     static let workoutDataChanged = Notification.Name("workoutDataChanged")
     static let routineDataChanged = Notification.Name("routineDataChanged")
+    static let networkRestored = Notification.Name("networkRestored")
 }
 
 @MainActor
@@ -48,6 +49,7 @@ class WorkoutSyncService: ObservableObject {
                 // If we just came back online, trigger sync
                 if wasOffline && isNowOnline {
                     debugLog("🌐 Back online - triggering sync...")
+                    NotificationCenter.default.post(name: .networkRestored, object: nil)
                     await self?.syncPendingWorkouts()
                     await self?.syncExercisesAndRoutines()
                     await self?.syncFromServer()
@@ -70,28 +72,29 @@ class WorkoutSyncService: ObservableObject {
         // Start new periodic sync task
         periodicSyncTask = Task { @MainActor in
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 60 * 1_000_000_000) // 60 seconds
+                try? await Task.sleep(nanoseconds: 15 * 1_000_000_000) // 15 seconds
                 guard !Task.isCancelled else { break }
-                
+
                 // Always check connectivity with a real network probe,
                 // since NWPathMonitor can report stale status in some environments
                 let reachable = await checkRealConnectivity()
-                
+
                 if reachable && !isOnline {
                     debugLog("⏰ Periodic check detected connectivity restored (monitor was stale)")
                     isOnline = true
+                    NotificationCenter.default.post(name: .networkRestored, object: nil)
                 } else if !reachable && isOnline {
                     isOnline = false
                 }
-                
+
                 if isOnline {
                     // Always sync pending local workouts (lightweight when nothing pending)
                     await syncPendingWorkouts()
-                    
-                    // Only sync from server every 5th cycle (~5 minutes) to reduce
+
+                    // Only sync from server every 20th cycle (~5 minutes) to reduce
                     // memory and network overhead from the full session comparison
                     serverSyncCounter += 1
-                    if serverSyncCounter >= 5 {
+                    if serverSyncCounter >= 20 {
                         serverSyncCounter = 0
                         debugLog("⏰ Running periodic server sync...")
                         await syncFromServer()
@@ -99,8 +102,8 @@ class WorkoutSyncService: ObservableObject {
                 }
             }
         }
-        
-        debugLog("✅ Periodic sync started (pending: every 60s, server: every ~5min)")
+
+        debugLog("✅ Periodic sync started (pending: every 15s, server: every ~5min)")
     }
     
     /// Perform a lightweight network request to verify actual connectivity

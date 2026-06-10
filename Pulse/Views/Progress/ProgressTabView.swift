@@ -381,7 +381,12 @@ struct WeeklyStatCard: View {
             .font(.caption2.weight(.medium))
             .foregroundStyle(Color.green)
         } else {
-            EmptyView()
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.right")
+                Text("Above your usual")
+            }
+            .font(.caption2.weight(.medium))
+            .hidden()
         }
     }
 }

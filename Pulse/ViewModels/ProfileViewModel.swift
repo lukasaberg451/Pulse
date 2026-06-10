@@ -40,6 +40,14 @@ class ProfileViewModel: ObservableObject {
                 self?.customExercises.sort { $0.name < $1.name }
             }
             .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: .networkRestored)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    await self?.loadProfile()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     var initials: String {

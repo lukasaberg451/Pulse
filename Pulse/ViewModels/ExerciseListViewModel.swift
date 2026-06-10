@@ -20,7 +20,25 @@ class ExerciseListViewModel: ObservableObject {
     private let pageSize = 50  // Load 50 at a time
     private var currentPage = 0
     private let repository = ExerciseRepository.shared
-    
+    private var cancellables = Set<AnyCancellable>()
+
+    init() {
+        NotificationCenter.default.publisher(for: .networkRestored)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    // Only refetch if the initial load failed (empty list while
+                    // offline). Avoid resetting pagination during a brief blip
+                    // after the user has loaded multiple pages.
+                    if self.exercises.isEmpty {
+                        await self.loadExercises()
+                    }
+                    await self.loadCustomExercises()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
     func loadExercises() async {
         isLoading = true
         errorMessage = nil

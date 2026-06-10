@@ -72,6 +72,14 @@ class MilestoneViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: .networkRestored)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    await self?.refreshMilestones()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - Profile

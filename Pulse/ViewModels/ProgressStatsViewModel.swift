@@ -101,6 +101,11 @@ class ProgressStatsViewModel: ObservableObject {
                 await self?.loadStats()
             }
         }
+        NotificationCenter.default.addObserver(forName: .networkRestored, object: nil, queue: nil) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                await self?.loadStats()
+            }
+        }
     }
     
     private func fetchUserProfile() async {

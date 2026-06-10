@@ -38,6 +38,14 @@ class AuthViewModel: ObservableObject{
                     }
                 }
                 .store(in: &cancellables)
+
+            NotificationCenter.default.publisher(for: .networkRestored)
+                .sink { [weak self] _ in
+                    Task { @MainActor [weak self] in
+                        await self?.refreshAfterNetworkRestored()
+                    }
+                }
+                .store(in: &cancellables)
             
             let args = ProcessInfo.processInfo.arguments
 
@@ -169,6 +177,30 @@ class AuthViewModel: ObservableObject{
             debugLog("⚠️ --skip-auth-free sign-in failed: \(error.localizedDescription), falling back to session restore")
             await restoreSession()
         }
+    }
+
+    /// Called when the network comes back after being offline. If the session
+    /// was restored from a cached token while offline, it was never validated
+    /// against the server and `userProfile` may be nil. Refresh both.
+    private func refreshAfterNetworkRestored() async {
+        guard isAuthenticated else { return }
+
+        do {
+            let refreshedSession = try await supabase.auth.refreshSession()
+            self.session = refreshedSession
+        } catch where Self.isNetworkError(error) {
+            debugLog("⚠️ Network restored notification fired but refresh still failed: \(error.localizedDescription)")
+            return
+        } catch {
+            debugLog("❌ Session refresh failed after network restored: \(error.localizedDescription)")
+            self.session = nil
+            self.isAuthenticated = false
+            self.userProfile = nil
+            try? await supabase.auth.signOut()
+            return
+        }
+
+        await fetchUserProfile()
     }
 
     func getInitialSession() async {
